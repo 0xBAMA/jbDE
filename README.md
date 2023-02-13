@@ -4,7 +4,7 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 
 # Setup
 - Requires `libsdl2-dev`, `libglew-dev` on Ubuntu.
-- Make sure to recurse submodules to pull in FastNoise2, tracy, and hoard-of-bitfonts code - `git submodule update --init --recursive`, alternatively just run scripts/init.sh to do the same thing.
+- Make sure to recurse submodules to pull in FastNoise2 and Tracy profiler code - `git submodule update --init --recursive`, alternatively just run scripts/init.sh to do the same thing.
 - Run scripts/build.sh in order to build on Ubuntu. It just automates the building of the executable and moves it to the root directory, as files are referenced relative to that location, and then deletes the build folder (if called with the "clean" option).
 
 ## Features
@@ -45,5 +45,5 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 - PNG encoded data resources with loader/decoder
 	- [bitfontCore2](https://jbaker.graphics/writings/bitfontCore2.html) ( ~140k glyphs from [robhagemans](https://github.com/robhagemans/hoard-of-bitfonts) ) + loader
 	- Collection of palettes from [lospec](https://lospec.com/) + loader
-	- Bad word list - collected from a few different resources
+	- Bad word list - collected from a few different resources, english word blacklists
 	- Color word list - mostly gathered from Wikipedia's tables of names of colors and dyes
