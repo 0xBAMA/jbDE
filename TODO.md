@@ -65,6 +65,7 @@
 	- Are there any more operations I can add?
 		- Some operations require the creation of a new map, because moving the contents in place will corrupt the data.
 		- Currently:
+
 | **Operation**       | **Requires New Map** | **Description**                                                                                          |
 |---------------------|----------------------|----------------------------------------------------------------------------------------------------------|
 | Get Bounding Box    | No                   | Walk the entire map, find minimum and maximum occupied voxels on each axis                               |
@@ -73,6 +74,7 @@
 | Flip                | Yes                  | Invert orientation on some axis                                                                          |
 | Shave               | Yes                  | Get the bounding box, then remove all entries that are greater/less than some threshold on a random axis |
 | Mirror              | Yes                  | Copy contents across some axis - bounding box value for that axis minus the coordinate                   |
+
 	- Blacklisting certain glyphs - hard to go through the full set, 140k is a lot to work with
 		- Only include english characters, only include foreign characters, only include pictograms? something like that
 		- Make sure we have unique IDs, and Black/Whitelist certain IDs
