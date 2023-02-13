@@ -24,8 +24,14 @@
 	- start with Wang Hash
 	- other methods? linear congruential, others? Is a mersene twister implementation practical?
 	- remapping functions
-- Append glyphs to model
-- Append palettes to lospec list ( label, contents )
+- Texture wrapper? Something to make the declaration of textures cleaner
+	- I can do something that just returns a GLuint, because that's how I'm using it now
+- Data resource maintainence utilities
+	- Append glyphs to model
+	- Append palettes to lospec list ( label, contents )
+- [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
+	- Point locations based on [this paper](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
+	- I'm sure there are interesting ways I can use this
 
 --------------------------------------------------------------------------------------------------
 
@@ -57,26 +63,20 @@
 		- heatmap gradient
 		- color temperature sweep
 	- Are there any more operations I can add?
+		- Some operations require the creation of a new map, because moving the contents in place will corrupt the data.
 		- Currently:
-			- Ones that do not require new map
-				- Get Bounding Box
-					- Walk the entire map, find minimum and maximum occupied voxels on each axis
-				- Stamp Random Glyphs
-					- Pick random glyphs and put them into the map at random location
-			- Ones that do require new map ( corruption happens if you reuse the same map over again )
-				- Square Model
-					- Get the bounding box, then create a new map, translating the old map to have only positive contents
-				- Flip
-					- invert orientation on some axis
-				- Shave
-					- get the bounding box, then remove all entries that are greater/less than some threshold on a random axis
-				- Mirror
-					- copy contents across some axis - bounding box value for that axis minus the coordinate
-			- More?
-		- Blacklisting certain glyphs - hard to go through the full set, 140k is a lot to work with
-			- Only include english characters, only include foreign characters, only include pictograms? something like that
-			- Make sure we have unique IDs, and Black/Whitelist certain IDs
-				- How do we maintain this if more glyphs get added? ( append only? probably best solution )
+| **Operation**       | **Requires New Map** | **Description**                                                                                          |
+|---------------------|----------------------|----------------------------------------------------------------------------------------------------------|
+| Get Bounding Box    | No                   | Walk the entire map, find minimum and maximum occupied voxels on each axis                               |
+| Stamp Random Glyphs | No                   | Pick random glyphs and put them into the map at random location                                          |
+| Square Model        | Yes                  | Get the bounding box, then create a new map, translating the old map to have only positive contents      |
+| Flip                | Yes                  | Invert orientation on some axis                                                                          |
+| Shave               | Yes                  | Get the bounding box, then remove all entries that are greater/less than some threshold on a random axis |
+| Mirror              | Yes                  | Copy contents across some axis - bounding box value for that axis minus the coordinate                   |
+	- Blacklisting certain glyphs - hard to go through the full set, 140k is a lot to work with
+		- Only include english characters, only include foreign characters, only include pictograms? something like that
+		- Make sure we have unique IDs, and Black/Whitelist certain IDs
+			- How do we maintain this if more glyphs get added? ( append only? probably best solution )
 - Render mode control
 	- Different cameras
 		- Joukowsky transform <https://www.shadertoy.com/view/tsdyWM>
@@ -86,7 +86,7 @@
 		- Wrighter's Spherical <https://www.shadertoy.com/view/WlfyRs>
 	- different traversal methods
 		- <https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf>
-- Stuff from Voraldo13
+- Stuff from [Voraldo13](https://github.com/0xBAMA/Voraldo13)
 	- Different types of screenshot utilities ( lower priority )
 		- Accumulator
 		- After postprocessing
@@ -97,8 +97,8 @@
 
 ## Siren Plans
 
-	- Need to refit refraction, try this with explicit primitives
-	- Abstract camera projections - see above, "Different cameras"
+- Need to refit refraction, try this with explicit primitives
+- Abstract camera projections - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
 
@@ -130,8 +130,8 @@
 		- Instead of just hard cut red to blue, I want to fade, through white at neutral
 	- Simple cloth sim
 		- SDF intersection? Sphere comes in and affects the sim nodes
-		- Noise based perturbation, like wind
-	- Higher order solver? I think that there's some potential value there
+		- Noise based perturbation, like wind?
+	- Higher order physics solver? I think that there's some potential value there
 
 --------------------------------------------------------------------------------------------------
 
