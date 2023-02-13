@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------------------------
 
 ## Engine Stuff
+
 	- jbDE - WIP - Replaces NQADE
 		- Converting to Vulkan - a little further out
 			- Hardware Raytracing Experimentation, not possible with OpenGL
@@ -29,6 +30,7 @@
 --------------------------------------------------------------------------------------------------
 
 ## Plans for Voraldo14
+
 	- Operation Scripting and Logging - Needs a ground-up redesign
 		- Logging needs seeding for RNG resources so scripting operations can be deterministic
 		- Scripting needs to be able to control everything
@@ -94,6 +96,7 @@
 --------------------------------------------------------------------------------------------------
 
 ## Siren Plans
+
 	- Need to refit refraction, try this with explicit primitives
 	- Abstract camera projections - see above, "Different cameras"
 
@@ -102,15 +105,20 @@
 ## [Website](https://jbaker.graphics/)
 
 ### DEC plans
+
 	- Operators section
 	- 2D section
 
-### Articles - Keeping up with projects as they happen, so they don't pile up again
+### [Articles](https://jbaker.graphics/writings)
+
+#### Keeping up with projects as they happen, so they don't pile up again
+
 	- currently none pending
 
 --------------------------------------------------------------------------------------------------
 
 ## Concrete Future Project Ideas
+
 	- Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( likely on Shadertoy )
 	- Visible Human Data Resampling - MIP chain + 3d sampling
 		- Generate mip chain from original data, allow for arbitrary resampling at arbitrary scales
@@ -128,6 +136,7 @@
 --------------------------------------------------------------------------------------------------
 
 ## More Vague Future Project Ideas
+
 	- More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
 		- that little acquarium simulator thing I wrote about in my notes
 	- RTIOW on the GPU
