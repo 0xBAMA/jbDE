@@ -124,6 +124,7 @@
 		- Higher order solver? I think that there's some potential value there
 	- More stuff with the Erosion thing, I think I have the 3d version worked out pretty well
 		- that little acquarium simulator thing I wrote about in my notes
+	- RTIOW on the GPU
 
 --------------------------------------------------------------------------------------------------
 
