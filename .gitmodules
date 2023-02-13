@@ -1,0 +1,6 @@
+[submodule "src/noise/FastNoise2"]
+	path = src/noise/FastNoise2
+	url = https://github.com/Auburn/FastNoise2.git
+[submodule "src/tracy"]
+	path = src/tracy
+	url = https://github.com/wolfpld/tracy.git
