@@ -131,6 +131,8 @@ void engine::SetupTextureData () {
 		GLuint displayTexture;
 		GLuint blueNoiseTexture;
 		GLuint tridentImage;
+		GLuint bayer2, bayer4, bayer8;
+
 
 		// create the image textures
 		Image initial( config.width, config.height, false );
@@ -156,6 +158,10 @@ void engine::SetupTextureData () {
 		glActiveTexture( GL_TEXTURE4 );
 		glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, blueNoiseImage.width, blueNoiseImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &blueNoiseImage.data[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 		textures[ "Blue Noise" ] = blueNoiseTexture;
 
 		// create the image for the trident
@@ -171,7 +177,36 @@ void engine::SetupTextureData () {
 		trident.PassInImage( tridentImage );
 		textures[ "Trident" ] = tridentImage;
 
-		// add bayer textures from Voraldo13
+		// bayer patterns
+		glActiveTexture( GL_TEXTURE6 );
+		glGenTextures( 1, &bayer2 );
+		glBindTexture( GL_TEXTURE_2D, bayer2 );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 2 ) )[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		textures[ "Bayer2" ] = bayer2;
+
+		glActiveTexture( GL_TEXTURE7 );
+		glGenTextures( 1, &bayer4 );
+		glBindTexture( GL_TEXTURE_2D, bayer4 );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 4 ) )[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		textures[ "Bayer4" ] = bayer4;
+
+		glActiveTexture( GL_TEXTURE8 );
+		glGenTextures( 1, &bayer8 );
+		glBindTexture( GL_TEXTURE_2D, bayer8 );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 8 ) )[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		textures[ "Bayer8" ] = bayer8;
 
 	}
 

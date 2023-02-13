@@ -164,6 +164,7 @@
 	- <https://github.com/InteractiveComputerGraphics/SPlisHSPlasH>
 - 3D Version of Physarum Simulation
 	- I think there's a lot more cool stuff I can do with the physarum thing
+		- Even just using the 2d version, as heightmap, has a lot of potential
 - More Advanced Optics Simulation
 	- need to look at explicit primitives for lens shapes, SDF lens shapes are problematic
 - Experimenting with TinyGLTF and loading of the Intel Sponza models
@@ -212,7 +213,7 @@
 	- Touch sensitivity, how do we make that happen
 - Getting into something with the Shapeoko
 	- Reworking the old gcode generating code, maybe figure out better clearance algorithms?
-		- Previous impl was very much brute force, given the capabilities of the 3018 machine
+		- Previous impl was very much brute force, given the limited cutting capabilities of the 3018 machine
 - Computer Cooler Shroud Mount for the 140mm Fans
 	- Base the design on [the NA-HC4 Heatsink Cover](https://noctua.at/en/na-hc4-chromax-black)
 		- Can we mount to one of these? something to adapt it, would be significantly less 3d printing work
