@@ -12,6 +12,8 @@
 			- Vertexture
 			- SoftBodies
 			- Voraldo
+			- Physarum
+			- Sponza viewer?
 			- Siren
 			- SDFs - SDF validation tool for the DEC
 	- Dithering stuff
@@ -120,6 +122,8 @@
 			- SDF intersection? Sphere comes in and affects the sim nodes
 			- Noise based perturbation, like wind
 		- Higher order solver? I think that there's some potential value there
+	- More stuff with the Erosion thing, I think I have the 3d version worked out pretty well
+		- that little acquarium simulator thing I wrote about in my notes
 
 --------------------------------------------------------------------------------------------------
 
