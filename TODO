@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------------------------
 
 - Engine Stuff
-	- jbDE - WIP - Will replace NQADE
+	- jbDE - WIP - Goal is to replace NQADE
 		- Converting to Vulkan - a little further out
 			- Hardware Raytracing Experimentation, not possible with OpenGL
 		- Adding some kind of thing where projects inherit from a base engine class
