@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------------------------
 
-- Engine Stuff
-	- jbDE - WIP - Goal is to replace NQADE
+## Engine Stuff
+	- jbDE - WIP - Replaces NQADE
 		- Converting to Vulkan - a little further out
 			- Hardware Raytracing Experimentation, not possible with OpenGL
 		- Adding some kind of thing where projects inherit from a base engine class
@@ -28,7 +28,7 @@
 
 --------------------------------------------------------------------------------------------------
 
-- Plans for Voraldo14
+## Plans for Voraldo14
 	- Operation Scripting and Logging - Needs a ground-up redesign
 		- Logging needs seeding for RNG resources so scripting operations can be deterministic
 		- Scripting needs to be able to control everything
@@ -77,13 +77,13 @@
 					- How do we maintain this if more glyphs get added? ( append only? probably best solution )
 	- Render mode control
 		- Different cameras
-			- Joukowsky transform https://www.shadertoy.com/view/tsdyWM
-			- Fisheye https://www.shadertoy.com/view/3sSfDz
-			- Panoramic projection https://www.shadertoy.com/view/clB3Rz
-			- Icosahedral https://www.shadertoy.com/view/4dSyWh
-			- Wrighter's Spherical https://www.shadertoy.com/view/WlfyRs
+			- Joukowsky transform <https://www.shadertoy.com/view/tsdyWM>
+			- Fisheye <https://www.shadertoy.com/view/3sSfDz>
+			- Panoramic projection <https://www.shadertoy.com/view/clB3Rz>
+			- Icosahedral <https://www.shadertoy.com/view/4dSyWh>
+			- Wrighter's Spherical <https://www.shadertoy.com/view/WlfyRs>
 		- different traversal methods
-			- https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf
+			- <https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf>
 	- Stuff from Voraldo13
 		- Different types of screenshot utilities ( lower priority )
 			- Accumulator
@@ -93,22 +93,24 @@
 
 --------------------------------------------------------------------------------------------------
 
-- Siren Plans
+## Siren Plans
 	- Need to refit refraction, try this with explicit primitives
 	- Abstract camera projections - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
 
-- DEC plans ( website )
+## [Website](https://jbaker.graphics/)
+
+### DEC plans
 	- Operators section
 	- 2D section
 
-- Articles - Keeping up with projects as they happen, so they don't pile up again
+### Articles - Keeping up with projects as they happen, so they don't pile up again
 	- currently none pending
 
 --------------------------------------------------------------------------------------------------
 
-- Concrete Future Project Ideas
+## Concrete Future Project Ideas
 	- Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( likely on Shadertoy )
 	- Visible Human Data Resampling - MIP chain + 3d sampling
 		- Generate mip chain from original data, allow for arbitrary resampling at arbitrary scales
@@ -122,17 +124,19 @@
 			- SDF intersection? Sphere comes in and affects the sim nodes
 			- Noise based perturbation, like wind
 		- Higher order solver? I think that there's some potential value there
-	- More stuff with the Erosion thing, I think I have the 3d version worked out pretty well
-		- that little acquarium simulator thing I wrote about in my notes
-	- RTIOW on the GPU
 
 --------------------------------------------------------------------------------------------------
 
-- More Vague Future Project Ideas
+## More Vague Future Project Ideas
+	- More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
+		- that little acquarium simulator thing I wrote about in my notes
+	- RTIOW on the GPU
+		- More raytracing stuff, the next week, the rest of your life books
+		- <https://people.cs.kuleuven.be/~philip.dutre/GI/TotalCompendium.pdf>
 	- Glitch effects using the bitfontCore2 bit masks
 	- Better pixel sorting, add thresholding stuff
 	- Fluid Simulation
-		- https://github.com/InteractiveComputerGraphics/SPlisHSPlasH
+		- <https://github.com/InteractiveComputerGraphics/SPlisHSPlasH>
 	- 3D version of Physarum Simulation
 		- I think there's a lot more cool stuff I can do with the physarum thing
 	- More Advanced Optics Simulation
@@ -146,18 +150,18 @@
 			- only interior surface of walls will show, because the backface is facing the exterior side - I think it's a valid technique
 	- IFS stuff - Nameless wants to do some stuff with this, too - would be cool to collaborate
 		- probabalistic picking of transforms, points in compute shaders
-			- https://flam3.com/flame_draves.pdf
-			- https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf
+			- <https://flam3.com/flame_draves.pdf>
+			- <https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf>
 	- Tree growing stuff
-		- https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf
-		- http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf
+		- <https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf>
+		- <http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf>
 	- Bokeh LUT ( Pencil Map ) - how to apply this?
-		- https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf
+		- <https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf>
 	- Tonemapping/color stuff
 		- Path-to-White tonemapping curves
-			- https://github.com/tizian/tonemapper
-			- https://chrisbrejon.com/articles/ocio-display-transforms-and-misconceptions/
+			- <https://github.com/tizian/tonemapper>
+			- <https://chrisbrejon.com/articles/ocio-display-transforms-and-misconceptions/>
 		- General Color
-			- http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html
+			- <http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html>
 
 --------------------------------------------------------------------------------------------------
