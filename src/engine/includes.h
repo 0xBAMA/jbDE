@@ -100,6 +100,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // simple std::chrono wrapper
 #include "./coreUtils/timer.h"
 
+// OpenGL timer queries wrapper
+#include "./coreUtils/glTimer.h"
+
 // orientation trident
 #include "../trident/trident.h"
 

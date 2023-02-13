@@ -133,7 +133,6 @@ void engine::SetupTextureData () {
 		GLuint tridentImage;
 		GLuint bayer2, bayer4, bayer8;
 
-
 		// create the image textures
 		Image initial( config.width, config.height, false );
 		glGenTextures( 1, &accumulatorTexture );
@@ -232,21 +231,9 @@ void engine::SetupTextureData () {
 void engine::LoadData () {
 	ZoneScoped;
 
-	{
-		Block Start( "Loading Palettes" );
-		LoadPalettes();
-	}
-
-	{
-		Block Start( "Loading Font Glyphs" );
-		LoadGlyphs();
-	}
-
-	{
-		Block Start( "Load Wordlists" );
-		LoadBadWords();
-		LoadColorWords();
-	}
+	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
+	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
+	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 }
 
 void engine::ShaderCompile () {

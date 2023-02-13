@@ -17,24 +17,11 @@ bool engine::MainLoop () {
 void engine::DrawAPIGeometry () {
 	ZoneScoped;
 
-	GLuint64 startTime, stopTime;
-	GLuint queryID[2];
-	glGenQueries( 2, queryID );
-	glQueryCounter( queryID[ 0 ], GL_TIMESTAMP );
-
-	// draw ur shit
-
-	glQueryCounter( queryID[ 1 ], GL_TIMESTAMP );
-	GLint timeAvailable = 0;
-	while( !timeAvailable ) {
-		glGetQueryObjectiv( queryID[ 1 ], GL_QUERY_RESULT_AVAILABLE, &timeAvailable );
+	float ms; // updated in the destructor of the scopedTimer
+	{
+		scopedTimer Start( &ms );
+		// do some shit that takes some time
 	}
-
-	glGetQueryObjectui64v( queryID[ 0 ], GL_QUERY_RESULT, &startTime );
-	glGetQueryObjectui64v( queryID[ 1 ], GL_QUERY_RESULT, &stopTime );
-	float passTimeMs = ( stopTime - startTime ) / 1000000.0f; // operation time in ms
-
-	( void ) passTimeMs; // avoid unused variable warning - do something with the value if desired
 }
 
 void engine::ComputePasses () {
