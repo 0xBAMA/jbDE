@@ -119,6 +119,30 @@ void engine::ImguiPass () {
 	// present the timing data
 	timerQueries.gather();
 	TimingReportWindow( timerQueries.queries );
+
+	// data prep for LegitProfiler
+	std::vector< legit::ProfilerTask > tasks;
+	static ImGuiUtils::ProfilersWindow profilerWindow;
+	float offset = 0;
+	int color = 0;
+	for ( auto& t : timerQueries.queries ) {
+		legit::ProfilerTask pt;
+
+		// calculate start and end times
+		pt.startTime = offset / 1000.0f;
+		offset = offset + t.result;
+		pt.endTime = offset / 1000.0f;
+
+		pt.name = t.label;
+		pt.color = legit::Colors::colorList[ color++ ];
+		color = color % legit::Colors::colorList.size();
+
+		tasks.push_back( pt );
+	}
+	// add new profiling data and render
+	profilerWindow.cpuGraph.LoadFrameData( &tasks[ 0 ], tasks.size() );
+	profilerWindow.Render();
+	// and we don't need the profiling information anymore
 	timerQueries.clear();
 
 	if ( true ) ImGui::ShowDemoWindow();	// show the demo window
