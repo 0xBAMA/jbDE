@@ -90,6 +90,9 @@ using json = nlohmann::json;
 #include "../Serialization/tinyXML2/tinyxml2.h"
 using XMLDocument = tinyxml2::XMLDocument;
 
+// Alexander Sannikov's LegitProfiler
+#include "../ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"
+
 //==== My Stuff ===============================================================
 // managing bindings of textures to binding points
 #include "./coreUtils/bindset.h"
