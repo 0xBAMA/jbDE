@@ -1,30 +1,55 @@
-/* usage is like this:
-	float ms; // updated in the destructor of the scopedTimer
-	{
-		scopedTimer( &ms );
-		// do some shit that takes some time
+#ifndef GLTIMER
+#define GLTIMER
+
+#include <vector>
+#include <string>
+
+struct queryPair {
+	queryPair ( string s ) : label( s ) {}
+	string label;
+	GLuint queryID[ 2 ];
+	float result = 0.0f;
+};
+
+class timerManager {
+public:
+	std::vector < queryPair > queries;
+	void gather () {
+		for ( auto& q : queries ) {
+
+			GLint timeAvailable = 0;
+			while ( !timeAvailable ) { // wait on the most recent of the queries to become available
+				glGetQueryObjectiv( q.queryID[ 1 ], GL_QUERY_RESULT_AVAILABLE, &timeAvailable );
+			}
+
+			GLuint64 startTime, stopTime; // get the query results, since they're both ready
+			glGetQueryObjectui64v( q.queryID[ 0 ], GL_QUERY_RESULT, &startTime );
+			glGetQueryObjectui64v( q.queryID[ 1 ], GL_QUERY_RESULT, &stopTime );
+			glDeleteQueries( 2, &q.queryID[ 0 ] ); // and then delete them
+
+			// get final operation time in ms, from difference of nanosecond timestamps
+			q.result = ( stopTime - startTime ) / 1000000.0f;
+		}
 	}
-*/
+
+	void clear () { // prepare for next frame
+		queries.clear();
+	}
+};
+
+static timerManager timerQueries;
 
 class scopedTimer {
 public:
-	GLuint64 startTime, stopTime;
-	GLuint queryID[ 2 ];
-	float * result;
-
-	scopedTimer ( float * r ) : result ( r ) {
-		glGenQueries( 2, &queryID[ 0 ] );
-		glQueryCounter( queryID[ 0 ], GL_TIMESTAMP );
+	queryPair q;
+	scopedTimer ( string label ) : q ( label ) {
+		glGenQueries( 2, &q.queryID[ 0 ] );
+		glQueryCounter( q.queryID[ 0 ], GL_TIMESTAMP );
 	}
-
 	~scopedTimer () {
-		glQueryCounter( queryID[ 1 ], GL_TIMESTAMP );
-		GLint timeAvailable = 0;
-		while ( !timeAvailable ) { // busy wait loop - we can do better
-			glGetQueryObjectiv( queryID[ 1 ], GL_QUERY_RESULT_AVAILABLE, &timeAvailable );
-		}
-		glGetQueryObjectui64v( queryID[ 0 ], GL_QUERY_RESULT, &startTime );
-		glGetQueryObjectui64v( queryID[ 1 ], GL_QUERY_RESULT, &stopTime );
-		*result = ( stopTime - startTime ) / 1000000.0f; // operation time in ms
+		glQueryCounter( q.queryID[ 1 ], GL_TIMESTAMP );
+		timerQueries.queries.push_back( q );
 	}
 };
+
+#endif // GLTIMER

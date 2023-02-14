@@ -17,34 +17,25 @@ bool engine::MainLoop () {
 void engine::DrawAPIGeometry () {
 	ZoneScoped;
 
-	float ms; // updated in the destructor of the scopedTimer
 	{
-		scopedTimer Start( &ms );
-		// do some shit that takes some time
+		scopedTimer Start( "API Geometry" );
+		// draw some shit
 	}
 }
 
 void engine::ComputePasses () {
 	ZoneScoped;
 
-	// timing values
-	float drawTiming;
-	float postTiming;
-	float textTiming;
-	float tridentTiming;
-
-	{ // dummy draw
-		// draw something into accumulatorTexture
-		scopedTimer Start( &drawTiming );
+	{ // dummy draw - draw something into accumulatorTexture
+		scopedTimer Start( "Drawing" );
 		bindSets[ "Drawing" ].apply();
 		glUseProgram( shaders[ "Dummy Draw" ] );
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
-	{ // postprocessing
-		// shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-		scopedTimer Start( &postTiming );
+	{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
+		scopedTimer Start( "Postprocess" );
 		bindSets[ "Postprocessing" ].apply();
 		glUseProgram( shaders[ "Tonemap" ] );
 		SendTonemappingParameters();
@@ -59,20 +50,25 @@ void engine::ComputePasses () {
 		// ...
 
 	{ // text rendering timestamp - required texture binds are handled internally
-		scopedTimer Start( &textTiming );
+		scopedTimer Start( "Text Rendering" );
 		textRenderer.Update( ImGui::GetIO().DeltaTime );
 		textRenderer.Draw( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
-	{
-		scopedTimer Start( &tridentTiming );
-		// show trident with current orientation
+	{ // show trident with current orientation
+		scopedTimer Start( "Trident" );
 		trident.Update( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
-	// cout << "Timing - draw: " << drawTiming << "ms, post: " << postTiming << "ms, text: " << textTiming << "ms, trident: " << tridentTiming << "ms\n";
+	timerQueries.gather(); // then you can do something with it
+	// for ( auto& t : timerQueries.queries ) {
+	// 	cout << "Pass " << t.label << " took " << t.result << "ms" << newline;
+	// }
+	// timerQueries.clear();
+	// cout << newline;
+
 }
 
 void engine::ClearColorAndDepth () {
