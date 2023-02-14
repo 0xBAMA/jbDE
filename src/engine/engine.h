@@ -60,8 +60,8 @@ private:
 	void MenuLayout ( bool* open );
 	void QuitConf ( bool* open );
 
-//====== ImGui ================================================================
-	void TimingReportWindow ( std::vector < queryPair > &queries );
+//====== ImGui Windows ========================================================
+	ImGuiUtils::ProfilersWindow profilerWindow; // LegitProfiler
 
 //====== Shutdown Procedures ==================================================
 	void ImguiQuit ();

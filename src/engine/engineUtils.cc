@@ -116,13 +116,9 @@ void engine::ImguiPass () {
 	ImguiFrameStart();						// start the imgui frame
 	TonemapControlsWindow();
 
-	// present the timing data
-	timerQueries.gather();
-	TimingReportWindow( timerQueries.queries );
-
 	// data prep for LegitProfiler
+	timerQueries.gather();
 	std::vector< legit::ProfilerTask > tasks;
-	static ImGuiUtils::ProfilersWindow profilerWindow;
 	float offset = 0;
 	int color = 0;
 	for ( auto& t : timerQueries.queries ) {
