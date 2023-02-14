@@ -62,12 +62,12 @@ void engine::ComputePasses () {
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
-	timerQueries.gather(); // then you can do something with it
+	timerQueries.gather(); // then you can do something with the data
 	// for ( auto& t : timerQueries.queries ) {
 	// 	cout << "Pass " << t.label << " took " << t.result << "ms" << newline;
 	// }
-	// timerQueries.clear();
 	// cout << newline;
+	timerQueries.clear();
 
 }
 
