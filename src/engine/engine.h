@@ -26,12 +26,12 @@ private:
 	unordered_map< string, GLuint > shaders;
 	unordered_map< string, bindSet > bindSets;
 
-//====== tonemapping parameters + adjustment ==================================
+//====== Tonemapping Parameters + Adjustment ==================================
 	colorGradeParameters tonemap;
 	void TonemapControlsWindow ();
 	void SendTonemappingParameters ();
 
-//====== initialization =======================================================
+//====== Initialization =======================================================
 	void StartBlock ( string sectionName );
 	void EndBlock ();
 	void Init ();
@@ -47,7 +47,7 @@ private:
 	void InitialClear ();
 	void ReportStartupStats ();
 
-//====== main loop functions ==================================================
+//====== Main Loop Functions ==================================================
 	void BlitToScreen ();
 	void HandleEvents ();
 	void ClearColorAndDepth ();
@@ -60,11 +60,14 @@ private:
 	void MenuLayout ( bool* open );
 	void QuitConf ( bool* open );
 
-//====== shutdown procedures ==================================================
+//====== ImGui ================================================================
+	void TimingReportWindow ( std::vector < queryPair > &queries );
+
+//====== Shutdown Procedures ==================================================
 	void ImguiQuit ();
 	void Quit ();
 
-//====== program flags ========================================================
+//====== Program Flags ========================================================
 	bool quitConfirm = false;
 	bool pQuit = false;
 

@@ -104,6 +104,26 @@ void engine::TonemapControlsWindow () {
 	ImGui::End();
 }
 
+void engine::TimingReportWindow ( std::vector < queryPair > &queries ) {
+	ImGui::Begin( "Timing Report", NULL, 0 );
+
+	if ( ImGui::BeginTable( "timing table", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg ) ) {
+		ImGui::TableSetupColumn( "Section" );
+		ImGui::TableSetupColumn( "Timing" );
+		ImGui::TableHeadersRow();
+
+		for ( unsigned int i = 0; i < queries.size(); i++ ) {
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex( 0 );
+			ImGui::Text( "%s", queries[ i ].label.c_str() );
+			ImGui::TableSetColumnIndex( 1 );
+			ImGui::Text( "%f", queries[ i ].result );
+		}
+		ImGui::EndTable();
+	}
+	ImGui::End();
+}
+
 void engine::ImguiFrameStart () {
 	ZoneScoped;
 

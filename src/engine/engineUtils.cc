@@ -61,18 +61,12 @@ void engine::ComputePasses () {
 		trident.Update( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
-
-	timerQueries.gather(); // then you can do something with the data
-	// for ( auto& t : timerQueries.queries ) {
-	// 	cout << "Pass " << t.label << " took " << t.result << "ms" << newline;
-	// }
-	// cout << newline;
-	timerQueries.clear();
-
 }
 
 void engine::ClearColorAndDepth () {
 	ZoneScoped;
+
+	scopedTimer( "Clear Color and Depth" );
 
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
@@ -104,6 +98,8 @@ void engine::SendTonemappingParameters () {
 void engine::BlitToScreen () {
 	ZoneScoped;
 
+	scopedTimer( "Blit to Screen" );
+
 	// display current state of the display texture - there are more efficient ways to do this, look into it
 	bindSets[ "Display" ].apply();
 	const GLuint shader = shaders[ "Display" ];
@@ -119,6 +115,12 @@ void engine::ImguiPass () {
 
 	ImguiFrameStart();						// start the imgui frame
 	TonemapControlsWindow();
+
+	// present the timing data
+	timerQueries.gather();
+	TimingReportWindow( timerQueries.queries );
+	timerQueries.clear();
+
 	if ( true ) ImGui::ShowDemoWindow();	// show the demo window
 	QuitConf( &quitConfirm );				// show quit confirm window, if triggered
 	ImguiFrameEnd();						// finish up the imgui stuff and put it in the framebuffer
