@@ -27,22 +27,30 @@ void engine::DrawAPIGeometry () {
 void engine::ComputePasses () {
 	ZoneScoped;
 
-// dummy draw
-	bindSets[ "Drawing" ].apply();
+	// timing values
+	float drawTiming;
+	float postTiming;
+	float textTiming;
+	float tridentTiming;
 
-	// draw something into accumulatorTexture
-	glUseProgram( shaders[ "Dummy Draw" ] );
-	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	{ // dummy draw
+		// draw something into accumulatorTexture
+		scopedTimer Start( &drawTiming );
+		bindSets[ "Drawing" ].apply();
+		glUseProgram( shaders[ "Dummy Draw" ] );
+		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
 
-// postprocessing
-	bindSets[ "Postprocessing" ].apply();
-
-	// shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-	glUseProgram( shaders[ "Tonemap" ] );
-	SendTonemappingParameters();
-	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	{ // postprocessing
+		// shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
+		scopedTimer Start( &postTiming );
+		bindSets[ "Postprocessing" ].apply();
+		glUseProgram( shaders[ "Tonemap" ] );
+		SendTonemappingParameters();
+		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
 
 	// shader to apply dithering
 		// ...
@@ -50,14 +58,21 @@ void engine::ComputePasses () {
 	// other postprocessing
 		// ...
 
-	// text rendering timestamp, as final step - required texture binds are handled internally
-	textRenderer.Update( ImGui::GetIO().DeltaTime );
-	textRenderer.Draw( textures[ "Display Texture" ] );
-	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	{ // text rendering timestamp - required texture binds are handled internally
+		scopedTimer Start( &textTiming );
+		textRenderer.Update( ImGui::GetIO().DeltaTime );
+		textRenderer.Draw( textures[ "Display Texture" ] );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
 
-	// show trident with current orientation
-	trident.Update( textures[ "Display Texture" ] );
-	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	{
+		scopedTimer Start( &tridentTiming );
+		// show trident with current orientation
+		trident.Update( textures[ "Display Texture" ] );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
+
+	// cout << "Timing - draw: " << drawTiming << "ms, post: " << postTiming << "ms, text: " << textTiming << "ms, trident: " << tridentTiming << "ms\n";
 }
 
 void engine::ClearColorAndDepth () {

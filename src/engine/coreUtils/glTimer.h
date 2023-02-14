@@ -1,12 +1,9 @@
-/*
-usage is like this:
-
+/* usage is like this:
 	float ms; // updated in the destructor of the scopedTimer
 	{
 		scopedTimer( &ms );
 		// do some shit that takes some time
 	}
-
 */
 
 class scopedTimer {
@@ -15,17 +12,15 @@ public:
 	GLuint queryID[ 2 ];
 	float * result;
 
-	scopedTimer ( float * r ) {
-		glGenQueries( 1, &queryID[ 0 ] );
+	scopedTimer ( float * r ) : result ( r ) {
+		glGenQueries( 2, &queryID[ 0 ] );
 		glQueryCounter( queryID[ 0 ], GL_TIMESTAMP );
-		result = r;
 	}
 
 	~scopedTimer () {
-		glGenQueries( 1, &queryID[ 1 ] );
 		glQueryCounter( queryID[ 1 ], GL_TIMESTAMP );
 		GLint timeAvailable = 0;
-		while ( !timeAvailable ) {
+		while ( !timeAvailable ) { // busy wait loop - we can do better
 			glGetQueryObjectiv( queryID[ 1 ], GL_QUERY_RESULT_AVAILABLE, &timeAvailable );
 		}
 		glGetQueryObjectui64v( queryID[ 0 ], GL_QUERY_RESULT, &startTime );
