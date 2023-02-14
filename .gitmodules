@@ -6,4 +6,4 @@
 	url = https://github.com/wolfpld/tracy.git
 [submodule "src/ImGUI/LegitProfiler"]
 	path = src/ImGUI/LegitProfiler
-	url = https://github.com/Raikiri/LegitProfiler.git
+	url = https://github.com/0xBAMA/LegitProfiler.git
