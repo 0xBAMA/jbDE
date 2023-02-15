@@ -18,11 +18,8 @@ bool engine::MainLoop () {
 }
 
 void engine::DrawAPIGeometry () {
-	ZoneScoped;
-	{
-		scopedTimer Start( "API Geometry" );
-		// draw some shit
-	}
+	ZoneScoped; scopedTimer Start( "API Geometry" );
+	// draw some shit
 }
 
 void engine::ComputePasses () {
@@ -66,9 +63,7 @@ void engine::ComputePasses () {
 }
 
 void engine::ClearColorAndDepth () {
-	ZoneScoped;
-
-	scopedTimer( "Clear Color and Depth" );
+	ZoneScoped; scopedTimer( "Clear Color and Depth" );
 
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
@@ -98,9 +93,7 @@ void engine::SendTonemappingParameters () {
 }
 
 void engine::BlitToScreen () {
-	ZoneScoped;
-
-	scopedTimer Start( "Blit to Screen" );
+	ZoneScoped; scopedTimer Start( "Blit to Screen" );
 
 	// display current state of the display texture - there are more efficient ways to do this, look into it
 	bindSets[ "Display" ].apply();
@@ -113,9 +106,7 @@ void engine::BlitToScreen () {
 }
 
 void engine::ImguiPass () {
-	ZoneScoped;
-
-	scopedTimer Start( "ImGUI Pass" );
+	ZoneScoped; scopedTimer Start( "ImGUI Pass" );
 
 	ImguiFrameStart();						// start the imgui frame
 	TonemapControlsWindow();
@@ -126,15 +117,14 @@ void engine::ImguiPass () {
 	profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
 	profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 
-	if ( true ) ImGui::ShowDemoWindow();	// show the demo window
-	QuitConf( &quitConfirm );				// show quit confirm window, if triggered
-	ImguiFrameEnd();						// finish up the imgui stuff and put it in the framebuffer
+	static bool showDemoWindow = true;
+	ImGui::ShowDemoWindow( &showDemoWindow );	// show the demo window
+	QuitConf( &quitConfirm );					// show quit confirm window, if triggered
+	ImguiFrameEnd();							// finish up the imgui stuff and put it in the framebuffer
 }
 
 void engine::HandleEvents () {
-	ZoneScoped;
-
-	scopedTimer Start( "HandleEvents" );
+	ZoneScoped; scopedTimer Start( "HandleEvents" );
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
 		constexpr float bigStep = 0.120;
@@ -209,6 +199,7 @@ void engine::HandleEvents () {
 void engine::PrepareProfilingData () {
 	timerQueries.gather();
 
+	// get rid of last frame's prepared task data
 	tasks_GPU.clear();
 	tasks_CPU.clear();
 

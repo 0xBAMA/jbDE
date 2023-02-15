@@ -10,7 +10,7 @@ public:
 
 	bool MainLoop (); // called from loop in main
 
-private:
+protected:
 //====== Application Handles and Basic Data ===================================
 	windowHandler w;			// OpenGL context and SDL2 window
 	configData config;			// loaded from config.json
@@ -62,7 +62,8 @@ private:
 
 //====== ImGui Windows ========================================================
 
-	// LegitProfiler data
+
+//====== LegitProfiler Data ===================================================
 	void PrepareProfilingData ();
 	std::vector< legit::ProfilerTask > tasks_CPU;
 	std::vector< legit::ProfilerTask > tasks_GPU;
@@ -74,6 +75,10 @@ private:
 //====== Program Flags ========================================================
 	bool quitConfirm = false;
 	bool pQuit = false;
+};
+
+class engineChild : public engine {
 
 };
+
 #endif
