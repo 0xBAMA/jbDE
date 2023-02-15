@@ -20,8 +20,7 @@ bool engine::MainLoop () {
 void engine::DrawAPIGeometry () {
 	ZoneScoped;
 	{
-		scopedTimer_GPU Start( "API Geometry" );
-		scopedTimer_CPU StartC( "API Geometry" );
+		scopedTimer Start( "API Geometry" );
 		// draw some shit
 	}
 }
@@ -30,8 +29,7 @@ void engine::ComputePasses () {
 	ZoneScoped;
 
 	{ // dummy draw - draw something into accumulatorTexture
-		scopedTimer_GPU Start( "Drawing" );
-		scopedTimer_CPU StartC( "Drawing" );
+		scopedTimer Start( "Drawing" );
 		bindSets[ "Drawing" ].apply();
 		glUseProgram( shaders[ "Dummy Draw" ] );
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
@@ -39,8 +37,7 @@ void engine::ComputePasses () {
 	}
 
 	{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-		scopedTimer_GPU Start( "Postprocess" );
-		scopedTimer_CPU StartC( "Postprocess" );
+		scopedTimer Start( "Postprocess" );
 		bindSets[ "Postprocessing" ].apply();
 		glUseProgram( shaders[ "Tonemap" ] );
 		SendTonemappingParameters();
@@ -55,16 +52,14 @@ void engine::ComputePasses () {
 		// ...
 
 	{ // text rendering timestamp - required texture binds are handled internally
-		scopedTimer_GPU Start( "Text Rendering" );
-		scopedTimer_CPU StartC( "Text Rendering" );
+		scopedTimer Start( "Text Rendering" );
 		textRenderer.Update( ImGui::GetIO().DeltaTime );
 		textRenderer.Draw( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
 	{ // show trident with current orientation
-		scopedTimer_GPU Start( "Trident" );
-		scopedTimer_CPU StartC( "Trident" );
+		scopedTimer Start( "Trident" );
 		trident.Update( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
@@ -73,8 +68,7 @@ void engine::ComputePasses () {
 void engine::ClearColorAndDepth () {
 	ZoneScoped;
 
-	scopedTimer_GPU( "Clear Color and Depth" );
-	scopedTimer_CPU( "Clear Color and Depth" );
+	scopedTimer( "Clear Color and Depth" );
 
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
@@ -106,8 +100,7 @@ void engine::SendTonemappingParameters () {
 void engine::BlitToScreen () {
 	ZoneScoped;
 
-	scopedTimer_GPU Start( "Blit to Screen" );
-	scopedTimer_CPU StartC( "Blit to Screen" );
+	scopedTimer Start( "Blit to Screen" );
 
 	// display current state of the display texture - there are more efficient ways to do this, look into it
 	bindSets[ "Display" ].apply();
@@ -122,8 +115,7 @@ void engine::BlitToScreen () {
 void engine::ImguiPass () {
 	ZoneScoped;
 
-	scopedTimer_GPU Start( "ImGUI Pass" );
-	scopedTimer_CPU StartC( "ImGUI Pass" );
+	scopedTimer Start( "ImGUI Pass" );
 
 	ImguiFrameStart();						// start the imgui frame
 	TonemapControlsWindow();
@@ -131,7 +123,7 @@ void engine::ImguiPass () {
 	// add new profiling data and render
 	profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
 	profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
-	profilerWindow.Render();
+	profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 
 	if ( true ) ImGui::ShowDemoWindow();	// show the demo window
 	QuitConf( &quitConfirm );				// show quit confirm window, if triggered
@@ -141,8 +133,7 @@ void engine::ImguiPass () {
 void engine::HandleEvents () {
 	ZoneScoped;
 
-	scopedTimer_GPU Start( "HandleEvents" );
-	scopedTimer_CPU StartC( "HandleEvents" );
+	scopedTimer Start( "HandleEvents" );
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
 		constexpr float bigStep = 0.120;
