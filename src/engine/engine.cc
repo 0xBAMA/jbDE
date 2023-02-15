@@ -13,8 +13,7 @@ void engine::Init () {
 	LoadData();
 	ImguiSetup();
 	InitialClear();
-	if ( !config.oneShot ) // if init takes some time, don't show the window before it's done - also oneShot does not need to ever show the window
-		SDL_ShowWindow( w.window );
+	w.ShowIfNotHeadless();
 	ReportStartupStats();
 }
 

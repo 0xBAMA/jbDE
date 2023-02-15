@@ -65,6 +65,13 @@ public:
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 
+	void ShowIfNotHeadless () {
+		// if init takes some time, don't show the window before it's done - also oneShot does not need to ever show the window
+		if ( !config->oneShot ) {
+			SDL_ShowWindow( window );
+		}
+	}
+
 	void ToggleVSync () {
 		vsyncState = !vsyncState;
 		SDL_GL_SetSwapInterval( vsyncState ? 1 : 0 );
