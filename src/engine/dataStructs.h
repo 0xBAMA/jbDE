@@ -16,6 +16,8 @@ struct configData {
 	bool reportPlatformInfo = true;
 	bool enableDepthTesting = false;
 
+	bool oneShot = false;
+
 	// anything else ... ?
 };
 
