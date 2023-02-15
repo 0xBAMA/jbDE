@@ -121,6 +121,7 @@ void engine::ImguiPass () {
 	TonemapControlsWindow();
 
 	// add new profiling data and render
+	static ImGuiUtils::ProfilersWindow profilerWindow;
 	profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
 	profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
 	profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom

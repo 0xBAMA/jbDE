@@ -62,8 +62,7 @@ private:
 
 //====== ImGui Windows ========================================================
 
-	// LegitProfiler
-	ImGuiUtils::ProfilersWindow profilerWindow;
+	// LegitProfiler data
 	void PrepareProfilingData ();
 	std::vector< legit::ProfilerTask > tasks_CPU;
 	std::vector< legit::ProfilerTask > tasks_GPU;
