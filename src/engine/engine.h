@@ -61,7 +61,12 @@ private:
 	void QuitConf ( bool* open );
 
 //====== ImGui Windows ========================================================
-	ImGuiUtils::ProfilersWindow profilerWindow; // LegitProfiler
+
+	// LegitProfiler
+	ImGuiUtils::ProfilersWindow profilerWindow;
+	void PrepareProfilingData ();
+	std::vector< legit::ProfilerTask > tasks_CPU;
+	std::vector< legit::ProfilerTask > tasks_GPU;
 
 //====== Shutdown Procedures ==================================================
 	void ImguiQuit ();

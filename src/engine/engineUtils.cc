@@ -1,24 +1,27 @@
 #include "engine.h"
 
+extern timerManager timerQueries;
+
 bool engine::MainLoop () {
 	ZoneScoped;
 	
-	HandleEvents();					// handle keyboard / mouse events
-	ClearColorAndDepth();			// if I just disable depth testing, this can disappear
-	DrawAPIGeometry();				// draw any API geometry desired
-	ComputePasses();				// multistage update of displayTexture
-	BlitToScreen();					// fullscreen triangle copying the displayTexture to the screen
-	ImguiPass();					// do all the gui stuff
-	w.Swap();						// show what has just been drawn to the back buffer ( displayTexture + ImGui )
-	FrameMark;						// tells tracy that this is the end of a frame
-	return pQuit;					// break main loop when pQuit turns true
+	HandleEvents();				// handle keyboard / mouse events
+	ClearColorAndDepth();		// if I just disable depth testing, this can disappear
+	DrawAPIGeometry();			// draw any API geometry desired
+	ComputePasses();			// multistage update of displayTexture
+	BlitToScreen();				// fullscreen triangle copying to the screen
+	ImguiPass();				// do all the gui stuff
+	w.Swap();					// show what has just been drawn to the back buffer
+	FrameMark;					// tells tracy that this is the end of a frame
+	PrepareProfilingData();		// get profiling data ready for next frame
+	return pQuit;				// break main loop when pQuit turns true
 }
 
 void engine::DrawAPIGeometry () {
 	ZoneScoped;
-
 	{
 		scopedTimer_GPU Start( "API Geometry" );
+		scopedTimer_CPU StartC( "API Geometry" );
 		// draw some shit
 	}
 }
@@ -28,6 +31,7 @@ void engine::ComputePasses () {
 
 	{ // dummy draw - draw something into accumulatorTexture
 		scopedTimer_GPU Start( "Drawing" );
+		scopedTimer_CPU StartC( "Drawing" );
 		bindSets[ "Drawing" ].apply();
 		glUseProgram( shaders[ "Dummy Draw" ] );
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
@@ -36,6 +40,7 @@ void engine::ComputePasses () {
 
 	{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 		scopedTimer_GPU Start( "Postprocess" );
+		scopedTimer_CPU StartC( "Postprocess" );
 		bindSets[ "Postprocessing" ].apply();
 		glUseProgram( shaders[ "Tonemap" ] );
 		SendTonemappingParameters();
@@ -51,6 +56,7 @@ void engine::ComputePasses () {
 
 	{ // text rendering timestamp - required texture binds are handled internally
 		scopedTimer_GPU Start( "Text Rendering" );
+		scopedTimer_CPU StartC( "Text Rendering" );
 		textRenderer.Update( ImGui::GetIO().DeltaTime );
 		textRenderer.Draw( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -58,6 +64,7 @@ void engine::ComputePasses () {
 
 	{ // show trident with current orientation
 		scopedTimer_GPU Start( "Trident" );
+		scopedTimer_CPU StartC( "Trident" );
 		trident.Update( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
@@ -67,6 +74,7 @@ void engine::ClearColorAndDepth () {
 	ZoneScoped;
 
 	scopedTimer_GPU( "Clear Color and Depth" );
+	scopedTimer_CPU( "Clear Color and Depth" );
 
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
@@ -98,7 +106,8 @@ void engine::SendTonemappingParameters () {
 void engine::BlitToScreen () {
 	ZoneScoped;
 
-	scopedTimer_GPU( "Blit to Screen" );
+	scopedTimer_GPU Start( "Blit to Screen" );
+	scopedTimer_CPU StartC( "Blit to Screen" );
 
 	// display current state of the display texture - there are more efficient ways to do this, look into it
 	bindSets[ "Display" ].apply();
@@ -113,33 +122,16 @@ void engine::BlitToScreen () {
 void engine::ImguiPass () {
 	ZoneScoped;
 
+	scopedTimer_GPU Start( "ImGUI Pass" );
+	scopedTimer_CPU StartC( "ImGUI Pass" );
+
 	ImguiFrameStart();						// start the imgui frame
 	TonemapControlsWindow();
 
-	// data prep for LegitProfiler
-	timerQueries.gather();
-	std::vector< legit::ProfilerTask > tasks;
-	float offset = 0;
-	int color = 0;
-	for ( auto& t : timerQueries.queries ) {
-		legit::ProfilerTask pt;
-
-		// calculate start and end times
-		pt.startTime = offset / 1000.0f;
-		offset = offset + t.result;
-		pt.endTime = offset / 1000.0f;
-
-		pt.name = t.label;
-		pt.color = legit::Colors::colorList[ color++ ];
-		color = color % legit::Colors::colorList.size();
-
-		tasks.push_back( pt );
-	}
 	// add new profiling data and render
-	profilerWindow.cpuGraph.LoadFrameData( &tasks[ 0 ], tasks.size() );
+	profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
+	profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
 	profilerWindow.Render();
-	// and we don't need the profiling information anymore
-	timerQueries.clear();
 
 	if ( true ) ImGui::ShowDemoWindow();	// show the demo window
 	QuitConf( &quitConfirm );				// show quit confirm window, if triggered
@@ -148,6 +140,9 @@ void engine::ImguiPass () {
 
 void engine::HandleEvents () {
 	ZoneScoped;
+
+	scopedTimer_GPU Start( "HandleEvents" );
+	scopedTimer_CPU StartC( "HandleEvents" );
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
 		constexpr float bigStep = 0.120;
@@ -216,4 +211,42 @@ void engine::HandleEvents () {
 			}
 		}
 	}
+}
+
+// for next frame's LegitProfiler data
+void engine::PrepareProfilingData () {
+	timerQueries.gather();
+
+	tasks_GPU.clear();
+	tasks_CPU.clear();
+
+	float offset = 0;
+	int color = 0;
+	for ( auto& t : timerQueries.queries_GPU ) {
+		legit::ProfilerTask pt;
+		// calculate start and end times
+		pt.startTime = offset / 1000.0f;
+		offset = offset + t.result;
+		pt.endTime = offset / 1000.0f;
+		pt.name = t.label;
+		pt.color = legit::Colors::colorList[ color++ ];
+		color = color % legit::Colors::colorList.size();
+		tasks_GPU.push_back( pt );
+	}
+
+	offset = 0;
+	color = 0;
+	for ( auto& t : timerQueries.queries_CPU ) {
+		legit::ProfilerTask pt;
+		// calculate start and end times
+		pt.startTime = offset / 1000.0f;
+		offset = offset + t.result;
+		pt.endTime = offset / 1000.0f;
+		pt.name = t.label;
+		pt.color = legit::Colors::colorList[ color++ ];
+		color = color % legit::Colors::colorList.size();
+		tasks_CPU.push_back( pt );
+	}
+
+	timerQueries.clear(); // prepare for next frame's data
 }

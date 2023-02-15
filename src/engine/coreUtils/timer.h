@@ -40,23 +40,33 @@ static inline float Tock () { return TIMECAST( NOW - t ); }
 // getting the time since the engine was started
 static inline float TotalTime () { return TIMECAST( NOW - tInit ); }
 
+
+
 //=============================================================================
 //==== OpenGL Timer Query Wrapper =============================================
 //=============================================================================
 
-struct queryPair {
-	queryPair ( string s ) : label( s ) {}
+struct queryPair_GPU {
+	queryPair_GPU ( string s ) : label( s ) {}
 	string label;
 	GLuint queryID[ 2 ];
 	float result = 0.0f;
 };
 
+struct queryPair_CPU {
+	queryPair_CPU ( string s ) : label( s ) {}
+	string label;
+	std::chrono::time_point<std::chrono::system_clock> tStart;
+	std::chrono::time_point<std::chrono::system_clock> tStop;
+	float result;
+};
+
 class timerManager {
 public:
-	std::vector < queryPair > queries;
+	std::vector < queryPair_GPU > queries_GPU;
+	std::vector < queryPair_CPU > queries_CPU;
 	void gather () {
-		for ( auto& q : queries ) {
-
+		for ( auto& q : queries_GPU ) {
 			GLint timeAvailable = 0;
 			while ( !timeAvailable ) { // wait on the most recent of the queries to become available
 				glGetQueryObjectiv( q.queryID[ 1 ], GL_QUERY_RESULT_AVAILABLE, &timeAvailable );
@@ -73,7 +83,8 @@ public:
 	}
 
 	void clear () { // prepare for next frame
-		queries.clear();
+		queries_GPU.clear();
+		queries_CPU.clear();
 	}
 };
 
@@ -81,14 +92,27 @@ static timerManager timerQueries;
 
 class scopedTimer_GPU {
 public:
-	queryPair q;
+	queryPair_GPU q;
 	scopedTimer_GPU ( string label ) : q ( label ) {
 		glGenQueries( 2, &q.queryID[ 0 ] );
 		glQueryCounter( q.queryID[ 0 ], GL_TIMESTAMP );
 	}
 	~scopedTimer_GPU () {
 		glQueryCounter( q.queryID[ 1 ], GL_TIMESTAMP );
-		timerQueries.queries.push_back( q );
+		timerQueries.queries_GPU.push_back( q );
+	}
+};
+
+class scopedTimer_CPU {
+public:
+	queryPair_CPU c;
+	scopedTimer_CPU ( string label ) : c ( label ) {
+		c.tStart = std::chrono::system_clock::now();
+	}
+	~scopedTimer_CPU () {
+		c.tStop = std::chrono::system_clock::now();
+		c.result = std::chrono::duration_cast<std::chrono::microseconds>( c.tStop - c.tStart ).count() / 1000.0f;
+		timerQueries.queries_CPU.push_back( c );
 	}
 };
 
