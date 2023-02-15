@@ -79,14 +79,14 @@ public:
 
 static timerManager timerQueries;
 
-class scopedTimer {
+class scopedTimer_GPU {
 public:
 	queryPair q;
-	scopedTimer ( string label ) : q ( label ) {
+	scopedTimer_GPU ( string label ) : q ( label ) {
 		glGenQueries( 2, &q.queryID[ 0 ] );
 		glQueryCounter( q.queryID[ 0 ], GL_TIMESTAMP );
 	}
-	~scopedTimer () {
+	~scopedTimer_GPU () {
 		glQueryCounter( q.queryID[ 1 ], GL_TIMESTAMP );
 		timerQueries.queries.push_back( q );
 	}

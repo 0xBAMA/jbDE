@@ -18,7 +18,7 @@ void engine::DrawAPIGeometry () {
 	ZoneScoped;
 
 	{
-		scopedTimer Start( "API Geometry" );
+		scopedTimer_GPU Start( "API Geometry" );
 		// draw some shit
 	}
 }
@@ -27,7 +27,7 @@ void engine::ComputePasses () {
 	ZoneScoped;
 
 	{ // dummy draw - draw something into accumulatorTexture
-		scopedTimer Start( "Drawing" );
+		scopedTimer_GPU Start( "Drawing" );
 		bindSets[ "Drawing" ].apply();
 		glUseProgram( shaders[ "Dummy Draw" ] );
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
@@ -35,7 +35,7 @@ void engine::ComputePasses () {
 	}
 
 	{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-		scopedTimer Start( "Postprocess" );
+		scopedTimer_GPU Start( "Postprocess" );
 		bindSets[ "Postprocessing" ].apply();
 		glUseProgram( shaders[ "Tonemap" ] );
 		SendTonemappingParameters();
@@ -50,14 +50,14 @@ void engine::ComputePasses () {
 		// ...
 
 	{ // text rendering timestamp - required texture binds are handled internally
-		scopedTimer Start( "Text Rendering" );
+		scopedTimer_GPU Start( "Text Rendering" );
 		textRenderer.Update( ImGui::GetIO().DeltaTime );
 		textRenderer.Draw( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
 	{ // show trident with current orientation
-		scopedTimer Start( "Trident" );
+		scopedTimer_GPU Start( "Trident" );
 		trident.Update( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
@@ -66,7 +66,7 @@ void engine::ComputePasses () {
 void engine::ClearColorAndDepth () {
 	ZoneScoped;
 
-	scopedTimer( "Clear Color and Depth" );
+	scopedTimer_GPU( "Clear Color and Depth" );
 
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
@@ -98,7 +98,7 @@ void engine::SendTonemappingParameters () {
 void engine::BlitToScreen () {
 	ZoneScoped;
 
-	scopedTimer( "Blit to Screen" );
+	scopedTimer_GPU( "Blit to Screen" );
 
 	// display current state of the display texture - there are more efficient ways to do this, look into it
 	bindSets[ "Display" ].apply();
