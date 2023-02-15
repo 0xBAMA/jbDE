@@ -25,6 +25,8 @@
 		"b":0.618,
 		"a":1.0
 	},
+	"showImGUIDemoWindow":true,
+	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,

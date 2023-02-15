@@ -117,7 +117,6 @@ void engine::ImguiPass () {
 	profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
 	profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 
-	static bool showDemoWindow = true;
 	ImGui::ShowDemoWindow( &showDemoWindow );	// show the demo window
 	QuitConf( &quitConfirm );					// show quit confirm window, if triggered
 	ImguiFrameEnd();							// finish up the imgui stuff and put it in the framebuffer
@@ -161,10 +160,10 @@ void engine::HandleEvents () {
 		// if ( trident.Dirty() ) // rotation or movement has happened
 			// render.framesSinceLastInput = 0;
 
-		if ( state[ SDL_SCANCODE_W ] ) {		cout << "W Pressed" << newline; }
-		if ( state[ SDL_SCANCODE_S ] ) {		cout << "S Pressed" << newline; }
-		if ( state[ SDL_SCANCODE_A ] ) {		cout << "A Pressed" << newline; }
-		if ( state[ SDL_SCANCODE_D ] ) {		cout << "D Pressed" << newline; }
+		if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; }
+		if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; }
+		if ( state[ SDL_SCANCODE_A ] ) { cout << "A Pressed" << newline; }
+		if ( state[ SDL_SCANCODE_D ] ) { cout << "D Pressed" << newline; }
 	}
 
 //==============================================================================
@@ -178,9 +177,10 @@ void engine::HandleEvents () {
 		// imgui event handling
 		ImGui_ImplSDL2_ProcessEvent( &event );
 		// swap out the multiple if statements for a big chained boolean setting the value of pQuit
-		pQuit = ( event.type == SDL_QUIT ) ||
-				( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( w.window ) ) ||
-				( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
+		if ( !pQuit ) // support for oneShot execution
+			pQuit = ( event.type == SDL_QUIT ) ||
+					( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( w.window ) ) ||
+					( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
 		// this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
 		if ( ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE ) || ( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_X1 )  )
 			quitConfirm = !quitConfirm;

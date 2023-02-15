@@ -61,7 +61,7 @@ protected:
 	void QuitConf ( bool* open );
 
 //====== ImGui Windows ========================================================
-
+	bool showDemoWindow;
 
 //====== LegitProfiler Data ===================================================
 	void PrepareProfilingData ();
@@ -77,6 +77,7 @@ protected:
 	bool pQuit = false;
 };
 
+// placeholder - will return to this soon, once the child lambdas are in place
 class engineChild : public engine {
 
 };

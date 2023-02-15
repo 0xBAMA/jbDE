@@ -62,6 +62,10 @@ void engine::LoadConfig () {
 		config.clearColor.g = j[ "clearColor" ][ "g" ];
 		config.clearColor.b = j[ "clearColor" ][ "b" ];
 		config.clearColor.a = j[ "clearColor" ][ "a" ];
+
+		pQuit = j[ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
+		showDemoWindow = j[ "showImGUIDemoWindow" ];
+
 		// color grading stuff
 		tonemap.tonemapMode = j[ "colorGrade" ][ "tonemapMode" ];
 		tonemap.gamma = j[ "colorGrade" ][ "gamma" ];
