@@ -220,11 +220,11 @@ void engine::PrepareProfilingData () {
 		pt_CPU.color = legit::Colors::colorList[ color ];
 		tasks_CPU.push_back( pt_CPU );
 
-		pt_CPU.startTime = offset_GPU / 1000.0f;
+		pt_GPU.startTime = offset_GPU / 1000.0f;
 		offset_GPU = offset_GPU + timerQueries.queries_GPU[ i ].result;
-		pt_CPU.endTime = offset_GPU / 1000.0f;
+		pt_GPU.endTime = offset_GPU / 1000.0f;
 		pt_GPU.name = timerQueries.queries_GPU[ i ].label;
-		pt_CPU.color = legit::Colors::colorList[ color ];
+		pt_GPU.color = legit::Colors::colorList[ color ];
 		tasks_GPU.push_back( pt_GPU );
 	}
 
