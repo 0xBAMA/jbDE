@@ -203,32 +203,29 @@ void engine::PrepareProfilingData () {
 	tasks_GPU.clear();
 	tasks_CPU.clear();
 
-	float offset = 0;
 	int color = 0;
-	for ( auto& t : timerQueries.queries_GPU ) {
-		legit::ProfilerTask pt;
-		// calculate start and end times
-		pt.startTime = offset / 1000.0f;
-		offset = offset + t.result;
-		pt.endTime = offset / 1000.0f;
-		pt.name = t.label;
-		pt.color = legit::Colors::colorList[ color++ ];
+	float offset_CPU = 0;
+	float offset_GPU = 0;
+	for ( unsigned int i = 0; i < timerQueries.queries_CPU.size(); i++ ) {
+		color++;
 		color = color % legit::Colors::colorList.size();
-		tasks_GPU.push_back( pt );
-	}
+		legit::ProfilerTask pt_CPU;
+		legit::ProfilerTask pt_GPU;
+		
+		// calculate start and end times
+		pt_CPU.startTime = offset_CPU / 1000.0f;
+		offset_CPU = offset_CPU + timerQueries.queries_CPU[ i ].result;
+		pt_CPU.endTime = offset_CPU / 1000.0f;
+		pt_CPU.name = timerQueries.queries_CPU[ i ].label;
+		pt_CPU.color = legit::Colors::colorList[ color ];
+		tasks_CPU.push_back( pt_CPU );
 
-	offset = 0;
-	color = 0;
-	for ( auto& t : timerQueries.queries_CPU ) {
-		legit::ProfilerTask pt;
-		// calculate start and end times
-		pt.startTime = offset / 1000.0f;
-		offset = offset + t.result;
-		pt.endTime = offset / 1000.0f;
-		pt.name = t.label;
-		pt.color = legit::Colors::colorList[ color++ ];
-		color = color % legit::Colors::colorList.size();
-		tasks_CPU.push_back( pt );
+		pt_CPU.startTime = offset_GPU / 1000.0f;
+		offset_GPU = offset_GPU + timerQueries.queries_GPU[ i ].result;
+		pt_CPU.endTime = offset_GPU / 1000.0f;
+		pt_GPU.name = timerQueries.queries_GPU[ i ].label;
+		pt_CPU.color = legit::Colors::colorList[ color ];
+		tasks_GPU.push_back( pt_GPU );
 	}
 
 	timerQueries.clear(); // prepare for next frame's data
