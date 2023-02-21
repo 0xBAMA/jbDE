@@ -3,6 +3,9 @@
 ## Engine Stuff
 
 - jbDE - WIP - Replaces NQADE
+	- Top Priority: Getting up and running on the new machine
+		- Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts
+		- Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe
 	- Converting to Vulkan - a little further out
 		- Hardware Raytracing Experimentation, not possible with OpenGL
 	- Adding some kind of thing where projects inherit from a base engine class
