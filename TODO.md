@@ -3,11 +3,47 @@
 ## Engine Stuff
 
 - jbDE - WIP - Replaces NQADE
-	- Top Priority: Getting up and running on the new machine
-		- Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts
-		- Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe
-	- Converting to Vulkan - a little further out
-		- Hardware Raytracing Experimentation, not possible with OpenGL
+
+--------------------------------------------------------------------------------------------------
+
+	- Top Priority: Getting up and running on the new machine(s)
+		- Motivation
+			- 4x floating point perf Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
+			- I have two 7900XTX's now, secondary offline rendering machine WIP
+				- Basically just a GPU host, minimum viable CPU/mobo/RAM to support PCIE 4.0 x16, probably lower end Intel processor/32 gigs of RAM
+					- Need to be able to support the GPU with 24 gigs of dedicated VRAM
+					- Needs a name like, Igor, maybe, something that sounds like a villan's henchman
+		- Work so far
+			- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
+			- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
+				- Switching to master branch did not work, it is not the fault of the docking branch
+			- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, SoftBodies works perfect )
+				- Same two bizarre messages at startup for any of my OpenGL programs, but glewInit() does not fail on the older code:
+					- `Xlib:  extension "AMDGPU" missing on display ":0".`
+					- `Xlib:  extension "GLX_ARB_context_flush_control" missing on display ":0".`
+					- then glewInit() fails, program aborts
+				- This ImGUI code is from back when you could use GLEW as a custom loader for ImGUI
+					- This has been since deprecated in favor of ImGUI's GL3W-based loader header
+				- There is some subtle interaction that I cannot determine the nature of, between GLEW and ImGUI's loader, which causes glewInit() to fail
+					- This is the case, even when glewInit() is called before any ImGUI code at all - some strange compile-time behavior?
+	- Potential Solutions:
+		- Converting to Vulkan?
+			- Maybe the move, we can get away from this OpenGL shitstorm
+			- This is less work than it seems, it's just a lot of code to populate all the structs and shit
+				- It can all be wrapped, as far as user-facing code, high level does not need to be difficult
+				- You're doing the same things, it's just much more verbose
+				- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
+			- Hardware Raytracing Experimentation, not possible with OpenGL
+		- More focus on cross-platform dev?
+			- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
+			- This may be the way to manage this, get jbDE running under Windows, in the general case, and then I can work on stuff on BlackSatan ( Ubuntu ) that will work on BlackSatan2 / Offline Rendering Machine ( Windows )
+		- **BAD** Roll back to that version of ImGUI? **BAD**
+			- Just take the ImGUI code from the old repo ( v1.76 WIP )
+				- I hate this
+				- No... but also... maybe
+
+--------------------------------------------------------------------------------------------------
+
 	- Adding some kind of thing where projects inherit from a base engine class
 		- This will be a new engine, jbDE, the jb Demo Engine - but much carried forward from NQADE
 			- All projects will be kept in the same repo, build script generates separate executables
@@ -24,11 +60,26 @@
 	- I can do something that just returns a GLuint, because that's how I'm using it now
 - Image Wrapper Changes
 	- Better Pixel Sorting, Add Thresholding Stuff
+		- Need to do a little more research on how this is done, my impl is literally "sort rows or columns by color channel value or luma"
 	- Rewrite, Templated Version
 		- Specify both type and number of channels as template parameters
+		- This is important
+			- To be able to do single channel masks
+			- To be able to do more flexible floating point images
+	- CPU-based dithering?
+		- Might be a nice-to-have
+		- Speed less of a concern
+- SoftRast
+	- What is the plan for this?
+	- What is the desired functionality for the wrapper?
+		- I'm not looking to just write OpenGL again, really just a subset related to the actual rasterization of geometry, and even then pretty limited scope
+		- I think I've also done most of what I want to do with it
+			- I think I will probably do a more flexible OBJ voxelizer for Voraldo14, but beyond that I don't have much in the way of plans for it
 - Dithering stuff
 	- Palette based version: Precompute 3d LUT texture(s) in order to avoid having to do the distance calculations
-	- Probably make this built-in functionality in the engine
+		- This will absolutely help perf on large color count palettes
+			- Instead of iterating through and doing N distance checks for every pixel, every frame, just keep LUTs of closest, second closest color for all points in a 3D LDR RGB colorspace, and use dither patterns as before
+	- Probably make this built-in functionality in the engine, part of postprocessing stack?
 - Deterministic RNG for the CPU - need deterministic alternative to std::random
 	- VAT, Spaceship Generator need repeatability in random number generation
 	- I haven't found a way to seed std::random to be able to get the same sequence back out again
@@ -42,7 +93,7 @@
 	- I'm sure there are interesting ways I can use this
 		- Image based, but also want to be able to get list of points
 - Color Header
-	- Palette Options - I want to make this a lot more flexible
+	- Palette Options - I want to make this a lot more flexible + have a lot more pre-built CPU-based functionality
 		- simple palette from the lospec set
 		- interpolated lospec set
 		- iq-style sinusoid palettes
@@ -66,7 +117,7 @@
 - Is it practical to try to do fully-jsonified parameters, menus, etc?
 	- Operations are executed based on label
 	- Menu layout based on labels and ranges
-- Spaceship Generator reimpl
+- Spaceship Generator reimpl - Could this maybe belong in jbDE codebase? Potential for reuse outside of Voraldo
 	- Use of std::unordered_map is good, I like this
 		- std::unordered_map< glm::ivec3, glm::vec4 >
 			- ivec3 keys for easy negative indexing, vec4 contents for color and opacity
@@ -148,14 +199,28 @@
 		- SDF intersection? Sphere comes in and affects the sim nodes
 		- Noise based perturbation, like wind?
 	- Higher order physics solver? I think that there's some potential value there
-- Space Game thing? I think this is something that would be fun to work on
+- Glitch thing, fucking up an image with bitfontCore2-based glyph masks
+	- Incorporate into the Image wrapper? ( probably yes )
+	- Previous ideas ( from first version of Siren ):
+		- Pull image data to CPU or do in a shader and write back to the accumulator texture
+			- Masking for application of the following effects
+			- Add to color channels or masking by glyph stamps ( randomly additive or subtractive )
+				- Change the included utility from hoard-of-bitfonts to bitfontCore, for the compressed format of the bitfont glyphs
+			- Blurs
+			- Clears ( every other row / column / checkerboard )
+			- Dither inside tile / mask / both
+			- Reset averaging ( sample count )
+			- Use std::vector + shuffle to on an array of floats cast to a byte array - make a mess of it, but check for NaN's in the data before re-sending to keep from having issues from that - set these values to either 1 or 0, based on some RNG
 
 --------------------------------------------------------------------------------------------------
 
 ## More Vague Future Software Project Ideas
 
+- Space Game thing? I think this is something that would be fun to work on
 - More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
-	- that little acquarium simulator thing I wrote about in my notes
+	- Interesting variant of the erosion sim, much faster graph-based alternative to slow particle-based impl
+		- [Video](https://twitter.com/Th3HolyMoose/status/1627073949606748166) / [Paper](https://hal.inria.fr/hal-01262376/document)
+	- That little acquarium simulator thing I wrote about in my notes
 - RTIOW on the GPU
 	- More raytracing stuff, the next week, the rest of your life books
 	- <https://people.cs.kuleuven.be/~philip.dutre/GI/TotalCompendium.pdf>
@@ -163,8 +228,9 @@
 		- <https://github.com/HectorMF/BRDFGenerator>
 		- <https://github.com/boksajak/brdf> / <https://boksajak.github.io/files/CrashCourseBRDF.pdf>
 - Glitch effects using the bitfontCore2 bit masks
-- Fluid Simulation
+- Fluid/Physics Simulation
 	- <https://github.com/InteractiveComputerGraphics/SPlisHSPlasH>
+	- Pezza tutorials [1](https://youtu.be/lS_qeBy3aQI) / [2](https://youtu.be/9IULfQH7E90)
 - 3D Version of Physarum Simulation
 	- I think there's a lot more cool stuff I can do with the physarum thing
 		- Even just using the 2d version, as heightmap, has a lot of potential
@@ -221,12 +287,15 @@
 	- Base the design on [the NA-HC4 Heatsink Cover](https://noctua.at/en/na-hc4-chromax-black)
 		- Can we mount to one of these? something to adapt it, would be significantly less 3d printing work
 	- Consider also doing [the undervolting thing](https://youtu.be/1pizvaYiVbk)
-- Camera Stabilization Flywheel? ( maybe kinda goofy idea )
+- Computer Lower Power Supply Shroud
+	- Existing shroud no longer fits with Red Devil card - too long, would collide with shroud
+		- Take measurements from existing shroud, design something that would serve a similar purpose and then finish it nice
+- Camera Stabilization Flywheel? ( maybe kinda goofy idea, low, low priority )
 	- <https://www.bennetcaraher.com/project-sharpshooter.html>
 	- <http://myresearch.company/flywheel.phtml>
 	- <https://www.youtube.com/watch?v=cjV-yDNdeOI> using an old hard drive motor, interesting
 - Projector + Short DoF Photography
 	- <https://twitter.com/JoanieLemercier/status/1534226118877782022>
-	- Laser sweep? maybe easier / cheaper than using a display projector
+	- Laser sweep / spinning mirror thing? maybe easier / cheaper than using a DLP etc type display projector
 
 --------------------------------------------------------------------------------------------------
