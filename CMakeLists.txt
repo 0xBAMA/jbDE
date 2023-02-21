@@ -52,8 +52,8 @@ add_library( imgui
 	src/ImGUI/imgui_draw.cc
 	src/ImGUI/imgui_widgets.cc
 	src/ImGUI/imgui_tables.cc
-	src/ImGUI/TextEditor.cc
-	src/ImGUI/LanguageDefinitions.cc
+	src/ImGUI/TextEditor/TextEditor.cc
+	src/ImGUI/TextEditor/LanguageDefinitions.cc
 )
 
 target_link_libraries( imgui PUBLIC sdl2 opengl )

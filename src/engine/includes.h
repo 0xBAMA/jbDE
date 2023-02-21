@@ -62,7 +62,7 @@ using glm::mat4;
 #include <GL/glew.h>
 
 // GUI library (dear ImGUI)
-#include "../ImGUI/TextEditor.h"
+#include "../ImGUI/TextEditor/TextEditor.h"
 #include "../ImGUI/imgui.h"
 #include "../ImGUI/imgui_impl_sdl2.h"
 #include "../ImGUI/imgui_impl_opengl3.h"
