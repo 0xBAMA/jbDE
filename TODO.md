@@ -10,9 +10,14 @@
 	- Motivation
 		- 4x floating point perf Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
 		- I have two 7900XTX's now, secondary offline rendering machine WIP
-			- Basically just a GPU host, minimum viable CPU/mobo/RAM to support PCIE 4.0 x16, probably lower end Intel processor/32 gigs of RAM
+			- I like [this case](https://ssupd.co/products/meshlicious) / [Micro Center has it for cheaper](https://www.microcenter.com/product/646618/ssupd-meshlicious-mini-itx-mini-tower-computer-case-with-pcie-40-riser-card-black)
+				- Small mini-ITX, a little over twice the volume of an Xbox Series X console
+				- Would stay unobtrusive, perforation makes for easy cooling with external fans
+			- Basically the goal here is just to create a GPU host
+				- Minimum viable CPU/mobo/RAM to support PCIE 4.0 x16
+					- Probably lower end Intel processor / 32 gigs of RAM
 				- Need to be able to support the GPU with 24 gigs of dedicated VRAM
-				- Needs a name like, Igor, maybe, something that sounds like a villan's henchman
+				- Needs a name like, Igor, maybe, [something that sounds like a villan's henchman](https://en.wikipedia.org/wiki/Category:Fictional_henchmen)
 	- Work so far
 		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
 		- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
@@ -57,6 +62,25 @@
 		- Sponza viewer?
 		- Siren
 		- SDFs - SDF validation tool for the DEC
+	- Generalize functions a bit
+		- Add some virtual functions which can be called at the end of the standard initialization stuff
+			- Some ideas from Jaker's Fwog - simple callbacks are better than the way I currently have it structured
+				- Just have some couple of functions like:
+					- OnInit()
+					- OnUpdate()
+					- OnRender()
+			- Current structure is to complex, too specialized - needs work
+- Extending config.json
+	- Lessons learned while doing the config.json for jbDE, window size, etc
+		- It's great, skip having to rebuild on any minor parameter change
+		- How to manage this once we have multiple sub-projects in the jbDE repo?
+		- oneShot is a big one - really interesting recontextualization of what we're doing here
+			- Ability to use engine for tasks which are not specifically realtime- or offline-rendering focused
+				- Data processing, which runs once
+				- Image manipulation
+	- Would startup arguments be useful?
+		- Not sure, Windows makes everything a pain in the ass
+		- CLI as second class citizen on Windows, not a fan
 - Texture wrapper? At least a function - something to make the declaration of textures cleaner
 	- I can do something that just returns a GLuint, because that's how I'm using it now
 - Image Wrapper Changes
@@ -117,7 +141,9 @@
 		- Lighting operations
 - Is it practical to try to do fully-jsonified parameters, menus, etc?
 	- Operations are executed based on label
-	- Menu layout based on labels and ranges
+	- Menu layout and interface elements based on labels, types and ranges
+	- What about format specifiers, indenting etc? Just treat those as a special type?
+		- I like the use of JSON for these kinds of things, because it doesn't require recompilation, it can be relaunching or even just reparsing the file while still running
 - Spaceship Generator reimpl - Could this maybe belong in jbDE codebase? Potential for reuse outside of Voraldo
 	- Use of std::unordered_map is good, I like this
 		- std::unordered_map< glm::ivec3, glm::vec4 >
