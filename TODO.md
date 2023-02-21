@@ -6,44 +6,45 @@
 
 --------------------------------------------------------------------------------------------------
 
-	- Top Priority: Getting up and running on the new machine(s)
-		- Motivation
-			- 4x floating point perf Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
-			- I have two 7900XTX's now, secondary offline rendering machine WIP
-				- Basically just a GPU host, minimum viable CPU/mobo/RAM to support PCIE 4.0 x16, probably lower end Intel processor/32 gigs of RAM
-					- Need to be able to support the GPU with 24 gigs of dedicated VRAM
-					- Needs a name like, Igor, maybe, something that sounds like a villan's henchman
-		- Work so far
-			- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
-			- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
-				- Switching to master branch did not work, it is not the fault of the docking branch
-			- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, SoftBodies works perfect )
-				- Same two bizarre messages at startup for any of my OpenGL programs, but glewInit() does not fail on the older code:
-					- `Xlib:  extension "AMDGPU" missing on display ":0".`
-					- `Xlib:  extension "GLX_ARB_context_flush_control" missing on display ":0".`
-					- then glewInit() fails, program aborts
-				- This ImGUI code is from back when you could use GLEW as a custom loader for ImGUI
-					- This has been since deprecated in favor of ImGUI's GL3W-based loader header
-				- There is some subtle interaction that I cannot determine the nature of, between GLEW and ImGUI's loader, which causes glewInit() to fail
-					- This is the case, even when glewInit() is called before any ImGUI code at all - some strange compile-time behavior?
-	- Potential Solutions:
-		- Converting to Vulkan?
-			- Maybe the move, we can get away from this OpenGL shitstorm
-			- This is less work than it seems, it's just a lot of code to populate all the structs and shit
-				- It can all be wrapped, as far as user-facing code, high level does not need to be difficult
-				- You're doing the same things, it's just much more verbose
-				- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
-			- Hardware Raytracing Experimentation, not possible with OpenGL
-		- More focus on cross-platform dev?
-			- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
-			- This may be the way to manage this, get jbDE running under Windows, in the general case, and then I can work on stuff on BlackSatan ( Ubuntu ) that will work on BlackSatan2 / Offline Rendering Machine ( Windows )
-		- **BAD** Roll back to that version of ImGUI? **BAD**
-			- Just take the ImGUI code from the old repo ( v1.76 WIP )
-				- I hate this
-				- No... but also... maybe
+- Top Priority: Getting up and running on the new machine(s)
+	- Motivation
+		- 4x floating point perf Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
+		- I have two 7900XTX's now, secondary offline rendering machine WIP
+			- Basically just a GPU host, minimum viable CPU/mobo/RAM to support PCIE 4.0 x16, probably lower end Intel processor/32 gigs of RAM
+				- Need to be able to support the GPU with 24 gigs of dedicated VRAM
+				- Needs a name like, Igor, maybe, something that sounds like a villan's henchman
+	- Work so far
+		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
+		- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
+			- Switching to master branch did not work, it is not the fault of the docking branch
+		- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, SoftBodies works perfect )
+			- Same two bizarre messages at startup for any of my OpenGL programs, but glewInit() does not fail on the older code:
+				- `Xlib:  extension "AMDGPU" missing on display ":0".`
+				- `Xlib:  extension "GLX_ARB_context_flush_control" missing on display ":0".`
+				- then glewInit() fails, program aborts
+			- This ImGUI code is from back when you could use GLEW as a custom loader for ImGUI
+				- This has been since deprecated in favor of ImGUI's GL3W-based loader header
+			- There is some subtle interaction that I cannot determine the nature of, between GLEW and ImGUI's loader, which causes glewInit() to fail
+				- This is the case, even when glewInit() is called before any ImGUI code at all - some strange compile-time behavior?
+- Potential Solutions:
+	- Converting to Vulkan?
+		- Maybe the move, we can get away from this OpenGL shitstorm
+		- This is less work than it seems, it's just a lot of code to populate all the structs and shit
+			- It can all be wrapped, as far as user-facing code, high level does not need to be difficult
+			- You're doing the same things, it's just much more verbose
+			- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
+		- Hardware Raytracing Experimentation, not possible with OpenGL
+	- More focus on cross-platform dev?
+		- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
+		- This may be the way to manage this, get jbDE running under Windows, in the general case, and then I can work on stuff on BlackSatan ( Ubuntu ) that will work on BlackSatan2 / Offline Rendering Machine ( Windows )
+	- **BAD** Roll back to that version of ImGUI? **BAD**
+		- Just take the ImGUI code from the old repo ( v1.76 WIP )
+			- I hate this
+			- No... but also... maybe
 
 --------------------------------------------------------------------------------------------------
 
+- General jbDE
 	- Adding some kind of thing where projects inherit from a base engine class
 		- This will be a new engine, jbDE, the jb Demo Engine - but much carried forward from NQADE
 			- All projects will be kept in the same repo, build script generates separate executables
