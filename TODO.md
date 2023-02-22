@@ -8,7 +8,7 @@
 
 - Top Priority: Getting up and running on the new machine(s)
 	- Motivation
-		- 4x floating point perf Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
+		- 4x floating point perf going from Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
 		- I have two 7900XTX's now, secondary offline rendering machine WIP
 			- I like [this case](https://ssupd.co/products/meshlicious) / [Micro Center has it for cheaper](https://www.microcenter.com/product/646618/ssupd-meshlicious-mini-itx-mini-tower-computer-case-with-pcie-40-riser-card-black)
 				- Small mini-ITX, a little over twice the volume of an Xbox Series X console
@@ -22,13 +22,16 @@
 		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
 		- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
 			- Switching to master branch did not work, it is not the fault of the docking branch
-		- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, SoftBodies works perfect )
+		- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, but SoftBodies works perfect with a couple paths modified )
 			- Same two bizarre messages at startup for any of my OpenGL programs, but glewInit() does not fail on the older code:
 				- `Xlib:  extension "AMDGPU" missing on display ":0".`
 				- `Xlib:  extension "GLX_ARB_context_flush_control" missing on display ":0".`
-				- then glewInit() fails, program aborts
-			- This ImGUI code is from back when you could use GLEW as a custom loader for ImGUI
-				- This has been since deprecated in favor of ImGUI's GL3W-based loader header
+				- Then glewInit() fails, program aborts
+				- Nothing relevant found by googling these messages
+				- Also interesting is the fact that glxinfo **does** show `GLX_ARB_context_flush_control` as an available extension
+					- Regardless, it's not referenced anywhere in any of my code
+			- This ImGUI code in these older projects is from back when you could use GLEW as a custom loader for ImGUI
+				- This seems to have been since deprecated in favor of ImGUI's GL3W-based loader header ( which is clearly not properly contained )
 			- There is some subtle interaction that I cannot determine the nature of, between GLEW and ImGUI's loader, which causes glewInit() to fail
 				- This is the case, even when glewInit() is called before any ImGUI code at all - some strange compile-time behavior?
 - Potential Solutions:
@@ -64,12 +67,21 @@
 		- SDFs - SDF validation tool for the DEC
 	- Generalize functions a bit
 		- Add some virtual functions which can be called at the end of the standard initialization stuff
-			- Some ideas from Jaker's Fwog - simple callbacks are better than the way I currently have it structured
+			- Some ideas from Jaker's [Fwog](https://github.com/JuanDiegoMontoya/Fwog) - simple callbacks are better than the way I currently have it structured
 				- Just have some couple of functions like:
-					- OnInit()
-					- OnUpdate()
-					- OnRender()
-			- Current structure is to complex, too specialized - needs work
+					- `OnInit()`
+					- `OnUpdate()`
+					- `OnRender()`
+			- Current structure is to complex, too specialized - needs work to make it generalizable
+	- One of the big things I want to focus on is being able to render high-quality animations offline
+		- Make the separate offline rendering machine earn its keep
+		- Very specifically set timesteps
+			- Exactly 60fps frames saved to disk, then compile video
+			- Render time does not matter
+				- Render with enough samples to get rid of the noise
+		- Parameter control and interpolation
+			- Camera movement, etc, needs to be able to manage this
+		- Some kind of JSON config for this? Some way to control application parameters by label
 - Extending config.json
 	- Lessons learned while doing the config.json for jbDE, window size, etc
 		- It's great, skip having to rebuild on any minor parameter change
@@ -216,7 +228,9 @@
 - Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( likely on Shadertoy )
 - Visible Human Data Resampling - MIP chain + 3d sampling
 	- Generate mip chain from original data, allow for arbitrary resampling at arbitrary scales
+	- Huge dataset, will be an interesting problem to solve
 - SoftBodies2
+	- Integrate into jbDE
 	- Support larger models - currently nowhere near the cap on the current single thread impl
 		- Consider learning how to use mutexes to make the multithreaded version practical?
 		- I think it will work well on the GPU
@@ -226,6 +240,7 @@
 		- SDF intersection? Sphere comes in and affects the sim nodes
 		- Noise based perturbation, like wind?
 	- Higher order physics solver? I think that there's some potential value there
+		- How does vertlet integration differ from what I'm doing? See Pezza video, study up on that a bit
 - Glitch thing, fucking up an image with bitfontCore2-based glyph masks
 	- Incorporate into the Image wrapper? ( probably yes )
 	- Previous ideas ( from first version of Siren ):
@@ -245,7 +260,7 @@
 
 - Space Game thing? I think this is something that would be fun to work on
 - More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
-	- Interesting variant of the erosion sim, much faster graph-based alternative to slow particle-based impl
+	- Interesting variant of the erosion sim, much faster graph-based alternative to my slow particle-based impl
 		- [Video](https://twitter.com/Th3HolyMoose/status/1627073949606748166) / [Paper](https://hal.inria.fr/hal-01262376/document)
 	- That little acquarium simulator thing I wrote about in my notes
 - RTIOW on the GPU
