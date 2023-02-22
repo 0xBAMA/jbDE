@@ -25,6 +25,7 @@
 		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
 		- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
 			- Switching to master branch did not work, it is not the fault of the docking branch
+			- I did not commit these changes to master
 		- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, but SoftBodies works perfect with a couple paths modified )
 			- Same two bizarre messages at startup for any of my OpenGL programs, but glewInit() does not fail on the older code:
 				- `Xlib:  extension "AMDGPU" missing on display ":0".`
@@ -77,6 +78,7 @@
 		- Siren
 		- SDFs - SDF validation tool for the DEC
 			- This needs a new name, SDFs is too generic / overloaded
+			- SDF Validation Tool might be the new name, need to think on that one
 		- PointDrop
 		- Sponza viewer? tbd
 	- Generalize functions a bit
@@ -116,17 +118,36 @@
 - Texture wrapper? At least a function - something to make the declaration of textures cleaner
 	- I can do something that just returns a GLuint, because that's how I'm using it now
 
+- More involved shader wrapper?
+	- More than just compilation
+	- Would be nice to have an abstraction layer over uniforms
+		- std::unordered_map< string, value > kind of thing, but would need to think about how that would work ( unions? )
+		- Be able to set the uniform values as members of the shader stuff
+		- Default arguments
+		- Function to update
+
 - Image Wrapper Changes
-	- Better Pixel Sorting, Add Thresholding Stuff
-		- Need to do a little more research on how this is done, my impl is literally "sort rows or columns by color channel value or luma"
 	- Rewrite, Templated Version
 		- Specify both type and number of channels as template parameters
+			- How do you do a variable number of channels as a template parameter
+			- How do you do type checking? Read up on C++ [decltype](https://en.cppreference.com/w/cpp/language/decltype)
+				- For example, in order to save out images, the behavior will be different depending on the type
+					- Float will need to remap to LDR for standard image output
+					- Uint8 will need to remap to 0.0-1.0 for EXR output
 		- This is important
 			- To be able to do single channel masks
 			- To be able to do more flexible floating point images
-	- CPU-based dithering?
-		- Might be a nice-to-have
-		- Speed less of a concern
+		- Give some default types to make declarations less ugly
+			- Image< 4, uint8 > for LDR color
+			- Image< 4, float > for accumulator
+			- Image< 1, float > for depth
+		- Greater than 4 channels? What kinds of applications would this have?
+	- Applications
+		- Better Pixel Sorting, Add Thresholding Stuff
+			- Need to do a little more research on how this is done, my previous impl is literally "sort rows or columns by color channel value or luma"
+		- CPU-based dithering?
+			- Might be a nice-to-have
+			- Speed less of a concern
 
 - SoftRast
 	- What is the plan for this?
@@ -148,6 +169,8 @@
 		- would still like a wrapper around the RNG stuff, so it's less to jack around with with all the std::random syntax
 	- Start with Wang Hash - Other methods? Linear congruential, others? Is a mersene twister implementation practical?
 	- Domain Remapping Functions, Point on disk, etc, utilities
+		- [Bias and Gain Functions](https://arxiv.org/abs/2010.09714)
+		- [iq's Usful Functions](https://iquilezles.org/articles/functions/)
 	- Come up with a way to characterize the output, make sure we are getting "good" RNG
 
 - [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
@@ -223,10 +246,15 @@
 		- [Wrighter's Spherical](https://www.shadertoy.com/view/WlfyRs)
 	- different traversal methods
 		- [Amanatides / Woo A Fast Voxel Traversal Algorithm](https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf)
+		- Some kind of DDA traversal
+		- Supercover
 
 - Stuff from [Voraldo13](https://github.com/0xBAMA/Voraldo13)
 	- Different types of screenshot utilities ( lower priority )
-		- Accumulator
+		- High bit depth capture of accumulator as EXR format now that I have that utility in the engine
+			- Allows for a couple things:
+				- Resuming long render process
+				- External postprocessing
 		- After postprocessing
 		- Directly from framebuffer
 
@@ -238,7 +266,7 @@
 
 - Need to refit refraction, try this with explicit primitives
 	- I think this is a good direction to pursue, [iq's raytracing booleans](https://www.shadertoy.com/view/mlfGRM)
-- Abstract camera projections - see above, "Different cameras"
+- Abstract camera projections, more artsy stuff - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
 
@@ -253,7 +281,7 @@
 
 #### Keeping up with projects as they happen, so they don't pile up again
 
-- Something about jbDE for February? tbd
+- Something about jbDE for February? tbd, it's still not, ah, presentable
 	- Not much to show, mostly infrastructure stuff at this point
 	- Could write about struggles to get up and running on new machine
 		- Adventures getting this shit to run on Windows
@@ -262,15 +290,14 @@
 
 ## Concrete Future Software Project Ideas
 
-- Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( likely on Shadertoy )
-
-- Visible Human Data Resampling - MIP chain + 3d sampling
+- Visible Human Data Resampling - create MIP chain + implement C++ 3d sampling
 	- Generate mip chain from original data, allow for arbitrary resampling at arbitrary scales
+		- Learn about different 3D sampling methodologies
 	- Huge dataset, will be an interesting problem to solve
 
 - SoftBodies2
 	- Integrate into jbDE
-	- Support larger models - currently nowhere near the cap on the current single thread impl
+	- Support larger models, easy swapping between models - currently nowhere near the cap on the current single thread impl
 		- Consider learning how to use mutexes to make the multithreaded version practical?
 		- I think it will work well on the GPU
 	- I want to change the way the tension / compression coloring is done
@@ -299,48 +326,86 @@
 ## More Vague Future Software Project Ideas
 
 - Space Game thing? I think this is something that would be fun to work on
+
 - More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
 	- Interesting variant of the erosion sim, much faster graph-based alternative to my slow particle-based impl
 		- [Video](https://twitter.com/Th3HolyMoose/status/1627073949606748166) / [Paper](https://hal.inria.fr/hal-01262376/document)
 	- That little acquarium simulator thing I wrote about in my notes
+
 - RTIOW on the GPU
 	- More raytracing stuff, the next week, the rest of your life books
 	- [Dutre Global Illumination Compendium](https://people.cs.kuleuven.be/~philip.dutre/GI/TotalCompendium.pdf)
 	- Understanding Importance Sampling and More Materials
 		- [BRDF Generator](https://github.com/HectorMF/BRDFGenerator)
 		- [Crash Course BRDF](https://github.com/boksajak/brdf) / [Repo](https://boksajak.github.io/files/CrashCourseBRDF.pdf)
-- Glitch effects using the bitfontCore2 bit masks
+
 - Fluid/Physics Simulation
 	- [SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 	- Pezza tutorials [1](https://youtu.be/lS_qeBy3aQI) / [2](https://youtu.be/9IULfQH7E90)
+
 - 3D Version of Physarum Simulation
 	- I think there's a lot more cool stuff I can do with the physarum thing
-		- Even just using the 2d version, as heightmap, has a lot of potential
-- More Advanced Optics Simulation
-	- need to look at explicit primitives for lens shapes, SDF lens shapes are problematic
+		- Even just using the 2d version has a lot of potential
+			- Treat it as a heightmap
+			- Capture at certain states ( EXR saving? )
+
 - Experimenting with TinyGLTF and loading of the Intel Sponza models
 	- Got to try shadowmapping at some point
 	- Normal mapping is cool as shit
+
 - Point cloud visualization
 	- Aerosoap mentioned using jump flood algorithm for visualization, look into that
 		- [Online LIDAR Point Cloud Viewer](http://lidarview.com/)
 		- [Potree](https://potree.github.io/) / [Repo](https://github.com/potree/potree)
 	- Mesh to point cloud conversion, Poisson Disk Sampling on triangles to generate points
+	- Find more LIDAR scans data to look at
+		- [Some on Sketchfab](https://sketchfab.com/3d-models/sy-carola-point-cloud-17bd8188447b48baab75125b9ad20788)
+		- I thing the poisson disk sampling thing would be an interesting way to generate them from meshes
+			- Generate evenly spaced sample points on the triangles, get texture, normal, etc samples
+
+- Depth Rendering to generate heightmaps
+	- Something like the face charms project, again, but generating the heightmaps from meshes directly
+	- Maybe this is an application for SoftRast
+		- I want to template the Image wrapper before I do that, though
+
+- Something with Cellular Automata
+	- 3D CA is super cool, I would like to do more with that one project where I was doing the the realtime wireWorld sim
+	- Maybe some explorations along the lines of the Wolfram 8-bit totalistic thing
+		- How many bits to represent 2D equivalent? 3D?
+		- Exploring the space, generate noise field for randomly picked rules and then you can watch it kind of thing
+
+- Data visualization for its own sake
+	- [Byte-level file format details by corkami](https://github.com/corkami/pics/blob/master/binary/README.md#images)
+		- Cyberpunk 2077 has a lot of little decorations that seem to be styled after some human readable format of executables
+		- Generate images that just use data in interesting and different ways
+	- [Christopher Domas Dynamic Binary Visualization](https://www.youtube.com/watch?v=4bM3Gut1hIk)
+		- This tool he wrote, [CantorDust](https://inside.battelle.org/blog-details/battelle-publishes-open-source-binary-visualization-tool) / [Repo](https://github.com/Battelle/cantordust)
+		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
+			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
+
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
 	- Interactive driving thing?
 	- Visualize the inside of the engine cylinder using backface culling, like that one thing I wanted to do with the house walls in CS 4250
 		- only interior surface of walls will show, because the backface is facing the exterior side
 			- I think it's a valid technique, I want find a way to try it on something
+	- Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( on Shadertoy? )
+		- Create decent looking crankshaft, connecting rods, pistons, valves, etc with 
+			- Good practice with SDF BVH, so I can do more complex geo with soft intersections etc to make them look nice
+			- Blockout view shows only the bounding volumes
+
 - IFS Stuff - Nameless wants to do some stuff with this, too - would be cool to collaborate
 	- probabalistic picking of transforms, points in compute shaders
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
+
 - Tree Growing Stuff
 	- [Creation and Rendering of Realistic Trees](https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf)
 	- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
+
 - Bokeh LUT ( Pencil Map ) - how to apply this?
 	- [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
+
 - Tonemapping / Color Stuff
 	- Path-to-White tonemapping curves
 		- [Tizian Tonemapper](https://github.com/tizian/tonemapper)
@@ -356,16 +421,20 @@
 	- Learn KiCAD in order to be able to make the PCB
 		- [Getting to Blinky](https://www.youtube.com/watch?v=BVhWh3AsXQs&list=PLy2022BX6EspFAKBCgRuEuzapuz_4aJCn)
 	- Circuit from [here](https://www.lookmumnocomputer.com/simplest-oscillator)
+
 - Learning KiCAD opens up a lot of other stuff
 	- Microcontroller stuff, PIC
 	- ToF laser distance sensors
 	- Accelerometers
+
 - Learning some arduino to help Space with some of the art / sensor / actuator stuff
 	- Touch sensitivity, how do we make that happen
 	- I have some ESP32's, find something to do with those, maybe something with some of those little OLED screens
+
 - Getting into something with the Shapeoko
 	- Reworking the old gcode generating code, maybe figure out better clearance algorithms?
 		- Previous impl was very much brute force, given the limited cutting capabilities of the 3018 machine
+
 - Computer Cooler Shroud Mount for the 140mm Fans
 	- Base the design on [the NA-HC4 Heatsink Cover](https://noctua.at/en/na-hc4-chromax-black)
 		- Can we mount to one of these? I have one to get measurements from
@@ -375,13 +444,16 @@
 		- Got to dig out the overclocking header connector thingy to enable these controls
 		- I would really prefer not running the CPU at 95C under load, it just makes me uncomfortable
 		- Basically what I read is that looking at something like a 10mv undervolt loses very little perf and improves thermals a significant amount ( 95C -> 80C under load kind of improvement ) but I don't really understand the particulars of what this is doing
+
 - Computer Lower Power Supply Shroud
 	- Existing shroud no longer fits with Red Devil card - too long, would collide with shroud
 		- Take measurements from existing shroud, design something that would serve a similar purpose and then finish it nice
+
 - Camera Stabilization Flywheel? ( maybe kinda goofy idea, low, low priority )
 	- [Project Sharpshooter](https://www.bennetcaraher.com/project-sharpshooter.html) - Reaction flywheels for DSLR
 	- [For RC Helicopter](http://myresearch.company/flywheel.phtml)
 	- [Video](https://www.youtube.com/watch?v=cjV-yDNdeOI) - stabilization using an old hard drive motor, interesting
+
 - Projector + Short DoF Photography
 	- <https://twitter.com/JoanieLemercier/status/1534226118877782022>
 	- Laser sweep / spinning mirror thing? maybe easier / cheaper than using a DLP etc type display projector
@@ -394,3 +466,21 @@
 - [Keenan Crane's Intro to Computer Graphics](https://youtube.com/playlist?list=PL9_jI1bdZmz2emSh0UQ5iOdT2xRHFHL7E)
 - [Cem Yuskel's Intro to Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZTfYh4UbhLGpI5kGd5oW_Hh)
 - [Cem Yuskel's Interactive Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZS3R5DjmCQsqupu43oS9CFN)
+
+--------------------------------------------------------------------------------------------------
+
+## Matlab / Octave
+
+- Want to get into some more stuff with this, it's a really good tool and I want to get more practiced with it
+
+- Some things I want to try:
+	- Image manipulation
+	- Convolution
+	- DSP stuff, more audio stuff
+	- Maybe this is a good way to get into the NTSC simulation stuff
+	- C++ interop
+		- Would be interesting to do something with the raytracing hardware like this, maybe
+			- Octave calls into C++
+			- C++ creates Vulkan context, sets up buffers, etc, returns another buffer with something from the GPU
+
+--------------------------------------------------------------------------------------------------
