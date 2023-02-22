@@ -1,10 +1,12 @@
 --------------------------------------------------------------------------------------------------
 
+This is a planning document for work on this project and in general, about the things I like to work on. Not particularly structured, trying to group information together and keep related links at hand. Varying levels of detail, from high level plans to implementation specifics.
+
+--------------------------------------------------------------------------------------------------
+
 ## Engine Stuff
 
 - jbDE - WIP - Replaces NQADE
-
---------------------------------------------------------------------------------------------------
 
 - Top Priority: Getting up and running on the new machine(s)
 
