@@ -120,7 +120,7 @@
 - Deterministic RNG for the CPU - need deterministic alternative to std::random
 	- VAT, Spaceship Generator need repeatability in random number generation
 	- I haven't found a way to seed std::random to be able to get the same sequence back out again
-		- <https://www.phy.olemiss.edu/~kbeach/guide/2020/01/11/random/> is this something? looks promising
+		- [Properly Seeding the Mersenne Twistor](https://www.phy.olemiss.edu/~kbeach/guide/2020/01/11/random/) is this something? looks promising
 		- would still like a wrapper around the RNG stuff, so it's less to jack around with with all the std::random syntax
 	- Start with Wang Hash - Other methods? Linear congruential, others? Is a mersene twister implementation practical?
 	- Domain Remapping Functions, Point on disk, etc, utilities
@@ -184,14 +184,14 @@
 			- How do we maintain this if more glyphs get added? ( append only? probably best solution )
 - Render mode control
 	- Different cameras
-		- Joukowsky transform <https://www.shadertoy.com/view/tsdyWM>
-		- Fisheye <https://www.shadertoy.com/view/3sSfDz>
-		- Different Fisheye <https://www.shadertoy.com/view/MlS3zK>
-		- Panoramic projection <https://www.shadertoy.com/view/clB3Rz>
-		- Icosahedral <https://www.shadertoy.com/view/4dSyWh>
-		- Wrighter's Spherical <https://www.shadertoy.com/view/WlfyRs>
+		- [Joukowsky transform](https://www.shadertoy.com/view/tsdyWM)
+		- [Fisheye](https://www.shadertoy.com/view/3sSfDz)
+		- [Different Fisheye](https://www.shadertoy.com/view/MlS3zK)
+		- [Panoramic projection](https://www.shadertoy.com/view/clB3Rz)
+		- [Icosahedral](https://www.shadertoy.com/view/4dSyWh)
+		- [Wrighter's Spherical](https://www.shadertoy.com/view/WlfyRs)
 	- different traversal methods
-		- <https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf>
+		- [Amanatides / Woo A Fast Voxel Traversal Algorithm](https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf)
 - Stuff from [Voraldo13](https://github.com/0xBAMA/Voraldo13)
 	- Different types of screenshot utilities ( lower priority )
 		- Accumulator
@@ -268,13 +268,13 @@
 	- That little acquarium simulator thing I wrote about in my notes
 - RTIOW on the GPU
 	- More raytracing stuff, the next week, the rest of your life books
-	- <https://people.cs.kuleuven.be/~philip.dutre/GI/TotalCompendium.pdf>
+	- [Dutre Global Illumination Compendium](https://people.cs.kuleuven.be/~philip.dutre/GI/TotalCompendium.pdf)
 	- Understanding Importance Sampling and More Materials
-		- <https://github.com/HectorMF/BRDFGenerator>
-		- <https://github.com/boksajak/brdf> / <https://boksajak.github.io/files/CrashCourseBRDF.pdf>
+		- [BRDF Generator](https://github.com/HectorMF/BRDFGenerator)
+		- [Crash Course BRDF](https://github.com/boksajak/brdf) / [Repo](https://boksajak.github.io/files/CrashCourseBRDF.pdf)
 - Glitch effects using the bitfontCore2 bit masks
 - Fluid/Physics Simulation
-	- <https://github.com/InteractiveComputerGraphics/SPlisHSPlasH>
+	- [SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 	- Pezza tutorials [1](https://youtu.be/lS_qeBy3aQI) / [2](https://youtu.be/9IULfQH7E90)
 - 3D Version of Physarum Simulation
 	- I think there's a lot more cool stuff I can do with the physarum thing
@@ -286,8 +286,8 @@
 	- Normal mapping is cool as shit
 - Point cloud visualization
 	- Aerosoap mentioned using jump flood algorithm for visualization, look into that
-		- <http://lidarview.com/>
-		- <https://potree.github.io/> / <https://github.com/potree/potree>
+		- [Online LIDAR Point Cloud Viewer](http://lidarview.com/)
+		- [Potree](https://potree.github.io/) / [Repo](https://github.com/potree/potree)
 	- Mesh to point cloud conversion, Poisson Disk Sampling on triangles to generate points
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
@@ -297,19 +297,19 @@
 			- I think it's a valid technique, I want find a way to try it on something
 - IFS Stuff - Nameless wants to do some stuff with this, too - would be cool to collaborate
 	- probabalistic picking of transforms, points in compute shaders
-		- <https://flam3.com/flame_draves.pdf>
-		- <https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf>
+		- [Draves Paper](https://flam3.com/flame_draves.pdf)
+		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
 - Tree Growing Stuff
-	- <https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf>
-	- <http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf>
+	- [Creation and Rendering of Realistic Trees](https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf)
+	- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
 - Bokeh LUT ( Pencil Map ) - how to apply this?
-	- <https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf>
+	- [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
 - Tonemapping / Color Stuff
 	- Path-to-White tonemapping curves
-		- <https://github.com/tizian/tonemapper>
-		- <https://chrisbrejon.com/articles/ocio-display-transforms-and-misconceptions/>
+		- [Tizian Tonemapper](https://github.com/tizian/tonemapper)
+		- [Notorious Six Writeup](https://chrisbrejon.com/articles/ocio-display-transforms-and-misconceptions/)
 	- General Color
-		- <http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html>
+		- [Color FAQ](http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html)
 
 --------------------------------------------------------------------------------------------------
 
@@ -336,9 +336,9 @@
 	- Existing shroud no longer fits with Red Devil card - too long, would collide with shroud
 		- Take measurements from existing shroud, design something that would serve a similar purpose and then finish it nice
 - Camera Stabilization Flywheel? ( maybe kinda goofy idea, low, low priority )
-	- <https://www.bennetcaraher.com/project-sharpshooter.html>
-	- <http://myresearch.company/flywheel.phtml>
-	- <https://www.youtube.com/watch?v=cjV-yDNdeOI> using an old hard drive motor, interesting
+	- [Project Sharpshooter](https://www.bennetcaraher.com/project-sharpshooter.html) - Reaction flywheels for DSLR
+	- [For RC Helicopter](http://myresearch.company/flywheel.phtml)
+	- [Video](https://www.youtube.com/watch?v=cjV-yDNdeOI) - stabilization using an old hard drive motor, interesting
 - Projector + Short DoF Photography
 	- <https://twitter.com/JoanieLemercier/status/1534226118877782022>
 	- Laser sweep / spinning mirror thing? maybe easier / cheaper than using a DLP etc type display projector
