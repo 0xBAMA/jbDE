@@ -219,7 +219,10 @@
 
 #### Keeping up with projects as they happen, so they don't pile up again
 
-- currently none are pending
+- Something about jbDE for February? tbd
+	- Not much to show, mostly infrastructure stuff at this point
+	- Could write about struggles to get up and running on new machine
+		- Adventures getting this shit to run on Windows
 
 --------------------------------------------------------------------------------------------------
 
@@ -341,3 +344,12 @@
 	- Laser sweep / spinning mirror thing? maybe easier / cheaper than using a DLP etc type display projector
 
 --------------------------------------------------------------------------------------------------
+
+## Courses
+
+--------------------------------------------------------------------------------------------------
+
+- [Keenan Crane's Discrete Differential Geometry](https://youtube.com/playlist?list=PL9_jI1bdZmz0hIrNCMQW1YmZysAiIYSSS)
+- [Keenan Crane's Intro to Computer Graphics](https://youtube.com/playlist?list=PL9_jI1bdZmz2emSh0UQ5iOdT2xRHFHL7E)
+- [Cem Yuskel's Intro to Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZTfYh4UbhLGpI5kGd5oW_Hh)
+- [Cem Yuskel's Interactive Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZS3R5DjmCQsqupu43oS9CFN)
