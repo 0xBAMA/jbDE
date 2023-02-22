@@ -347,8 +347,6 @@
 
 ## Courses
 
---------------------------------------------------------------------------------------------------
-
 - [Keenan Crane's Discrete Differential Geometry](https://youtube.com/playlist?list=PL9_jI1bdZmz0hIrNCMQW1YmZysAiIYSSS)
 - [Keenan Crane's Intro to Computer Graphics](https://youtube.com/playlist?list=PL9_jI1bdZmz2emSh0UQ5iOdT2xRHFHL7E)
 - [Cem Yuskel's Intro to Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZTfYh4UbhLGpI5kGd5oW_Hh)
