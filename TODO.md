@@ -7,6 +7,7 @@
 --------------------------------------------------------------------------------------------------
 
 - Top Priority: Getting up and running on the new machine(s)
+
 	- Motivation
 		- 4x floating point perf going from Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
 		- I have two 7900XTX's now, secondary offline rendering machine WIP
@@ -18,6 +19,8 @@
 					- Probably lower end Intel processor / 32 gigs of RAM
 				- Need to be able to support the GPU with 24 gigs of dedicated VRAM
 				- Needs a name like, Igor, maybe, [something that sounds like a villan's henchman](https://en.wikipedia.org/wiki/Category:Fictional_henchmen)
+					- Oddjob - that's definitely the winner
+
 	- Work so far
 		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
 		- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
@@ -34,54 +37,70 @@
 				- This seems to have been since deprecated in favor of ImGUI's GL3W-based loader header ( which is clearly not properly contained )
 			- There is some subtle interaction that I cannot determine the nature of, between GLEW and ImGUI's loader, which causes glewInit() to fail
 				- This is the case, even when glewInit() is called before any ImGUI code at all - some strange compile-time behavior?
-- Potential Solutions:
-	- Converting to Vulkan?
-		- Maybe the move, we can get away from this OpenGL shitstorm
-		- This is less work than it seems, it's just a lot of code to populate all the structs and shit
-			- It can all be wrapped, as far as user-facing code, high level does not need to be difficult
-			- You're doing the same things, it's just much more verbose
-			- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
-		- Hardware Raytracing Experimentation, not possible with OpenGL
-	- More focus on cross-platform dev?
-		- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
-		- This may be the way to manage this, get jbDE running under Windows, in the general case, and then I can work on stuff on BlackSatan ( Ubuntu ) that will work on BlackSatan2 / Offline Rendering Machine ( Windows )
-	- **BAD** Roll back to that version of ImGUI? **BAD**
-		- Just take the ImGUI code from the old repo ( v1.76 WIP )
-			- I hate this
-			- No... but also... maybe
+
+	- Potential Solutions:
+		- Converting to Vulkan?
+			- Maybe the move, we can get away from this OpenGL shitstorm
+			- This is less work than it seems, it's just a lot of code to populate all the structs and shit
+				- It can all be wrapped, as far as user-facing code, high level does not need to be difficult
+				- You're doing the same things, it's just much more verbose
+				- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
+			- Hardware Raytracing Experimentation, not possible with OpenGL
+		- More focus on cross-platform dev?
+			- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
+			- This may be the way to manage this, get jbDE running under Windows, in the general case, and then I can work on stuff on BlackSatan ( Ubuntu ) that will work on BlackSatan2 / Offline Rendering Machine ( Windows )
+		- **BAD** Roll back to that version of ImGUI? **BAD**
+			- Just take the ImGUI code from the old repo ( v1.76 WIP )
+				- I hate this
+				- No... but also... maybe
+		- Other UI lib options?
+			- [Nuklear](https://github.com/Immediate-Mode-UI/Nuklear) - this looks very promising, similar interface to ImGUI
+			- [libui](https://github.com/andlabs/libui) - interesting idea but looks like it isn't being maintained anymore
 
 --------------------------------------------------------------------------------------------------
 
-- General jbDE
-	- Adding some kind of thing where projects inherit from a base engine class
-		- This will be a new engine, jbDE, the jb Demo Engine - but much carried forward from NQADE
+- General Engine Stuff
+	- Creating a structure where projects inherit from a base engine class
+		- This will be the basis of jbDE - with a lot of existing utility stuff carried forward from NQADE
 			- All projects will be kept in the same repo, build script generates separate executables
-	- Need to work on figuring out how projects will inherit from the base engine class
+		- Need to work on figuring out how projects will inherit from the base engine class
+			- How to manage the overriding functions?
+				- Separate files, probably separate .cc files for the derived class
+			- How to build separate executables?
+				- This one I think I have a line on, will just be adding more `add_executable` / `target_link_libraries` statements at the end of CMakeLists.txt
+				- Dump them all in the bin folder - need to make sure I can consistently run all this shit
 	- Once I get to that point, I will be able to maintain the projects automagically
 		- Vertexture
 		- SoftBodies
 		- Voraldo
 		- Physarum
-		- Sponza viewer?
 		- Siren
 		- SDFs - SDF validation tool for the DEC
+			- This needs a new name, SDFs is too generic / overloaded
+		- PointDrop
+		- Sponza viewer? tbd
 	- Generalize functions a bit
 		- Add some virtual functions which can be called at the end of the standard initialization stuff
 			- Some ideas from Jaker's [Fwog](https://github.com/JuanDiegoMontoya/Fwog) - simple callbacks are better than the way I currently have it structured
-				- Just have some couple of functions like:
+				- Just have some couple of virtual functions like:
 					- `OnInit()`
 					- `OnUpdate()`
 					- `OnRender()`
+				- And override those as you write your derived classes
 			- Current structure is to complex, too specialized - needs work to make it generalizable
 	- One of the big things I want to focus on is being able to render high-quality animations offline
+		- Maybe get into some Julius Horsthuis-style fractal animation stuff
 		- Make the separate offline rendering machine earn its keep
 		- Very specifically set timesteps
 			- Exactly 60fps frames saved to disk, then compile video
 			- Render time does not matter
-				- Render with enough samples to get rid of the noise
+				- Render with enough samples to get rid of the noise, then do the next frame
 		- Parameter control and interpolation
 			- Camera movement, etc, needs to be able to manage this
 		- Some kind of JSON config for this? Some way to control application parameters by label
+		- Some kind of timeline tool? Like what they do for demoscene stuff, sometimes, that could be a cool tool to try to write
+			- Maybe part of the SDF validation tool
+
 - Extending config.json
 	- Lessons learned while doing the config.json for jbDE, window size, etc
 		- It's great, skip having to rebuild on any minor parameter change
@@ -91,10 +110,12 @@
 				- Data processing, which runs once
 				- Image manipulation
 	- Would startup arguments be useful?
-		- Not sure, Windows makes everything a pain in the ass
-		- CLI as second class citizen on Windows, not a fan
+		- Not sure, Windows turns everything I'm used to being easy on Linux into a pain in the ass
+		- CLI as second class citizen on Windows, not a fan of how that works
+
 - Texture wrapper? At least a function - something to make the declaration of textures cleaner
 	- I can do something that just returns a GLuint, because that's how I'm using it now
+
 - Image Wrapper Changes
 	- Better Pixel Sorting, Add Thresholding Stuff
 		- Need to do a little more research on how this is done, my impl is literally "sort rows or columns by color channel value or luma"
@@ -106,17 +127,20 @@
 	- CPU-based dithering?
 		- Might be a nice-to-have
 		- Speed less of a concern
+
 - SoftRast
 	- What is the plan for this?
 	- What is the desired functionality for the wrapper?
 		- I'm not looking to just write OpenGL again, really just a subset related to the actual rasterization of geometry, and even then pretty limited scope
 		- I think I've also done most of what I want to do with it
 			- I think I will probably do a more flexible OBJ voxelizer for Voraldo14, but beyond that I don't have much in the way of plans for it
+
 - Dithering stuff
 	- Palette based version: Precompute 3d LUT texture(s) in order to avoid having to do the distance calculations
 		- This will absolutely help perf on large color count palettes
 			- Instead of iterating through and doing N distance checks for every pixel, every frame, just keep LUTs of closest, second closest color for all points in a 3D LDR RGB colorspace, and use dither patterns as before
 	- Probably make this built-in functionality in the engine, part of postprocessing stack?
+
 - Deterministic RNG for the CPU - need deterministic alternative to std::random
 	- VAT, Spaceship Generator need repeatability in random number generation
 	- I haven't found a way to seed std::random to be able to get the same sequence back out again
@@ -125,10 +149,12 @@
 	- Start with Wang Hash - Other methods? Linear congruential, others? Is a mersene twister implementation practical?
 	- Domain Remapping Functions, Point on disk, etc, utilities
 	- Come up with a way to characterize the output, make sure we are getting "good" RNG
+
 - [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
 	- Point locations based on [this paper](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
 	- I'm sure there are interesting ways I can use this
 		- Image based, but also want to be able to get list of points
+
 - Color Header
 	- Palette Options - I want to make this a lot more flexible + have a lot more pre-built CPU-based functionality
 		- simple palette from the lospec set
@@ -151,16 +177,20 @@
 			- Camera type, position, orientation
 		- Drawing operations
 		- Lighting operations
+
 - Is it practical to try to do fully-jsonified parameters, menus, etc?
+	- Attempted and then gave up for Voraldo13
+		- I still think it's possible, I just have to make a better plan
 	- Operations are executed based on label
 	- Menu layout and interface elements based on labels, types and ranges
 	- What about format specifiers, indenting etc? Just treat those as a special type?
 		- I like the use of JSON for these kinds of things, because it doesn't require recompilation, it can be relaunching or even just reparsing the file while still running
+
 - Spaceship Generator reimpl - Could this maybe belong in jbDE codebase? Potential for reuse outside of Voraldo
 	- Use of std::unordered_map is good, I like this
 		- std::unordered_map< glm::ivec3, glm::vec4 >
 			- ivec3 keys for easy negative indexing, vec4 contents for color and opacity
-		- Potential for writing my own hashmap, but honestly I'm not seeing a huge need to do so
+		- Potential for writing my own hashmap, but honestly I'm not seeing a huge need to do so right now
 	- Using new glyph and palette resources
 		- Abandoning the hoard-of-bitfonts fork
 			- fontmess is the new one, with the simple pipeline for parsing etc
@@ -182,6 +212,7 @@
 		- Only include english characters, only include foreign characters, only include pictograms? something like that
 		- Make sure we have unique IDs, and Black/Whitelist certain IDs
 			- How do we maintain this if more glyphs get added? ( append only? probably best solution )
+
 - Render mode control
 	- Different cameras
 		- [Joukowsky transform](https://www.shadertoy.com/view/tsdyWM)
@@ -192,11 +223,13 @@
 		- [Wrighter's Spherical](https://www.shadertoy.com/view/WlfyRs)
 	- different traversal methods
 		- [Amanatides / Woo A Fast Voxel Traversal Algorithm](https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf)
+
 - Stuff from [Voraldo13](https://github.com/0xBAMA/Voraldo13)
 	- Different types of screenshot utilities ( lower priority )
 		- Accumulator
 		- After postprocessing
 		- Directly from framebuffer
+
 - Normal vectors derived from alpha channel gradient ( similar to SDF normal )
 
 --------------------------------------------------------------------------------------------------
@@ -204,6 +237,7 @@
 ## Siren Plans
 
 - Need to refit refraction, try this with explicit primitives
+	- I think this is a good direction to pursue, [iq's raytracing booleans](https://www.shadertoy.com/view/mlfGRM)
 - Abstract camera projections - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
@@ -229,9 +263,11 @@
 ## Concrete Future Software Project Ideas
 
 - Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( likely on Shadertoy )
+
 - Visible Human Data Resampling - MIP chain + 3d sampling
 	- Generate mip chain from original data, allow for arbitrary resampling at arbitrary scales
 	- Huge dataset, will be an interesting problem to solve
+
 - SoftBodies2
 	- Integrate into jbDE
 	- Support larger models - currently nowhere near the cap on the current single thread impl
@@ -244,6 +280,7 @@
 		- Noise based perturbation, like wind?
 	- Higher order physics solver? I think that there's some potential value there
 		- How does vertlet integration differ from what I'm doing? See Pezza video, study up on that a bit
+
 - Glitch thing, fucking up an image with bitfontCore2-based glyph masks
 	- Incorporate into the Image wrapper? ( probably yes )
 	- Previous ideas ( from first version of Siren ):
@@ -325,13 +362,19 @@
 	- Accelerometers
 - Learning some arduino to help Space with some of the art / sensor / actuator stuff
 	- Touch sensitivity, how do we make that happen
+	- I have some ESP32's, find something to do with those, maybe something with some of those little OLED screens
 - Getting into something with the Shapeoko
 	- Reworking the old gcode generating code, maybe figure out better clearance algorithms?
 		- Previous impl was very much brute force, given the limited cutting capabilities of the 3018 machine
 - Computer Cooler Shroud Mount for the 140mm Fans
 	- Base the design on [the NA-HC4 Heatsink Cover](https://noctua.at/en/na-hc4-chromax-black)
-		- Can we mount to one of these? something to adapt it, would be significantly less 3d printing work
-	- Consider also doing [the undervolting thing](https://youtu.be/1pizvaYiVbk)
+		- Can we mount to one of these? I have one to get measurements from
+			- I could make something to adapt it, I think it would be significantly less 3d printing work vs printing something that is the whole shroud + mount
+			- Failing that, could make something based on measurements taken from the unit
+	- Consider also doing [the undervolting thing](https://youtu.be/1pizvaYiVbk) on the R9 7950X in BlackSatan2
+		- Got to dig out the overclocking header connector thingy to enable these controls
+		- I would really prefer not running the CPU at 95C under load, it just makes me uncomfortable
+		- Basically what I read is that looking at something like a 10mv undervolt loses very little perf and improves thermals a significant amount ( 95C -> 80C under load kind of improvement ) but I don't really understand the particulars of what this is doing
 - Computer Lower Power Supply Shroud
 	- Existing shroud no longer fits with Red Devil card - too long, would collide with shroud
 		- Take measurements from existing shroud, design something that would serve a similar purpose and then finish it nice
