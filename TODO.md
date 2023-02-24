@@ -219,6 +219,8 @@ This is a planning document for work on this project and in general, about the t
 	- Using new glyph and palette resources
 		- Abandoning the hoard-of-bitfonts fork
 			- fontmess is the new one, with the simple pipeline for parsing etc
+			- I don't know if it's really possible to put this all into one file
+				- There was some manual processing that I had to do, I think, I don't remember
 	- Palette Options from color header
 	- Are there any more operations I can add?
 		- Some operations require the creation of a new map, because moving the contents in place will corrupt the data.
@@ -382,14 +384,17 @@ This is a planning document for work on this project and in general, about the t
 		- Generate images that just use data in interesting and different ways
 	- [Christopher Domas Dynamic Binary Visualization](https://www.youtube.com/watch?v=4bM3Gut1hIk)
 		- This tool he wrote, [CantorDust](https://inside.battelle.org/blog-details/battelle-publishes-open-source-binary-visualization-tool) / [Repo](https://github.com/Battelle/cantordust)
+		- Another talk by [Christopher Domas](https://youtu.be/HlUe0TUHOIc)
 		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
+	- I think that a simple version of this could be interesting
+		- Simple hex dump could easiy be achieved with the existing text renderer
 
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
 	- Interactive driving thing?
 	- Visualize the inside of the engine cylinder using backface culling, like that one thing I wanted to do with the house walls in CS 4250
-		- only interior surface of walls will show, because the backface is facing the exterior side
+		- Only interior surface of walls will show, because the backface is facing the exterior side
 			- I think it's a valid technique, I want find a way to try it on something
 	- Reimplementation of the VIVS V8 Engine Animation as a Raymarching Demo ( on Shadertoy? )
 		- Create decent looking crankshaft, connecting rods, pistons, valves, etc with 
@@ -397,7 +402,7 @@ This is a planning document for work on this project and in general, about the t
 			- Blockout view shows only the bounding volumes
 
 - IFS Stuff - Nameless wants to do some stuff with this, too - would be cool to collaborate
-	- probabalistic picking of transforms, points in compute shaders
+	- Probabalistic picking of transforms, points in compute shaders
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
 
@@ -422,6 +427,7 @@ This is a planning document for work on this project and in general, about the t
 - Reverse Avalanche Oscillator PCB
 	- Learn KiCAD in order to be able to make the PCB
 		- [Getting to Blinky](https://www.youtube.com/watch?v=BVhWh3AsXQs&list=PLy2022BX6EspFAKBCgRuEuzapuz_4aJCn)
+		- [OSHPark for PCB manufacture](https://oshpark.com/)
 	- Circuit from [here](https://www.lookmumnocomputer.com/simplest-oscillator)
 
 - Learning KiCAD opens up a lot of other stuff
@@ -468,6 +474,7 @@ This is a planning document for work on this project and in general, about the t
 - [Keenan Crane's Intro to Computer Graphics](https://youtube.com/playlist?list=PL9_jI1bdZmz2emSh0UQ5iOdT2xRHFHL7E)
 - [Cem Yuskel's Intro to Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZTfYh4UbhLGpI5kGd5oW_Hh)
 - [Cem Yuskel's Interactive Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZS3R5DjmCQsqupu43oS9CFN)
+- [UC Davis Computer Graphics](https://youtube.com/playlist?list=PL_w_qWAQZtAZhtzPI5pkAtcUVgmzdAP8g)
 
 --------------------------------------------------------------------------------------------------
 
