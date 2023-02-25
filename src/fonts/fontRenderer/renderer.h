@@ -1,4 +1,5 @@
 #include "../../engine/includes.h"
+#include "../../data/colors.h"
 
 #ifndef FONTRENDERER_H
 #define FONTRENDERER_H
@@ -35,11 +36,11 @@
 #define GOLD	glm::ivec3( 191, 146,  23 )
 #define GREEN	glm::ivec3( 100, 186,  20 )
 #define BLUE	glm::ivec3(  50, 103, 184 )
-#define WHITE	glm::ivec3( 245, 245, 245 )
+#define RED		glm::ivec3( 255,   0,   0 )
+#define WHITE	glm::ivec3( 255, 255, 255 )
 #define GREY	glm::ivec3( 169, 169, 169 )
 #define GREY_D	glm::ivec3( 100, 100, 100 )
 #define BLACK	glm::ivec3(  16,  16,  16 )
-
 
 struct cChar {
 	unsigned char data[ 4 ] = { 255, 255, 255, 0 };
@@ -368,7 +369,8 @@ public:
 
 	glm::ivec3 getColorForByte ( uint8_t b ) {
 		// return GREY;
-		return glm::ivec3( ( frequencyCount[ b ] / float( maxCount ) ) * 255.0f );
+		// return glm::ivec3( ( frequencyCount[ b ] / float( maxCount ) ) * 255.0f );
+		return magmaRef( std::pow( frequencyCount[ b ] / float( maxCount ), 0.5f ) );
 	}
 
 	uint8_t getCharForByte ( uint8_t b ) {
@@ -401,10 +403,6 @@ public:
 			layers[ 3 ].WriteCharAt( glm::uvec2( 73, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
 			layers[ 3 ].WriteCharAt( glm::uvec2( 90, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
 
-			// layout testing
-			// layers[ 3 ].WriteString( glm::uvec2( 22, i ), glm::uvec2( numBinsWidth, i ), std::string( "00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00" ), GREY );
-			// layers[ 3 ].WriteString( glm::uvec2( 74, i ), glm::uvec2( numBinsWidth, i ), std::string( "0000000000000000" ), GREY );
-
 			// write the octets
 			for ( int x = 0; x < 8; x++ ) {
 
@@ -421,6 +419,7 @@ public:
 				layers[ 3 ].WriteString( glm::uvec2( 22 + 3 * x, i ), glm::uvec2( numBinsWidth, i ), s.str(), currentByteColor );
 
 				// write the char interpretation to the right
+				// layers[ 2 ].WriteCharAt( glm::uvec2( 74 + x, i ), cChar( currentByteColor, FILL_100 ) );
 				layers[ 3 ].WriteCharAt( glm::uvec2( 74 + x, i ), cChar( currentByteColor, currentChar ) );
 
 			// second column
@@ -436,6 +435,7 @@ public:
 				layers[ 3 ].WriteString( glm::uvec2( 22 + 3 * x + 3 * 8 + 1, i ), glm::uvec2( numBinsWidth, i ), s.str(), currentByteColor );
 
 				// write the char interpretation to the right
+				// layers[ 2 ].WriteCharAt( glm::uvec2( 82 + x, i ), cChar( currentByteColor, FILL_100 ) );
 				layers[ 3 ].WriteCharAt( glm::uvec2( 82 + x, i ), cChar( currentByteColor, currentChar ) );
 
 			}
