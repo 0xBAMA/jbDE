@@ -19,7 +19,7 @@ void main () {
 	// which glyph ID/character color to pull dataTexture
 	ivec2 bin = ivec2( invokeLoc.x / 8, invokeLoc.y / 16 );
 	// where to reference the fontAtlas' glyph ( uv ), for the given character ID
-	ivec2 loc = ivec2( invokeLoc.x % 8, invokeLoc.y % 16);
+	ivec2 loc = ivec2( invokeLoc.x % 8, invokeLoc.y % 16 + 1 ); // +1 to fix off-by-one error
 
 	// figure out which glyph is being used by reading the data texture ( +its color )
 	uvec4 dataTexRead = imageLoad( dataTexture, bin );

@@ -238,6 +238,9 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
+
+	// temporary, testing
+	{ Block Start( "Initialize Hex Dump" ); textRenderer.loadHexx( "TODO.md" ); textRenderer.evalHexxFreq(); }
 }
 
 void engine::ShaderCompile () {

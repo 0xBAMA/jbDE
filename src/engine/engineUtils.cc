@@ -51,6 +51,8 @@ void engine::ComputePasses () {
 	{ // text rendering timestamp - required texture binds are handled internally
 		scopedTimer Start( "Text Rendering" );
 		textRenderer.Update( ImGui::GetIO().DeltaTime );
+		textRenderer.drawHexxLayer();
+
 		textRenderer.Draw( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}

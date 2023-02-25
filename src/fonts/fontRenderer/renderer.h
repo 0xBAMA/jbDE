@@ -4,32 +4,32 @@
 #define FONTRENDERER_H
 
 // double bar frame
-#define TOP_LEFT_DOUBLE_CORNER			201
-#define TOP_RIGHT_DOUBLE_CORNER			187
-#define BOTTOM_LEFT_DOUBLE_CORNER		200
+#define TOP_LEFT_DOUBLE_CORNER		201
+#define TOP_RIGHT_DOUBLE_CORNER		187
+#define BOTTOM_LEFT_DOUBLE_CORNER	200
 #define BOTTOM_RIGHT_DOUBLE_CORNER	188
-#define VERTICAL_DOUBLE							186
-#define HORIZONTAL_DOUBLE						205
+#define VERTICAL_DOUBLE				186
+#define HORIZONTAL_DOUBLE			205
 
 // single bar frame
-#define TOP_LEFT_SINGLE_CORNER			218
-#define TOP_RIGHT_SINGLE_CORNER			191
-#define BOTTOM_LEFT_SINGLE_CORNER		192
+#define TOP_LEFT_SINGLE_CORNER		218
+#define TOP_RIGHT_SINGLE_CORNER		191
+#define BOTTOM_LEFT_SINGLE_CORNER	192
 #define BOTTOM_RIGHT_SINGLE_CORNER	217
-#define VERTICAL_SINGLE							179
-#define HORIZONTAL_SINGLE						196
+#define VERTICAL_SINGLE				179
+#define HORIZONTAL_SINGLE			196
 
 // curly scroll thingy
-#define CURLY_SCROLL_TOP						244
-#define CURLY_SCROLL_BOTTOM					245
-#define CURLY_SCROLL_MIDDLE					179
+#define CURLY_SCROLL_TOP			244
+#define CURLY_SCROLL_BOTTOM			245
+#define CURLY_SCROLL_MIDDLE			179
 
 // percentage fill blocks
-#define FILL_0											32
-#define FILL_25											176
-#define FILL_50											177
-#define FILL_75											178
-#define FILL_100										219
+#define FILL_0						 32
+#define FILL_25						176
+#define FILL_50						177
+#define FILL_75						178
+#define FILL_100					219
 
 // some colors
 #define GOLD	glm::ivec3( 191, 146,  23 )
@@ -181,11 +181,11 @@ public:
 		WriteCharAt( glm::uvec2( max.x, min.y ), cChar( color, TOP_RIGHT_DOUBLE_CORNER ) );
 		WriteCharAt( glm::uvec2( min.x, max.y ), cChar( color, BOTTOM_LEFT_DOUBLE_CORNER ) );
 		WriteCharAt( max, cChar( color, BOTTOM_RIGHT_DOUBLE_CORNER ) );
-		for( unsigned int x = min.x + 1; x < max.x; x++  ){
+		for ( unsigned int x = min.x + 1; x < max.x; x++  ){
 			WriteCharAt( glm::uvec2( x, min.y ), cChar( color, HORIZONTAL_DOUBLE ) );
 			WriteCharAt( glm::uvec2( x, max.y ), cChar( color, HORIZONTAL_DOUBLE ) );
 		}
-		for( unsigned int y = min.y + 1; y < max.y; y++  ){
+		for ( unsigned int y = min.y + 1; y < max.y; y++  ){
 			WriteCharAt( glm::uvec2( min.x, y ), cChar( color, VERTICAL_DOUBLE ) );
 			WriteCharAt( glm::uvec2( max.x, y ), cChar( color, VERTICAL_DOUBLE ) );
 		}
@@ -197,11 +197,11 @@ public:
 		WriteCharAt( glm::uvec2( max.x, min.y ), cChar( color, TOP_RIGHT_SINGLE_CORNER ) );
 		WriteCharAt( glm::uvec2( min.x, max.y ), cChar( color, BOTTOM_LEFT_SINGLE_CORNER ) );
 		WriteCharAt( max, cChar( color, BOTTOM_RIGHT_SINGLE_CORNER ) );
-		for( unsigned int x = min.x + 1; x < max.x; x++  ){
+		for ( unsigned int x = min.x + 1; x < max.x; x++  ){
 			WriteCharAt( glm::uvec2( x, min.y ), cChar( color, HORIZONTAL_SINGLE ) );
 			WriteCharAt( glm::uvec2( x, max.y ), cChar( color, HORIZONTAL_SINGLE ) );
 		}
-		for( unsigned int y = min.y + 1; y < max.y; y++  ){
+		for ( unsigned int y = min.y + 1; y < max.y; y++  ){
 			WriteCharAt( glm::uvec2( min.x, y ), cChar( color, VERTICAL_SINGLE ) );
 			WriteCharAt( glm::uvec2( max.x, y ), cChar( color, VERTICAL_SINGLE ) );
 		}
@@ -224,8 +224,8 @@ public:
 		std::uniform_int_distribution< unsigned char > fDist( 0, 4 );
 		const unsigned char fills[ 5 ] = { FILL_0, FILL_25, FILL_50, FILL_75, FILL_100 };
 
-		for( unsigned int x = min.x; x <= max.x; x++ ) {
-			for( unsigned int y = min.y; y <= max.y; y++ ) {
+		for ( unsigned int x = min.x; x <= max.x; x++ ) {
+			for ( unsigned int y = min.y; y <= max.y; y++ ) {
 				WriteCharAt( glm::uvec2( x, y ), cChar( color, fills[ fDist( gen ) ] ) );
 			}
 		}
@@ -233,8 +233,8 @@ public:
 
 	void DrawRectConstant ( glm::uvec2 min, glm::uvec2 max, cChar c ) {
 		bufferDirty = true;
-		for( unsigned int x = min.x; x <= max.x; x++ ) {
-			for( unsigned int y = min.y; y <= max.y; y++ ) {
+		for ( unsigned int x = min.x; x <= max.x; x++ ) {
+			for ( unsigned int y = min.y; y <= max.y; y++ ) {
 				WriteCharAt( glm::uvec2( x, y ), c );
 			}
 		}
@@ -257,9 +257,13 @@ public:
 		numBinsWidth = std::floor( width / 8 );
 		numBinsHeight = std::floor( height / 16 );
 
-		// currently just two layers, background and foreground
-		layers.push_back( Layer( numBinsWidth, numBinsHeight ) );
-		layers.push_back( Layer( numBinsWidth, numBinsHeight ) );
+	// Initialize Layers
+		// timestamp
+		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // timestamp background
+		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // timestamp foreground
+		// hexxDump
+		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
+		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump foreground
 
 		// set basepoint for the orientation widget
 		basePt = glm::ivec2( 8 * ( numBinsWidth - 20 ), 16 );
@@ -327,6 +331,47 @@ public:
 
 	// allocation of the textures happens in Layer()
 	std::vector< Layer > layers;
+
+	// HexDump ( SexxDump )
+	std::vector< uint8_t > hexData;
+	void loadHexx ( std::string filename ) {
+		std::ifstream in( filename );
+
+		// do not ignore whitespace
+		in.unsetf( std::ios::skipws );
+
+		// find the total size of the file
+		std::streampos inSize;
+		in.seekg( 0, std::ios::end );
+		inSize = in.tellg();
+		in.seekg( 0, std::ios::beg );
+
+		// preallocate and then load
+		hexData.reserve( inSize );
+		hexData.insert( hexData.begin(), std::istream_iterator< uint8_t >( in ), std::istream_iterator< uint8_t >() );
+	}
+
+	std::unordered_map< uint8_t, int > frequencyCount;
+	int maxCount = 0;
+	void evalHexxFreq () {
+		// 0-255, get a count for how many times we see each one
+		for ( auto& sample : hexData ) {
+			frequencyCount[ sample ]++;
+		}
+
+		// get the maximum value out of the set, and store it in maxCount
+		for ( auto& sample : frequencyCount ) {
+			maxCount = std::max( maxCount, sample.second );
+		}
+	}
+
+	size_t offset = 0;
+	void drawHexxLayer () {
+		layers[ 2 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( 80, height ), cChar( BLACK, FILL_100 ) );
+		for ( int i = height; i >= 0; i-- ) {
+			layers[ 3 ].WriteString( glm::uvec2( 0, i ), glm::uvec2( width, height ), "federal fuck me in the ass prison ( I'm so norny... Getting Norned UP )", glm::ivec3( 200 - 2 * i, 0, 0 ) );
+		}
+	}
 };
 
 #endif

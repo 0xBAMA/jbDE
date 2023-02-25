@@ -351,7 +351,7 @@ This is a planning document for work on this project and in general, about the t
 	- I think there's a lot more cool stuff I can do with the physarum thing
 		- Even just using the 2d version has a lot of potential
 			- Treat it as a heightmap
-			- Capture at certain states ( EXR saving? )
+			- Capture at certain states ( EXR saving for full bit depth? What about agent orientation + velocity? or just reinit with random positions and directions? )
 
 - Experimenting with TinyGLTF and loading of the Intel Sponza models
 	- Got to try shadowmapping at some point
