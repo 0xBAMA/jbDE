@@ -367,9 +367,39 @@ public:
 
 	size_t offset = 0;
 	void drawHexxLayer () {
-		layers[ 2 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( 80, height ), cChar( BLACK, FILL_100 ) );
-		for ( int i = height; i >= 0; i-- ) {
-			layers[ 3 ].WriteString( glm::uvec2( 0, i ), glm::uvec2( width, height ), "federal fuck me in the ass prison ( I'm so norny... Getting Norned UP )", glm::ivec3( 200 - 2 * i, 0, 0 ) );
+
+		// background layer
+		layers[ 2 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( 100, height ), cChar( BLACK, FILL_100 ) );
+
+		// hex dump layer
+		size_t offsetFromStart = 0;
+		for ( int i = numBinsHeight - 6; i >= 6; i-- ) {
+			std::stringstream s;
+			
+			// draw the address label
+			s << std::hex << std::setw( 8 ) << std::setfill( '0' ) << offsetFromStart;
+			layers[ 3 ].WriteString( glm::uvec2( 8, i ), glm::uvec2( numBinsWidth, i ), std::string( "0x" ) + s.str(), glm::ivec3( 200 ) );
+
+			layers[ 3 ].WriteString( glm::uvec2( 22, i ), glm::uvec2( numBinsWidth, i ), std::string( "00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00" ), glm::ivec3( 200 ) );
+			layers[ 3 ].WriteCharAt( glm::uvec2( 73, i ), cChar( GOLD, VERTICAL_SINGLE ) );
+			layers[ 3 ].WriteCharAt( glm::uvec2( 90, i ), cChar( GOLD, VERTICAL_SINGLE ) );
+			layers[ 3 ].WriteString( glm::uvec2( 74, i ), glm::uvec2( numBinsWidth, i ), std::string( "0000000000000000" ), glm::ivec3( 200 ) );
+
+			// write the octets
+			for ( int x = 0; x < 8; x++ ) {
+
+				// reset the stringstream
+				// write for the first set of octets
+				// write the char interpretation to the right
+
+				// reset the stringstream
+				// write for the second set of octets
+				// write the char interpretation to the right
+
+			}
+
+			// increment the pointer
+			offsetFromStart += 32;
 		}
 	}
 };
