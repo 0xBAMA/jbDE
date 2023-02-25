@@ -377,7 +377,7 @@ public:
 		const bool constrainToAlphanumeric = true;
 		if ( constrainToAlphanumeric ) {
 			if ( b < 32 || b > 127 ) {
-				return ' ';
+				return '.';
 			} else {
 				return b;
 			}
@@ -386,28 +386,30 @@ public:
 		}
 	}
 
-	size_t offset = 0;
+	int offset = 0;
 	void drawHexxLayer () {
 		// background layer
 		layers[ 2 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( 100, height ), cChar( BLACK, FILL_100 ) );
+		layers[ 3 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( 100, height ), cChar( BLACK, FILL_100 ) );
 
 		// hex dump layer
-		size_t offsetFromStart = 0;
+		size_t offsetFromStart = offset;
 		for ( int i = numBinsHeight - 6; i >= 6; i-- ) {
 			std::stringstream s;
 
 			// draw the address label
-			s << std::hex << std::setw( 8 ) << std::setfill( '0' ) << offsetFromStart;
-			layers[ 3 ].WriteString( glm::uvec2( 8, i ), glm::uvec2( numBinsWidth, i ), std::string( "0x" ) + s.str(), GREY );
-
-			layers[ 3 ].WriteCharAt( glm::uvec2( 73, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
-			layers[ 3 ].WriteCharAt( glm::uvec2( 90, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
+			if ( offsetFromStart >= 0 ) {
+				s << std::hex << std::setw( 8 ) << std::setfill( '0' ) << offsetFromStart;
+				layers[ 3 ].WriteString( glm::uvec2( 8, i ), glm::uvec2( numBinsWidth, i ), std::string( "0x" ) + s.str(), GREY );
+				layers[ 3 ].WriteCharAt( glm::uvec2( 73, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
+				layers[ 3 ].WriteCharAt( glm::uvec2( 90, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
+			}
 
 			// write the octets
 			for ( int x = 0; x < 8; x++ ) {
 
 			// first column
-				uint8_t currentByte = hexData[ offsetFromStart + x ];
+				uint8_t currentByte = ( ( offsetFromStart + x ) < hexData.size() && ( offsetFromStart + x ) >= 0 ) ? hexData[ offsetFromStart + x ] : 0;
 				glm::ivec3 currentByteColor = getColorForByte( currentByte );
 				uint8_t currentChar = getCharForByte( currentByte );
 
@@ -423,7 +425,7 @@ public:
 				layers[ 3 ].WriteCharAt( glm::uvec2( 74 + x, i ), cChar( currentByteColor, currentChar ) );
 
 			// second column
-				currentByte = hexData[ offsetFromStart + x + 8 ];
+				currentByte = ( ( offsetFromStart + x + 8 ) < hexData.size() && ( offsetFromStart + x + 8 ) >= 0 ) ? hexData[ offsetFromStart + x + 8 ] : 0;
 				currentByteColor = getColorForByte( currentByte );
 				currentChar = getCharForByte( currentByte );
 
