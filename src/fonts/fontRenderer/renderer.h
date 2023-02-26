@@ -370,7 +370,8 @@ public:
 	glm::ivec3 getColorForByte ( uint8_t b ) {
 		// return GREY;
 		// return glm::ivec3( ( frequencyCount[ b ] / float( maxCount ) ) * 255.0f );
-		return magmaRef( std::pow( frequencyCount[ b ] / float( maxCount ), 0.5f ) );
+		// return magmaRef( std::pow( frequencyCount[ b ] / float( maxCount ), 0.5f ) );
+		return glm::ivec3( 127 + b, 0, 0 );
 	}
 
 	uint8_t getCharForByte ( uint8_t b ) {
@@ -393,53 +394,61 @@ public:
 		layers[ 3 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( 100, height ), cChar( BLACK, FILL_100 ) );
 
 		// hex dump layer
-		size_t offsetFromStart = offset;
+		int offsetFromStart = offset;
 		for ( int i = numBinsHeight - 6; i >= 6; i-- ) {
+
 			std::stringstream s;
 
 			// draw the address label
-			if ( offsetFromStart >= 0 ) {
+			if ( offsetFromStart >= 0 && offsetFromStart < int( hexData.size() ) ) {
 				s << std::hex << std::setw( 8 ) << std::setfill( '0' ) << offsetFromStart;
 				layers[ 3 ].WriteString( glm::uvec2( 8, i ), glm::uvec2( numBinsWidth, i ), std::string( "0x" ) + s.str(), GREY );
 				layers[ 3 ].WriteCharAt( glm::uvec2( 73, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
 				layers[ 3 ].WriteCharAt( glm::uvec2( 90, i ), cChar( GREY_D, VERTICAL_SINGLE ) );
-			}
 
-			// write the octets
-			for ( int x = 0; x < 8; x++ ) {
+				// write the octets
+				for ( int x = 0; x < 8; x++ ) {
 
-			// first column
-				uint8_t currentByte = ( ( offsetFromStart + x ) < hexData.size() && ( offsetFromStart + x ) >= 0 ) ? hexData[ offsetFromStart + x ] : 0;
-				glm::ivec3 currentByteColor = getColorForByte( currentByte );
-				uint8_t currentChar = getCharForByte( currentByte );
+					uint8_t currentByte;
+					glm::ivec3 currentByteColor;
+					uint8_t currentChar;
 
-				// reset the stringstream
-				s.str( std::string() );
+					int byteIndex = offsetFromStart + x;
+					if ( byteIndex < int( hexData.size() ) && byteIndex >= 0 ) {
+					// first column
+						currentByte = hexData[ byteIndex ];
+						currentByteColor = getColorForByte( currentByte );
+						currentChar = getCharForByte( currentByte );
 
-				// write for the first set of octets
-				s << std::hex << ( ( currentByte >> 4 ) & 0xf ) << ( ( currentByte ) & 0xf );
-				layers[ 3 ].WriteString( glm::uvec2( 22 + 3 * x, i ), glm::uvec2( numBinsWidth, i ), s.str(), currentByteColor );
+						// reset the stringstream
+						s.str( std::string() );
 
-				// write the char interpretation to the right
-				// layers[ 2 ].WriteCharAt( glm::uvec2( 74 + x, i ), cChar( currentByteColor, FILL_100 ) );
-				layers[ 3 ].WriteCharAt( glm::uvec2( 74 + x, i ), cChar( currentByteColor, currentChar ) );
+						// write for the first set of octets
+						s << std::hex << ( ( currentByte >> 4 ) & 0xf ) << ( ( currentByte ) & 0xf );
+						layers[ 3 ].WriteString( glm::uvec2( 22 + 3 * x, i ), glm::uvec2( numBinsWidth, i ), s.str(), currentByteColor );
 
-			// second column
-				currentByte = ( ( offsetFromStart + x + 8 ) < hexData.size() && ( offsetFromStart + x + 8 ) >= 0 ) ? hexData[ offsetFromStart + x + 8 ] : 0;
-				currentByteColor = getColorForByte( currentByte );
-				currentChar = getCharForByte( currentByte );
+						// write the char interpretation to the right
+						layers[ 3 ].WriteCharAt( glm::uvec2( 74 + x, i ), cChar( currentByteColor, currentChar ) );
+					}
 
-				// reset the stringstream
-				s.str( std::string() );
+					byteIndex = offsetFromStart + x + 8;
+					if ( byteIndex < int( hexData.size() ) && byteIndex >= 0 ) {
+					// second column
+						currentByte = hexData[ byteIndex ];
+						currentByteColor = getColorForByte( currentByte );
+						currentChar = getCharForByte( currentByte );
 
-				// write for the second set of octets
-				s << std::hex << ( ( currentByte >> 4 ) & 0xf ) << ( ( currentByte ) & 0xf );
-				layers[ 3 ].WriteString( glm::uvec2( 22 + 3 * x + 3 * 8 + 1, i ), glm::uvec2( numBinsWidth, i ), s.str(), currentByteColor );
+						// reset the stringstream
+						s.str( std::string() );
 
-				// write the char interpretation to the right
-				// layers[ 2 ].WriteCharAt( glm::uvec2( 82 + x, i ), cChar( currentByteColor, FILL_100 ) );
-				layers[ 3 ].WriteCharAt( glm::uvec2( 82 + x, i ), cChar( currentByteColor, currentChar ) );
+						// write for the second set of octets
+						s << std::hex << ( ( currentByte >> 4 ) & 0xf ) << ( ( currentByte ) & 0xf );
+						layers[ 3 ].WriteString( glm::uvec2( 22 + 3 * x + 3 * 8 + 1, i ), glm::uvec2( numBinsWidth, i ), s.str(), currentByteColor );
 
+						// write the char interpretation to the right
+						layers[ 3 ].WriteCharAt( glm::uvec2( 82 + x, i ), cChar( currentByteColor, currentChar ) );
+					}
+				}
 			}
 
 			// increment the pointer
