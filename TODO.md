@@ -12,22 +12,20 @@ This is a planning document for work on this project and in general, about the t
 
 	- Motivation
 		- 4x floating point perf going from Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
-		- I have two 7900XTX's now, secondary offline rendering machine WIP
-			- I like [this case](https://ssupd.co/products/meshlicious) / [Micro Center has it for cheaper](https://www.microcenter.com/product/646618/ssupd-meshlicious-mini-itx-mini-tower-computer-case-with-pcie-40-riser-card-black)
-				- Small mini-ITX, a little over twice the volume of an Xbox Series X console
-				- Would stay unobtrusive, perforation makes for easy cooling with external fans
-			- Basically the goal here is just to create a GPU host
-				- Minimum viable CPU/mobo/RAM to support PCIE 4.0 x16
-					- Probably lower end Intel processor / 32 gigs of RAM
-				- Need to be able to support the GPU with 24 gigs of dedicated VRAM
-				- Needs a name like, Igor, maybe, [something that sounds like a villan's henchman](https://en.wikipedia.org/wiki/Category:Fictional_henchmen)
-					- Oddjob - that's definitely the winner
+		- Finished OddJob and put Windows on it, working on set up with Visual Studio
+			- Need to figure out the [Gigabyte RGB Fusion](https://www.gigabyte.com/mb/rgb/sdk) software
+			- I think this is the first actually relevant usage of the RGB LEDs I've thought of
+			- Something like:
+				- Yellow for running
+				- Green for complete
+				- Red for job failed
+			- Another application I had not really considered, but this machine being the size of a shoebox, would be very good for being able to travel with
 
 	- Work so far
 		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
 		- ~~Switch to master, instead of docking branch? Is this a fix? Voraldo v1.1 will run, so I think maybe~~
 			- Switching to master branch did not work, it is not the fault of the docking branch
-			- I did not commit these changes to master
+			- I did not commit these changes to master, I like having the pop out windows
 		- Voraldo-v1.1 and SoftBodies ( old version ) **do** work ( kind of, no block display on Voraldo, but SoftBodies works perfect with a couple paths modified )
 			- Same two bizarre messages at startup for any of my OpenGL programs, but glewInit() does not fail on the older code:
 				- `Xlib:  extension "AMDGPU" missing on display ":0".`
@@ -188,6 +186,8 @@ This is a planning document for work on this project and in general, about the t
 		- simple gradients between two ( or more ) colors
 		- heatmap gradient
 		- color temperature sweep
+		- [matplotlib's colormaps](https://matplotlib.org/stable/gallery/color/colormap_reference.html)
+	- I think I can do a wrapper around this, basically a 'palette()' function, takes a float arg and an enum class to pick behavior
 
 --------------------------------------------------------------------------------------------------
 
@@ -484,6 +484,8 @@ This is a planning document for work on this project and in general, about the t
 
 - Some things I want to try:
 	- Image manipulation
+		- That NTSC thing, I want to understand how that works
+			- Encoding image as a 1D signal, adding noise, then reinterpreting it
 	- Convolution
 	- DSP stuff, more audio stuff
 	- Maybe this is a good way to get into the NTSC simulation stuff
