@@ -162,8 +162,8 @@ void engine::HandleEvents () {
 		// if ( trident.Dirty() ) // rotation or movement has happened
 			// render.framesSinceLastInput = 0;
 
-		if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; textRenderer.offset += 16; }
-		if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; textRenderer.offset -= 16; }
+		if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; textRenderer.offset += textRenderer.numColumns * 8; }
+		if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; textRenderer.offset -= textRenderer.numColumns * 8; }
 		if ( state[ SDL_SCANCODE_A ] ) { cout << "A Pressed" << newline; }
 		if ( state[ SDL_SCANCODE_D ] ) { cout << "D Pressed" << newline; }
 	}

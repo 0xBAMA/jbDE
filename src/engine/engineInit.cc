@@ -238,7 +238,24 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
-	{ Block Start( "Initialize Hex Dump" ); textRenderer.loadHexx( "src/data/palettes.png" ); textRenderer.evalHexxFreq(); }
+	{ 
+		Block Start( "Initialize Hex Dump" );
+
+		// std::ofstream out;
+		// out.open( "xor.bin", std::ios::binary | std::ios::out );
+		// for ( uint8_t y = 0; y < 64; y++ ) {
+		// 	for ( uint8_t x = 0; x < 64; x++ ) {
+		// 		uint8_t value = ( x ^ y ) * 4;
+		// 		out << value;
+		// 	}
+		// }
+		// out.close();
+
+		textRenderer.loadHexx( "src/data/palettes.png" );
+		// textRenderer.loadHexx( "xor.bin" );
+		// textRenderer.loadHexx( "TODO.md" );
+		textRenderer.evalHexxFreq();
+	}
 }
 
 void engine::ShaderCompile () {
