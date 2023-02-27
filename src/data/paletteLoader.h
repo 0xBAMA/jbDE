@@ -32,4 +32,26 @@ static void LoadPalettes () {
 	}
 }
 
+static void LoadAllHexfiles() {
+	for ( const std::filesystem::directory_entry& file : std::filesystem::recursive_directory_iterator( "hexfiles" ) ) {
+
+		// read in the filename
+		std::stringstream fn;
+		fn << file;
+		string fileName = fn.str();
+		if ( !fileName.empty() )
+			fileName.pop_back();
+		fileName.erase( 0, 1 );
+
+		cout << fileName << newline;
+	}
+}
+
+static void reexportPalettes () {
+	// sort by label
+
+	// character names
+
+}
+
 #endif // PALETTE_H
