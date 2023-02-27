@@ -56,6 +56,8 @@ struct cChar {
 	}
 };
 
+extern std::vector< palette > paletteList;
+
 class Layer {
 public:
 	Layer ( int w, int h ) : width( w ), height( h ) {
@@ -371,7 +373,9 @@ public:
 		// return GREY;
 		// return glm::ivec3( ( frequencyCount[ b ] / float( maxCount ) ) * 255.0f );
 		// return magmaRef( std::pow( frequencyCount[ b ] / float( maxCount ), 0.5f ) );
-		return glm::ivec3( 127 + b, 0, 0 );
+		// return glm::ivec3( 127 + b, 0, 0 );
+		// return paletteList[ 1238 ].colors[ b ];
+		return paletteList[ 1238 ].colors[ b ];
 	}
 
 	uint8_t getCharForByte ( uint8_t b ) {

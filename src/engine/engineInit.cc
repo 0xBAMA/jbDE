@@ -238,7 +238,7 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
-	{ Block Start( "Initialize Hex Dump" ); textRenderer.loadHexx( "TODO.md" ); textRenderer.evalHexxFreq(); }
+	{ Block Start( "Initialize Hex Dump" ); textRenderer.loadHexx( "src/data/palettes.png" ); textRenderer.evalHexxFreq(); }
 }
 
 void engine::ShaderCompile () {
