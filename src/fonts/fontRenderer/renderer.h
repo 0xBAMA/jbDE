@@ -336,7 +336,7 @@ public:
 	// allocation of the textures happens in Layer()
 	std::vector< Layer > layers;
 
-	// HexDump ( SexxDump )
+	// HexDump ( SexxDump ) - need to call loadHexx() to get the file data, then you can call drawHexxLayer() to put it in the data texture and load it
 	std::vector< uint8_t > hexData;
 	void loadHexx ( std::string filename ) {
 		std::ifstream in( filename );
@@ -355,34 +355,22 @@ public:
 		hexData.insert( hexData.begin(), std::istream_iterator< uint8_t >( in ), std::istream_iterator< uint8_t >() );
 	}
 
-	std::unordered_map< uint8_t, int > frequencyCount;
-	int maxCount = 0;
-	void evalHexxFreq () {
-		// 0-255, get a count for how many times we see each one
-		for ( auto& sample : hexData ) {
-			frequencyCount[ sample ]++;
-		}
-
-		// get the maximum value out of the set, and store it in maxCount
-		for ( auto& sample : frequencyCount ) {
-			maxCount = std::max( maxCount, sample.second );
-		}
-	}
-
 	glm::ivec3 getColorForByte ( uint8_t b ) {
 		// return GREY;
-		// return glm::ivec3( ( frequencyCount[ b ] / float( maxCount ) ) * 255.0f );
 		// return magmaRef( std::pow( frequencyCount[ b ] / float( maxCount ), 0.5f ) );
 		// return glm::ivec3( 127 + b, 0, 0 );
+
+		// hardcoded palette indices probably not good form, order subject to change
 		// return paletteList[ 1238 ].colors[ b ];
 		// return paletteList[ 1240 ].colors[ b ];
-		// return paletteList[ 1311 ].colors[ b ];
-		return paletteList[ 1319 ].colors[ b ];
 		// return paletteList[ 1250 ].colors[ b ];
+		// return paletteList[ 1311 ].colors[ b ];
+		// return paletteList[ 1317 ].colors[ b ];
+		return paletteList[ 1319 ].colors[ b ];
 	}
 
 	uint8_t getCharForByte ( uint8_t b ) {
-		const bool constrainToAlphanumeric = true;
+		const bool constrainToAlphanumeric = false;
 		if ( constrainToAlphanumeric ) {
 			if ( b < 32 || b > 127 ) {
 				return '.';

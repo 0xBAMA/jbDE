@@ -46,15 +46,15 @@ inline std::vector< palette > paletteList;
 // 			out.SetAtXY( l, y, { uint8_t( paletteList[ y ].label[ l ] ), 0, 0, 255 } );
 // 		}
 
-// 		// // remove duplicates
-// 		// for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size() - 1; entry++ ) {
-// 		// 	for ( unsigned int second = entry + 1; second < paletteList[ y ].colors.size(); second++ ) {
-// 		// 		if ( paletteList[ y ].colors[ entry ] == paletteList[ y ].colors[ second ] ) {
-// 		// 			paletteList[ y ].colors.erase( paletteList[ y ].colors.begin() + second );
-// 		// 			second--;
-// 		// 		}
-// 		// 	}
-// 		// }
+// 		// remove duplicates - I didn't want to do this for the matlab palettes
+// 		for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size() - 1; entry++ ) {
+// 			for ( unsigned int second = entry + 1; second < paletteList[ y ].colors.size(); second++ ) {
+// 				if ( paletteList[ y ].colors[ entry ] == paletteList[ y ].colors[ second ] ) {
+// 					paletteList[ y ].colors.erase( paletteList[ y ].colors.begin() + second );
+// 					second--;
+// 				}
+// 			}
+// 		}
 
 // 		// write all the palette entry values
 // 		for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size(); entry++ ) {

@@ -51,8 +51,6 @@ void engine::ComputePasses () {
 	{ // text rendering timestamp - required texture binds are handled internally
 		scopedTimer Start( "Text Rendering" );
 		textRenderer.Update( ImGui::GetIO().DeltaTime );
-		textRenderer.drawHexxLayer();
-
 		textRenderer.Draw( textures[ "Display Texture" ] );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
@@ -162,8 +160,8 @@ void engine::HandleEvents () {
 		// if ( trident.Dirty() ) // rotation or movement has happened
 			// render.framesSinceLastInput = 0;
 
-		if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; textRenderer.offset += textRenderer.numColumns * 8; }
-		if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; textRenderer.offset -= textRenderer.numColumns * 8; }
+		if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; }
+		if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; }
 		if ( state[ SDL_SCANCODE_A ] ) { cout << "A Pressed" << newline; }
 		if ( state[ SDL_SCANCODE_D ] ) { cout << "D Pressed" << newline; }
 	}

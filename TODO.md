@@ -264,6 +264,11 @@ This is a planning document for work on this project and in general, about the t
 
 - Normal vectors derived from alpha channel gradient ( similar to SDF normal )
 
+- Tiled invocation structure of the block
+	- Job system, to decouple from the framerate? not sure if I want to show in a partial state...
+	- Would help to keep from overwhelming GPU with large job dispatch, this has been an issue before
+	- No block swap after each tile
+
 --------------------------------------------------------------------------------------------------
 
 ## Siren Plans
@@ -387,8 +392,8 @@ This is a planning document for work on this project and in general, about the t
 		- Another talk by [Christopher Domas](https://youtu.be/HlUe0TUHOIc)
 		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
-	- I think that a simple version of this could be interesting
-		- Simple hex dump could easiy be achieved with the existing text renderer
+	- ~~I think that a simple version of this could be interesting~~
+		- ~~Simple hex dump could easiy be achieved with the existing text renderer~~
 
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
