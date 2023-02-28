@@ -178,17 +178,6 @@ This is a planning document for work on this project and in general, about the t
 	- I'm sure there are interesting ways I can use this
 		- Image based, but also want to be able to get list of points
 
-- Color Header
-	- Palette Options - I want to make this a lot more flexible + have a lot more pre-built CPU-based functionality
-		- simple palette from the lospec set
-		- interpolated lospec set
-		- iq-style sinusoid palettes
-		- simple gradients between two ( or more ) colors
-		- heatmap gradient
-		- color temperature sweep
-		- [matplotlib's colormaps](https://matplotlib.org/stable/gallery/color/colormap_reference.html)
-	- I think I can do a wrapper around this, basically a 'palette()' function, takes a float arg and an enum class to pick behavior
-
 --------------------------------------------------------------------------------------------------
 
 ## Plans for Voraldo14
@@ -392,8 +381,6 @@ This is a planning document for work on this project and in general, about the t
 		- Another talk by [Christopher Domas](https://youtu.be/HlUe0TUHOIc)
 		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
-	- ~~I think that a simple version of this could be interesting~~
-		- ~~Simple hex dump could easiy be achieved with the existing text renderer~~
 
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation

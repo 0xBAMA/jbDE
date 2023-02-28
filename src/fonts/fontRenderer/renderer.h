@@ -56,7 +56,7 @@ struct cChar {
 	}
 };
 
-extern std::vector< palette > paletteList;
+extern std::vector< paletteEntry > paletteList;
 
 class Layer {
 public:
@@ -356,17 +356,8 @@ public:
 	}
 
 	glm::ivec3 getColorForByte ( uint8_t b ) {
-		// return GREY;
-		// return magmaRef( std::pow( frequencyCount[ b ] / float( maxCount ), 0.5f ) );
-		// return glm::ivec3( 127 + b, 0, 0 );
-
-		// hardcoded palette indices probably not good form, order subject to change
-		// return paletteList[ 1238 ].colors[ b ];
-		// return paletteList[ 1240 ].colors[ b ];
-		// return paletteList[ 1250 ].colors[ b ];
-		// return paletteList[ 1311 ].colors[ b ];
-		// return paletteList[ 1317 ].colors[ b ];
-		return paletteList[ 1319 ].colors[ b ];
+		// rethink how this works, once I get the new palette thing working
+		return glm::ivec3( 127 + b );
 	}
 
 	uint8_t getCharForByte ( uint8_t b ) {
