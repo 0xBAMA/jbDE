@@ -31,36 +31,36 @@ inline std::vector< paletteEntry > paletteList; // unordered_map< string, palett
 // 	}
 // }
 
-static void reexportPalettes () {
-	// sort by label
-	std::sort( paletteList.begin(), paletteList.end(), []( paletteEntry a, paletteEntry b ) { return a.label > b.label; } );
-	Image out( 33 + 256 /* label + max palette entry count */, paletteList.size() );
-	for ( unsigned int y = 0; y < paletteList.size(); y++ ) {
-		// write the string for the identifier
-		paletteList[ y ].label.resize( 32, ' ' );
-		for ( int l = 0; l < 32; l++ ) {
-			out.SetAtXY( l, y, { uint8_t( paletteList[ y ].label[ l ] ), 0, 0, 255 } );
-		}
+// static void reexportPalettes () {
+// 	// sort by label
+// 	std::sort( paletteList.begin(), paletteList.end(), []( paletteEntry a, paletteEntry b ) { return a.label > b.label; } );
+// 	Image out( 33 + 256 /* label + max palette entry count */, paletteList.size() );
+// 	for ( unsigned int y = 0; y < paletteList.size(); y++ ) {
+// 		// write the string for the identifier
+// 		paletteList[ y ].label.resize( 32, ' ' );
+// 		for ( int l = 0; l < 32; l++ ) {
+// 			out.SetAtXY( l, y, { uint8_t( paletteList[ y ].label[ l ] ), 0, 0, 255 } );
+// 		}
 
-		cout << y << " : " << paletteList[ y ].label << newline;
+// 		cout << y << " : " << paletteList[ y ].label << newline;
 
-		// // remove duplicates - I didn't want to do this for the matlab palettes, or really at all
-		// for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size() - 1; entry++ ) {
-		// 	for ( unsigned int second = entry + 1; second < paletteList[ y ].colors.size(); second++ ) {
-		// 		if ( paletteList[ y ].colors[ entry ] == paletteList[ y ].colors[ second ] ) {
-		// 			paletteList[ y ].colors.erase( paletteList[ y ].colors.begin() + second );
-		// 			second--;
-		// 		}
-		// 	}
-		// }
-		// write all the palette entry values
-		for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size(); entry++ ) {
-			rgba value { uint8_t( paletteList[ y ].colors[ entry ].x ), uint8_t( paletteList[ y ].colors[ entry ].y ), uint8_t( paletteList[ y ].colors[ entry ].z ), 255 };
-			out.SetAtXY( 33 + entry, y, value );
-		}
-	}
-	out.Save( "test.png" );
-}
+// 		// // remove duplicates - I didn't want to do this for the matlab palettes, or really at all
+// 		// for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size() - 1; entry++ ) {
+// 		// 	for ( unsigned int second = entry + 1; second < paletteList[ y ].colors.size(); second++ ) {
+// 		// 		if ( paletteList[ y ].colors[ entry ] == paletteList[ y ].colors[ second ] ) {
+// 		// 			paletteList[ y ].colors.erase( paletteList[ y ].colors.begin() + second );
+// 		// 			second--;
+// 		// 		}
+// 		// 	}
+// 		// }
+// 		// write all the palette entry values
+// 		for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size(); entry++ ) {
+// 			rgba value { uint8_t( paletteList[ y ].colors[ entry ].x ), uint8_t( paletteList[ y ].colors[ entry ].y ), uint8_t( paletteList[ y ].colors[ entry ].z ), 255 };
+// 			out.SetAtXY( 33 + entry, y, value );
+// 		}
+// 	}
+// 	out.Save( "test.png" );
+// }
 
 static void LoadPalettes () {
 	Image paletteRecord( "./src/data/palettes.png" );
@@ -82,41 +82,8 @@ static void LoadPalettes () {
 		paletteList.push_back( p );
 	}
 
-	json j;
-	std::ifstream in( "../../paletteData.json" );
-	in >> j;
-
-	Image oldData( "../../paletteList.png" );
-
-	int index = 0;
-
-	for ( auto& el : j.items() ) {
-
-		std::vector< glm::ivec3 > values;
-		for ( int x = 0;; x++ ) {
-			rgba read = oldData.GetAtXY( x, index );
-			if ( read.a == 0 ) { break; }
-			values.push_back( glm::ivec3( read.r, read.g, read.b ) );
-		}
-
-		index++;
-
-		for ( unsigned int i = 0; i < paletteList.size(); i++ ) {
-			if ( paletteList[ i ].label == el.key() ) {
-
-				// clear color list
-				paletteList[ i ].colors.clear();
-
-				// copy from the values array
-				for ( unsigned int k = 0; k < values.size(); k++ ) {
-					paletteList[ i ].colors.push_back( values[ k ] );
-				}
-			}
-		}
-	}
-
 	// LoadAllHexfiles();
-	reexportPalettes();
+	// reexportPalettes();
 }
 
 
