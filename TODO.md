@@ -291,6 +291,8 @@ This is a planning document for work on this project and in general, about the t
 - Visible Human Data Resampling - create MIP chain + implement C++ 3d sampling
 	- Generate mip chain from original data, allow for arbitrary resampling at arbitrary scales
 		- Learn about different 3D sampling methodologies
+		- demofox [sample code on bicubic sampling](https://www.shadertoy.com/view/MllSzX)
+		- Key thing is quality of sampling, this is an offline process, so it's less of a concern for it to be quick
 	- Huge dataset, will be an interesting problem to solve
 
 - SoftBodies2
@@ -381,6 +383,7 @@ This is a planning document for work on this project and in general, about the t
 		- Another talk by [Christopher Domas](https://youtu.be/HlUe0TUHOIc)
 		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
+	- Inspiration from [hornet on shadertoy, "glitch: cyberpunk text"](https://www.shadertoy.com/view/3lKSz3)
 
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
@@ -398,19 +401,39 @@ This is a planning document for work on this project and in general, about the t
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
 
-- Tree Growing Stuff
-	- [Creation and Rendering of Realistic Trees](https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf)
-	- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
+- Plants
+	- Tree Growing Stuff
+		- [Creation and Rendering of Realistic Trees](https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf)
+		- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
+	- Grass
+		- [Ghost of Tsushima GDC talk](https://youtu.be/Ibe1JBF5i5Y)
 
 - Bokeh LUT ( Pencil Map ) - how to apply this?
 	- [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
+
+- [Deferred Rendering Decals](https://mtnphil.wordpress.com/2014/05/24/decals-deferred-rendering/)
+
+- IQ's Texture Repetition stuff - [article](https://iquilezles.org/articles/texturerepetition/) / [shadertoy](https://www.shadertoy.com/view/4tsGzf)
+	- [Burley paper](https://www.jcgt.org/published/0008/04/02/paper.pdf)
+
+- Outlines like in [Mars First Logistics](https://twitter.com/ianmaclarty/status/1499494878908403712)
+
+- Jump flood algorithm
+	- [Quest for very wide outlines](https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9)
+	- [Jump flood alg for rendering point clouds](https://www.lcg.ufrj.br/thesis/renato-farias-MSc.pdf)
+
+- [Gaussian blur kernel computation](https://lisyarus.github.io/blog/graphics/2023/02/24/blur-coefficients-generator.html)
 
 - Tonemapping / Color Stuff
 	- Path-to-White tonemapping curves
 		- [Tizian Tonemapper](https://github.com/tizian/tonemapper)
 		- [Notorious Six Writeup](https://chrisbrejon.com/articles/ocio-display-transforms-and-misconceptions/)
+		- [Kajiya Tonemapper](https://github.com/EmbarkStudios/kajiya/blob/79b7a74d2a6194029781ad17c809fd3ccc16b0e4/assets/shaders/inc/tonemap.hlsl), [also](https://github.com/EmbarkStudios/kajiya/commit/cb10c9ff9e894f0f0bf7cc8c9c540f0fc09ed371#diff-6c20208767044bc82bec72ba08288f6cb3cce3ec5d99d903172e6da054ed72b4)
 	- General Color
 		- [Color FAQ](http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html)
+
+- Random Shadertoy Inspiration
+	- cool pixel effect [Antipod - MAGFest #08 by Flopine](https://www.shadertoy.com/view/dtS3WG)
 
 --------------------------------------------------------------------------------------------------
 

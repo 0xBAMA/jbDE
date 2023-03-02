@@ -120,13 +120,13 @@ inline vec3 HeatMapColorRamp ( float input ) {
 }
 
 // TODO on palettes:
-// https://www.shadertoy.com/view/cdlSzB
+// couple new ones to look at from https://www.shadertoy.com/view/cdlSzB
 	// https://www.alanzucconi.com/2017/07/15/improving-the-rainbow-2/
 	// https://gist.github.com/mikhailov-work/0d177465a8151eb6ede1768d51d476c7
 	// https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
 	// https://gist.github.com/mikhailov-work/6a308c20e494d9e0ccc29036b28faa7a
 
-// restore old ordering on lospec palettes
+// restore old ordering on lospec palettes, for interpolated reference
 
 namespace palette {
 
@@ -134,48 +134,52 @@ namespace palette {
 		// e.g. which palette index ( or find the palette by string label ), IQ palette control points, simple gradient endpoints
 
 	enum class type {
-	// lospec / matplotlib set
+//==== lospec / matplotlib set ================================================
 		// map input 0-1 to nearest color
 		paletteIndexed,
+
+		// add another interface for this one that takes the floor of the input value, and mods by the number of palette entries?
+
 		// blend nearest two colors
 		paletteIndexed_interpolated,
 
-	// from GetColorForTemperature() above
+//==== from GetColorForTemperature() above ====================================
 		paletteTemperature,
 
-	// from HeatMapColorRamp() above
+//==== from HeatMapColorRamp() above ==========================================
 		paletteHeatmapRamp,
 
-	// Inigo Quilez-style sinusoidal palettes
+//==== Inigo Quilez-style sinusoidal palettes =================================
 		paletteIQSinusoid,
 
-	// Simple gradient, interpolating between two colors
+//==== Simple gradient, interpolating between two colors ======================
 		paletteSimpleGradient
 	};
 
-	int PaletteIndex = 0;
-	vec3 IQControlPoints[ 4 ] = { vec3( 0.0f ) };
-	vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
+	inline int PaletteIndex = 0;
+	inline vec3 IQControlPoints[ 4 ] = { vec3( 0.0f ) };
+	inline vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
 
-	void SetIQPaletteDefaults ( int index ) {
-		const vec3 values[ 7 ][ 4 ] = { // to generate more: https://www.shadertoy.com/view/tlSBDw
+	inline void SetIQPaletteDefaults ( int index ) {
+		const vec3 values[ 7 ][ 4 ] = { // to generate more: https://www.shadertoy.com/view/tlSBDw - looks like this set of 7 covers most of the ones of any value
+			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.10f, 0.20f ) },	// steel heat colors ( I like this one )
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.33f, 0.67f ) },	// rainbow
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.10f, 0.20f ) },	// steel heat colors
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.30f, 0.20f, 0.20f ) },	// blue-red
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 0.5f ), vec3( 0.80f, 0.90f, 0.30f ) },	// yellow-green-blue
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 0.7f, 0.4f ), vec3( 0.00f, 0.15f, 0.20f ) },	// purple-blue-yellow
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 2.0f, 1.0f, 0.0f ), vec3( 0.50f, 0.20f, 0.25f ) },	// pink-green-yellow
 			{ vec3( 0.8f, 0.5f, 0.4f ), vec3( 0.2f, 0.4f, 0.2f ), vec3( 2.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.25f, 0.25f ) }	// watermelon
 		};
-		const int index = std::clamp( index, 0, 6 );
+		index = std::clamp( index, 0, 6 );
 		for ( uint8_t pt{ 0 }; pt < 4; pt++ )
 			IQControlPoints[ 0 ] = values[ index ][ pt ];
 	}
 
 
-	vec3 paletteRef ( float input, type inputType ) {
+	inline vec3 paletteRef ( float input, type inputType ) {
 
 		switch ( inputType ) {
+
 			case type::paletteIndexed: // indexing into the currently selected palette / palette size ( nearest )
 				return vec3( 0.0f );
 				break;
@@ -184,7 +188,7 @@ namespace palette {
 				return vec3( 0.0f );
 				break;
 
-			case type::paletteTemperature:
+			case type::paletteTemperature:	// remap the value or take it raw? ( leaning towards raw )
 				return vec3( 0.0f );
 				break;
 
