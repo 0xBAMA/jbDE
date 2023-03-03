@@ -41,9 +41,6 @@ inline std::vector< paletteEntry > paletteList; // unordered_map< string, palett
 // 		for ( int l = 0; l < 32; l++ ) {
 // 			out.SetAtXY( l, y, { uint8_t( paletteList[ y ].label[ l ] ), 0, 0, 255 } );
 // 		}
-
-// 		cout << y << " : " << paletteList[ y ].label << newline;
-
 // 		// // remove duplicates - I didn't want to do this for the matlab palettes, or really at all
 // 		// for ( unsigned int entry = 0; entry < paletteList[ y ].colors.size() - 1; entry++ ) {
 // 		// 	for ( unsigned int second = entry + 1; second < paletteList[ y ].colors.size(); second++ ) {

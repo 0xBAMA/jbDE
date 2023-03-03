@@ -138,13 +138,15 @@ namespace palette {
 		// map input 0-1 to nearest color
 		paletteIndexed,
 
-		// add another interface for this one that takes the floor of the input value, and mods by the number of palette entries?
+		// take the floor of the input, mod size of the palette
+		paletteIndexed_modInt,
 
 		// blend nearest two colors
 		paletteIndexed_interpolated,
 
 //==== from GetColorForTemperature() above ====================================
 		paletteTemperature,
+		paletteTemperature_normalized,
 
 //==== from HeatMapColorRamp() above ==========================================
 		paletteHeatmapRamp,
@@ -160,7 +162,7 @@ namespace palette {
 	inline vec3 IQControlPoints[ 4 ] = { vec3( 0.0f ) };
 	inline vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
 
-	inline void SetIQPaletteDefaults ( int index ) {
+	inline void SetIQPaletteDefaultSet ( int index ) {
 		const vec3 values[ 7 ][ 4 ] = { // to generate more: https://www.shadertoy.com/view/tlSBDw - looks like this set of 7 covers most of the ones of any value
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.10f, 0.20f ) },	// steel heat colors ( I like this one )
 			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.33f, 0.67f ) },	// rainbow
@@ -175,36 +177,57 @@ namespace palette {
 			IQControlPoints[ 0 ] = values[ index ][ pt ];
 	}
 
+	inline vec3 iqPaletteRef ( float t, vec3 a, vec3 b, vec3 c, vec3 d ) {
+		return a + b * cos( 6.28318f * ( c * t + d ) );
+	}
+
+	// lospec / matplotlib palettes
+		// set palette by label
+		// pick random palette
+		// get palette name
 
 	inline vec3 paletteRef ( float input, type inputType ) {
-
 		switch ( inputType ) {
 
-			case type::paletteIndexed: // indexing into the currently selected palette / palette size ( nearest )
+			// indexing into the currently selected palette / palette size ( nearest neighbor )
+			case type::paletteIndexed:
+				return vec3( paletteList[ PaletteIndex ].colors[ int( input * ( paletteList[ PaletteIndex ].colors.size() - 1 ) ) ] ) / 255.0f;
+				break;
+
+			// indexing into the currently selected palette, with the floor of the input, mod by the size of the palette
+			case type::paletteIndexed_modInt:
 				return vec3( 0.0f );
 				break;
 
-			case type::paletteIndexed_interpolated: // same as above, but interpolate between nearest values ( I fucked this up by luma sorting - need to fix that, revert to old ordering )
+			// same as above, but interpolate between nearest values
+			case type::paletteIndexed_interpolated:
 				return vec3( 0.0f );
 				break;
 
-			case type::paletteTemperature:	// remap the value or take it raw? ( leaning towards raw )
-				return vec3( 0.0f );
+			// use input value raw
+			case type::paletteTemperature:
+				return GetColorForTemperature( input );
 				break;
 
+			// remap 0-1 to 0-40k
+			case type::paletteTemperature_normalized:
+				return GetColorForTemperature( input * 40000.0f );
+				break;
+
+			// reference to the sinusoidal
 			case type::paletteHeatmapRamp:
-				return vec3( 0.0f );
+				return HeatMapColorRamp( input );
 				break;
 
-			case type::paletteIQSinusoid: // using currently set control points, IQControlPoints
-				return vec3( 0.0f );
+			case type::paletteIQSinusoid: // using currently set control points, IQControlPoints[]
+				return iqPaletteRef( input, IQControlPoints[ 0 ], IQControlPoints[ 1 ], IQControlPoints[ 2 ], IQControlPoints[ 3 ] );
 				break;
 
 			case type::paletteSimpleGradient:
-				return vec3( 0.0f );
+				return glm::mix( GradientEndpoints[ 0 ], GradientEndpoints[ 1 ], input );
 				break;
 
-			default:
+			default: // shouldn't be able to hit this
 				return vec3( 0.0f );
 				break;
 
