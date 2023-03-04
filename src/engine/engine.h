@@ -63,6 +63,12 @@ protected:
 //====== ImGui Windows ========================================================
 	bool showDemoWindow;
 
+//====== User Provided Functions ==============================================
+// this needs work, but this is where application-specific work will take place
+	// virtual void OnInit() = 0;
+	// virtual void OnUpdate() = 0;
+	// virtual void OnRender() = 0;
+
 //====== LegitProfiler Data ===================================================
 	void PrepareProfilingData ();
 	std::vector< legit::ProfilerTask > tasks_CPU;
@@ -77,9 +83,19 @@ protected:
 	bool pQuit = false;
 };
 
-// placeholder - will return to this soon, once the child lambdas are in place
+// placeholder - will return to this soon, once the child virtual funcs are doing something non-trivial
 class engineChild : public engine {
+	// virtual void OnInit() override {
 
+	// 	// not being called - investigate
+
+	// 	cout << "there are " << paletteList.size() << " palettes" << newline;
+	// 	// Image i (  );
+
+	// }
+
+	// virtual void OnUpdate() override {}
+	// virtual void OnRender() override {}
 };
 
 #endif

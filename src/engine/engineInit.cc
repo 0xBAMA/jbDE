@@ -238,6 +238,7 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
+	// { Block Start( "Additional User Init" ); OnInit(); }
 }
 
 void engine::ShaderCompile () {

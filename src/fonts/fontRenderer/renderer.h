@@ -265,9 +265,10 @@ public:
 		// timestamp
 		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // timestamp background
 		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // timestamp foreground
+
 		// hexxDump
-		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
-		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump foreground
+		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
+		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump foreground
 
 		// set basepoint for the orientation widget
 		basePt = glm::ivec2( 8 * ( numBinsWidth - 20 ), 16 );

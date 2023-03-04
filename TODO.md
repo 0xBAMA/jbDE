@@ -171,6 +171,7 @@ This is a planning document for work on this project and in general, about the t
 	- Domain Remapping Functions, Point on disk, etc, utilities
 		- [Bias and Gain Functions](https://arxiv.org/abs/2010.09714)
 		- [iq's Usful Functions](https://iquilezles.org/articles/functions/)
+		- [Easings](https://easings.net/)
 	- Come up with a way to characterize the output, make sure we are getting "good" RNG
 
 - [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
@@ -264,6 +265,8 @@ This is a planning document for work on this project and in general, about the t
 
 - Need to refit refraction, try this with explicit primitives
 	- I think this is a good direction to pursue, [iq's raytracing booleans](https://www.shadertoy.com/view/mlfGRM)
+	- Some [stuff on IoR of physical materials](https://pixelandpoly.com/ior.html)
+	- [Another resource](https://physicallybased.info/) with some of the same kind of stuff
 - Abstract camera projections, more artsy stuff - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
@@ -326,11 +329,13 @@ This is a planning document for work on this project and in general, about the t
 ## More Vague Future Software Project Ideas
 
 - Space Game thing? I think this is something that would be fun to work on
+	- [Planet Geo](https://www.researchgate.net/publication/3422533_Climate_Modeling_with_Spherical_Geodesic_Grids)
 
 - More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
 	- Interesting variant of the erosion sim, much faster graph-based alternative to my slow particle-based impl
 		- [Video](https://twitter.com/Th3HolyMoose/status/1627073949606748166) / [Paper](https://hal.inria.fr/hal-01262376/document)
 	- That little acquarium simulator thing I wrote about in my notes
+	- The Nick Mcdonald [wind erosion sim](https://nickmcd.me/2020/11/23/particle-based-wind-erosion/)
 
 - RTIOW on the GPU
 	- More raytracing stuff, the next week, the rest of your life books
@@ -503,6 +508,7 @@ This is a planning document for work on this project and in general, about the t
 			- Encoding image as a 1D signal, adding noise, then reinterpreting it
 	- Convolution
 	- DSP stuff, more audio stuff
+		- Learn more about filters - [Hack Audio](https://www.youtube.com/watch?v=epXM6Jc2Lj0) has some good, simple tutorials
 	- Maybe this is a good way to get into the NTSC simulation stuff
 	- C++ interop
 		- Would be interesting to do something with the raytracing hardware like this, maybe

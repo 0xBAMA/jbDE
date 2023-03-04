@@ -134,7 +134,7 @@ namespace palette {
 		// e.g. which palette index ( or find the palette by string label ), IQ palette control points, simple gradient endpoints
 
 	enum class type {
-//==== lospec / matplotlib set ================================================
+//==== lospec / matplotlib indexed set ========================================
 		// map input 0-1 to nearest color
 		paletteIndexed,
 
@@ -144,18 +144,21 @@ namespace palette {
 		// blend nearest two colors
 		paletteIndexed_interpolated,
 
-//==== from GetColorForTemperature() above ====================================
+
+//==== Analytic Palettes ======================================================
+	//==== from GetColorForTemperature() above ================================
 		paletteTemperature,
 		paletteTemperature_normalized,
 
-//==== from HeatMapColorRamp() above ==========================================
+	//==== from HeatMapColorRamp() above ======================================
 		paletteHeatmapRamp,
 
-//==== Inigo Quilez-style sinusoidal palettes =================================
+	//==== Inigo Quilez-style sinusoidal palettes =============================
 		paletteIQSinusoid,
 
-//==== Simple gradient, interpolating between two colors ======================
+	//==== Simple gradient, interpolating between two colors ==================
 		paletteSimpleGradient
+
 	};
 
 	inline int PaletteIndex = 0;
@@ -196,10 +199,10 @@ namespace palette {
 
 			// indexing into the currently selected palette, with the floor of the input, mod by the size of the palette
 			case type::paletteIndexed_modInt:
-				return vec3( 0.0f );
+				return vec3( paletteList[ PaletteIndex ].colors[ int( input ) % paletteList[ PaletteIndex ].colors.size() ] ) / 255.0f;
 				break;
 
-			// same as above, but interpolate between nearest values
+			// same as paletteIndexed, but interpolate between nearest values - TODO
 			case type::paletteIndexed_interpolated:
 				return vec3( 0.0f );
 				break;
