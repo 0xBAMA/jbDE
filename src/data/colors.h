@@ -229,7 +229,7 @@ namespace palette {
 		};
 		index = std::clamp( index, 0, 9 );
 		for ( uint8_t pt{ 0 }; pt < 4; pt++ )
-			IQControlPoints[ 0 ] = values[ index ][ pt ];
+			IQControlPoints[ pt ] = values[ index ][ pt ];
 	}
 
 	inline vec3 iqPaletteRef ( float t, vec3 a, vec3 b, vec3 c, vec3 d ) {
@@ -242,67 +242,70 @@ namespace palette {
 		// get palette name
 
 	inline vec3 paletteRef ( float input, type inputType ) {
+
+		vec3 value = vec3( 0.0f );
 		switch ( inputType ) {
 
 			// indexing into the currently selected palette / palette size ( nearest neighbor )
 			case type::paletteIndexed:
-				return vec3( paletteList[ PaletteIndex ].colors[ int( input * ( paletteList[ PaletteIndex ].colors.size() - 1 ) ) ] ) / 255.0f;
+				value = vec3( paletteList[ PaletteIndex ].colors[ int( input * ( paletteList[ PaletteIndex ].colors.size() - 1 ) ) ] ) / 255.0f;
 				break;
 
 			// indexing into the currently selected palette, with the floor of the input, mod by the size of the palette
 			case type::paletteIndexed_modInt:
-				return vec3( paletteList[ PaletteIndex ].colors[ int( input ) % paletteList[ PaletteIndex ].colors.size() ] ) / 255.0f;
+				value = vec3( paletteList[ PaletteIndex ].colors[ int( input ) % paletteList[ PaletteIndex ].colors.size() ] ) / 255.0f;
 				break;
 
 			// same as paletteIndexed, but interpolate between nearest values - TODO
 			case type::paletteIndexed_interpolated:
-				return vec3( 0.0f );
+				value = vec3( 0.0f );
 				break;
 
 			case type::paletteHue:
-				return hue( input );
+				value = hue( input );
 				break;
 
 			case type::paletteJet:
-				return Jet( input );
+				value = Jet( input );
 				break;
 
 			case type::paletteZucconiSpectral:
-				return SpectralZucconi( input );
+				value = SpectralZucconi( input );
 				break;
 
 			case type::paletteZucconiSpectral6:
-				return SpectralZucconi6( input );
+				value = SpectralZucconi6( input );
 				break;
 
 			// use input value raw
 			case type::paletteTemperature:
-				return GetColorForTemperature( input );
+				value = GetColorForTemperature( input );
 				break;
 
 			// remap 0-1 to 0-40k
 			case type::paletteTemperature_normalized:
-				return GetColorForTemperature( input * 40000.0f );
+				value = GetColorForTemperature( input * 40000.0f );
 				break;
 
 			// reference to the sinusoidal
 			case type::paletteHeatmapRamp:
-				return HeatMapColorRamp( input );
+				value = HeatMapColorRamp( input );
 				break;
 
 			case type::paletteIQSinusoid: // using currently set control points, IQControlPoints[]
-				return iqPaletteRef( input, IQControlPoints[ 0 ], IQControlPoints[ 1 ], IQControlPoints[ 2 ], IQControlPoints[ 3 ] );
+				value = iqPaletteRef( input, IQControlPoints[ 0 ], IQControlPoints[ 1 ], IQControlPoints[ 2 ], IQControlPoints[ 3 ] );
 				break;
 
 			case type::paletteSimpleGradient:
-				return glm::mix( GradientEndpoints[ 0 ], GradientEndpoints[ 1 ], input );
+				value = glm::mix( GradientEndpoints[ 0 ], GradientEndpoints[ 1 ], input );
 				break;
 
 			default: // shouldn't be able to hit this
-				return vec3( 0.0f );
 				break;
 
 		}
+	
+		return glm::clamp( value, vec3( 0.0f ), vec3( 1.0f ) );
 	}
 };
 

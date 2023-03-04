@@ -239,18 +239,6 @@ void engine::LoadData () {
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	// { Block Start( "Additional User Init" ); OnInit(); }
-
-	Image test( 1000, 50 );
-
-	for ( unsigned int y { 0 }; y < test.height; y++ ) {
-		for ( unsigned int x { 0 }; x < test.width; x++ ) {
-			vec3 ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteHue );
-			test.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
-		}
-	}
-
-	test.Save( "test.png" );
-
 }
 
 void engine::ShaderCompile () {
