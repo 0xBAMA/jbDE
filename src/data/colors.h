@@ -119,14 +119,53 @@ inline vec3 HeatMapColorRamp ( float input ) {
 	return vec3( sin( input ), sin( input * 2.0f ), cos( input ) );
 }
 
-// TODO on palettes:
-// couple new ones to look at from https://www.shadertoy.com/view/cdlSzB
-	// https://www.alanzucconi.com/2017/07/15/improving-the-rainbow-2/
-	// https://gist.github.com/mikhailov-work/0d177465a8151eb6ede1768d51d476c7
-	// https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
-	// https://gist.github.com/mikhailov-work/6a308c20e494d9e0ccc29036b28faa7a
+inline vec3 hue ( float input ) {
+	return ( vec3( 0.6f ) + vec3( 0.6f ) * cos( vec3( 6.3f ) * vec3( input ) + vec3( 0.0f, 23.0f, 21.0f ) ) );
+}
 
-// restore old ordering on lospec palettes, for interpolated reference
+// Jet Colormap
+inline vec3 Jet ( float input ) {
+	const vec4 kRedVec4 = vec4( 0.13572138f, 4.61539260f, -42.66032258f, 132.13108234f );
+	const vec4 kGreenVec4 = vec4( 0.09140261f, 2.19418839f, 4.84296658f, -14.18503333f );
+	const vec4 kBlueVec4 = vec4( 0.10667330f, 12.64194608f, -60.58204836f, 110.36276771f );
+	const vec2 kRedVec2 = vec2( -152.94239396f, 59.28637943f );
+	const vec2 kGreenVec2 = vec2( 4.27729857f, 2.82956604f );
+	const vec2 kBlueVec2 = vec2( -89.90310912f, 27.34824973f );
+	input = glm::fract( input );
+	vec4 v4 = vec4( 1.0f, input, input * input, input * input * input );
+	vec2 v2 = glm::vec2( v4[ 2 ], v4[ 3 ] ) * v4.z;
+	return vec3(
+		glm::dot( v4, kRedVec4 )   + glm::dot( v2, kRedVec2 ),
+		glm::dot( v4, kGreenVec4 ) + glm::dot( v2, kGreenVec2 ),
+		glm::dot( v4, kBlueVec4 )  + glm::dot( v2, kBlueVec2 )
+	);
+}
+
+// Zucconi Helper func
+inline vec3 bump3y ( vec3 x, vec3 yoffset ) {
+	vec3 y = vec3( 1.0f ) - x * x;
+	y = clamp( ( y - yoffset ), vec3( 0.0f ), vec3( 1.0f ) );
+	return y;
+}
+
+inline vec3 SpectralZucconi ( float input ) {
+	input = glm::fract( input );
+	const vec3 cs = vec3( 3.54541723f, 2.86670055f, 2.29421995f );
+	const vec3 xs = vec3( 0.69548916f, 0.49416934f, 0.28269708f );
+	const vec3 ys = vec3( 0.02320775f, 0.15936245f, 0.53520021f );
+	return bump3y ( cs * ( input - xs ), ys );
+}
+
+inline vec3 SpectralZucconi6 ( float input ) {
+	input = glm::fract( input );
+	const vec3 c1 = vec3( 3.54585104f, 2.93225262f, 2.41593945f );
+	const vec3 x1 = vec3( 0.69549072f, 0.49228336f, 0.27699880f );
+	const vec3 y1 = vec3( 0.02312639f, 0.15225084f, 0.52607955f );
+	const vec3 c2 = vec3( 3.90307140f, 3.21182957f, 3.96587128f );
+	const vec3 x2 = vec3( 0.11748627f, 0.86755042f, 0.66077860f );
+	const vec3 y2 = vec3( 0.84897130f, 0.88445281f, 0.73949448f );
+	return bump3y( c1 * ( input - x1 ), y1 ) + bump3y( c2 * ( input - x2 ), y2 );
+}
 
 namespace palette {
 
@@ -146,6 +185,16 @@ namespace palette {
 
 
 //==== Analytic Palettes ======================================================
+	//==== Hue ( kinda HSV type affair ) ======================================
+		paletteHue,
+
+	//==== Jet ================================================================
+		paletteJet,
+
+	//==== Zucconi Spectral Variants ==========================================
+		paletteZucconiSpectral,
+		paletteZucconiSpectral6,
+
 	//==== from GetColorForTemperature() above ================================
 		paletteTemperature,
 		paletteTemperature_normalized,
@@ -166,16 +215,19 @@ namespace palette {
 	inline vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
 
 	inline void SetIQPaletteDefaultSet ( int index ) {
-		const vec3 values[ 7 ][ 4 ] = { // to generate more: https://www.shadertoy.com/view/tlSBDw - looks like this set of 7 covers most of the ones of any value
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.10f, 0.20f ) },	// steel heat colors ( I like this one )
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.33f, 0.67f ) },	// rainbow
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 1.0f ), vec3( 0.30f, 0.20f, 0.20f ) },	// blue-red
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 1.0f, 0.5f ), vec3( 0.80f, 0.90f, 0.30f ) },	// yellow-green-blue
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 1.0f, 0.7f, 0.4f ), vec3( 0.00f, 0.15f, 0.20f ) },	// purple-blue-yellow
-			{ vec3( 0.5f, 0.5f, 0.5f ), vec3( 0.5f, 0.5f, 0.5f ), vec3( 2.0f, 1.0f, 0.0f ), vec3( 0.50f, 0.20f, 0.25f ) },	// pink-green-yellow
-			{ vec3( 0.8f, 0.5f, 0.4f ), vec3( 0.2f, 0.4f, 0.2f ), vec3( 2.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.25f, 0.25f ) }	// watermelon
+		const vec3 values[ 10 ][ 4 ] = { // to generate more: https://www.shadertoy.com/view/tlSBDw - looks like this set of 7 covers most of the ones of any value
+			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 1.0f ), vec3( 0.00f, 0.10f, 0.20f ) },												// steel heat colors
+			{ vec3( 0.55f, 0.4f, 0.3f ), vec3( 0.8f ), vec3( 0.29f ), vec3( 0.54f, 0.59f, 0.69f ) },								// phreax cooler
+			{ vec3( 0.5f ), vec3( 0.55f ), vec3( 0.45f ), vec3( 0.47f, 0.57f, 0.67f ) },											// phreax warmer
+			{ vec3( 0.55f, 0.4f, 0.3f ), vec3( 0.60f, 0.61f, 0.45f ), vec3( 0.8f, 0.75f, 0.8f ), vec3( 0.285f, 0.54f, 0.88f ) },	// phreax rainbow
+			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 1.0f ), vec3( 0.00f, 0.33f, 0.67f ) },												// rainbow
+			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 1.0f ), vec3( 0.30f, 0.20f, 0.20f ) },												// blue-red
+			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 1.0f, 1.0f, 0.5f ), vec3( 0.80f, 0.90f, 0.30f ) },									// yellow-green-blue
+			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 1.0f, 0.7f, 0.4f ), vec3( 0.00f, 0.15f, 0.20f ) },									// purple-blue-yellow
+			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 2.0f, 1.0f, 0.0f ), vec3( 0.50f, 0.20f, 0.25f ) },									// pink-green-yellow
+			{ vec3( 0.8f, 0.5f, 0.4f ), vec3( 0.2f, 0.4f, 0.2f ), vec3( 2.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.25f, 0.25f ) }			// watermelon
 		};
-		index = std::clamp( index, 0, 6 );
+		index = std::clamp( index, 0, 9 );
 		for ( uint8_t pt{ 0 }; pt < 4; pt++ )
 			IQControlPoints[ 0 ] = values[ index ][ pt ];
 	}
@@ -205,6 +257,22 @@ namespace palette {
 			// same as paletteIndexed, but interpolate between nearest values - TODO
 			case type::paletteIndexed_interpolated:
 				return vec3( 0.0f );
+				break;
+
+			case type::paletteHue:
+				return hue( input );
+				break;
+
+			case type::paletteJet:
+				return Jet( input );
+				break;
+
+			case type::paletteZucconiSpectral:
+				return SpectralZucconi( input );
+				break;
+
+			case type::paletteZucconiSpectral6:
+				return SpectralZucconi6( input );
 				break;
 
 			// use input value raw

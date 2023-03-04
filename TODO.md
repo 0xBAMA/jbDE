@@ -225,6 +225,24 @@ This is a planning document for work on this project and in general, about the t
 		| Shave | Yes | Get the bounding box, then remove all entries that are greater/less than some threshold on a random axis |
 		| Mirror | Yes | Copy contents across some axis - bounding box value for that axis minus the coordinate |
 
+		- More ideas
+			- Array modifier? stamp the same glyph several times in constant size steps along some axis
+
+	- Related, doing something with sets of AABBs
+		- My interpretation of Vanhoutte's [Invisible Citites](https://twitter.com/wblut/status/1632101200458809346) building shapes
+			- Blocky shells
+				- Generate several overlapping AABBs
+				- "Fill" all of them
+				- Shrink 1 on each axis ( positive and negative )
+				- Cut these smaller ones out from the filled ones, to create a blobby/blocky shell
+			- AABBs, but then make them into a frame
+				- Draw original box
+				- Tube shape
+					- Cut out an AABB which is shrunk on two picked axes ( 1 unit on the positive and negative sides on each dimension )
+				- Frame shape
+					- Cut out 3 AABBs, same as tube, but do this for all three axes ( shrink on x,y, shrink on y,z, shrink on x,z )
+	
+
 	- Blacklisting certain glyphs - hard to go through the full set, 140k is a lot to work with
 		- Only include english characters, only include foreign characters, only include pictograms? something like that
 		- Make sure we have unique IDs, and Black/Whitelist certain IDs
@@ -509,6 +527,7 @@ This is a planning document for work on this project and in general, about the t
 	- Convolution
 	- DSP stuff, more audio stuff
 		- Learn more about filters - [Hack Audio](https://www.youtube.com/watch?v=epXM6Jc2Lj0) has some good, simple tutorials
+		- Interpolation of signals - [Cool Paper](http://yehar.com/blog/wp-content/uploads/2009/08/deip.pdf)
 	- Maybe this is a good way to get into the NTSC simulation stuff
 	- C++ interop
 		- Would be interesting to do something with the raytracing hardware like this, maybe
