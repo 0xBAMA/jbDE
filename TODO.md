@@ -171,7 +171,7 @@ This is a planning document for work on this project and in general, about the t
 	- Domain Remapping Functions, Point on disk, etc, utilities
 		- [Bias and Gain Functions](https://arxiv.org/abs/2010.09714)
 		- [iq's Usful Functions](https://iquilezles.org/articles/functions/)
-		- [Easings](https://easings.net/)
+		- [Easing Functions](https://easings.net/)
 	- Come up with a way to characterize the output, make sure we are getting "good" RNG
 
 - [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
@@ -227,6 +227,10 @@ This is a planning document for work on this project and in general, about the t
 
 		- More ideas
 			- Array modifier? stamp the same glyph several times in constant size steps along some axis
+				- Rather than mirroring, just copy several times with the same orientation
+				- trim to very thin, beforehand?
+			- Maybe an input to enable / disable each operation individually? I think that makes sense
+			- Seed value, repeatable RNG is important for this
 
 	- Related, doing something with sets of AABBs
 		- My interpretation of Vanhoutte's [Invisible Citites](https://twitter.com/wblut/status/1632101200458809346) building shapes
@@ -300,11 +304,6 @@ This is a planning document for work on this project and in general, about the t
 
 #### Keeping up with projects as they happen, so they don't pile up again
 
-- Something about jbDE for February? tbd, it's still not, ah, presentable
-	- Not much to show, mostly infrastructure stuff at this point
-	- Could write about struggles to get up and running on new machine
-		- Adventures getting this shit to run on Windows
-
 --------------------------------------------------------------------------------------------------
 
 ## Concrete Future Software Project Ideas
@@ -346,6 +345,8 @@ This is a planning document for work on this project and in general, about the t
 
 ## More Vague Future Software Project Ideas
 
+- Little JS demo based on [this](https://www.youtube.com/watch?v=XGioNBHrFU4) ( particle text )? would be cool to have something with interaction
+
 - Space Game thing? I think this is something that would be fun to work on
 	- [Planet Geo](https://www.researchgate.net/publication/3422533_Climate_Modeling_with_Spherical_Geodesic_Grids)
 
@@ -385,11 +386,13 @@ This is a planning document for work on this project and in general, about the t
 		- [Some on Sketchfab](https://sketchfab.com/3d-models/sy-carola-point-cloud-17bd8188447b48baab75125b9ad20788)
 		- I thing the poisson disk sampling thing would be an interesting way to generate them from meshes
 			- Generate evenly spaced sample points on the triangles, get texture, normal, etc samples
+	- [Surface Splatting](https://www.shadertoy.com/view/XllGRl)
 
 - Depth Rendering to generate heightmaps
 	- Something like the face charms project, again, but generating the heightmaps from meshes directly
 	- Maybe this is an application for SoftRast
 		- I want to template the Image wrapper before I do that, though
+	- Fogleman's [Heightmap Meshing Utility](https://github.com/fogleman/hmm)
 
 - Something with Cellular Automata
 	- 3D CA is super cool, I would like to do more with that one project where I was doing the the realtime wireWorld sim

@@ -258,7 +258,19 @@ namespace palette {
 
 			// same as paletteIndexed, but interpolate between nearest values - TODO
 			case type::paletteIndexed_interpolated:
-				value = vec3( 0.0f );
+				{
+					const float paletteSize = paletteList[ PaletteIndex ].colors.size();
+					float index = float( input * ( paletteSize - 1 ) );
+
+					uint32_t indexLow = std::clamp( uint32_t( index ), 0u, uint32_t( paletteSize - 1 ) );
+					uint32_t indexHigh = std::clamp( ( uint32_t( index ) + 1 ) < paletteSize ? indexLow + 1 : 0u, 0u, uint32_t( paletteSize - 1 ) );
+
+					value = glm::mix(
+						vec3( paletteList[ PaletteIndex ].colors[ indexLow ] ) / 255.0f,
+						vec3( paletteList[ PaletteIndex ].colors[ indexHigh ] ) / 255.0f,
+						index - float( indexLow )
+					);
+				}
 				break;
 
 			case type::paletteHue:
