@@ -167,6 +167,8 @@ inline vec3 SpectralZucconi6 ( float input ) {
 	return bump3y( c1 * ( input - x1 ), y1 ) + bump3y( c2 * ( input - x2 ), y2 );
 }
 
+// TODO: take a look at http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+
 namespace palette {
 
 	// I think the best way to do this is to have any state set as a variable in this namespace

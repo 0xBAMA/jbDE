@@ -47,6 +47,7 @@ This is a planning document for work on this project and in general, about the t
 				- It can all be wrapped, as far as user-facing code, high level does not need to be difficult
 				- You're doing the same things, it's just much more verbose
 				- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
+				- Resource from Renderdoc - ["Vulkan in 30 Minutes"](https://renderdoc.org/vulkan-in-30-minutes.html)
 			- Hardware Raytracing Experimentation, not possible with OpenGL
 		- More focus on cross-platform dev?
 			- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
@@ -71,6 +72,7 @@ This is a planning document for work on this project and in general, about the t
 			- How to build separate executables?
 				- This one I think I have a line on, will just be adding more `add_executable` / `target_link_libraries` statements at the end of CMakeLists.txt
 				- Dump them all in the bin folder - need to make sure I can consistently run all this shit
+		- Is there some way to do this with ECS? I found [a good looking C/C++ ECS library](https://github.com/SanderMertens/flecs)
 	- Once I get to that point, I will be able to maintain the projects automagically
 		- Vertexture
 		- SoftBodies
@@ -415,6 +417,7 @@ This is a planning document for work on this project and in general, about the t
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
 	- Inspiration from [hornet on shadertoy, "glitch: cyberpunk text"](https://www.shadertoy.com/view/3lKSz3)
 	- Aras-P [Float Compression](https://aras-p.info/blog/2023/01/29/Float-Compression-0-Intro/)
+	- Palette analysis tools [1](https://github.com/Quickmarble/censor) / [2 (the one on lospec)](https://pixeljoint.com/forum/forum_posts.asp?TID=26080)
 
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
