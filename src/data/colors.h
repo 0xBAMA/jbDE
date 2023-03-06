@@ -167,7 +167,12 @@ inline vec3 SpectralZucconi6 ( float input ) {
 	return bump3y( c1 * ( input - x1 ), y1 ) + bump3y( c2 * ( input - x2 ), y2 );
 }
 
-// TODO: take a look at http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+// TODO:
+// - take a look at http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+// - interpolation of colors in different colorspaces ( separate function )
+	// - Global setting for interpolation colorspace in palette::
+	// - This is used for both the interpolated palette and the linear gradient
+	// - bring over the colorspace header, RGB<->whatever conversion funcs ( looks like it never made it into the engine )
 
 namespace palette {
 
@@ -290,6 +295,7 @@ namespace palette {
 					uint32_t indexLow = std::clamp( uint32_t( index ), 0u, uint32_t( paletteSize - 1 ) );
 					uint32_t indexHigh = std::clamp( ( uint32_t( index ) + 1 ) < paletteSize ? indexLow + 1 : 0u, 0u, uint32_t( paletteSize - 1 ) );
 
+					// interpolating in other colorspaces... RGB is not ideal
 					value = glm::mix(
 						vec3( paletteList[ PaletteIndex ].colors[ indexLow ] ) / 255.0f,
 						vec3( paletteList[ PaletteIndex ].colors[ indexHigh ] ) / 255.0f,
