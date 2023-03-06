@@ -11,15 +11,16 @@ This is a planning document for work on this project and in general, about the t
 - Top Priority: Getting up and running on the new machine(s)
 
 	- Motivation
-		- 4x floating point perf going from Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though )
+		- 4x floating point perf going from Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though, no HBM on the 7900XTX )
 		- Finished OddJob and put Windows on it, working on set up with Visual Studio
-			- Need to figure out the [Gigabyte RGB Fusion](https://www.gigabyte.com/mb/rgb/sdk) software
+			- Something I had not really considered, but this machine being the size of a shoebox, would be very good for being able to travel with
+			- Need to figure out the [Gigabyte RGB Fusion](https://www.gigabyte.com/mb/rgb/sdk) software ( likely has to be done in C# )
 			- I think this is the first actually relevant usage of the RGB LEDs I've thought of
 			- Something like:
 				- Yellow for running
 				- Green for complete
 				- Red for job failed
-			- Another application I had not really considered, but this machine being the size of a shoebox, would be very good for being able to travel with
+			- It may just make more sense to do it based on GPU/system load or GPU temp, otherwise I'd have to figure out some kind of signaling thing via a file in some location known to both programs
 
 	- Work so far
 		- ~~Suspicions point towards ImGui Docking branch, specifically the management of multiple contexts~~
@@ -289,6 +290,7 @@ This is a planning document for work on this project and in general, about the t
 	- I think this is a good direction to pursue, [iq's raytracing booleans](https://www.shadertoy.com/view/mlfGRM)
 	- Some [stuff on IoR of physical materials](https://pixelandpoly.com/ior.html)
 	- [Another resource](https://physicallybased.info/) with some of the same kind of stuff
+	- [Sampling Microfacet BRDF](https://agraphicsguynotes.com/posts/sample_microfacet_brdf/)
 - Abstract camera projections, more artsy stuff - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
@@ -375,7 +377,9 @@ This is a planning document for work on this project and in general, about the t
 
 - Experimenting with TinyGLTF and loading of the Intel Sponza models
 	- Got to try shadowmapping at some point
+		- [Imperfect Shadowmaps](https://www.researchgate.net/publication/47862111_Imperfect_Shadow_Maps_for_Efficient_Computation_of_Indirect_Illumination) - interesting idea
 	- Normal mapping is cool as shit
+		- [Normal Mapping Without Precomputed Tangents](http://www.thetenthplanet.de/archives/1180)
 
 - Point cloud visualization
 	- Aerosoap mentioned using jump flood algorithm for visualization, look into that
@@ -410,6 +414,7 @@ This is a planning document for work on this project and in general, about the t
 		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
 	- Inspiration from [hornet on shadertoy, "glitch: cyberpunk text"](https://www.shadertoy.com/view/3lKSz3)
+	- Aras-P [Float Compression](https://aras-p.info/blog/2023/01/29/Float-Compression-0-Intro/)
 
 - Engine and Suspension Simulation
 	- Voxels for center of mass calculation
@@ -434,8 +439,9 @@ This is a planning document for work on this project and in general, about the t
 	- Grass
 		- [Ghost of Tsushima GDC talk](https://youtu.be/Ibe1JBF5i5Y)
 
-- Bokeh LUT ( Pencil Map ) - how to apply this?
-	- [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
+- Bokeh Stuff
+	- Bokeh LUT ( Pencil Map ) - how to apply this? [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
+	- [Hexagonal Bokeh Blur](https://colinbarrebrisebois.com/2017/04/18/hexagonal-bokeh-blur-revisited/)
 
 - [Deferred Rendering Decals](https://mtnphil.wordpress.com/2014/05/24/decals-deferred-rendering/)
 
@@ -527,6 +533,7 @@ This is a planning document for work on this project and in general, about the t
 	- Image manipulation
 		- That NTSC thing, I want to understand how that works
 			- Encoding image as a 1D signal, adding noise, then reinterpreting it
+			- [LMP88959's all-integer C impl](https://github.com/LMP88959/NTSC-CRT)
 	- Convolution
 	- DSP stuff, more audio stuff
 		- Learn more about filters - [Hack Audio](https://www.youtube.com/watch?v=epXM6Jc2Lj0) has some good, simple tutorials

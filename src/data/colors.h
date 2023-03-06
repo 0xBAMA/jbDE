@@ -210,10 +210,8 @@ namespace palette {
 
 	};
 
-	inline int PaletteIndex = 0;
-	inline vec3 IQControlPoints[ 4 ] = { vec3( 0.0f ) };
-	inline vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
 
+	inline vec3 IQControlPoints[ 4 ] = { vec3( 0.0f ) };
 	inline void SetIQPaletteDefaultSet ( int index ) {
 		const vec3 values[ 10 ][ 4 ] = { // to generate more: https://www.shadertoy.com/view/tlSBDw - looks like this set of 7 covers most of the ones of any value
 			{ vec3( 0.5f ), vec3( 0.5f ), vec3( 1.0f ), vec3( 0.00f, 0.10f, 0.20f ) },												// steel heat colors
@@ -236,10 +234,35 @@ namespace palette {
 		return a + b * cos( 6.28318f * ( c * t + d ) );
 	}
 
-	// lospec / matplotlib palettes
-		// set palette by label
-		// pick random palette
-		// get palette name
+// managing lospec / matplotlib palettes
+	inline int PaletteIndex = 0;
+	inline void PickPaletteByLabel ( string label ) {
+		PaletteIndex = 0; // default, if not found
+		for ( unsigned int i = 0; i < paletteList.size(); i++ ) {
+			if ( paletteList[ i ].label == label ) {
+				PaletteIndex = i;
+			}
+		}
+	}
+
+	inline void PickRandomPalette () {
+		// will be able to simplify once I have my rng wrapper finished
+		std::mt19937_64 rng;
+		std::random_device r;
+		// std::seed_seq s{ r(), r(), r(), r(), r(), r(), r(), r(), r() };
+		// rng = std::mt19937_64( s );
+		rng = std::mt19937_64( r() );
+
+		std::uniform_int_distribution< int > PalettePick( 0, paletteList.size() - 1 );
+		PaletteIndex = PalettePick( rng );
+	}
+
+	inline string GetCurrentPaletteName () {
+		return paletteList[ PaletteIndex ].label;
+	}
+
+	// for linear gradient between two colors
+	inline vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
 
 	inline vec3 paletteRef ( float input, type inputType ) {
 
@@ -256,7 +279,7 @@ namespace palette {
 				value = vec3( paletteList[ PaletteIndex ].colors[ int( input ) % paletteList[ PaletteIndex ].colors.size() ] ) / 255.0f;
 				break;
 
-			// same as paletteIndexed, but interpolate between nearest values - TODO
+			// same as paletteIndexed, but interpolate between nearest values ( clamp on the ends )
 			case type::paletteIndexed_interpolated:
 				{
 					const float paletteSize = paletteList[ PaletteIndex ].colors.size();
