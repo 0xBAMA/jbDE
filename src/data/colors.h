@@ -271,7 +271,7 @@ namespace palette {
 
 			// indexing into the currently selected palette / palette size ( nearest neighbor )
 			case type::paletteIndexed:
-				value = vec3( paletteList[ PaletteIndex ].colors[ int( input * ( paletteList[ PaletteIndex ].colors.size() - 1 ) ) ] ) / 255.0f;
+				value = vec3( paletteList[ PaletteIndex ].colors[ int( input * ( paletteList[ PaletteIndex ].colors.size() ) ) ] ) / 255.0f;
 				break;
 
 			// indexing into the currently selected palette, with the floor of the input, mod by the size of the palette
