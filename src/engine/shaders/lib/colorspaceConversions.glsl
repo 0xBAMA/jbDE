@@ -1177,6 +1177,129 @@ vec3 srgb_to_okhsv(vec3 rgb)
 	return vec3 (h, s, v );
 }
 
+// 1: smoothstep, 2: smootherstep
+#define SMOOTH 2
+
+vec3 mul3( in mat3 m, in vec3 v )
+{
+    return vec3(
+        dot(v,m[0]),
+        dot(v,m[1]),
+        dot(v,m[2])
+    );
+}
+
+
+// Adapted from https://bottosson.github.io/posts/oklab/
+// The commented code is the original code followed by GLSL adaptation.
+vec3 srgb2oklab(vec3 c) 
+{
+    // float l = 0.4122214708f * c.r + 0.5363325363f * c.g + 0.0514459929f * c.b;
+	// float m = 0.2119034982f * c.r + 0.6806995451f * c.g + 0.1073969566f * c.b;
+	// float s = 0.0883024619f * c.r + 0.2817188376f * c.g + 0.6299787005f * c.b;
+    
+    // The matrix to multiply by.
+    mat3 m1 = mat3(
+        0.4122214708,0.5363325363,0.0514459929,
+        0.2119034982,0.6806995451,0.1073969566,
+        0.0883024619,0.2817188376,0.6299787005
+    );
+    
+    vec3 lms = mul3(m1,c);
+
+    // float l_ = cbrtf(l);
+    // float m_ = cbrtf(m);
+    // float s_ = cbrtf(s);
+    
+    // Equivalent to cbrt().
+    lms = pow(lms,vec3(1./3.));
+
+    // return {
+    //     0.2104542553f*l_ + 0.7936177850f*m_ - 0.0040720468f*s_,
+    //     1.9779984951f*l_ - 2.4285922050f*m_ + 0.4505937099f*s_,
+    //     0.0259040371f*l_ + 0.7827717662f*m_ - 0.8086757660f*s_,
+    // };
+    
+    mat3 m2 = mat3(
+        +0.2104542553,+0.7936177850,-0.0040720468,
+        +1.9779984951,-2.4285922050,+0.4505937099,
+        +0.0259040371,+0.7827717662,-0.8086757660
+    );
+    
+    return mul3(m2,lms);
+}
+
+// Same as above.
+vec3 oklab2srgb(vec3 c)
+{
+    // float l_ = c.L + 0.3963377774f * c.a + 0.2158037573f * c.b;
+    // float m_ = c.L - 0.1055613458f * c.a - 0.0638541728f * c.b;
+    // float s_ = c.L - 0.0894841775f * c.a - 1.2914855480f * c.b;
+
+    // We have 1. as the first column since the code doesn't
+    // have an argument to multiply by for cL.
+    mat3 m1 = mat3(
+        1.0000000000,+0.3963377774,+0.2158037573,
+        1.0000000000,-0.1055613458,-0.0638541728,
+        1.0000000000,-0.0894841775,-1.2914855480
+    );
+
+    // We need to convert the `struct Lab` c variable into `vec3`.
+    vec3 lms = mul3(m1,c);
+
+    // float l = l_*l_*l_;
+    // float m = m_*m_*m_;
+    // float s = s_*s_*s_;
+    
+    lms = lms * lms * lms;
+
+    // return {
+	// 	+4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s,
+	// 	-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s,
+	// 	-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s,
+    // };
+  
+    // this is essentially the m1 from the code before just inverted.
+    mat3 m2 = mat3(
+        +4.0767416621,-3.3077115913,+0.2309699292,
+        -1.2684380046,+2.6097574011,-0.3413193965,
+        -0.0041960863,-0.7034186147,+1.7076147010
+    );
+    return mul3(m2,lms);
+}
+
+// universal lab -> lch conversion.
+vec3 lab2lch( in vec3 c )
+{
+    return vec3(
+        c.x,
+        sqrt((c.y*c.y) + (c.z * c.z)),
+        atan(c.z,c.y)
+    );
+}
+
+// universal lch -> lab conversion
+vec3 lch2lab( in vec3 c )
+{
+    return vec3(
+        c.x,
+        c.y*cos(c.z),
+        c.y*sin(c.z)
+    );
+}
+
+// shortucts
+vec3 srgb2oklch( in vec3 c ) 
+{ 
+    // return lab2lch(srgb2oklab(c)); 
+    return lab2lch(srgb2oklab(c)); 
+}
+
+vec3 oklch2srgb( in vec3 c ) 
+{ 
+    return oklab2srgb(lch2lab(c)); 
+}
+
 //*************************************************
 /*
 HSLUV-GLSL v4.2
@@ -1447,10 +1570,11 @@ vec3 rgbToLuv(vec3 tuple){
 #define OKLAB     15
 #define OKHSL     16
 #define OKHSV     17
-#define LCH       18
-#define HSLUV     19
-#define HPLUV     20
-#define LUV       21
+#define OKLCH     18
+#define LCH       19
+#define HSLUV     20
+#define HPLUV     21
+#define LUV       22
 
 vec4 convert ( uvec4 value, int spaceswitch ){
 	vec4 converted = vec4( 0.0, 0.0, 0.0, 1.0 );
@@ -1474,6 +1598,7 @@ vec4 convert ( uvec4 value, int spaceswitch ){
 	case OKLAB:		converted.rgb = oklab_from_linear_srgb( base_rgbval.rgb ); break;
 	case OKHSL:		converted.rgb = srgb_to_okhsl( base_rgbval.rgb ); break;
 	case OKHSV:		converted.rgb = srgb_to_okhsv( base_rgbval.rgb ); break;
+	case OKLCH:		converted.rgb = srgb2oklch( base_rgbval.rgb ); break;
 	case LCH:		converted.rgb = rgbToLch( base_rgbval.rgb ); break;
 	case HSLUV:		converted.rgb = rgbToHsluv( base_rgbval.rgb ); break;
 	case HPLUV:		converted.rgb = rgbToHpluv( base_rgbval.rgb ); break;
@@ -1505,6 +1630,7 @@ uvec4 convertBack ( vec4 value, int spaceswitch ){
 	case OKLAB:		converted.rgb = uvec3( linear_srgb_from_oklab( value.rgb ) * 255 ); break;
 	case OKHSL:		converted.rgb = uvec3( okhsl_to_srgb( value.rgb ) * 255 ); break;
 	case OKHSV:		converted.rgb = uvec3( okhsv_to_srgb( value.rgb ) * 255 ); break;
+	case OKLCH:		converted.rgb = uvec3( oklch2srgb( value.rgb ) * 255 ); break;
 	case LCH:		converted.rgb = uvec3( lchToRgb( value.rgb ) * 255 ); break;
 	case HSLUV:		converted.rgb = uvec3( hsluvToRgb( value.rgb ) * 255 ); break;
 	case HPLUV:		converted.rgb = uvec3( hpluvToRgb( value.rgb ) * 255 ); break;
