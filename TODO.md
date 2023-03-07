@@ -293,6 +293,7 @@ This is a planning document for work on this project and in general, about the t
 	- Some [stuff on IoR of physical materials](https://pixelandpoly.com/ior.html)
 	- [Another resource](https://physicallybased.info/) with some of the same kind of stuff
 	- [Sampling Microfacet BRDF](https://agraphicsguynotes.com/posts/sample_microfacet_brdf/)
+	- [Spectral Refraction](https://www.shadertoy.com/view/llVSDz)
 - Abstract camera projections, more artsy stuff - see above, "Different cameras"
 
 --------------------------------------------------------------------------------------------------
@@ -366,6 +367,8 @@ This is a planning document for work on this project and in general, about the t
 	- Understanding Importance Sampling and More Materials
 		- [BRDF Generator](https://github.com/HectorMF/BRDFGenerator)
 		- [Crash Course BRDF](https://github.com/boksajak/brdf) / [Repo](https://boksajak.github.io/files/CrashCourseBRDF.pdf)
+
+- [Grid-based SDFs](https://kosmonautblog.wordpress.com/2017/05/01/signed-distance-field-rendering-journey-pt-1/)
 
 - Fluid/Physics Simulation
 	- [SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
@@ -466,6 +469,7 @@ This is a planning document for work on this project and in general, about the t
 		- [Kajiya Tonemapper](https://github.com/EmbarkStudios/kajiya/blob/79b7a74d2a6194029781ad17c809fd3ccc16b0e4/assets/shaders/inc/tonemap.hlsl), [also](https://github.com/EmbarkStudios/kajiya/commit/cb10c9ff9e894f0f0bf7cc8c9c540f0fc09ed371#diff-6c20208767044bc82bec72ba08288f6cb3cce3ec5d99d903172e6da054ed72b4)
 	- General Color
 		- [Color FAQ](http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html)
+		- [Another potential tonemapping setup](https://www.shadertoy.com/view/7dsczS)
 
 - Random Shadertoy Inspiration
 	- cool pixel effect [Antipod - MAGFest #08 by Flopine](https://www.shadertoy.com/view/dtS3WG)

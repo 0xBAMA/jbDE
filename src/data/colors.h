@@ -172,7 +172,7 @@ inline vec3 SpectralZucconi6 ( float input ) {
 // - interpolation of colors in different colorspaces ( separate function )
 	// - Global setting for interpolation colorspace in palette::
 	// - This is used for both the interpolated palette and the linear gradient
-	// - bring over the colorspace header, RGB<->whatever conversion funcs ( looks like it never made it into the engine )
+	// - bring over the colorspace header, RGB<->whatever conversion funcs ( will need some edits to make work with C++ )
 
 namespace palette {
 
