@@ -263,6 +263,8 @@ This is a planning document for work on this project and in general, about the t
 		- [Panoramic projection](https://www.shadertoy.com/view/clB3Rz)
 		- [Icosahedral](https://www.shadertoy.com/view/4dSyWh)
 		- [Wrighter's Spherical](https://www.shadertoy.com/view/WlfyRs)
+		- [Several from ollj](https://www.shadertoy.com/view/ls2cDt)
+		- [Relativistic](https://www.shadertoy.com/view/XtSyWW)
 	- different traversal methods
 		- [Amanatides / Woo A Fast Voxel Traversal Algorithm](https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf)
 		- Some kind of DDA traversal
@@ -354,6 +356,7 @@ This is a planning document for work on this project and in general, about the t
 
 - Space Game thing? I think this is something that would be fun to work on
 	- [Planet Geo](https://www.researchgate.net/publication/3422533_Climate_Modeling_with_Spherical_Geodesic_Grids)
+	- [Kali's Star Nest](https://www.shadertoy.com/view/slccDX) / [With A Bit Of Explanation](https://www.shadertoy.com/view/wlVSWV)
 
 - More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
 	- Interesting variant of the erosion sim, much faster graph-based alternative to my slow particle-based impl
@@ -402,6 +405,8 @@ This is a planning document for work on this project and in general, about the t
 	- Maybe this is an application for SoftRast
 		- I want to template the Image wrapper before I do that, though
 	- Fogleman's [Heightmap Meshing Utility](https://github.com/fogleman/hmm)
+	- Raymarching heightmaps / terrain
+		- [ollj](https://www.shadertoy.com/view/Mtc3WX)
 
 - Something with Cellular Automata
 	- 3D CA is super cool, I would like to do more with that one project where I was doing the the realtime wireWorld sim
@@ -444,6 +449,8 @@ This is a planning document for work on this project and in general, about the t
 		- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
 	- Grass
 		- [Ghost of Tsushima GDC talk](https://youtu.be/Ibe1JBF5i5Y)
+		- [Realtime Realistic Rendering and Lighting of Forests](https://hal.inria.fr/hal-00650120/file/article.pdf)
+		- [Outerra Procedural Grass Rendering](https://outerra.blogspot.com/2012/05/procedural-grass-rendering.html)
 
 - Bokeh Stuff
 	- Bokeh LUT ( Pencil Map ) - how to apply this? [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
@@ -462,6 +469,10 @@ This is a planning document for work on this project and in general, about the t
 
 - [Gaussian blur kernel computation](https://lisyarus.github.io/blog/graphics/2023/02/24/blur-coefficients-generator.html)
 
+- [2d Patterns](https://www.shadertoy.com/view/lt3fDS)
+
+- [Golden Ratio Sunflower](https://www.shadertoy.com/view/ttSyz1)
+
 - Tonemapping / Color Stuff
 	- Path-to-White tonemapping curves
 		- [Tizian Tonemapper](https://github.com/tizian/tonemapper)
@@ -470,6 +481,7 @@ This is a planning document for work on this project and in general, about the t
 	- General Color
 		- [Color FAQ](http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html)
 		- [Another potential tonemapping setup](https://www.shadertoy.com/view/7dsczS)
+		- [ollj "general rainbow scatter"](https://www.shadertoy.com/view/4ldcWN)
 
 - Random Shadertoy Inspiration
 	- cool pixel effect [Antipod - MAGFest #08 by Flopine](https://www.shadertoy.com/view/dtS3WG)
