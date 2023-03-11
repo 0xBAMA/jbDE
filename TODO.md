@@ -48,6 +48,7 @@ This is a planning document for work on this project and in general, about the t
 				- You're doing the same things, it's just much more verbose
 				- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
 				- Resource from Renderdoc - ["Vulkan in 30 Minutes"](https://renderdoc.org/vulkan-in-30-minutes.html)
+				- [Vulkan all the way - Transitioning to modern low level graphics api in academia](https://www.sciencedirect.com/science/article/pii/S0097849323000249)
 			- Hardware Raytracing Experimentation, not possible with OpenGL
 		- More focus on cross-platform dev?
 			- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
@@ -92,6 +93,7 @@ This is a planning document for work on this project and in general, about the t
 					- `OnUpdate()`
 					- `OnRender()`
 				- And override those as you write your derived classes
+					- Can the parent call the overridden virtual functions? How? I'm not getting the output I expect
 			- Current structure is to complex, too specialized - needs work to make it generalizable
 	- One of the big things I want to focus on is being able to render high-quality animations offline
 		- Maybe get into some Julius Horsthuis-style fractal animation stuff
@@ -488,6 +490,7 @@ This is a planning document for work on this project and in general, about the t
 
 --------------------------------------------------------------------------------------------------
 
+
 ## Makerspace Project Ideas
 
 - Reverse Avalanche Oscillator PCB
@@ -541,6 +544,9 @@ This is a planning document for work on this project and in general, about the t
 - [Cem Yuskel's Intro to Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZTfYh4UbhLGpI5kGd5oW_Hh)
 - [Cem Yuskel's Interactive Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZS3R5DjmCQsqupu43oS9CFN)
 - [UC Davis Computer Graphics](https://youtube.com/playlist?list=PL_w_qWAQZtAZhtzPI5pkAtcUVgmzdAP8g)
+- [TU Wien Intro to Computer Graphics](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3CLa2Kcffo4_EJeHCYj-AH)
+- [TU Wien Vulkan](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE0UsR2E_84-twxX6G7ynZNq)
+- [TU Wien Algorithms for Real-Time Rendering Course](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE1-jb7DF313E6MvLcpTLqgH)
 
 --------------------------------------------------------------------------------------------------
 

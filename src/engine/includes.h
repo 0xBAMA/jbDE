@@ -99,6 +99,7 @@ using XMLDocument = tinyxml2::XMLDocument;
 
 // image load/save/resize/access/manipulation wrapper
 #include "./coreUtils/image.h"
+#include "./coreUtils/image2.h"
 
 // simple std::chrono and OpenGL timer queries wrappers
 #include "./coreUtils/timer.h"
