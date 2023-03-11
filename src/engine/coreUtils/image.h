@@ -343,7 +343,7 @@ public:
 			// sort them and put them back
 			switch ( howWeSortin ) {
 				case sortCriteria::luma:	std::sort( row.begin(), row.end(), lumaLess );	break;
-				case sortCriteria::red:		std::sort( row.begin(), row.end(), redLess );		break;
+				case sortCriteria::red:		std::sort( row.begin(), row.end(), redLess );	break;
 				case sortCriteria::green:	std::sort( row.begin(), row.end(), greenLess );	break;
 				case sortCriteria::blue:	std::sort( row.begin(), row.end(), blueLess );	break;
 			}

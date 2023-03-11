@@ -240,23 +240,25 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	// { Block Start( "Additional User Init" ); OnInit(); }
 
-	Image test( 1000, 50 );
-	Image test2( 1000, 50 );
-	palette::PickRandomPalette();
-	cout << palette::GetCurrentPaletteName() << newline;
+	// Image test( 1000, 50 );
+	// Image test2( 1000, 50 );
+	// palette::PickRandomPalette();
+	// cout << palette::GetCurrentPaletteName() << newline;
 
-	for ( unsigned int y { 0 }; y < test.height; y++ ) {
-		for ( unsigned int x { 0 }; x < test.width; x++ ) {
-			vec3 ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteIndexed_interpolated );
-			test.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
-			ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteIndexed );
-			test2.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
-		}
-	}
+	// for ( unsigned int y { 0 }; y < test.height; y++ ) {
+	// 	for ( unsigned int x { 0 }; x < test.width; x++ ) {
+	// 		vec3 ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteIndexed_interpolated );
+	// 		test.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
+	// 		ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteIndexed );
+	// 		test2.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
+	// 	}
+	// }
 
-	test.Save( "test.png" );
-	test2.Save( "test2.png" );
+	// test.Save( "test.png" );
+	// test2.Save( "test2.png" );
 
+	Image_4U test( "test.png" );
+	test.Save( "test3.png", Image_4U::backend::LODEPNG );
 }
 
 void engine::ShaderCompile () {
