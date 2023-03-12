@@ -47,7 +47,7 @@ public:
 		}
 
 		float GetLuma () const {
-		// we're going to basically bake in the assumption that it's a 4 channel image for this
+		// we're going to basically bake in the assumption that it has 3 color channels
 			// because this luma calculation is basically just for the RGB color situation
 			const bool isUint = std::is_same< uint8_t, imageType >::value;
 			const float scaleFactors[] = { 0.299f, 0.587f, 0.114f };
@@ -189,25 +189,26 @@ public:
 		// barrel distortion
 
 	void Swizzle ( const char swizzle [ numChannels ] ) {
-
 	// options for each char are the following:
 		// 'r' is input red value,	'R' is max - input red value
 		// 'g' is input green value,'G' is max - input green value
 		// 'b' is input blue value,	'B' is max - input blue value
 		// 'a' is input alpha value,'A' is max - input alpha value
+		// 'l' is the input luma,	'L' is max - input luma
 		// '0' saturates to min, ignoring input
 		// '1' saturates to max, ignoring input
 
 	// there are some assumptions made that it's a 4 channel image ( and that's ok )
 
 	// you can do a pretty arbitrary transform on the data with these options - there
-		// are 10k ( ( 8 + 2 ) ^ 4 ) options, so hopefully one of those fits your need
+		// are many ( ( 8 + 2 + 2 ) ^ 4 ) options, so hopefully one of those fits your need
 		const bool isUint = std::is_same< uint8_t, imageType >::value;
 		const imageType min = isUint ?   0 : 0.0f;
 		const imageType max = isUint ? 255 : 1.0f;
 		for ( uint32_t y { 0 }; y < height; y++ ) {
 			for ( uint32_t x { 0 }; x < width; x++ ) {
-				color sourceData = GetAtXY( x, y );
+				const color sourceData = GetAtXY( x, y );
+				const float sourceLuma = sourceData.GetLuma();
 				color setData;
 				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
 					switch ( swizzle[ c ] ) {
@@ -219,6 +220,8 @@ public:
 						case 'B': setData[ c ] = max - sourceData[ 2 ]; break;
 						case 'a': setData[ c ] = sourceData[ 3 ]; break;
 						case 'A': setData[ c ] = max - sourceData[ 3 ]; break;
+						case 'l': setData[ c ] = isUint ? sourceLuma * 255 : sourceLuma; break;
+						case 'L': setData[ c ] = max - ( isUint ? sourceLuma * 255 : sourceLuma ); break;
 						case '0': setData[ c ] = min; break;
 						case '1': setData[ c ] = max; break;
 					}

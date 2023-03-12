@@ -240,16 +240,18 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	{ Block Start( "Additional User Init" );
 
-		Image_4U test( "test.png" );
-		// test.Swizzle( string( "gbr1" ).c_str() );
-		// test.Save( "testAltered.png" );
-
-		// test.Crop( 4000, 1000 );
-		// test.Save( "testBig.png" );
-
-		// test.Crop( 400, 400, 400, 400 );
-		// test.Save( "testSmall.png" );
-		cout << "Luma of avg is " << test.AverageColor().GetLuma() << endl;
+		Image_4F test( "test.png" );
+		// for ( uint32_t y { 0 }; y < test.Height(); y++ ) {
+		// 	for ( uint32_t x { 0 }; x < test.Width(); x++ ) {
+		// 		float luma = test.GetAtXY( x, y ).GetLuma();
+		// 		color_4F c;
+		// 		c[ 0 ] = c[ 1 ] = c[ 2 ] = luma;
+		// 		c[ 3 ] = 1.0f;
+		// 		test.SetAtXY( x, y, c );
+		// 	}
+		// }
+		test.Swizzle( "lllr" );
+		test.Save( "testAltered.png" );
 	}
 }
 
