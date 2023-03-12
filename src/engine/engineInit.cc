@@ -257,14 +257,23 @@ void engine::LoadData () {
 	// test.Save( "test.png" );
 	// test2.Save( "test2.png" );
 
-	Image_4F test( "test.png" );
-	test.Resize( 4.0f );
-	test.FlipHorizontal();
-	test.Save( "testBig.png" );
+	Image_4U test( "test.png" );
 
-	test.Resize( 0.0625f );
-	test.FlipVertical();
-	test.Save( "testSmall.png" );
+	test.Resize( 1.0f, 5.0f );
+
+	for ( uint32_t x { 100 }; x < test.Width() - 100; x++ ) {
+		for ( uint32_t y { 100 }; y < test.Height() - 100; y++ ) {
+			color_4U c;
+			c.data[ 0 ] = c.data[ 1 ] = c.data[ 2 ] = ( x ^ y ) & 255;
+			c.data[ 3 ] = 255;
+			test.SetAtXY( x, y, c );
+		}
+	}
+
+	test.Resize( 0.125f );
+
+	test.Save( "testAltered.png" );
+
 }
 
 void engine::ShaderCompile () {

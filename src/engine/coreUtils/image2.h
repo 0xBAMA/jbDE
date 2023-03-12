@@ -35,14 +35,16 @@ public:
 
 	struct color {
 		std::array< imageType, numChannels > data { 0 };
+
 		friend bool operator == ( const color& left, const color& right ) {
-			for ( int i = 0; i < numChannels; i++ ) {
-				if ( left.data[ i ] != right.data[ i ] ) {
+			for ( int i = 0; i < numChannels; i++ )
+				if ( left.data[ i ] != right.data[ i ] )
 					return false;
-				}
-			}
 			return true;
 		}
+
+		imageType operator [] ( int c ) const { return data[ c ]; }	// for val = color[ c ]
+		imageType & operator [] ( int c ) { return data[ c ]; }		// for color[ c ] = val
 	};
 
 //===== Constructors ==================================================================================================
@@ -69,15 +71,7 @@ public:
 	}
 
 //===== Functions =====================================================================================================
-
-// more esoteric stuff
-	// swizzle ( reorganize channels, like irFlip2 )
-	// pixel sorting - need to figure out thresholding
-	// dithering, CPU side, could be of value
-	// get average color value across all pixels in the image
-	// crop image
-
-//===== Basic =========================================================================================================
+//======= Basic =======================================================================================================
 
 	bool Load ( string path, backend loader = backend::LODEPNG ) {
 		switch ( loader ) {
@@ -130,10 +124,12 @@ public:
 	}
 
 	void Resize ( float factor ) {
+		// scale, uniform on both axes
 		Resize( factor, factor );
 	}
 
 	void Resize ( float XFactor, float YFactor ) {
+		// scale factor does not need to be the same on x and y
 		int newX = std::floor( XFactor * float( width ) );
 		int newY = std::floor( YFactor * float( height ) );
 
@@ -170,23 +166,31 @@ public:
 		}
 	}
 
-//===== Access to Internal Data =======================================================================================
-	color GetColorAtXY ( uint32_t x, uint32_t y ) {
-		color col;
+//======= Esoterica ===================================================================================================
 
+// more esoteric stuff
+	// swizzle ( reorganize channels, like irFlip2 )
+	// pixel sorting - need to figure out thresholding
+	// dithering, CPU side, could be of value
+	// get average color value across all pixels in the image
+	// crop image
+
+//======= Access to Internal Data =====================================================================================
+
+	color GetAtXY ( uint32_t x, uint32_t y ) {
+		color col;
 		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
 			const size_t index = ( x + y * width ) * numChannels;	// base index
-			for ( uint8_t c; c < numChannels; c++ )					// populate values
+			for ( uint8_t c { c }; c < numChannels; c++ )			// populate values
 				col[ c ] = data[ index + c ];
 		}
-
 		return col;
 	}
 
-	void SetColorAtXY ( uint32_t x, uint32_t y, color col ) {
+	void SetAtXY ( uint32_t x, uint32_t y, color col ) {
 		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
 			const size_t index = ( x + y * width ) * numChannels;	// base index
-			for ( uint8_t c; c < numChannels; c++ )					// populate values
+			for ( uint8_t c { 0 }; c < numChannels; c++ )			// populate values
 				data[ index + c ] = col[ c ];
 		} else { cout << "Out of Bounds Write :(\n"; }
 	}
@@ -195,9 +199,10 @@ public:
 	uint32_t Height () { return height; }
 
 private:
+
 //===== Internal Data =================================================================================================
 
-	// image dimensions ( make public or add accessors? )
+	// image dimensions
 	uint32_t width = 0;
 	uint32_t height = 0;
 
