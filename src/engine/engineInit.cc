@@ -244,11 +244,12 @@ void engine::LoadData () {
 		// test.Swizzle( string( "gbr1" ).c_str() );
 		// test.Save( "testAltered.png" );
 
-		test.Crop( 4000, 1000 );
-		test.Save( "testBig.png" );
+		// test.Crop( 4000, 1000 );
+		// test.Save( "testBig.png" );
 
-		test.Crop( 400, 400, 400, 400 );
-		test.Save( "testSmall.png" );
+		// test.Crop( 400, 400, 400, 400 );
+		// test.Save( "testSmall.png" );
+		cout << "Luma of avg is " << test.AverageColor().GetLuma() << endl;
 	}
 }
 

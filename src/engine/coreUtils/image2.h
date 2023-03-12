@@ -39,15 +39,23 @@ public:
 		imageType operator [] ( int c ) const { return data[ c ]; }	// for val = color[ c ]
 		imageType & operator [] ( int c ) { return data[ c ]; }		// for color[ c ] = val
 
-		friend bool operator == ( const color& left, const color& right ) const {
+		friend bool operator == ( const color& l, const color& r ) {
 			for ( int i = 0; i < numChannels; i++ )
-				if ( left.data[ i ] != right.data[ i ] )
+				if ( l.data[ i ] != r.data[ i ] )
 					return false;
 			return true;
 		}
 
 		float GetLuma () const {
-
+		// we're going to basically bake in the assumption that it's a 4 channel image for this
+			// because this luma calculation is basically just for the RGB color situation
+			const bool isUint = std::is_same< uint8_t, imageType >::value;
+			const float scaleFactors[] = { 0.299f, 0.587f, 0.114f };
+			float sum = 0.0f;
+			for ( int c { 0 }; c < numChannels && c < 3; c++ ) {
+				sum += ( isUint ? data[ c ] / 255.0f : data[ c ] ) * scaleFactors[ c ];
+			}
+			return sum;
 		}
 	};
 
@@ -469,7 +477,6 @@ private:
 		free( header.requested_pixel_types );
 		return ret;
 	}
-
 };
 
 //===== Common Usage Aliases ==========================================================================================
