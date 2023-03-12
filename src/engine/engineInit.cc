@@ -138,11 +138,11 @@ void engine::SetupTextureData () {
 		GLuint bayer2, bayer4, bayer8;
 
 		// create the image textures
-		Image initial( config.width, config.height, false );
+		Image_4U initial( config.width, config.height );
 		glGenTextures( 1, &accumulatorTexture );
 		glActiveTexture( GL_TEXTURE3 );
 		glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &initial.data[ 0 ] );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
 		textures[ "Accumulator" ] = accumulatorTexture;
 
 		glGenTextures( 1, &displayTexture );
@@ -152,15 +152,15 @@ void engine::SetupTextureData () {
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &initial.data[ 0 ] );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
 		textures[ "Display Texture" ] = displayTexture;
 
 		// blue noise image on the GPU
-		Image blueNoiseImage{ "src/noise/blueNoise.png", LODEPNG };
+		Image_4U blueNoiseImage{ "src/noise/blueNoise.png" };
 		glGenTextures( 1, &blueNoiseTexture );
 		glActiveTexture( GL_TEXTURE4 );
 		glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, blueNoiseImage.width, blueNoiseImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &blueNoiseImage.data[ 0 ] );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, blueNoiseImage.Width(), blueNoiseImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, blueNoiseImage.GetImageDataBasePtr() );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -168,11 +168,11 @@ void engine::SetupTextureData () {
 		textures[ "Blue Noise" ] = blueNoiseTexture;
 
 		// create the image for the trident
-		Image initialT( trident.blockDimensions.x * 8, trident.blockDimensions.y * 16 );
+		Image_4U initialT( trident.blockDimensions.x * 8, trident.blockDimensions.y * 16 );
 		glGenTextures( 1, &tridentImage );
 		glActiveTexture( GL_TEXTURE5 );
 		glBindTexture( GL_TEXTURE_2D, tridentImage );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, initialT.width, initialT.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &initialT.data.data()[ 0 ] );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, initialT.Width(), initialT.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, initialT.GetImageDataBasePtr() );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -350,8 +350,7 @@ void engine::ImguiSetup () {
 void engine::InitialClear () {
 	ZoneScoped;
 
-	{
-		Block Start( "Clear Buffer" );
+	{	Block Start( "Clear Buffer" );
 
 		glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
