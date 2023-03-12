@@ -34,7 +34,15 @@ public:
 	enum class backend { STB_IMG, LODEPNG, TINYEXR };
 
 	struct color {
-		std::array< imageType, numChannels > data;
+		std::array< imageType, numChannels > data { 0 };
+		friend bool operator == ( const color& left, const color& right ) {
+			for ( int i = 0; i < numChannels; i++ ) {
+				if ( left.data[ i ] != right.data[ i ] ) {
+					return false;
+				}
+			}
+			return true;
+		}
 	};
 
 //===== Constructors ==================================================================================================
@@ -61,12 +69,6 @@ public:
 	}
 
 //===== Functions =====================================================================================================
-
-// access to private data
-	// get color at xy
-	// set color at xy
-	// get width
-	// get height
 
 // more esoteric stuff
 	// swizzle ( reorganize channels, like irFlip2 )
@@ -128,8 +130,12 @@ public:
 	}
 
 	void Resize ( float factor ) {
-		int newX = std::floor( factor * float( width ) );
-		int newY = std::floor( factor * float( height ) );
+		Resize( factor, factor );
+	}
+
+	void Resize ( float XFactor, float YFactor ) {
+		int newX = std::floor( XFactor * float( width ) );
+		int newY = std::floor( YFactor * float( height ) );
 
 		// create a copy of the existing data
 		const uint32_t oldSize = width * height * numChannels;
@@ -141,12 +147,14 @@ public:
 		// buffer needs to be allocated before the resize function runs
 		imageType* newData = ( imageType* ) malloc( newX * newY * numChannels * sizeof( imageType ) );
 
-		// compiler is complaining without the casts, I have no idea why that would be neccesary - it should have the correct type from imageType
-			// I guess the is_same<> does not run during template instantiation? hard to say, I don't really have any insight here
+		// compiler is complaining without the casts, I have no idea why that would be neccesary - it has the correct type from imageType
+			// I guess the is_same<> does not evaluate during template instantiation? hard to say, I don't really have any insight here
 		if ( std::is_same< uint8_t, imageType >::value ) { // uint type
-			stbir_resize_uint8( ( const uint8_t* ) oldData, width, height, width * numChannels * sizeof( imageType ), ( uint8_t* ) newData, newX, newY, newX * numChannels * sizeof( imageType ), numChannels );
+			stbir_resize_uint8( ( const uint8_t* ) oldData, width, height, width * numChannels * sizeof( imageType ),
+				( uint8_t* ) newData, newX, newY, newX * numChannels * sizeof( imageType ), numChannels );
 		} else { // float type
-			stbir_resize_float( ( const float* ) oldData, width, height, width * numChannels * sizeof( imageType ), ( float* ) newData, newX, newY, newX * numChannels * sizeof( imageType ), numChannels );
+			stbir_resize_float( ( const float* ) oldData, width, height, width * numChannels * sizeof( imageType ),
+				( float* ) newData, newX, newY, newX * numChannels * sizeof( imageType ), numChannels );
 		}
 
 		// image dimensions are now scaled up by the input scale factor
@@ -162,13 +170,29 @@ public:
 		}
 	}
 
-	// color GetColorAtXY ( uint32_t x, uint32_t y ) {
+//===== Access to Internal Data =======================================================================================
+	color GetColorAtXY ( uint32_t x, uint32_t y ) {
+		color col;
 
-	// }
+		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
+			const size_t index = ( x + y * width ) * numChannels;	// base index
+			for ( uint8_t c; c < numChannels; c++ )					// populate values
+				col[ c ] = data[ index + c ];
+		}
 
-	// void SetColorAtXY ( uint32_t x, uint32_t y, color set ) {
+		return col;
+	}
 
-	// }
+	void SetColorAtXY ( uint32_t x, uint32_t y, color col ) {
+		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
+			const size_t index = ( x + y * width ) * numChannels;	// base index
+			for ( uint8_t c; c < numChannels; c++ )					// populate values
+				data[ index + c ] = col[ c ];
+		} else { cout << "Out of Bounds Write :(\n"; }
+	}
+
+	uint32_t Width () { return width; }
+	uint32_t Height () { return height; }
 
 private:
 //===== Internal Data =================================================================================================
