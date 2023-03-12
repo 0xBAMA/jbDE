@@ -36,15 +36,19 @@ public:
 	struct color {
 		std::array< imageType, numChannels > data { 0 };
 
-		friend bool operator == ( const color& left, const color& right ) {
+		imageType operator [] ( int c ) const { return data[ c ]; }	// for val = color[ c ]
+		imageType & operator [] ( int c ) { return data[ c ]; }		// for color[ c ] = val
+
+		friend bool operator == ( const color& left, const color& right ) const {
 			for ( int i = 0; i < numChannels; i++ )
 				if ( left.data[ i ] != right.data[ i ] )
 					return false;
 			return true;
 		}
 
-		imageType operator [] ( int c ) const { return data[ c ]; }	// for val = color[ c ]
-		imageType & operator [] ( int c ) { return data[ c ]; }		// for color[ c ] = val
+		float GetLuma () const {
+
+		}
 	};
 
 //===== Constructors ==================================================================================================
@@ -82,7 +86,7 @@ public:
 		}
 	}
 
-	bool Save ( string path, backend loader = backend::LODEPNG ) {
+	bool Save ( string path, backend loader = backend::LODEPNG ) const {
 		switch ( loader ) {
 			case backend::STB_IMG: return SaveSTB_img( path ); break;
 			case backend::LODEPNG: return SaveLodePNG( path ); break;
@@ -216,7 +220,7 @@ public:
 		}
 	}
 
-	color AverageColor () {
+	color AverageColor () const {
 		double sums[ numChannels ] = { 0.0 };
 		for ( uint32_t y { 0 }; y < height; y++ ) {
 			for ( uint32_t x { 0 }; x < width; x++ ) {
@@ -256,12 +260,12 @@ public:
 
 //======= Access to Internal Data =====================================================================================
 
-	bool BoundsCheck ( uint32_t x, uint32_t y ) {
+	bool BoundsCheck ( uint32_t x, uint32_t y ) const {
 		// are the given indices inside the image?
 		return !( x >= width || x < 0 || y >= height || y < 0 );
 	}
 
-	color GetAtXY ( uint32_t x, uint32_t y ) {
+	color GetAtXY ( uint32_t x, uint32_t y ) const {
 		color col;
 		if ( BoundsCheck( x, y ) ) {
 			const size_t baseIndex = ( x + y * width ) * numChannels;
@@ -279,8 +283,8 @@ public:
 		} else { cout << "Out of Bounds Write :(\n"; }
 	}
 
-	uint32_t Width () { return width; }
-	uint32_t Height () { return height; }
+	uint32_t Width () const { return width; }
+	uint32_t Height () const { return height; }
 
 	// tbd, need to make sure this works for passing texture data to GPU
 	imageType* GetImageDataBasePtr () { return data.data(); }
@@ -362,7 +366,7 @@ private:
 
 //===== Save Functions == ( Accessed via Save() ) =====================================================================
 
-	bool SaveSTB_img ( string path ) {
+	bool SaveSTB_img ( string path ) const {
 		// TODO: figure out return value semantics for error reporting, it's an int, I didn't read the header very closely
 		if ( std::is_same< uint8_t, imageType >::value ) {
 			return stbi_write_png( path.c_str(), width, height, 8, &data[ 0 ], width * numChannels );
@@ -376,7 +380,7 @@ private:
 		}
 	}
 
-	bool SaveLodePNG ( string path ) {
+	bool SaveLodePNG ( string path ) const {
 		const bool uintType = std::is_same< uint8_t, imageType >::value;
 		if ( uintType ) {
 			unsigned error = lodepng::encode( path.c_str(), ( uint8_t* ) data.data(), width, height );
@@ -403,7 +407,7 @@ private:
 		}
 	}
 
-	bool SaveTinyEXR ( string path ) {
+	bool SaveTinyEXR ( string path ) const {
 		EXRHeader header;
 		EXRImage image;
 		InitEXRHeader( &header );
