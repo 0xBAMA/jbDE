@@ -238,42 +238,12 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
-	// { Block Start( "Additional User Init" ); OnInit(); }
+	{ Block Start( "Additional User Init" );
 
-	// Image test( 1000, 50 );
-	// Image test2( 1000, 50 );
-	// palette::PickRandomPalette();
-	// cout << palette::GetCurrentPaletteName() << newline;
-
-	// for ( unsigned int y { 0 }; y < test.height; y++ ) {
-	// 	for ( unsigned int x { 0 }; x < test.width; x++ ) {
-	// 		vec3 ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteIndexed_interpolated );
-	// 		test.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
-	// 		ref = palette::paletteRef( float( x ) / float( test.width ), palette::type::paletteIndexed );
-	// 		test2.SetAtXY( x, y, { uint8_t( ref.x * 255 ), uint8_t( ref.y * 255 ), uint8_t( ref.z * 255 ), 255 } );
-	// 	}
-	// }
-
-	// test.Save( "test.png" );
-	// test2.Save( "test2.png" );
-
-	Image_4U test( "test.png" );
-
-	test.Resize( 1.0f, 5.0f );
-
-	for ( uint32_t x { 100 }; x < test.Width() - 100; x++ ) {
-		for ( uint32_t y { 100 }; y < test.Height() - 100; y++ ) {
-			color_4U c;
-			c.data[ 0 ] = c.data[ 1 ] = c.data[ 2 ] = ( x ^ y ) & 255;
-			c.data[ 3 ] = 255;
-			test.SetAtXY( x, y, c );
-		}
+		Image_4F test( "test.png" );
+		test.Swizzle( string( "gbr1" ).c_str() );
+		test.Save( "testAltered.png" );
 	}
-
-	test.Resize( 0.125f );
-
-	test.Save( "testAltered.png" );
-
 }
 
 void engine::ShaderCompile () {

@@ -169,11 +169,50 @@ public:
 //======= Esoterica ===================================================================================================
 
 // more esoteric stuff
-	// swizzle ( reorganize channels, like irFlip2 )
 	// pixel sorting - need to figure out thresholding
 	// dithering, CPU side, could be of value
 	// get average color value across all pixels in the image
 	// crop image
+	// sampling stuff?
+	// barrel distortion
+
+	void Swizzle ( const char swizz [ numChannels ] ) {
+	// options for each char are r, R, g, G, b, B, a, A, 0, 1
+		// 'r' is input red channel,	'R' is max - input red channel
+		// 'g' is input green channel,	'G' is max - input green channel
+		// 'b' is input blue channel,	'B' is max - input blue channel
+		// 'a' is input alpha channel,	'A' is max - input alpha channel
+		// '0' saturates to 0, ignoring input
+		// '1' saturates to max, ignoring input
+
+		// you can do a pretty arbitrary transform on the data with these options - there
+			// are 10k ( ( 8 + 2 ) ^ 4 ) options, so hopefully one of those fits your need
+
+		const imageType max = std::is_same< uint8_t, imageType >::value ? 255 : 1.0f;
+		const imageType min = std::is_same< uint8_t, imageType >::value ? 0 : 0.0f;
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color sourceData = GetAtXY( x, y );
+				color setData;
+				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
+					switch ( swizz[ c ] ) {
+						case 'r': setData[ c ] = sourceData[ 0 ]; break;
+						case 'R': setData[ c ] = max - sourceData[ 0 ]; break;
+						case 'g': setData[ c ] = sourceData[ 1 ]; break;
+						case 'G': setData[ c ] = max - sourceData[ 1 ]; break;
+						case 'b': setData[ c ] = sourceData[ 2 ]; break;
+						case 'B': setData[ c ] = max - sourceData[ 2 ]; break;
+						case 'a': setData[ c ] = sourceData[ 3 ]; break;
+						case 'A': setData[ c ] = max - sourceData[ 3 ]; break;
+						case '0': setData[ c ] = min; break;
+						case '1': setData[ c ] = max; break;
+					}
+				}
+				SetAtXY( x, y, setData );
+			}
+		}
+
+	}
 
 //======= Access to Internal Data =====================================================================================
 
@@ -181,7 +220,7 @@ public:
 		color col;
 		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
 			const size_t index = ( x + y * width ) * numChannels;	// base index
-			for ( uint8_t c { c }; c < numChannels; c++ )			// populate values
+			for ( uint8_t c { 0 }; c < numChannels; c++ )			// populate values
 				col[ c ] = data[ index + c ];
 		}
 		return col;
