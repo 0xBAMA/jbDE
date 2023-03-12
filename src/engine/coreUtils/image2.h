@@ -170,32 +170,35 @@ public:
 
 // more esoteric stuff
 	// pixel sorting - need to figure out thresholding
+	// color cast, multiply all pixels by some numChannels-channel scale factor
 	// dithering, CPU side, could be of value
-	// get average color value across all pixels in the image
 	// crop image
-	// sampling stuff?
-	// barrel distortion
+	// sampling stuff? want to figure out some high quality sampling operations
+		// barrel distortion
 
-	void Swizzle ( const char swizz [ numChannels ] ) {
-	// options for each char are r, R, g, G, b, B, a, A, 0, 1
-		// 'r' is input red channel,	'R' is max - input red channel
-		// 'g' is input green channel,	'G' is max - input green channel
-		// 'b' is input blue channel,	'B' is max - input blue channel
-		// 'a' is input alpha channel,	'A' is max - input alpha channel
-		// '0' saturates to 0, ignoring input
+	void Swizzle ( const char swizzle [ numChannels ] ) {
+
+	// options for each char are the following:
+		// 'r' is input red value,	'R' is max - input red value
+		// 'g' is input green value,'G' is max - input green value
+		// 'b' is input blue value,	'B' is max - input blue value
+		// 'a' is input alpha value,'A' is max - input alpha value
+		// '0' saturates to min, ignoring input
 		// '1' saturates to max, ignoring input
 
-		// you can do a pretty arbitrary transform on the data with these options - there
-			// are 10k ( ( 8 + 2 ) ^ 4 ) options, so hopefully one of those fits your need
+	// there are some assumptions made that it's a 4 channel image ( and that's ok )
 
-		const imageType max = std::is_same< uint8_t, imageType >::value ? 255 : 1.0f;
-		const imageType min = std::is_same< uint8_t, imageType >::value ? 0 : 0.0f;
+	// you can do a pretty arbitrary transform on the data with these options - there
+		// are 10k ( ( 8 + 2 ) ^ 4 ) options, so hopefully one of those fits your need
+		const bool isUint = std::is_same< uint8_t, imageType >::value;
+		const imageType min = isUint ?   0 : 0.0f;
+		const imageType max = isUint ? 255 : 1.0f;
 		for ( uint32_t y { 0 }; y < height; y++ ) {
 			for ( uint32_t x { 0 }; x < width; x++ ) {
 				color sourceData = GetAtXY( x, y );
 				color setData;
 				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
-					switch ( swizz[ c ] ) {
+					switch ( swizzle[ c ] ) {
 						case 'r': setData[ c ] = sourceData[ 0 ]; break;
 						case 'R': setData[ c ] = max - sourceData[ 0 ]; break;
 						case 'g': setData[ c ] = sourceData[ 1 ]; break;
@@ -211,6 +214,27 @@ public:
 				SetAtXY( x, y, setData );
 			}
 		}
+	}
+
+	color AverageColor () {
+		double sums[ numChannels ] = { 0.0 };
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color pixelData = GetAtXY( x, y );
+				for ( uint8_t i { 0 }; i < numChannels; i++ ) {
+					sums[ i ] += pixelData[ i ];
+				}
+			}
+		}
+		color avg;
+		const double numPixels = width * height;
+		for ( uint8_t i { 0 }; i < numChannels; i++ ) {
+			avg[ i ] = sums[ i ] / numPixels;
+		}
+		return avg;
+	}
+
+	void Crop ( uint32_t newX, uint32_t newY ) {
 
 	}
 

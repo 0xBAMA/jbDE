@@ -240,9 +240,16 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	{ Block Start( "Additional User Init" );
 
-		Image_4F test( "test.png" );
-		test.Swizzle( string( "gbr1" ).c_str() );
-		test.Save( "testAltered.png" );
+		Image_4U test( "test.png" );
+		// test.Swizzle( string( "gbr1" ).c_str() );
+		// test.Save( "testAltered.png" );
+
+		color_4U avg = test.AverageColor();
+		cout << "average is " <<
+			int( avg[ 0 ] ) << " " <<
+			int( avg[ 1 ] ) << " " <<
+			int( avg[ 2 ] ) << " " <<
+			int( avg[ 3 ] ) << endl;
 	}
 }
 
