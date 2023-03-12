@@ -277,14 +277,14 @@ public:
 		fontWriteShader = shader;
 
 		// generate the altas texture - only ever needed in the context of layerManager
-		Image fontAtlas( "./src/fonts/fontRenderer/whiteOnClear.png", LODEPNG );
+		Image_4U fontAtlas( "./src/fonts/fontRenderer/whiteOnClear.png" );
 		fontAtlas.FlipVertical(); // for some reason loading upside down
 
 		// font atlas GPU setup
 		glGenTextures( 1, &atlasTexture );
 		glActiveTexture( GL_TEXTURE1 );
 		glBindTexture( GL_TEXTURE_2D, atlasTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, fontAtlas.width, fontAtlas.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &fontAtlas.data.data()[ 0 ] );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, fontAtlas.Width(), fontAtlas.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, fontAtlas.GetImageDataBasePtr() );
 	}
 
 	void Update ( float seconds ) {
