@@ -244,12 +244,11 @@ void engine::LoadData () {
 		// test.Swizzle( string( "gbr1" ).c_str() );
 		// test.Save( "testAltered.png" );
 
-		color_4U avg = test.AverageColor();
-		cout << "average is " <<
-			int( avg[ 0 ] ) << " " <<
-			int( avg[ 1 ] ) << " " <<
-			int( avg[ 2 ] ) << " " <<
-			int( avg[ 3 ] ) << endl;
+		test.Crop( 4000, 1000 );
+		test.Save( "testBig.png" );
+
+		test.Crop( 400, 400, 400, 400 );
+		test.Save( "testSmall.png" );
 	}
 }
 

@@ -234,32 +234,56 @@ public:
 		return avg;
 	}
 
-	void Crop ( uint32_t newX, uint32_t newY ) {
-
+	void Crop ( uint32_t newWidth, uint32_t newHeight, uint32_t offsetX = 0, uint32_t offsetY = 0 ) {
+		// out of bounds reads are all zeroes, we will keep that convention for simplicity
+		std::vector< imageType > newData;
+		newData.reserve( newWidth * newHeight * numChannels );
+		for ( uint32_t y { 0 }; y < newHeight; y++ ) {
+			for ( uint32_t x { 0 }; x < newWidth; x++ ) {
+				color oldVal = GetAtXY( x + offsetX, y + offsetY );
+				for ( uint8_t i { 0 }; i < numChannels; i++ ) {
+					newData.push_back( oldVal[ i ] );
+				}
+			}
+		}
+		data.resize( 0 );
+		data.reserve( newWidth * newHeight * numChannels );
+		data.assign( newData.begin(), newData.end() );
+		newData.clear();
+		width = newWidth;
+		height = newHeight;
 	}
 
 //======= Access to Internal Data =====================================================================================
 
+	bool BoundsCheck ( uint32_t x, uint32_t y ) {
+		// are the given indices inside the image?
+		return !( x >= width || x < 0 || y >= height || y < 0 );
+	}
+
 	color GetAtXY ( uint32_t x, uint32_t y ) {
 		color col;
-		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
-			const size_t index = ( x + y * width ) * numChannels;	// base index
-			for ( uint8_t c { 0 }; c < numChannels; c++ )			// populate values
-				col[ c ] = data[ index + c ];
+		if ( BoundsCheck( x, y ) ) {
+			const size_t baseIndex = ( x + y * width ) * numChannels;
+			for ( uint8_t c { 0 }; c < numChannels; c++ ) // populate values
+				col[ c ] = data[ baseIndex + c ];
 		}
 		return col;
 	}
 
 	void SetAtXY ( uint32_t x, uint32_t y, color col ) {
-		if ( x >= 0 || x < width || y >= 0 || y < height ) {		// bounds check
-			const size_t index = ( x + y * width ) * numChannels;	// base index
-			for ( uint8_t c { 0 }; c < numChannels; c++ )			// populate values
-				data[ index + c ] = col[ c ];
+		if ( BoundsCheck( x, y ) ) {
+			const size_t baseIndex = ( x + y * width ) * numChannels;
+			for ( uint8_t c { 0 }; c < numChannels; c++ ) // populate values
+				data[ baseIndex + c ] = col[ c ];
 		} else { cout << "Out of Bounds Write :(\n"; }
 	}
 
 	uint32_t Width () { return width; }
 	uint32_t Height () { return height; }
+
+	// tbd, need to make sure this works for passing texture data to GPU
+	imageType* GetImageDataBasePtr () { return data.data(); }
 
 private:
 
