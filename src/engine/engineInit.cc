@@ -240,6 +240,9 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	{ Block Start( "Additional User Init" );
 		// test code, etc
+		// Image_4F test( "test.png" );
+		// test.Swizzle( "lll1" );
+		// test.Save( "testAltered.png" );
 	}
 }
 

@@ -63,9 +63,9 @@ public:
 			const float scaleFactors[] = { 0.299f, 0.587f, 0.114f };
 			float sum = 0.0f;
 			for ( int c { 0 }; c < numChannels && c < 3; c++ ) {
-				sum += ( isUint ? data[ c ] / 255.0f : data[ c ] ) * scaleFactors[ c ];
+				sum += ( isUint ? data[ c ] / 255.0f : data[ c ] ) * ( isUint ? data[ c ] / 255.0f : data[ c ] ) * scaleFactors[ c ];
 			}
-			return sum;
+			return sqrt( sum );
 		}
 	};
 
