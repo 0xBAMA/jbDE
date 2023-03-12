@@ -34,6 +34,9 @@ public:
 	enum class backend { STB_IMG, LODEPNG, TINYEXR };
 
 	struct color {
+		color () {}
+		color ( std::array< imageType, numChannels > init ) : data( init ) {}
+
 		std::array< imageType, numChannels > data { 0 };
 
 		imageType operator [] ( int c ) const { return data[ c ]; }	// for val = color[ c ]

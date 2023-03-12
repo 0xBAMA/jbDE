@@ -2,23 +2,23 @@
 #ifndef GLYPH_H
 #define GLYPH_H
 
-#include "../engine/coreUtils/image.h"
+#include "../engine/coreUtils/image2.h"
 
 struct glyph {
 	int index = 0;
 	std::vector< std::vector< uint8_t > > glyphData;
 };
 
-constexpr rgba clear {   0,   0,   0,   0 };
-constexpr rgba black {  69,  69,  69, 255 };
-constexpr rgba white { 205, 205, 205, 255 };
-static bool isBlackOrWhite( rgba check ) {
+const color_4U clear ( {   0,   0,   0,   0 } );
+const color_4U black ( {  69,  69,  69, 255 } );
+const color_4U white ( { 205, 205, 205, 255 } );
+static bool isBlackOrWhite( color_4U check ) {
 	return check == black || check == white;
 }
 
 static std::vector< glyph > glyphList;
 
-static void ReadGlyphAt ( uint32_t x, uint32_t y, Image &buffer ) {
+static void ReadGlyphAt ( uint32_t x, uint32_t y, Image_4U &buffer ) {
 	// find the footprint of the glyph
 	glyph g;
 
@@ -55,7 +55,7 @@ static void ReadGlyphAt ( uint32_t x, uint32_t y, Image &buffer ) {
 	for ( uint32_t yy = y; yy <= ycur; yy++ ) {
 		for ( uint32_t xx = x; xx <= xcur; xx++ ) {
 
-			rgba read = buffer.GetAtXY( xx, yy );
+			color_4U read = buffer.GetAtXY( xx, yy );
 			if ( read == black ) {
 				g.glyphData[ yy - y ][ xx - x ] = 0;
 			} else if ( read == white ) {
@@ -68,17 +68,17 @@ static void ReadGlyphAt ( uint32_t x, uint32_t y, Image &buffer ) {
 	}
 
 	// get the index from the colored drop shadow
-	rgba dexx = buffer.GetAtXY( xcur + 1, ycur + 1 );
-	g.index = dexx.b * 255 * 255 + dexx.g * 255 + dexx.r;
+	color_4U dexx = buffer.GetAtXY( xcur + 1, ycur + 1 );
+	g.index = dexx[ 2 ] * 255 * 255 + dexx[ 1 ] * 255 + dexx[ 0 ];
 
 	glyphList.push_back( g );
 }
 
 static void LoadGlyphs () {
-	Image glyphRecord( "./src/data/bitfontCore2.png" );
+	Image_4U glyphRecord( "./src/data/bitfontCore2.png" );
 	// iterate through all the pixels in the image
-	for ( uint32_t y = 0; y < glyphRecord.height; y++ ) {
-		for ( uint32_t x = 0; x < glyphRecord.width; x++ ) {
+	for ( uint32_t y = 0; y < glyphRecord.Height(); y++ ) {
+		for ( uint32_t x = 0; x < glyphRecord.Width(); x++ ) {
 			if ( isBlackOrWhite( glyphRecord.GetAtXY( x, y ) ) ) {
 				ReadGlyphAt( x, y, glyphRecord );
 			}
