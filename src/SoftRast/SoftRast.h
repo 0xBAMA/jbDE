@@ -19,12 +19,12 @@ static const float RemapRange ( const float value, const float iMin, const float
 	return ( oMin + ( ( oMax - oMin ) / ( iMax - iMin ) ) * ( value - iMin ) );
 }
 
-static const rgba RGBAFromVec4( vec4 color ) {
-	rgba temp;
-	temp.r = uint8_t( RemapRange( color.r, 0.0f, 1.0f, 0.0f, 255.0f ) );
-	temp.g = uint8_t( RemapRange( color.g, 0.0f, 1.0f, 0.0f, 255.0f ) );
-	temp.b = uint8_t( RemapRange( color.b, 0.0f, 1.0f, 0.0f, 255.0f ) );
-	temp.a = uint8_t( RemapRange( color.a, 0.0f, 1.0f, 0.0f, 255.0f ) );
+static const color_4U ColorFromVec4( vec4 color ) {
+	color_4U temp;
+	temp[ red ]		= uint8_t( RemapRange( color.r, 0.0f, 1.0f, 0.0f, 255.0f ) );
+	temp[ green ]	= uint8_t( RemapRange( color.g, 0.0f, 1.0f, 0.0f, 255.0f ) );
+	temp[ blue ]	= uint8_t( RemapRange( color.b, 0.0f, 1.0f, 0.0f, 255.0f ) );
+	temp[ alpha ]	= uint8_t( RemapRange( color.a, 0.0f, 1.0f, 0.0f, 255.0f ) );
 	return temp;
 }
 
@@ -81,46 +81,46 @@ constexpr bool verboseDraw = false;
 
 class SoftRast {
 public:
-	SoftRast( uint32_t x = 0, uint32_t y = 0 ) : width( x ), height( y ) {
-		Color = Image( x, y );
-		Depth = ImageF( x, y );
-		BlueNoise = Image( "resources/noise/blueNoise.png" ); // for sample jitter, write helper function to return some samples
+	SoftRast( uint32_t x = 0, uint32_t y = 0 ) : width( x ), height( y ), Color( x, y ), Depth( x, y ) {
+		Color.ClearTo( color_4U( { 0, 0, 0, 0 } ) );
+		Depth.ClearTo( color_1F( { 0.0f } ) );
+		BlueNoise = Image_4U( "resources/noise/blueNoise.png" ); // for sample jitter, write helper function to return some samples
 		// init std::random generator as member variable, for picking blue noise sample point - then sweep along x or y to get low discrepancy sequence
 	}
 
 	vec4 BlueNoiseRef ( ivec2 loc ) {
-		rgba value = BlueNoise.GetAtXY( loc.x % BlueNoise.width, loc.y % BlueNoise.height );
-		return vec4( value.r / 255.0f, value.g / 255.0f, value.b / 255.0f, value.a / 255.0f ) - vec4( 0.5f );
+		color_4U value = BlueNoise.GetAtXY( loc.x % BlueNoise.Width(), loc.y % BlueNoise.Height() );
+		return vec4( value[ red ] / 255.0f, value[ green ] / 255.0f, value[ blue ] / 255.0f, value[ alpha ] / 255.0f ) - vec4( 0.5f );
 	}
 
-	std::vector<Image> texSet;
+	std::vector< Image_4U > texSet;
 	void LoadTex ( string texPath ) {
 		if ( !texPath.empty() ) {
-			Image temp( texPath );
+			Image_4U temp( texPath );
 			temp.FlipVertical();
 
 			// hackity hack hack - pre-squared the chain texture, only non-square texture in the set
-			if ( temp.width == 256 ) {
+			if ( temp.Width() == 256 ) {
 				temp.Resize( 8.0f );
-			} else if ( temp.width == 512 ) {
+			} else if ( temp.Width() == 512 ) {
 				temp.Resize( 4.0f );
-			} else if ( temp.width == 1024 ) {
+			} else if ( temp.Width() == 1024 ) {
 				temp.Resize( 2.0f );
 			}
 
 			if ( verboseLoad ) {
 				cout << "    loading ";
-				cout << temp.width << "x" << temp.height << " image" << newline;
+				cout << temp.Width() << "x" << temp.Height() << " image" << newline;
 				cout << "    done" << endl << endl;
 			}
 
 			texSet.push_back( temp );
 		} else {
-			Image temp( 2048, 2048 );
+			Image_4U temp( 2048, 2048 );
 
 			if ( verboseLoad ) {
 				cout << "    image defaulting";
-				cout << temp.width << "x" << temp.height << " image" << newline;
+				cout << temp.Width() << "x" << temp.Height() << " image" << newline;
 				cout << "    done" << endl << endl;
 			}
 
@@ -128,10 +128,10 @@ public:
 		}
 	}
 	vec4 TexRef ( vec2 texCoord, int id ) {
-		uint32_t x = uint32_t( texCoord.x * float( texSet[ id ].width ) );
-		uint32_t y = uint32_t( texCoord.y * float( texSet[ id ].height ) );
-		rgba val = texSet[ id ].GetAtXY( x, y );
-		vec4 returnVal = vec4( float( val.r ) / 255.0f, float( val.g ) / 255.0f, float( val.b ) / 255.0f, float( val.a ) / 255.0f );
+		uint32_t x = uint32_t( texCoord.x * float( texSet[ id ].Width() ) );
+		uint32_t y = uint32_t( texCoord.y * float( texSet[ id ].Height() ) );
+		color_4U val = texSet[ id ].GetAtXY( x, y );
+		vec4 returnVal = vec4( val[ red ] / 255.0f, val[ green ] / 255.0f, val[ blue ] / 255.0f, val[ alpha ] / 255.0f );
 		// cout << returnVal.x << " " << returnVal.y << " " << returnVal.z << " " << returnVal.w << newline;
 		return returnVal;
 	}
@@ -150,9 +150,9 @@ public:
 		// TODO: support for alpha blending, based on existing buffer color + input color
 		vec2 positionXY = vec2( position.x, position.y );
 		if ( glm::clamp( positionXY, vec2( 0.0f ), vec2( width, height ) ) == positionXY && // point is on screen
-			Depth.GetAtXY( uint32_t( position.x ), uint32_t( position.y ) ).r > position.z ) { // depth testing
-			Color.SetAtXY( position.x, position.y, RGBAFromVec4( color ) );
-			Depth.SetAtXY( position.x, position.y, { position.z, 0.0f, 0.0f, 0.0f } );
+			Depth.GetAtXY( uint32_t( position.x ), uint32_t( position.y ) )[ red ] > position.z ) { // depth testing
+			Color.SetAtXY( position.x, position.y, ColorFromVec4( color ) );
+			Depth.SetAtXY( position.x, position.y, color_1F( { position.z } ) );
 		}
 	}
 
@@ -184,14 +184,14 @@ public:
 			// interpolated depth value
 			float depth = RemapRange( float( x ), float( x0 ), float( x1 ), z0, z1 );
 			if ( steep ) {
-				if ( Depth.GetAtXY( y, x ).r >= depth ) {
-					Color.SetAtXY( y, x, RGBAFromVec4( color ) );
-					Depth.SetAtXY( y, x, { depth, 0.0f, 0.0f, 0.0f } );
+				if ( Depth.GetAtXY( y, x )[ red ] >= depth ) {
+					Color.SetAtXY( y, x, ColorFromVec4( color ) );
+					Depth.SetAtXY( y, x, color_1F( { depth } ) );
 				}
 			} else {
-				if ( Depth.GetAtXY( x, y ).r >= depth ) {
-					Color.SetAtXY( x, y, RGBAFromVec4( color ) );
-					Depth.SetAtXY( x, y, { depth, 0.0f, 0.0f, 0.0f } );
+				if ( Depth.GetAtXY( x, y )[ red] >= depth ) {
+					Color.SetAtXY( x, y, ColorFromVec4( color ) );
+					Depth.SetAtXY( x, y, color_1F( { depth } ) );
 				}
 			}
 			error2 += derror2;
@@ -298,7 +298,7 @@ public:
 					return; // cheapo clipping plane
 				}
 
-				if ( Depth.GetAtXY( eval.x, eval.y ).r > depth ) { // compute the color to write, texturing, etc, etc
+				if ( Depth.GetAtXY( eval.x, eval.y )[ red ] > depth ) { // compute the color to write, texturing, etc, etc
 
 					vec4 texRef = TexRef( glm::mod( vec2( texCoord.x, 1.0f - texCoord.y ), vec2( 1.0f ) ), texCoord.z );
 					if ( texRef.a == 0.0f ) {
@@ -308,8 +308,8 @@ public:
 					// vec4 color( texCoord.x, texCoord.y, texCoord.z / texSet.size(), 1.0f );
 					vec4 color( texRef.x, texRef.y, texRef.z, 1.0f );
 
-					Color.SetAtXY( eval.x, eval.y, RGBAFromVec4( color ) );
-					Depth.SetAtXY( eval.x, eval.y, { depth, 0.0f, 0.0f, 0.0f } );
+					Color.SetAtXY( eval.x, eval.y, ColorFromVec4( color ) );
+					Depth.SetAtXY( eval.x, eval.y, color_1F( { depth } ) );
 				}
 			}
 		}
@@ -497,9 +497,9 @@ public:
 	uint32_t height = 0;
 
 	// buffers
-	Image Color;
-	ImageF Depth;
-	Image BlueNoise;
+	Image_4U Color;
+	Image_1F Depth;
+	Image_4U BlueNoise;
 };
 
 #endif

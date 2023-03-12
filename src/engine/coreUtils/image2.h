@@ -71,6 +71,9 @@ public:
 
 //===== Constructors ==================================================================================================
 
+	// default
+	Image2 () : width( 0 ), height( 0 ) {}
+
 	// init emtpy image with given dimensions
 	Image2 ( uint32_t x, uint32_t y ) : width( x ), height( y ) {
 		data.resize( width * height * numChannels, 0 );
@@ -185,6 +188,14 @@ public:
 		data.reserve( newSize );
 		for ( uint32_t i = 0; i < newSize; i++ ) {
 			data.push_back( newData[ i ] );
+		}
+	}
+
+	void ClearTo ( color c ) {
+		for ( uint32_t y { 0 }; y < height; y++ ){
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				SetAtXY( x, y, c );
+			}
 		}
 	}
 
