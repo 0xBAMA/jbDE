@@ -62,14 +62,6 @@ public:
 
 //===== Functions =====================================================================================================
 
-// basic
-	// load image
-	// save image
-	// flip horizontal
-	// flip vertical
-	// resize image
-	// randomize contents
-
 // access to private data
 	// get color at xy
 	// set color at xy
@@ -85,7 +77,7 @@ public:
 
 //===== Basic =========================================================================================================
 
-	bool Load ( string path, backend loader = LODEPNG ) {
+	bool Load ( string path, backend loader = backend::LODEPNG ) {
 		switch ( loader ) {
 			case backend::STB_IMG: return LoadSTB_img( path ); break;
 			case backend::LODEPNG: return LoadLodePNG( path ); break;
@@ -94,7 +86,7 @@ public:
 		}
 	}
 
-	bool Save ( string path, backend loader = LODEPNG ) {
+	bool Save ( string path, backend loader = backend::LODEPNG ) {
 		switch ( loader ) {
 			case backend::STB_IMG: return SaveSTB_img( path ); break;
 			case backend::LODEPNG: return SaveLodePNG( path ); break;
@@ -134,6 +126,49 @@ public:
 			}
 		}
 	}
+
+	void Resize ( float factor ) {
+		int newX = std::floor( factor * float( width ) );
+		int newY = std::floor( factor * float( height ) );
+
+		// create a copy of the existing data
+		const uint32_t oldSize = width * height * numChannels;
+		imageType* oldData = ( imageType* ) malloc( oldSize * sizeof( imageType ) );
+		for ( uint32_t i = 0; i < oldSize; i++ ) {
+			oldData[ i ] = data[ i ];
+		}
+
+		// buffer needs to be allocated before the resize function runs
+		imageType* newData = ( imageType* ) malloc( newX * newY * numChannels * sizeof( imageType ) );
+
+		// compiler is complaining without the casts, I have no idea why that would be neccesary - it should have the correct type from imageType
+			// I guess the is_same<> does not run during template instantiation? hard to say, I don't really have any insight here
+		if ( std::is_same< uint8_t, imageType >::value ) { // uint type
+			stbir_resize_uint8( ( const uint8_t* ) oldData, width, height, width * numChannels * sizeof( imageType ), ( uint8_t* ) newData, newX, newY, newX * numChannels * sizeof( imageType ), numChannels );
+		} else { // float type
+			stbir_resize_float( ( const float* ) oldData, width, height, width * numChannels * sizeof( imageType ), ( float* ) newData, newX, newY, newX * numChannels * sizeof( imageType ), numChannels );
+		}
+
+		// image dimensions are now scaled up by the input scale factor
+		width = newX;
+		height = newY;
+
+		// copy new data back to the data vector
+		data.resize( 0 );
+		const uint32_t newSize = width * height * numChannels;
+		data.reserve( newSize );
+		for ( uint32_t i = 0; i < newSize; i++ ) {
+			data.push_back( newData[ i ] );
+		}
+	}
+
+	// color GetColorAtXY ( uint32_t x, uint32_t y ) {
+
+	// }
+
+	// void SetColorAtXY ( uint32_t x, uint32_t y, color set ) {
+
+	// }
 
 private:
 //===== Internal Data =================================================================================================
@@ -228,7 +263,7 @@ private:
 	bool SaveLodePNG ( string path ) {
 		const bool uintType = std::is_same< uint8_t, imageType >::value;
 		if ( uintType ) {
-			unsigned error = lodepng::encode( path.c_str(), data, width, height );
+			unsigned error = lodepng::encode( path.c_str(), ( uint8_t* ) data.data(), width, height );
 			if ( !error ) {
 				return true;
 			} else {
@@ -240,9 +275,9 @@ private:
 			std::vector< uint8_t > remappedData;
 			remappedData.reserve( data.size() );
 			for ( auto& val : data ) {
-				remappedData.push_back( val * 255.0f );
+				remappedData.push_back( std::clamp( val * 255.0f, 0.0f, 255.0f ) );
 			}
-			unsigned error = lodepng::encode( path.c_str(), remappedData, width, height );
+			unsigned error = lodepng::encode( path.c_str(), ( uint8_t* ) remappedData.data(), width, height );
 			if ( !error ) {
 				return true;
 			} else {

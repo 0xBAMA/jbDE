@@ -257,12 +257,14 @@ void engine::LoadData () {
 	// test.Save( "test.png" );
 	// test2.Save( "test2.png" );
 
-	Image_4U test( "test.png" );
+	Image_4F test( "test.png" );
+	test.Resize( 4.0f );
 	test.FlipHorizontal();
-	test.Save( "test_h.png", Image_4U::backend::LODEPNG );
-	test.FlipHorizontal();
+	test.Save( "testBig.png" );
+
+	test.Resize( 0.0625f );
 	test.FlipVertical();
-	test.Save( "test_v.png", Image_4U::backend::LODEPNG );
+	test.Save( "testSmall.png" );
 }
 
 void engine::ShaderCompile () {

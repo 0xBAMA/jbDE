@@ -547,6 +547,7 @@ This is a planning document for work on this project and in general, about the t
 - [TU Wien Intro to Computer Graphics](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3CLa2Kcffo4_EJeHCYj-AH)
 - [TU Wien Vulkan](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE0UsR2E_84-twxX6G7ynZNq)
 - [TU Wien Algorithms for Real-Time Rendering Course](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE1-jb7DF313E6MvLcpTLqgH)
+- [TU Wien Rendering](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3e8SQowQ-DjD1eZkBA_Xb9)
 
 --------------------------------------------------------------------------------------------------
 

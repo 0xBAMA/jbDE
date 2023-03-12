@@ -257,7 +257,7 @@ public:
 			// 'b' is input blue channel,  'B' is 255 - input blue channel
 			// 'a' is input alpha channel, 'A' is 255 - input alpha channel
 			// '0' saturates to 0, ignoring input
-			// '1' saturates to 255, ignoring input
+			// '1' saturates to 255, ignoring input 
 
 		// you can do a pretty arbitrary transform on the data with these options
 			// there are 10k ( ( 8 + 2 ) ^ 4 ) options, so hopefully one of those fits your need
