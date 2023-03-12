@@ -69,7 +69,7 @@ static void ReadGlyphAt ( uint32_t x, uint32_t y, Image_4U &buffer ) {
 
 	// get the index from the colored drop shadow
 	color_4U dexx = buffer.GetAtXY( xcur + 1, ycur + 1 );
-	g.index = dexx[ 2 ] * 255 * 255 + dexx[ 1 ] * 255 + dexx[ 0 ];
+	g.index = dexx[ blue ] * 255 * 255 + dexx[ green ] * 255 + dexx[ red ];
 
 	glyphList.push_back( g );
 }
@@ -77,8 +77,10 @@ static void ReadGlyphAt ( uint32_t x, uint32_t y, Image_4U &buffer ) {
 static void LoadGlyphs () {
 	Image_4U glyphRecord( "./src/data/bitfontCore2.png" );
 	// iterate through all the pixels in the image
-	for ( uint32_t y = 0; y < glyphRecord.Height(); y++ ) {
-		for ( uint32_t x = 0; x < glyphRecord.Width(); x++ ) {
+	const uint32_t height = glyphRecord.Height();
+	const uint32_t width = glyphRecord.Width();
+	for ( uint32_t y = 0; y < height; y++ ) {
+		for ( uint32_t x = 0; x < width; x++ ) {
 			if ( isBlackOrWhite( glyphRecord.GetAtXY( x, y ) ) ) {
 				ReadGlyphAt( x, y, glyphRecord );
 			}

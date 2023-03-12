@@ -3,7 +3,7 @@
 #define PALETTE_H
 
 #include "../GLM/glm.hpp"
-#include "../engine/coreUtils/image.h"
+#include "../engine/coreUtils/image2.h"
 
 struct paletteEntry {
 	string label;
@@ -60,19 +60,19 @@ inline std::vector< paletteEntry > paletteList; // unordered_map< string, palett
 // }
 
 static void LoadPalettes () {
-	Image paletteRecord( "./src/data/palettes.png" );
-	for ( uint32_t yPos = 0; yPos < paletteRecord.height; yPos++ ) {
+	Image_4U paletteRecord( "./src/data/palettes.png" );
+	for ( uint32_t yPos = 0; yPos < paletteRecord.Height(); yPos++ ) {
 		paletteEntry p;
 
 		// first 32 pixels' red channels contain the space-padded label
-		for ( int x = 0; x < 32; x++ ) { p.label += char( paletteRecord.GetAtXY( x, yPos ).r ); }
+		for ( int x = 0; x < 32; x++ ) { p.label += char( paletteRecord.GetAtXY( x, yPos )[ alpha ] ); }
 		p.label.erase( std::remove( p.label.begin(), p.label.end(), ' ' ), p.label.end() );
 
 		// then the rest of the row, up to the first { 0, 0, 0, 0 } pixel is the palette data
 		for ( int x = 33;; x++ ) {
-			rgba read = paletteRecord.GetAtXY( x, yPos );
-			if ( read.a == 0 ) { break; }
-			p.colors.push_back( glm::ivec3( read.r, read.g, read.b ) );
+			color_4U read = paletteRecord.GetAtXY( x, yPos );
+			if ( read[ alpha ] == 0 ) { break; }
+			p.colors.push_back( glm::ivec3( read[ red ], read[ green ], read[ blue ] ) );
 		}
 
 		// data is ready to go

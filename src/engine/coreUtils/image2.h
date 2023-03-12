@@ -28,6 +28,13 @@
 
 //===== Image2 ========================================================================================================
 
+enum channel {
+	red = 0,
+	green = 1,
+	blue = 2,
+	alpha = 3
+};
+
 template < typename imageType, int numChannels > class Image2 {
 public:
 
@@ -215,14 +222,14 @@ public:
 				color setData;
 				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
 					switch ( swizzle[ c ] ) {
-						case 'r': setData[ c ] = sourceData[ 0 ]; break;
-						case 'R': setData[ c ] = max - sourceData[ 0 ]; break;
-						case 'g': setData[ c ] = sourceData[ 1 ]; break;
-						case 'G': setData[ c ] = max - sourceData[ 1 ]; break;
-						case 'b': setData[ c ] = sourceData[ 2 ]; break;
-						case 'B': setData[ c ] = max - sourceData[ 2 ]; break;
-						case 'a': setData[ c ] = sourceData[ 3 ]; break;
-						case 'A': setData[ c ] = max - sourceData[ 3 ]; break;
+						case 'r': setData[ c ] = sourceData[ red ]; break;
+						case 'R': setData[ c ] = max - sourceData[ red ]; break;
+						case 'g': setData[ c ] = sourceData[ green ]; break;
+						case 'G': setData[ c ] = max - sourceData[ green ]; break;
+						case 'b': setData[ c ] = sourceData[ blue ]; break;
+						case 'B': setData[ c ] = max - sourceData[ blue ]; break;
+						case 'a': setData[ c ] = sourceData[ alpha ]; break;
+						case 'A': setData[ c ] = max - sourceData[ alpha ]; break;
 						case 'l': setData[ c ] = isUint ? sourceLuma * 255 : sourceLuma; break;
 						case 'L': setData[ c ] = max - ( isUint ? sourceLuma * 255 : sourceLuma ); break;
 						case '0': setData[ c ] = min; break;
@@ -316,7 +323,7 @@ private:
 
 //===== Loader Functions == ( Accessed via Load() ) ===================================================================
 
-	// this will handle a number of extensions
+	// this will handle a number of different file extensions ( png, jpg, etc )
 	bool LoadSTB_img ( string path ) {
 		std::vector< uint8_t > loadedData;
 		int w,h,n=w=h=0;
@@ -327,6 +334,7 @@ private:
 		const uint32_t numPixels = width * height;
 		data.reserve( numPixels * numChannels );
 		const bool uintType = std::is_same< uint8_t, imageType >::value;
+		// maybe need to rethink this, if I want to have it handle e.g. single channel load correctly
 		for ( uint32_t i = 0; i < numPixels; i++ ) {
 			data.push_back( uintType ? image[ i * numChannels + 0 ] : image[ i * numChannels + 0 ] / 255.0f );
 			data.push_back( uintType ? image[ i * numChannels + 1 ] : image[ i * numChannels + 1 ] / 255.0f );
