@@ -33,8 +33,8 @@ void engine::StartMessage () {
 void engine::LoadConfig () {
 	ZoneScoped;
 
-	{
-		Block Start( "Configuring Application" );
+	{	Block Start( "Configuring Application" );
+
 		json j;
 		// load the config json, populate config struct - this will probably have more data, eventually
 		ifstream i( "src/engine/config.json" );
@@ -109,8 +109,7 @@ void engine::DisplaySetup () {
 void engine::SetupVertexData () {
 	ZoneScoped;
 
-	{	
-		Block Start( "Setting Up Vertex Data" );
+	{	Block Start( "Setting Up Vertex Data" );
 
 		// OpenGL core spec requires a VAO bound when calling glDrawArrays
 		glGenVertexArrays( 1, &displayVAO );
@@ -128,8 +127,7 @@ void engine::SetupVertexData () {
 void engine::SetupTextureData () {
 	ZoneScoped;
 
-	{
-		Block Start( "Setting Up Textures" );
+	{	Block Start( "Setting Up Textures" );
 
 		GLuint accumulatorTexture;
 		GLuint displayTexture;
@@ -213,8 +211,7 @@ void engine::SetupTextureData () {
 
 	}
 
-	{
-		Block Start( "Setting Up Bindsets" );
+	{	Block Start( "Setting Up Bindsets" );
 
 		bindSets[ "Drawing" ] = bindSet( {
 			binding( 0, textures[ "Blue Noise" ], GL_RGBA8UI ),
@@ -240,17 +237,17 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	{ Block Start( "Additional User Init" );
 		// test code, etc
-		// Image_4F test( "test.png" );
-		// test.Swizzle( "lll1" );
-		// test.Save( "testAltered.png" );
+		Image_4F test( "test.png" );
+		// test.ColorCast( color_4F( { 1.0f, 0.8f, 0.2f, 1.0f } ) );
+		test.Swizzle( "lll1" );
+		test.Save( "testAltered.png" );
 	}
 }
 
 void engine::ShaderCompile () {
 	ZoneScoped;
 
-	{
-		Block Start( "Compiling Shaders" );
+	{	Block Start( "Compiling Shaders" );
 
 		const string base( "./src/engine/shaders/" );
 
@@ -278,8 +275,7 @@ void engine::ShaderCompile () {
 void engine::ImguiSetup () {
 	ZoneScoped;
 
-	{
-		Block Start( "Configuring dearImGUI" );
+	{	Block Start( "Configuring dearImGUI" );
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();

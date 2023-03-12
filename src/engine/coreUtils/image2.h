@@ -205,7 +205,6 @@ public:
 	// pixel sorting - need to figure out thresholding
 	// color cast, multiply all pixels by some numChannels-channel scale factor
 	// dithering, CPU side, could be of value
-	// crop image
 	// sampling stuff? want to figure out some high quality sampling operations
 		// barrel distortion
 
@@ -288,6 +287,20 @@ public:
 		newData.clear();
 		width = newWidth;
 		height = newHeight;
+	}
+
+	void ColorCast ( color cast ) {
+		const bool isUint = std::is_same< uint8_t, imageType >::value;
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color existingColor = GetAtXY( x, y );
+				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
+					float scalar = isUint ? ( cast[ c ] / 255.0f ) : cast[ c ];
+					existingColor[ c ] *= scalar;
+				}
+				SetAtXY( x, y, existingColor );
+			}
+		}
 	}
 
 //======= Access to Internal Data =====================================================================================
