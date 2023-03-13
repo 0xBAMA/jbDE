@@ -26,9 +26,10 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 
 **Utilities**
 - CMake parallel build setup
-- Image wrapper for loading/saving/resizing/etc of images ( 4 channel, 8-bit default - STB and [LodePNG](https://lodev.org/lodepng/) I/O backends )
+- Image wrapper for loading/saving/resizing/etc of images ( STB and [LodePNG](https://lodev.org/lodepng/) I/O backends )
+	- Templated for underlying type ( uint8_t or float ) and number of channels ( technically up to 255 channels, but some functions make assumptions about channel count e.g. calculating luma )
 	- Incorporates the [irFlip2](https://jbaker.graphics/writings/irFlip2.html#irflip2) image swizzling utility
-	- WIP floating point support, supports saving 32-bit per channel floating point images with [TinyEXR](https://github.com/syoyo/tinyexr)
+	- Supports loading and saving 32-bit per channel floating point images with [TinyEXR](https://github.com/syoyo/tinyexr)
 - JSON parsing using [nlohmann's single header implementation](https://github.com/nlohmann/json)
 - XML parsing using [TinyXML2](https://tinyxml2.docsforge.com/)
 - TinyOBJLoader for loading of Wavefront .OBJ 3D model files
