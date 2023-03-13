@@ -65,7 +65,7 @@ static void LoadPalettes () {
 		paletteEntry p;
 
 		// first 32 pixels' red channels contain the space-padded label
-		for ( int x = 0; x < 32; x++ ) { p.label += char( paletteRecord.GetAtXY( x, yPos )[ alpha ] ); }
+		for ( int x = 0; x < 32; x++ ) { p.label += char( paletteRecord.GetAtXY( x, yPos )[ red ] ); }
 		p.label.erase( std::remove( p.label.begin(), p.label.end(), ' ' ), p.label.end() );
 
 		// then the rest of the row, up to the first { 0, 0, 0, 0 } pixel is the palette data
