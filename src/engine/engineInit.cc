@@ -237,9 +237,9 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	{ Block Start( "Additional User Init" );
 		// test code, etc
-		Image_4F test( "test.png" );
-		// test.ColorCast( color_4F( { 1.0f, 0.8f, 0.2f, 1.0f } ) );
-		test.Swizzle( "lll1" );
+		Image_4U test( "test.png" );
+		test.PixelSort( 1, red );
+		test.PixelSort( 0, red );
 		test.Save( "testAltered.png" );
 	}
 }

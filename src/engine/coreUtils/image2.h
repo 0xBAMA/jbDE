@@ -202,8 +202,6 @@ public:
 //======= Esoterica ===================================================================================================
 
 // more esoteric stuff
-	// pixel sorting - need to figure out thresholding
-	// color cast, multiply all pixels by some numChannels-channel scale factor
 	// dithering, CPU side, could be of value
 	// sampling stuff? want to figure out some high quality sampling operations
 		// barrel distortion
@@ -299,6 +297,34 @@ public:
 					existingColor[ c ] *= scalar;
 				}
 				SetAtXY( x, y, existingColor );
+			}
+		}
+	}
+
+	// TODO: thresholding logic, masking?
+	void PixelSort ( int orientation, int channel ) {
+		const bool horizontal = orientation == 0;
+		for ( uint32_t x { 0 }; x < ( horizontal ? width : height ); x++ ) {
+			std::vector< color > vec;
+			for ( uint32_t y { 0 }; y < ( horizontal ? height : width ); y++ ) {
+			// currently just take all non-transparent pixels, but need a way to mark taken pixels if we want more flexible thresholding
+				color pixel = GetAtXY( horizontal ? x : y, horizontal ? y : x );
+				if ( pixel[ alpha ] != 0 ) {
+					vec.push_back( pixel );
+				}
+			}
+			if ( channel < 4 ) {
+				std::sort( vec.begin(), vec.end(), [ channel ]( const color & a, const color & b ) -> bool {
+					return a[ channel ] < b[ channel ];
+				} );
+			} else {
+				std::sort( vec.begin(), vec.end(), []( const color & a, const color & b ) -> bool {
+					return a.GetLuma() < b.GetLuma();
+				} );
+			}
+			// this will need to know where the pixels have been taken from... mark indices in some way
+			for ( uint32_t i { 0 }; i < vec.size(); i++ ) {
+				SetAtXY( horizontal ? x : i, horizontal ? i : x, vec[ i ] );
 			}
 		}
 	}
