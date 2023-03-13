@@ -237,10 +237,10 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
 	{ Block Start( "Additional User Init" );
 		// test code, etc
-		Image_4U test( "test.png" );
-		test.PixelSort( 1, red );
-		test.PixelSort( 0, red );
-		test.Save( "testAltered.png" );
+		// Image_4U test( "test.png" );
+		// test.PixelSort( 1, red );
+		// test.PixelSort( 0, red );
+		// test.Save( "testAltered.png" );
 	}
 }
 

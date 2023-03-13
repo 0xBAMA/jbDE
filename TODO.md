@@ -351,6 +351,16 @@ This is a planning document for work on this project and in general, about the t
 	- That little acquarium simulator thing I wrote about in my notes
 	- The Nick Mcdonald [wind erosion sim](https://nickmcd.me/2020/11/23/particle-based-wind-erosion/)
 
+- Plants
+	- Tree Growing Stuff
+		- [Creation and Rendering of Realistic Trees](https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf)
+		- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
+		- [Synthetic Silviculture: Multi-scale Modeling of Plant Ecosystems](https://dl.acm.org/doi/10.1145/3306346.3323039)
+	- Grass
+		- [Ghost of Tsushima GDC talk](https://youtu.be/Ibe1JBF5i5Y)
+		- [Realtime Realistic Rendering and Lighting of Forests](https://hal.inria.fr/hal-00650120/file/article.pdf)
+		- [Outerra Procedural Grass Rendering](https://outerra.blogspot.com/2012/05/procedural-grass-rendering.html)
+
 - RTIOW on the GPU
 	- More raytracing stuff, the next week, the rest of your life books
 	- [Dutre Global Illumination Compendium](https://people.cs.kuleuven.be/~philip.dutre/GI/TotalCompendium.pdf)
@@ -359,6 +369,14 @@ This is a planning document for work on this project and in general, about the t
 		- [Crash Course BRDF](https://github.com/boksajak/brdf) / [Repo](https://boksajak.github.io/files/CrashCourseBRDF.pdf)
 
 - [Grid-based SDFs](https://kosmonautblog.wordpress.com/2017/05/01/signed-distance-field-rendering-journey-pt-1/)
+
+- Depth Rendering to generate heightmaps
+	- Something like the face charms project, again, but generating the heightmaps from meshes directly
+	- Maybe this is an application for SoftRast
+		- I want to template the Image wrapper before I do that, though
+	- Fogleman's [Heightmap Meshing Utility](https://github.com/fogleman/hmm)
+	- Raymarching heightmaps / terrain
+		- [ollj](https://www.shadertoy.com/view/Mtc3WX)
 
 - Fluid/Physics Simulation
 	- [SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
@@ -386,14 +404,6 @@ This is a planning document for work on this project and in general, about the t
 		- I thing the poisson disk sampling thing would be an interesting way to generate them from meshes
 			- Generate evenly spaced sample points on the triangles, get texture, normal, etc samples
 	- [Surface Splatting](https://www.shadertoy.com/view/XllGRl)
-
-- Depth Rendering to generate heightmaps
-	- Something like the face charms project, again, but generating the heightmaps from meshes directly
-	- Maybe this is an application for SoftRast
-		- I want to template the Image wrapper before I do that, though
-	- Fogleman's [Heightmap Meshing Utility](https://github.com/fogleman/hmm)
-	- Raymarching heightmaps / terrain
-		- [ollj](https://www.shadertoy.com/view/Mtc3WX)
 
 - Something with Cellular Automata
 	- 3D CA is super cool, I would like to do more with that one project where I was doing the the realtime wireWorld sim
@@ -430,14 +440,6 @@ This is a planning document for work on this project and in general, about the t
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
 
-- Plants
-	- Tree Growing Stuff
-		- [Creation and Rendering of Realistic Trees](https://courses.cs.duke.edu/cps124/spring08/assign/07_papers/p119-weber.pdf)
-		- [Self Organizing Tree Models for Image Synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.small.pdf)
-	- Grass
-		- [Ghost of Tsushima GDC talk](https://youtu.be/Ibe1JBF5i5Y)
-		- [Realtime Realistic Rendering and Lighting of Forests](https://hal.inria.fr/hal-00650120/file/article.pdf)
-		- [Outerra Procedural Grass Rendering](https://outerra.blogspot.com/2012/05/procedural-grass-rendering.html)
 
 - Bokeh Stuff
 	- Bokeh LUT ( Pencil Map ) - how to apply this? [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)

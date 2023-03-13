@@ -63,12 +63,6 @@ protected:
 //====== ImGui Windows ========================================================
 	bool showDemoWindow;
 
-//====== User Provided Functions ==============================================
-// this needs work, but this is where application-specific work will take place
-	// virtual void OnInit() = 0;
-	// virtual void OnUpdate() = 0;
-	// virtual void OnRender() = 0;
-
 //====== LegitProfiler Data ===================================================
 	void PrepareProfilingData ();
 	std::vector< legit::ProfilerTask > tasks_CPU;
@@ -81,6 +75,13 @@ protected:
 //====== Program Flags ========================================================
 	bool quitConfirm = false;
 	bool pQuit = false;
+
+//====== User Provided Functions ==============================================
+// this needs work, but this is where application-specific work will take place
+	// virtual void OnInit() = 0;
+	// virtual void OnUpdate() = 0;
+	// virtual void OnRender() = 0;
+
 };
 
 // placeholder - will return to this soon, once the child virtual funcs are doing something non-trivial
