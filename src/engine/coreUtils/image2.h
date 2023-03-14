@@ -91,7 +91,7 @@ public:
 		const size_t numBers = width * height * numChannels;
 		data.reserve( numBers );
 		for ( size_t idx = 0; idx < numBers; idx++ ) {
-			data.push_back( idx );
+			data.push_back( contents[ idx ] );
 		}
 	}
 
@@ -445,8 +445,13 @@ private:
 		} else { // float type
 			std::vector< uint8_t > remappedData;
 			remappedData.reserve( data.size() );
-			for ( auto& val : data ) {
-				remappedData.push_back( val * 255.0f );
+			for ( size_t i { 0 }; i < data.size(); i += numChannels ) {
+				for ( uint32_t c { 0 }; c < numChannels; c++ ) {
+					remappedData.push_back( std::clamp( data[ i + c ] * 255.0f, 0.0f, 255.0f ) );
+				}
+				for ( uint32_t c { numChannels }; c < 4; c++ ) {
+					remappedData.push_back( c == 3 ? 255 : 0 );
+				}
 			}
 			return stbi_write_png( path.c_str(), width, height, 8, &remappedData[ 0 ], width * numChannels );
 		}
@@ -466,8 +471,13 @@ private:
 			// remap the float data to uints before saving
 			std::vector< uint8_t > remappedData;
 			remappedData.reserve( data.size() );
-			for ( auto& val : data ) {
-				remappedData.push_back( std::clamp( val * 255.0f, 0.0f, 255.0f ) );
+			for ( size_t i { 0 }; i < data.size(); i += numChannels ) {
+				for ( uint32_t c { 0 }; c < numChannels; c++ ) {
+					remappedData.push_back( std::clamp( data[ i + c ] * 255.0f, 0.0f, 255.0f ) );
+				}
+				for ( uint32_t c { numChannels }; c < 4; c++ ) {
+					remappedData.push_back( c == 3 ? 255 : 0 );
+				}
 			}
 			unsigned error = lodepng::encode( path.c_str(), ( uint8_t* ) remappedData.data(), width, height );
 			if ( !error ) {

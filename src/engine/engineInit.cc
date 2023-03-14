@@ -241,6 +241,11 @@ void engine::LoadData () {
 		// test.PixelSort( 1, red );
 		// test.PixelSort( 0, red );
 		// test.Save( "testAltered.png" );
+
+		particleEroder p;
+		p.InitWithDiamondSquare( 1024 );
+		p.Erode( 10000000 );
+		p.Save( "final.png" );
 	}
 }
 

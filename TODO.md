@@ -350,6 +350,8 @@ This is a planning document for work on this project and in general, about the t
 		- [Video](https://twitter.com/Th3HolyMoose/status/1627073949606748166) / [Paper](https://hal.inria.fr/hal-01262376/document)
 	- That little acquarium simulator thing I wrote about in my notes
 	- The Nick Mcdonald [wind erosion sim](https://nickmcd.me/2020/11/23/particle-based-wind-erosion/)
+	- [Tangram heightmapper](https://tangrams.github.io/heightmapper/)
+	- [Wrighter's Cyclic Noise](https://www.shadertoy.com/view/3tcyD7)
 
 - Plants
 	- Tree Growing Stuff
@@ -439,7 +441,6 @@ This is a planning document for work on this project and in general, about the t
 	- Probabalistic picking of transforms, points in compute shaders
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
-
 
 - Bokeh Stuff
 	- Bokeh LUT ( Pencil Map ) - how to apply this? [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)

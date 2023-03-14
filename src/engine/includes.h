@@ -133,6 +133,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // diamond square heightmap generation
 #include "../noise/diamondSquare/diamond_square.h"
 
+// particle based erosion
+#include "../erosion/particleBased.h"
+
 // Brent Werness' Voxel Automata Terrain, adapted to C++
 #include "../noise/VAT/VAT.h"
 
