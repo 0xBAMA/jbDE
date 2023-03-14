@@ -35,10 +35,10 @@ enum channel {
 	alpha = 3
 };
 
+enum class backend { STB_IMG, LODEPNG, TINYEXR };
+
 template < typename imageType, int numChannels > class Image2 {
 public:
-
-	enum class backend { STB_IMG, LODEPNG, TINYEXR };
 
 	struct color {
 		color () {}
@@ -506,10 +506,12 @@ private:
 
 		// Split RGBARGBARGBA... into R, G, B, A layers
 		for ( size_t i = 0; i < width * height; i++ ) {
-			images[ 0 ][ i ] = data[ 4 * i + 0 ];
-			images[ 1 ][ i ] = data[ 4 * i + 1 ];
-			images[ 2 ][ i ] = data[ 4 * i + 2 ];
-			images[ 3 ][ i ] = data[ 4 * i + 3 ];
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				images[ c ][ i ] = data[ numChannels * i + c ];
+			}
+			for ( int c { numChannels }; c < 4; c++ ) {
+				images[ c ][ i ] = ( c == 3 ) ? 1.0f : 0.0f;
+			}
 		}
 
 		float* image_ptr[ 4 ];

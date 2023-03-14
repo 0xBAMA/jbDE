@@ -245,7 +245,7 @@ void engine::LoadData () {
 		particleEroder p;
 		p.InitWithDiamondSquare( 1024 );
 		p.Erode( 10000000 );
-		p.Save( "final.png" );
+		p.Save( "final.exr" );
 	}
 }
 

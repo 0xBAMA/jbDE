@@ -341,6 +341,9 @@ This is a planning document for work on this project and in general, about the t
 
 - Little JS demo based on [this](https://www.youtube.com/watch?v=XGioNBHrFU4) ( particle text )? would be cool to have something with interaction
 
+- [Impostor shader](https://www.landontownsend.com/single-post/super-imposter-shader-my-journey-to-make-a-high-quality-imposter-shader)
+	- [Impostors for trees](https://shaderbits.com/blog/octahedral-impostors)
+
 - Space Game thing? I think this is something that would be fun to work on
 	- [Planet Geo](https://www.researchgate.net/publication/3422533_Climate_Modeling_with_Spherical_Geodesic_Grids)
 	- [Kali's Star Nest](https://www.shadertoy.com/view/slccDX) / [With A Bit Of Explanation](https://www.shadertoy.com/view/wlVSWV)

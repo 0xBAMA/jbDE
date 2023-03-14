@@ -26,7 +26,7 @@ public:
 
 		constexpr auto edge = size - 1;
 		float data[ size ][ size ] = { { 0 } };
-		data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.15f;
+		data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.25f;
 
 	#ifdef TILE
 		heightfield::diamond_square_wrap
@@ -40,7 +40,7 @@ public:
 			},
 			// variance
 			[]( int level ) -> float {
-				return static_cast<float>( 0.5f ) * std::pow( 0.5f, level );
+				return std::pow( 0.5f, level );
 				// return static_cast<float>( std::numeric_limits<float>::max() / 2 ) * std::pow(0.5f, level);
 				// return static_cast<float>(std::numeric_limits<float>::max()/1.6) * std::pow(0.5f, level);
 			},
@@ -51,7 +51,7 @@ public:
 		);
 
 		model = Image_1F( size, size, &data[ 0 ][ 0 ] );
-		model.Save( "test.png" );
+		model.Save( "test.exr", backend::TINYEXR );
 	}
 
 	glm::vec3 GetSurfaceNormal ( uint32_t x, uint32_t y ) {
@@ -97,18 +97,20 @@ public:
 		const uint32_t w = model.Width();
 		const uint32_t h = model.Height();
 
-		std::uniform_int_distribution< int > distX ( 0, w );
-		std::uniform_int_distribution< int > distY ( 0, h );
+		std::uniform_int_distribution< uint32_t > distX ( 0, w );
+		std::uniform_int_distribution< uint32_t > distY ( 0, h );
 
 		// run the simulation for the specified number of steps
 		for ( unsigned int i = 0; i < numIterations; i++ ) {
+
+			cout << "\r" << i << "/" << numIterations << "                     ";
 			//spawn a new particle at a random position
 			particle p;
 			p.position = glm::vec2( distX( gen ), distY( gen ) );
 
 			while ( p.volume > minVolume ) { // while the droplet exists (drop volume > 0)
-				glm::ivec2 initialPosition = p.position; // cache the initial position
-				glm::vec3 normal = GetSurfaceNormal( initialPosition.x, initialPosition.y );
+				const glm::uvec2 initialPosition = p.position; // cache the initial position
+				const glm::vec3 normal = GetSurfaceNormal( initialPosition.x, initialPosition.y );
 
 				// newton's second law to calculate acceleration
 				p.speed += timeStep * glm::vec2( normal.x, normal.z ) / ( p.volume * density ); // F = MA, A = F/M
@@ -132,8 +134,8 @@ public:
 
 				// update sediment content, deposit on the heightmap
 				p.sedimentFraction += timeStep * depositionRate * sedimentDifference;
-				float oldValue = model.GetAtXY( initialPosition.x, initialPosition.y )[ red ];
-				model.SetAtXY( initialPosition.x, initialPosition.y, color_1F( { oldValue - ( timeStep * p.volume * depositionRate * sedimentDifference ) } ) );
+				float oldValue = model.GetAtXY( std::clamp( initialPosition.x, 0u, w - 1 ), std::clamp( initialPosition.y, 0u, h - 1 ) )[ red ];
+				model.SetAtXY( std::clamp( initialPosition.x, 0u, w - 1 ), std::clamp( initialPosition.y, 0u, h - 1 ), color_1F( { oldValue - ( timeStep * p.volume * depositionRate * sedimentDifference ) } ) );
 
 				// evaporate the droplet
 				p.volume *= ( 1.0f - timeStep * evaporationRate );
@@ -142,7 +144,7 @@ public:
 	}
 
 	void Save ( string filename ) {
-		model.Save( filename );
+		model.Save( filename, backend::TINYEXR );
 	}
 
 	// simulation field
