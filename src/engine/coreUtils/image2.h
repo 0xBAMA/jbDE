@@ -206,6 +206,87 @@ public:
 	// sampling stuff? want to figure out some high quality sampling operations
 		// barrel distortion
 
+	enum rangeType_t {
+
+		// no op
+		NOOP,
+
+		// values are clamped to minimum and maximum
+		HARDCLIP,
+
+		// same as above, but the top of the ranges are compressed
+		SOFTCLIP,
+
+		// look across the image, find min and max, remap to 0.0 to 1.0
+			// easy implementation: go through and find min max, set up the
+			// thing as HARDCLIP, because you know you won't want to go outside
+			// of that volume, and then once we have the rest of the processing
+			// done for the channels, recursive call to function with the
+			// updated parameters
+		AUTONORMALIZE
+
+	};
+
+	struct rangeRemapInputs_t {
+		rangeType_t rangeType = HARDCLIP;
+		float	rangeStartLow	= 0.0f, rangeStartHigh	= 0.0f;
+		float	rangeEndLow		= 0.0f, rangeEndHigh	= 0.0f;
+	};
+
+	imageType RangeRemapValue ( imageType value, imageType inLow, imageType inHigh, imageType outLow, imageType outHigh ) {
+		// calculation to remap the range
+		return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
+	}
+
+	void RangeRemap ( rangeRemapInputs_t in [ numChannels ] ) {
+		bool recursive = false;
+		for ( uint8_t c { 0 }; c < numChannels; c++ ) {
+			if ( in[ c ].rangeType == AUTONORMALIZE ) {
+				recursive = true;
+				// do the work to find the range
+				in[ c ].rangeType = HARDCLIP;
+				in[ c ].rangeStartLow = GetPixelMin( ( channel ) c );
+				in[ c ].rangeStartHigh = GetPixelMax( ( channel ) c );
+				in[ c ].rangeEndLow = 0.0f;
+				in[ c ].rangeEndHigh = 1.0f;
+		
+				cout << "found min and max " << in[ c ].rangeStartLow << " " << in[ c ].rangeStartHigh << endl;
+			}
+		}
+		if ( recursive ) { RangeRemap( in ); }
+
+		// now everything should have a valid config - do the range remapping for each channel
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
+					color colorRead = GetAtXY( x, y );
+					// do the remapping for the channel
+					colorRead[ c ] = RangeRemapValue( colorRead[ c ],
+						in[ c ].rangeStartLow,	in[ c ].rangeStartHigh,
+						in[ c ].rangeEndLow,	in[ c ].rangeEndHigh );
+					switch ( in[ c ].rangeType ) {
+
+						case NOOP:
+							break;
+
+						case HARDCLIP:
+							colorRead[ c ] = std::clamp( colorRead[ c ], in[ c ].rangeEndLow, in[ c ].rangeEndHigh );
+							SetAtXY( x, y, colorRead );
+							break;
+
+						case SOFTCLIP:
+							// todo
+							break;
+
+						default:
+							break;
+
+					}
+				}
+			}
+		}
+	}
+
 	void Swizzle ( const char swizzle [ numChannels ] ) {
 	// options for each char are the following:
 		// 'r' is input red value,	'R' is max - input red value
@@ -247,24 +328,6 @@ public:
 				SetAtXY( x, y, setData );
 			}
 		}
-	}
-
-	color AverageColor () const {
-		double sums[ numChannels ] = { 0.0 };
-		for ( uint32_t y { 0 }; y < height; y++ ) {
-			for ( uint32_t x { 0 }; x < width; x++ ) {
-				color pixelData = GetAtXY( x, y );
-				for ( uint8_t i { 0 }; i < numChannels; i++ ) {
-					sums[ i ] += pixelData[ i ];
-				}
-			}
-		}
-		color avg;
-		const double numPixels = width * height;
-		for ( uint8_t i { 0 }; i < numChannels; i++ ) {
-			avg[ i ] = sums[ i ] / numPixels;
-		}
-		return avg;
 	}
 
 	void Crop ( uint32_t newWidth, uint32_t newHeight, uint32_t offsetX = 0, uint32_t offsetY = 0 ) {
@@ -354,6 +417,45 @@ public:
 		} else { cout << "Out of Bounds Write :(\n"; }
 	}
 
+	imageType GetPixelMin ( channel in ) const {
+		imageType currentMin = 100000000.0f;
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				currentMin = std::min( GetAtXY( x, y )[ in ], currentMin );
+			}
+		}
+		return currentMin;
+	}
+
+	imageType GetPixelMax ( channel in ) const {
+		imageType currentMax = -100000000.0f;
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				currentMax = std::max( GetAtXY( x, y )[ in ], currentMax );
+			}
+		}
+		return currentMax;
+	}
+
+	color AverageColor () const {
+		double sums[ numChannels ] = { 0.0 };
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color pixelData = GetAtXY( x, y );
+				for ( uint8_t i { 0 }; i < numChannels; i++ ) {
+					sums[ i ] += pixelData[ i ];
+				}
+			}
+		}
+		color avg;
+		const double numPixels = width * height;
+		for ( uint8_t i { 0 }; i < numChannels; i++ ) {
+			avg[ i ] = sums[ i ] / numPixels;
+		}
+		return avg;
+	}
+
+
 	uint32_t Width () const { return width; }
 	uint32_t Height () const { return height; }
 
@@ -433,7 +535,7 @@ private:
 			}
 			free( out ); // release memory of image data
 		}
-		return ret;
+		return ( ret == TINYEXR_SUCCESS );
 	}
 
 //===== Save Functions == ( Accessed via Save() ) =====================================================================
