@@ -60,6 +60,7 @@ This is a planning document for work on this project and in general, about the t
 		- Other UI lib options?
 			- [Nuklear](https://github.com/Immediate-Mode-UI/Nuklear) - this looks very promising, similar interface to ImGUI
 			- [libui](https://github.com/andlabs/libui) - interesting idea but looks like it isn't being maintained anymore
+			- [RmlUi](https://github.com/mikke89/RmlUi) - interesting c++ based HTML generation thing, bring your own renderer, e.g. pass verts to the graphics API
 
 --------------------------------------------------------------------------------------------------
 
@@ -252,6 +253,10 @@ This is a planning document for work on this project and in general, about the t
 		- [Wrighter's Spherical](https://www.shadertoy.com/view/WlfyRs)
 		- [Several from ollj](https://www.shadertoy.com/view/ls2cDt)
 		- [Relativistic](https://www.shadertoy.com/view/XtSyWW)
+		- [Realistic Camera ( PBRT )](https://pbr-book.org/3ed-2018/Camera_Models/Realistic_Cameras)
+		- Some stuff like barrel distortion to just mess with the existing camera
+			- [Lens distortion + chrom abb tutorial](https://blog.yarsalabs.com/lens-distortion-and-chromatic-aberration-unity-part1/)
+			- [Barrel distortion](https://www.decarpentier.nl/lens-distortion)
 	- different traversal methods
 		- [Amanatides / Woo A Fast Voxel Traversal Algorithm](https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf)
 		- Some kind of DDA traversal
@@ -444,6 +449,7 @@ This is a planning document for work on this project and in general, about the t
 	- Probabalistic picking of transforms, points in compute shaders
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
+	- [Fong "Analytical methods for Squaring the Disc"](https://arxiv.org/ftp/arxiv/papers/1509/1509.06344.pdf) - circle<->square mappings
 
 - Bokeh Stuff
 	- Bokeh LUT ( Pencil Map ) - how to apply this? [Pencil Map Paper](https://www.siliconstudio.co.jp/rd/presentations/files/siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf)
@@ -551,6 +557,7 @@ This is a planning document for work on this project and in general, about the t
 		- That NTSC thing, I want to understand how that works
 			- Encoding image as a 1D signal, adding noise, then reinterpreting it
 			- [LMP88959's all-integer C impl](https://github.com/LMP88959/NTSC-CRT)
+			- [LMP88959's PAL version impl](https://github.com/LMP88959/PAL-CRT)
 	- Convolution
 	- DSP stuff, more audio stuff
 		- Learn more about filters - [Hack Audio](https://www.youtube.com/watch?v=epXM6Jc2Lj0) has some good, simple tutorials

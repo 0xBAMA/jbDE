@@ -234,7 +234,7 @@ void engine::LoadData () {
 
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
-	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); }
+	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); /* plantWords */ }
 	{ Block Start( "Additional User Init" );
 		// test code, etc
 		// Image_4U test( "test.png" );
