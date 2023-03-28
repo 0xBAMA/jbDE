@@ -119,30 +119,34 @@ void engine::ImguiPass () {
 
 	ImGui::ShowDemoWindow( &showDemoWindow );	// show the demo window
 	QuitConf( &quitConfirm );					// show quit confirm window, if triggered
-	ImguiFrameEnd();							// finish up the imgui stuff and put it in the framebuffer
+	ImguiFrameEnd();							// finish imgui frame and put it in the framebuffer
 }
 
 void engine::HandleEvents () {
 	ZoneScoped; scopedTimer Start( "HandleEvents" );
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
-		constexpr float bigStep = 0.120;
-		constexpr float lilStep = 0.008;
+		constexpr float bigStep = 0.120f;
+		constexpr float lilStep = 0.008f;
+
+		// is shift being pressed
+		const bool shift = SDL_GetModState() & KMOD_SHIFT;
+
 		// can handle multiple simultaneous inputs like this
 		const uint8_t *state = SDL_GetKeyboardState( NULL );
 		// these will operate on the trident object, which retains state for block orientation
 		if ( state[ SDL_SCANCODE_LEFT ] )
-			trident.RotateY( ( SDL_GetModState() & KMOD_SHIFT ) ?  bigStep :  lilStep );
+			trident.RotateY( shift ?  bigStep :  lilStep );
 		if ( state[ SDL_SCANCODE_RIGHT ] )
-			trident.RotateY( ( SDL_GetModState() & KMOD_SHIFT ) ? -bigStep : -lilStep );
+			trident.RotateY( shift ? -bigStep : -lilStep );
 		if ( state[ SDL_SCANCODE_UP ] )
-			trident.RotateX( ( SDL_GetModState() & KMOD_SHIFT ) ?  bigStep :  lilStep );
+			trident.RotateX( shift ?  bigStep :  lilStep );
 		if ( state[ SDL_SCANCODE_DOWN ] )
-			trident.RotateX( ( SDL_GetModState() & KMOD_SHIFT ) ? -bigStep : -lilStep );
+			trident.RotateX( shift ? -bigStep : -lilStep );
 		if ( state[ SDL_SCANCODE_PAGEUP ] )
-			trident.RotateZ( ( SDL_GetModState() & KMOD_SHIFT ) ? -bigStep : -lilStep );
+			trident.RotateZ( shift ? -bigStep : -lilStep );
 		if ( state[ SDL_SCANCODE_PAGEDOWN ] )
-			trident.RotateZ( ( SDL_GetModState() & KMOD_SHIFT ) ?  bigStep :  lilStep );
+			trident.RotateZ( shift ?  bigStep :  lilStep );
 
 		if ( state[ SDL_SCANCODE_1 ] )
 			trident.SetViewFront();
@@ -157,20 +161,21 @@ void engine::HandleEvents () {
 		if ( state[ SDL_SCANCODE_6 ] )
 			trident.SetViewDown();
 
-		// if ( trident.Dirty() ) // rotation or movement has happened
-			// render.framesSinceLastInput = 0;
+		// if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; }
+		// if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; }
+		// if ( state[ SDL_SCANCODE_A ] ) { cout << "A Pressed" << newline; }
+		// if ( state[ SDL_SCANCODE_D ] ) { cout << "D Pressed" << newline; }
 
-		if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; }
-		if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; }
-		if ( state[ SDL_SCANCODE_A ] ) { cout << "A Pressed" << newline; }
-		if ( state[ SDL_SCANCODE_D ] ) { cout << "D Pressed" << newline; }
+	// if ( trident.Dirty() ) // rotation or movement has happened
+		// render.framesSinceLastInput = 0; // this was how Voraldo flagged the 'run for n frames' thing
+
 	}
 
 //==============================================================================
 // Need to keep this for pQuit handling ( force quit )
 // In particular - checking for window close and the SDL_QUIT event can't really be determined
 //  via the keyboard state, and then imgui needs it too, so can't completely kill the event
-//  polling loop - maybe eventually I'll find a solution for this
+//  polling loop - maybe eventually I'll find a more complete solution for this
 	SDL_Event event;
 	SDL_PumpEvents();
 	while ( SDL_PollEvent( &event ) ) {
