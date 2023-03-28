@@ -3,39 +3,36 @@
 #define RANDOM
 
 #include <random>
-#include <type_traits> // for std::is_same - https://en.cppreference.com/w/cpp/types/is_same
 
 // simplifying the use of std::random, so I don't have to look it up every single time
 template < typename T > class rng {
 public:
+
+	// generate a seed from the system's random device
 	rng ( T min, T max ) : minVal( min ), maxVal( max ) {
 		std::random_device r;
 		std::seed_seq seed{ r(), r(), r(), r(), r(), r(), r(), r(), r() };
 		generator = std::mt19937_64( seed );
+		distribution = std::uniform_real_distribution< T >( minVal, maxVal );
+	}
+
+	// take 32 bit input seed value
+	rng ( T min, T max, uint32_t seed ) : minVal( min ), maxVal( max ) {
+		generator = std::mt19937_64( seed );
+		distribution = std::uniform_real_distribution< T >( minVal, maxVal );
 	}
 
 	T get () {
-		// // pain in the ass needs to know type because the distributions are different for int / real
-		// constexpr bool isFloatType = std::is_same< T, float >::value;
-		// if ( isFloatType ) {
-		// 	std::uniform_real_distribution< T > distribution( minVal, maxVal );
-		// 	return distribution( generator );
-		// } else {
-		// 	std::uniform_int_distribution< T > distribution( minVal, maxVal );
-		// 	return distribution( generator );
-		// }
-
-		// another solution...
-		std::uniform_real_distribution< T > distribution( minVal, maxVal );
 		return T( distribution( generator ) );
 	}
 
 private:
 	std::mt19937_64 generator;
-	T minVal, maxVal;
+	std::uniform_real_distribution< T > distribution;
+	T minVal, maxVal; // not sure if these need to be kept...
 };
 
-// seedable, deterministic
+// seedable, deterministic versions ( mt19937 is seedable+deterministic, just need to figure out how to seed )
 	// wang hash generator
 	// LCG generator
 

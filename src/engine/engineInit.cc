@@ -235,12 +235,14 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); /* plantWords */ }
-
 	{ Block Start( "Additional User Init" );
 	// currently this is mostly for feature testing in oneShot mode
 
-		rng<float> generator( 0.0f, 1.0f );
-		for ( int i = 0; i < 100; i++ ) cout << generator.get() << newline;
+		rng<float> generator( 0.0f, 1.0f, 42069 );
+		for ( int i = 0; i < 10; i++ ) cout << generator.get() << newline;
+		cout << newline;
+		rng<float> generator2( 0.0f, 1.0f, 42069 );
+		for ( int i = 0; i < 10; i++ ) cout << generator2.get() << newline;
 	}
 }
 
