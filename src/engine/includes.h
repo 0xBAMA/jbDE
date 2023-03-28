@@ -97,6 +97,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // managing bindings of textures to binding points
 #include "./coreUtils/bindset.h"
 
+// wrapper around std::random + wip other methods
+#include "./coreUtils/random.h"
+
 // image load/save/resize/access/manipulation wrapper
 #include "./coreUtils/image2.h"
 

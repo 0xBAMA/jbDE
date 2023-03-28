@@ -235,55 +235,12 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); /* plantWords */ }
+
 	{ Block Start( "Additional User Init" );
-		// test code, etc
-		// Image_4U test( "test.png" );
-		// test.PixelSort( 1, red );
-		// test.PixelSort( 0, red );
-		// test.Save( "testAltered.png" );
+	// currently this is mostly for feature testing in oneShot mode
 
-		// particleEroder p;
-		// p.InitWithDiamondSquare( 1024 );
-		// p.Erode( 1000000000 );
-		// p.Save( "final.exr" );
-
-		// float initialMin, initialMax;
-
-		// {
-		// 	Image_4F test( "test.exr", backend::TINYEXR );
-		// 	Image_4F::rangeRemapInputs_t op[ 4 ];
-		// 	initialMin = test.GetPixelMin( red );
-		// 	initialMax = test.GetPixelMax( red );
-		// 	// op[ 0 ].rangeType = Image_4F::AUTONORMALIZE;
-		// 	op[ 0 ].rangeType = Image_4F::HARDCLIP;
-		// 	op[ 0 ].rangeStartLow = initialMin;
-		// 	op[ 0 ].rangeStartHigh = initialMax;
-		// 	op[ 0 ].rangeEndLow = 0.0f;
-		// 	op[ 0 ].rangeEndHigh = 1.0f;
-		// 	for ( uint8_t c { 1 }; c < 4; c++ ) {
-		// 		op[ c ].rangeType = Image_4F::NOOP;
-		// 	}
-		// 	test.RangeRemap( op );
-		// 	test.Save( "testRemapped.exr", backend::TINYEXR );
-		// }
-
-		// {
-		// 	Image_4F final( "final.exr", backend::TINYEXR );
-		// 	Image_4F::rangeRemapInputs_t op[ 4 ];
-		// 	op[ 0 ].rangeType = Image_4F::HARDCLIP;
-		// 	op[ 0 ].rangeStartLow = initialMin;
-		// 	op[ 0 ].rangeStartHigh = initialMax;
-		// 	op[ 0 ].rangeEndLow = 0.0f;
-		// 	op[ 0 ].rangeEndHigh = 1.0f;
-		// 	for ( uint8_t c { 1 }; c < 4; c++ ) {
-		// 		op[ c ].rangeType = Image_4F::NOOP;
-		// 	}
-		// 	final.RangeRemap( op );
-		// 	final.Save( "finalRemapped.exr", backend::TINYEXR );
-		// }
-
-		// OnInit();
-
+		rng<float> generator( 0.0f, 1.0f );
+		for ( int i = 0; i < 100; i++ ) cout << generator.get() << newline;
 	}
 }
 
