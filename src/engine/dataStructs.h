@@ -15,6 +15,7 @@ struct configData {
 	uint8_t OpenGLVersionMinor = 3;
 	bool reportPlatformInfo = true;
 	bool enableDepthTesting = false;
+	bool SRGBFramebuffer = false;
 
 	bool oneShot = false;
 

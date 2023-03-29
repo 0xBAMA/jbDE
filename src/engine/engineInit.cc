@@ -57,7 +57,8 @@ void engine::LoadConfig () {
 		config.OpenGLVersionMajor = j[ "OpenGLVersionMajor" ];
 		config.OpenGLVersionMinor = j[ "OpenGLVersionMinor" ];
 		config.reportPlatformInfo = j[ "reportPlatformInfo" ];
-		config.enableDepthTesting = j[ "enableDepthTesting" ];
+		config.enableDepthTesting = j[ "depthTesting" ];
+		config.SRGBFramebuffer = j[ "SRGBFramebuffer" ];
 		config.clearColor.r = j[ "clearColor" ][ "r" ];
 		config.clearColor.g = j[ "clearColor" ][ "g" ];
 		config.clearColor.b = j[ "clearColor" ][ "b" ];

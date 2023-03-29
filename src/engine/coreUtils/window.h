@@ -58,9 +58,19 @@ public:
 		if ( glewInit() != GLEW_OK ) { cout << "Failed to Initialize OpenGL Loader!" << newline; abort(); }
 
 		// basic OpenGL Config
-		glEnable( GL_DEPTH_TEST );
+
+		if ( config->enableDepthTesting ) {
+			glEnable( GL_DEPTH_TEST );
+		}
+
 		// glEnable( GL_LINE_SMOOTH );
 		// glPointSize( 3.0 );
+
+		if ( config->SRGBFramebuffer ) {
+			// seems to make things washed out - will need to readjust some stuff but I think this is better
+			glEnable( GL_FRAMEBUFFER_SRGB );
+		}
+
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}

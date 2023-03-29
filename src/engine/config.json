@@ -13,7 +13,8 @@
 	"OpenGLVersionMajor":4,
 	"OpenGLVersionMinor":3,
 	"reportPlatformInfo":true,
-	"enableDepthTesting":false,
+	"depthTesting":false,
+	"SRGBFramebuffer":true,
 	"SDL_WINDOW_FULLSCREEN":false,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,
@@ -26,7 +27,7 @@
 		"a":1.0
 	},
 	"showImGUIDemoWindow":true,
-	"oneShot":true,
+	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,
