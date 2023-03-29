@@ -238,11 +238,24 @@ void engine::LoadData () {
 	{ Block Start( "Additional User Init" );
 	// currently this is mostly for feature testing in oneShot mode
 
-		rng<float> generator( 0.0f, 1.0f, 42069 );
-		for ( int i = 0; i < 10; i++ ) cout << generator.get() << newline;
-		cout << newline;
-		rng<float> generator2( 0.0f, 1.0f, 42069 );
-		for ( int i = 0; i < 10; i++ ) cout << generator2.get() << newline;
+		rng gen( 0, 100, 42069 );
+		Image_4U histogram( 100, 100 );
+
+		for ( uint32_t i{ 0 }; i < 5000; i++ ) {
+			int val = int( gen.get() );
+			for ( uint32_t y{ 0 }; y < histogram.Height(); y++ ) {
+				color_4U read = histogram.GetAtXY( val, y );
+				if ( read[ alpha ] == 0 ) {
+					read[ red ] = read[ green ] = read[ blue ] = read[ alpha ] = 255;
+					histogram.SetAtXY( val, y, read );
+					break;
+				}
+			}
+		}
+
+		histogram.FlipVertical();
+		histogram.Save( "histogram.png" );
+
 	}
 }
 

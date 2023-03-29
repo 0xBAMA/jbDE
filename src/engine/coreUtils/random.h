@@ -3,35 +3,42 @@
 #define RANDOM
 
 #include <random>
-
-std::random_device r;
+inline std::random_device r;
 
 // simplifying the use of std::random, so I don't have to look it up every single time
-template < typename T > class rng {
+class rng {
 public:
 
-	// generate a seed from the system's random device
-	rng ( T min, T max ) :
-		generator( std::mt19937_64( std::seed_seq( r(),r(),r(),r(),r(),r(),r(),r(),r() ) ) ),
-		distribution( std::uniform_real_distribution< T >( min, max ) ) {}
+	// hardware seeded
+	rng ( float lo, float hi ) :
+		distribution( std::uniform_real_distribution< float >( lo, hi ) ) {
+			std::seed_seq seed { r(),r(),r(),r(),r(),r(),r(),r(),r() };
+			generator = std::mt19937_64( seed );
+		}
 
-	// alternatively, take 32 bit known seed value
-	rng ( T min, T max, uint32_t seed ) :
+	// known 32-bit seed value
+	rng ( float lo, float hi, uint32_t seed ) :
 		generator( std::mt19937_64( seed ) ),
-		distribution( std::uniform_real_distribution< T >( min, max ) ) {}
+		distribution( std::uniform_real_distribution< float >( lo, hi ) ) {}
 
-	T get () {
-		return T( distribution( generator ) );
-	}
+	// get the value
+	float get () { return distribution( generator ); }
 
 private:
 	std::mt19937_64 generator;
-	std::uniform_real_distribution< T > distribution;
+	std::uniform_real_distribution< float > distribution;
 };
 
+// potentially add an integer version? std::random distributions have stupid asserts
+	// about is_integral whatever whatever, will make this a fair bit more complicated
+	// if I want to allow it to be complicated. I think the above float version will
+	// be sufficient and you can cast the output to whatever type given the specified
+	// input range
 
 // other potential future options... maybe not neccesary, given the seedability of the mt19937_64 object
 	// wang hash generator
 	// LCG generator
+
+// remapping functions - if we're getting uniform random numbers we want to do something to be able to shift the distribution
 
 #endif // RANDOM
