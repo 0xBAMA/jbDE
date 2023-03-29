@@ -4,7 +4,7 @@
 
 #include <random>
 
-// simplifying the use of std::random, so I don't have to look it up every single time
+// float version
 class rng {
 public:
 
@@ -30,11 +30,31 @@ private:
 	std::uniform_real_distribution< float > distribution;
 };
 
-// potentially add an integer version? std::random distributions have stupid asserts
-	// about is_integral whatever whatever, will make this a fair bit more complicated
-	// if I want to allow it to be more flexible. I think the above float version will
-	// be sufficient and you can cast the output to whatever type given the specified
-	// input range
+// Integer version
+class rngi {
+public:
+
+	// hardware seeded
+	rngi ( int lo, int hi ) :
+		distribution( std::uniform_int_distribution< int >( lo, hi ) ) {
+			std::random_device r;
+			std::seed_seq seed { r(),r(),r(),r(),r(),r(),r(),r(),r() };
+			generator = std::mt19937_64( seed );
+		}
+
+	// known 32-bit seed value
+	rngi ( int lo, int hi, uint32_t seed ) :
+		generator( std::mt19937_64( seed ) ),
+		distribution( std::uniform_int_distribution< int >( lo, hi ) ) {}
+
+	// get the value
+	// int get () { return distribution( generator ); }
+	int operator () () { return distribution( generator ); }
+
+private:
+	std::mt19937_64 generator;
+	std::uniform_int_distribution< int > distribution;
+};
 
 // other potential future options... maybe not neccesary, given the seedability of the mt19937_64 object
 	// wang hash generator
