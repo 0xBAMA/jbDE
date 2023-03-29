@@ -169,6 +169,7 @@ This is a planning document for work on this project and in general, about the t
 	- Point locations based on [this paper](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
 	- I'm sure there are interesting ways I can use this
 		- Image based, but also want to be able to get list of points
+	- [Interesting note from Alan Wolfe, the blue noise guy](https://twitter.com/Atrix256/status/1546211637656309761) - you can create something very much like these points by just thresholding a 2d blue noise mask - raising or lowering thresholds create different densities, I found the same thing doing some dithering down to 1 bit per channel, where the image data and the brightness of the pixels was basically what was modulating value to create different point densities
 
 --------------------------------------------------------------------------------------------------
 

@@ -238,15 +238,15 @@ void engine::LoadData () {
 	{ Block Start( "Additional User Init" );
 	// currently this is mostly for feature testing in oneShot mode
 
-		rng gen( 0, 100, 42069 );
-		Image_4U histogram( 100, 100 );
+		rng gen( 0, 500, 42069 );
+		Image_4U histogram( 500, 500 );
 
-		for ( uint32_t i{ 0 }; i < 5000; i++ ) {
-			int val = int( gen.get() );
+		for ( uint32_t i{ 0 }; i < 100000; i++ ) {
+			int val = int( gen() );
 			for ( uint32_t y{ 0 }; y < histogram.Height(); y++ ) {
 				color_4U read = histogram.GetAtXY( val, y );
 				if ( read[ alpha ] == 0 ) {
-					read[ red ] = read[ green ] = read[ blue ] = read[ alpha ] = 255;
+					read[ red ] = read[ green ] = read[ blue ] = read[ alpha ] = 255 * ( i / 100000.0f );
 					histogram.SetAtXY( val, y, read );
 					break;
 				}
