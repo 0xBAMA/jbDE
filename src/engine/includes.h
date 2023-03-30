@@ -90,10 +90,10 @@ using json = nlohmann::json;
 #include "../Serialization/tinyXML2/tinyxml2.h"
 using XMLDocument = tinyxml2::XMLDocument;
 
-// Alexander Sannikov's LegitProfiler
+//==== My Stuff ===============================================================
+// my fork of Alexander Sannikov's LegitProfiler
 #include "../ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"
 
-//==== My Stuff ===============================================================
 // managing bindings of textures to binding points
 #include "./coreUtils/bindset.h"
 
@@ -124,10 +124,10 @@ using XMLDocument = tinyxml2::XMLDocument;
 // bayer patterns 2, 4, 8 + four channel helper func
 #include "../data/bayer.h"
 
-// palette list
+// png-encoded palette list decoder
 #include "../data/paletteLoader.h"
 
-// glyph list
+// png-encoded glyph list decoder
 #include "../data/glyphLoader.h"
 
 // wordlists

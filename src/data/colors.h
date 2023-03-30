@@ -253,15 +253,8 @@ namespace palette {
 	}
 
 	inline void PickRandomPalette () {
-		// will be able to simplify once I have my rng wrapper finished
-		std::mt19937_64 rng;
-		std::random_device r;
-		// std::seed_seq s{ r(), r(), r(), r(), r(), r(), r(), r(), r() };
-		// rng = std::mt19937_64( s );
-		rng = std::mt19937_64( r() );
-
-		std::uniform_int_distribution< int > PalettePick( 0, paletteList.size() - 1 );
-		PaletteIndex = PalettePick( rng );
+		rngi pick( 0, paletteList.size() - 1 );
+		PaletteIndex = pick();
 	}
 
 	inline string GetCurrentPaletteName () {

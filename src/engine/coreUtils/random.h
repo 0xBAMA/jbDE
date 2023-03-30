@@ -4,7 +4,7 @@
 
 #include <random>
 
-// float version
+// Float version
 class rng {
 public:
 
