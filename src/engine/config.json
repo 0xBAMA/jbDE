@@ -15,6 +15,7 @@
 	"reportPlatformInfo":true,
 	"depthTesting":false,
 	"SRGBFramebuffer":true,
+	"pointSize":3.0,
 	"SDL_WINDOW_FULLSCREEN":false,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,

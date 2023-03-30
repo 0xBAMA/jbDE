@@ -17,6 +17,8 @@ struct configData {
 	bool enableDepthTesting = false;
 	bool SRGBFramebuffer = false;
 
+	float pointSize = 1.0f;
+
 	bool oneShot = false;
 
 	// anything else ... ?
