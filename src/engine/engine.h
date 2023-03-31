@@ -5,10 +5,13 @@
 class engine {
 public:
 //====== Public Interface =====================================================
-	engine()  { Init(); }
-	~engine() { Quit(); }
+	// engine()  { Init(); }
+	// ~engine() { Quit(); }
+	// bool MainLoop (); // called from loop in main
 
-	bool MainLoop (); // called from loop in main
+	engine() {}
+	~engine() {}
+	bool MainLoop ();
 
 protected:
 //====== Application Handles and Basic Data ===================================
@@ -35,6 +38,7 @@ protected:
 	void StartBlock ( string sectionName );
 	void EndBlock ();
 	void Init ();
+	void PostInit ();
 	void StartMessage ();
 	void LoadConfig ();
 	void CreateWindowAndContext ();
@@ -75,28 +79,37 @@ protected:
 //====== Program Flags ========================================================
 	bool quitConfirm = false;
 	bool pQuit = false;
-
-//====== User Provided Functions ==============================================
-// this needs work, but this is where application-specific work will take place
-	// virtual void OnInit() = 0;
-	// virtual void OnUpdate() = 0;
-	// virtual void OnRender() = 0;
-
 };
 
 // placeholder - will return to this soon, once the child virtual funcs are doing something non-trivial
 class engineChild : public engine {
-	// virtual void OnInit() override {
+public:
+	engineChild() { Init(); OnInit(); PostInit(); }
+	~engineChild() { Quit(); }
 
-	// 	// not being called - investigate
+	void OnInit() {
+		{ Block Start( "Additional User Init" );
+		// currently this is mostly for feature testing in oneShot mode
 
-	// 	cout << "there are " << paletteList.size() << " palettes" << newline;
-	// 	// Image i (  );
+			// rng gen( 0, 500, 42069 );
+			// Image_4U histogram( 500, 500 );
 
-	// }
+			// for ( uint32_t i{ 0 }; i < 100000; i++ ) {
+			// 	int val = int( gen() );
+			// 	for ( uint32_t y{ 0 }; y < histogram.Height(); y++ ) {
+			// 		color_4U read = histogram.GetAtXY( val, y );
+			// 		if ( read[ alpha ] == 0 ) {
+			// 			read[ red ] = read[ green ] = read[ blue ] = read[ alpha ] = 255 * ( i / 100000.0f );
+			// 			histogram.SetAtXY( val, y, read );
+			// 			break;
+			// 		}
+			// 	}
+			// }
 
-	// virtual void OnUpdate() override {}
-	// virtual void OnRender() override {}
+			// histogram.FlipVertical();
+			// histogram.Save( "histogram.png" );
+		}
+	}
 };
 
 #endif

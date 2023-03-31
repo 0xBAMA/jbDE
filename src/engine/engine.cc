@@ -10,8 +10,11 @@ void engine::Init () {
 	SetupVertexData();
 	SetupTextureData();
 	ShaderCompile();
-	LoadData();
 	ImguiSetup();
+	LoadData();
+}
+
+void engine::PostInit () {
 	InitialClear();
 	w.ShowIfNotHeadless();
 	ReportStartupStats();

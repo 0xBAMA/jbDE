@@ -1,27 +1,6 @@
 #include "engine.h"
 #include "../debug/debug.h"
 
-class Block {
-const int reportWidth = 64;
-public:
-	Block( string sectionName ) {
-		Tick();
-		cout << T_BLUE << "    " << sectionName << " " << RESET;
-		for ( unsigned int i = 0; i < reportWidth - sectionName.size(); i++ ) {
-			cout << ".";
-		}
-		cout << " ";
-	}
-
-	~Block() {
-		const float timeInMS = Tock();
-		const float wholeMS = int( std::floor( timeInMS ) );
-		const float partialMS = int( ( timeInMS - wholeMS ) * 1000.0f );
-		cout << T_GREEN << "done." << T_RED << " ( " << std::setfill( ' ' ) << std::setw( 6 ) << wholeMS << "."
-			<< std::setw( 3 ) << std::setfill( '0' ) << partialMS << TIMEUNIT << " )" << RESET << newline;
-	}
-};
-
 void engine::StartMessage () {
 	ZoneScoped;
 
@@ -237,28 +216,6 @@ void engine::LoadData () {
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
 	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); /* plantWords */ }
-	{ Block Start( "Additional User Init" );
-	// currently this is mostly for feature testing in oneShot mode
-
-		rng gen( 0, 500, 42069 );
-		Image_4U histogram( 500, 500 );
-
-		for ( uint32_t i{ 0 }; i < 100000; i++ ) {
-			int val = int( gen() );
-			for ( uint32_t y{ 0 }; y < histogram.Height(); y++ ) {
-				color_4U read = histogram.GetAtXY( val, y );
-				if ( read[ alpha ] == 0 ) {
-					read[ red ] = read[ green ] = read[ blue ] = read[ alpha ] = 255 * ( i / 100000.0f );
-					histogram.SetAtXY( val, y, read );
-					break;
-				}
-			}
-		}
-
-		histogram.FlipVertical();
-		histogram.Save( "histogram.png" );
-
-	}
 }
 
 void engine::ShaderCompile () {

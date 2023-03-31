@@ -100,6 +100,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // wrapper around std::random + wip other methods
 #include "./coreUtils/random.h"
 
+// coloring of CLI output + palette access stuff
+#include "../data/colors.h"
+
 // image load/save/resize/access/manipulation wrapper
 #include "./coreUtils/image2.h"
 
@@ -117,9 +120,6 @@ using XMLDocument = tinyxml2::XMLDocument;
 
 // shader compilation wrapper
 #include "shaders/lib/shaderWrapper.h"
-
-// coloring of CLI output
-#include "../data/colors.h"
 
 // bayer patterns 2, 4, 8 + four channel helper func
 #include "../data/bayer.h"
