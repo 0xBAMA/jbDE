@@ -2,21 +2,6 @@
 
 extern timerManager timerQueries;
 
-bool engine::MainLoop () {
-	ZoneScoped;
-	
-	HandleEvents();				// handle keyboard / mouse events
-	ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-	DrawAPIGeometry();			// draw any API geometry desired
-	ComputePasses();			// multistage update of displayTexture
-	BlitToScreen();				// fullscreen triangle copying to the screen
-	ImguiPass();				// do all the gui stuff
-	w.Swap();					// show what has just been drawn to the back buffer
-	FrameMark;					// tells tracy that this is the end of a frame
-	PrepareProfilingData();		// get profiling data ready for next frame
-	return pQuit;				// break main loop when pQuit turns true
-}
-
 void engine::DrawAPIGeometry () {
 	ZoneScoped; scopedTimer Start( "API Geometry" );
 	// draw some shit
@@ -108,7 +93,7 @@ void engine::BlitToScreen () {
 void engine::ImguiPass () {
 	ZoneScoped; scopedTimer Start( "ImGUI Pass" );
 
-	ImguiFrameStart();						// start the imgui frame
+	ImguiFrameStart();							// start the imgui frame
 	TonemapControlsWindow();
 
 	// add new profiling data and render
@@ -122,8 +107,8 @@ void engine::ImguiPass () {
 	ImguiFrameEnd();							// finish imgui frame and put it in the framebuffer
 }
 
-void engine::HandleEvents () {
-	ZoneScoped; scopedTimer Start( "HandleEvents" );
+void engine::HandleTridentEvents () {
+	ZoneScoped; scopedTimer Start( "HandleTridentEvents" );
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
 		constexpr float bigStep = 0.120f;
@@ -134,68 +119,54 @@ void engine::HandleEvents () {
 
 		// can handle multiple simultaneous inputs like this
 		const uint8_t *state = SDL_GetKeyboardState( NULL );
-		// these will operate on the trident object, which retains state for block orientation
-		if ( state[ SDL_SCANCODE_LEFT ] )
-			trident.RotateY( shift ?  bigStep :  lilStep );
-		if ( state[ SDL_SCANCODE_RIGHT ] )
-			trident.RotateY( shift ? -bigStep : -lilStep );
-		if ( state[ SDL_SCANCODE_UP ] )
-			trident.RotateX( shift ?  bigStep :  lilStep );
-		if ( state[ SDL_SCANCODE_DOWN ] )
-			trident.RotateX( shift ? -bigStep : -lilStep );
-		if ( state[ SDL_SCANCODE_PAGEUP ] )
-			trident.RotateZ( shift ? -bigStep : -lilStep );
-		if ( state[ SDL_SCANCODE_PAGEDOWN ] )
-			trident.RotateZ( shift ?  bigStep :  lilStep );
 
-		if ( state[ SDL_SCANCODE_1 ] )
-			trident.SetViewFront();
-		if ( state[ SDL_SCANCODE_2 ] )
-			trident.SetViewRight();
-		if ( state[ SDL_SCANCODE_3 ] )
-			trident.SetViewBack();
-		if ( state[ SDL_SCANCODE_4 ] )
-			trident.SetViewLeft();
-		if ( state[ SDL_SCANCODE_5 ] )
-			trident.SetViewUp();
-		if ( state[ SDL_SCANCODE_6 ] )
-			trident.SetViewDown();
+		// update block orientation
+		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] ) {	trident.RotateY( shift ? bigStep : lilStep );	}
+		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] ) {	trident.RotateY( shift ? -bigStep : -lilStep );	}
+		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {	trident.RotateX( shift ? bigStep : lilStep );	}
+		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {	trident.RotateX( shift ? -bigStep : -lilStep );	}
+		if ( state[ SDL_SCANCODE_PAGEUP ] ) {							trident.RotateZ( shift ? -bigStep : -lilStep );	}
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {							trident.RotateZ( shift ? bigStep : lilStep );	}
 
-		// if ( state[ SDL_SCANCODE_W ] ) { cout << "W Pressed" << newline; }
-		// if ( state[ SDL_SCANCODE_S ] ) { cout << "S Pressed" << newline; }
-		// if ( state[ SDL_SCANCODE_A ] ) { cout << "A Pressed" << newline; }
-		// if ( state[ SDL_SCANCODE_D ] ) { cout << "D Pressed" << newline; }
+		// snap to cardinal directions
+		if ( state[ SDL_SCANCODE_1 ] ) { trident.SetViewFront();}
+		if ( state[ SDL_SCANCODE_2 ] ) { trident.SetViewRight();}
+		if ( state[ SDL_SCANCODE_3 ] ) { trident.SetViewBack();	}
+		if ( state[ SDL_SCANCODE_4 ] ) { trident.SetViewLeft();	}
+		if ( state[ SDL_SCANCODE_5 ] ) { trident.SetViewUp();	}
+		if ( state[ SDL_SCANCODE_6 ] ) { trident.SetViewDown();	}
 
-	// if ( trident.Dirty() ) // rotation or movement has happened
-		// render.framesSinceLastInput = 0; // this was how Voraldo flagged the 'run for n frames' thing
-
+		// trident will also contain an offset, I think this is the cleanest way to contain all this functionality
 	}
 
-//==============================================================================
-// Need to keep this for pQuit handling ( force quit )
-// In particular - checking for window close and the SDL_QUIT event can't really be determined
-//  via the keyboard state, and then imgui needs it too, so can't completely kill the event
-//  polling loop - maybe eventually I'll find a more complete solution for this
+	if ( !ImGui::GetIO().WantCaptureMouse ) {
+		// first arg is button index - this is left click, need to also handle right click to update the offset
+		ImVec2 valueRaw = ImGui::GetMouseDragDelta( 1, 0.0f );
+		if ( ( valueRaw.x != 0.0f || valueRaw.y != 0.0f ) ) {
+			trident.RotateY( -valueRaw.x * 0.03f );
+			trident.RotateX( -valueRaw.y * 0.03f );
+			ImGui::ResetMouseDragDelta( 1 );
+		}
+	}
+}
+
+void engine::HandleQuitEvents () {
+	ZoneScoped; scopedTimer Start( "HandleQuitEvents" );
+	//==============================================================================
+	// Need to keep this for pQuit handling ( force quit )
+	// In particular - checking for window close and the SDL_QUIT event can't really be determined
+	//  via the keyboard state, and then imgui needs it too, so can't completely kill the event
+	//  polling loop - maybe eventually I'll find a more complete solution for this
 	SDL_Event event;
 	SDL_PumpEvents();
 	while ( SDL_PollEvent( &event ) ) {
-		// imgui event handling
-		ImGui_ImplSDL2_ProcessEvent( &event );
-		// swap out the multiple if statements for a big chained boolean setting the value of pQuit
-		pQuit = config.oneShot ||
-				( event.type == SDL_QUIT ) ||
-				( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( w.window ) ) ||
-				( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
-		// this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
-		if ( ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE ) || ( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_X1 )  )
-			quitConfirm = !quitConfirm;
-		if ( !ImGui::GetIO().WantCaptureMouse ) {
-			ImVec2 valueRaw = ImGui::GetMouseDragDelta( 1, 0.0f );
-			if ( ( valueRaw.x != 0 || valueRaw.y != 0 ) ) {
-				trident.RotateY( -valueRaw.x * 0.03f );
-				trident.RotateX( -valueRaw.y * 0.03f );
-				ImGui::ResetMouseDragDelta( 1 );
-			}
+		ImGui_ImplSDL2_ProcessEvent( &event ); // imgui event handling
+		pQuit = config.oneShot || // swap out the multiple if statements for a big chained boolean setting the value of pQuit
+			( event.type == SDL_QUIT ) ||
+			( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( window.window ) ) ||
+			( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
+		if ( ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE ) || ( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_X1 ) ) {
+			quitConfirm = !quitConfirm; // this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
 		}
 	}
 }

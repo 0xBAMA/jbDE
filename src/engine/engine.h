@@ -3,19 +3,9 @@
 #include "includes.h"
 
 class engine {
-public:
-//====== Public Interface =====================================================
-	// engine()  { Init(); }
-	// ~engine() { Quit(); }
-	// bool MainLoop (); // called from loop in main
-
-	engine() {}
-	~engine() {}
-	bool MainLoop ();
-
 protected:
 //====== Application Handles and Basic Data ===================================
-	windowHandler w;			// OpenGL context and SDL2 window
+	windowHandler window;		// OpenGL context and SDL2 window
 	configData config;			// loaded from config.json
 	layerManager textRenderer;	// text renderer framework
 	orientTrident trident;		// orientation gizmo from Voraldo13
@@ -53,7 +43,8 @@ protected:
 
 //====== Main Loop Functions ==================================================
 	void BlitToScreen ();
-	void HandleEvents ();
+	void HandleQuitEvents ();
+	void HandleTridentEvents ();
 	void ClearColorAndDepth ();
 	void DrawAPIGeometry ();
 	void ComputePasses ();
@@ -84,16 +75,30 @@ protected:
 // placeholder - will return to this soon, once the child virtual funcs are doing something non-trivial
 class engineChild : public engine {
 public:
-	engineChild() { Init(); OnInit(); PostInit(); }
-	~engineChild() { Quit(); }
+	engineChild () { Init(); OnInit(); PostInit(); }
+	~engineChild () { Quit(); }
 
-	void OnInit() {
-		{ Block Start( "Additional User Init" );
-		// currently this is mostly for feature testing in oneShot mode
+	bool MainLoop () {
+		ZoneScoped;
 
+		HandleTridentEvents();		// event handling - need to add custom event handling for the derived class
+		HandleQuitEvents();
+
+		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
+		DrawAPIGeometry();			// draw any API geometry desired
+		ComputePasses();			// multistage update of displayTexture
+		BlitToScreen();				// fullscreen triangle copying to the screen
+		ImguiPass();				// do all the gui stuff - this needs to be broken out into more pieces
+		window.Swap();				// show what has just been drawn to the back buffer
+		FrameMark;					// tells tracy that this is the end of a frame
+		PrepareProfilingData();		// get profiling data ready for next frame
+		return pQuit;
+	}
+
+	void OnInit () {
+		{ Block Start( "Additional User Init" ); // currently this is mostly for feature testing in oneShot mode
 			// rng gen( 0, 500, 42069 );
 			// Image_4U histogram( 500, 500 );
-
 			// for ( uint32_t i{ 0 }; i < 100000; i++ ) {
 			// 	int val = int( gen() );
 			// 	for ( uint32_t y{ 0 }; y < histogram.Height(); y++ ) {
@@ -105,10 +110,17 @@ public:
 			// 		}
 			// 	}
 			// }
-
 			// histogram.FlipVertical();
 			// histogram.Save( "histogram.png" );
 		}
+	}
+
+	void OnUpdate () {
+
+	}
+
+	void OnRender () {
+		
 	}
 };
 

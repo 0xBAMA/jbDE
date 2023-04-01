@@ -1,8 +1,8 @@
 #include "engine.h"
 #include "../debug/debug.h"
 
-void engine::StartMessage () {
 	ZoneScoped;
+void engine::StartMessage () {
 
 	cout << endl << T_YELLOW << BOLD << "  jbDE - the jb Demo Engine" << newline;
 	cout << " By Jon Baker ( 2020 - 2023 ) " << RESET << newline;
@@ -57,11 +57,11 @@ void engine::LoadConfig () {
 void engine::CreateWindowAndContext () {
 	ZoneScoped;
 
-	w.config = &config;
+	window.config = &config;
 
-	{ Block Start( "Initializing SDL2" ); w.PreInit(); }
-	{ Block Start( "Creating Window" ); w.Init(); }
-	{ Block Start( "Setting Up OpenGL Context" ); w.OpenGLSetup(); }
+	{ Block Start( "Initializing SDL2" ); window.PreInit(); }
+	{ Block Start( "Creating Window" ); window.Init(); }
+	{ Block Start( "Setting Up OpenGL Context" ); window.OpenGLSetup(); }
 
 	// setup OpenGL debug callback with configured delay
 	numMsDelayAfterCallback = config.numMsDelayAfterCallback;
@@ -96,7 +96,7 @@ void engine::SetupVertexData () {
 		glGenVertexArrays( 1, &displayVAO );
 		glBindVertexArray( displayVAO );
 
-		// corresponding VBO, unused by the default NQADE template
+		// corresponding VBO, unused by the default jbDE template
 		glGenBuffers( 1, &displayVBO );
 		glBindBuffer( GL_ARRAY_BUFFER, displayVBO );
 
@@ -261,7 +261,7 @@ void engine::ImguiSetup () {
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 		// Setup Platform/Renderer bindings
-		ImGui_ImplSDL2_InitForOpenGL( w.window, w.GLcontext );
+		ImGui_ImplSDL2_InitForOpenGL( window.window, window.GLcontext );
 		const char *glsl_version = "#version 430";
 		ImGui_ImplOpenGL3_Init( glsl_version );
 
@@ -327,7 +327,7 @@ void engine::InitialClear () {
 
 		glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		w.Swap();
+		window.Swap();
 	}
 }
 

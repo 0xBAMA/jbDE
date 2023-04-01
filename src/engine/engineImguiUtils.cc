@@ -109,7 +109,7 @@ void engine::ImguiFrameStart () {
 
 	// Start the Dear ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame( w.window );
+	ImGui_ImplSDL2_NewFrame( window.window );
 	ImGui::NewFrame();
 }
 

@@ -16,7 +16,7 @@ void engine::Init () {
 
 void engine::PostInit () {
 	InitialClear();
-	w.ShowIfNotHeadless();
+	window.ShowIfNotHeadless();
 	ReportStartupStats();
 }
 
@@ -32,5 +32,5 @@ void engine::ImguiQuit () {
 void engine::Quit () {
 	ZoneScoped;
 	ImguiQuit();
-	w.Kill();
+	window.Kill();
 }
