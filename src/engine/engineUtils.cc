@@ -90,23 +90,6 @@ void engine::BlitToScreen () {
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
 
-void engine::ImguiPass () {
-	ZoneScoped; scopedTimer Start( "ImGUI Pass" );
-
-	ImguiFrameStart();							// start the imgui frame
-	TonemapControlsWindow();
-
-	// add new profiling data and render
-	static ImGuiUtils::ProfilersWindow profilerWindow;
-	profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
-	profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
-	profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
-
-	ImGui::ShowDemoWindow( &showDemoWindow );	// show the demo window
-	QuitConf( &quitConfirm );					// show quit confirm window, if triggered
-	ImguiFrameEnd();							// finish imgui frame and put it in the framebuffer
-}
-
 void engine::HandleTridentEvents () {
 	ZoneScoped; scopedTimer Start( "HandleTridentEvents" );
 

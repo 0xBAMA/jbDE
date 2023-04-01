@@ -274,10 +274,11 @@ This is a planning document for work on this project and in general, about the t
 
 - Normal vectors derived from alpha channel gradient ( similar to SDF normal )
 
-- Tiled invocation structure of the block
+- Tiled invocation structure of the block - this is important, especially for the laptop - it hits some driver limitation for e.g. directional lighting op
 	- Job system, to decouple from the framerate? not sure if I want to show in a partial state...
 	- Would help to keep from overwhelming GPU with large job dispatch, this has been an issue before
 	- No block swap after each tile
+	- Configurable delay between tile invocations
 
 --------------------------------------------------------------------------------------------------
 

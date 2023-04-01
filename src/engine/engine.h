@@ -72,16 +72,62 @@ protected:
 	bool pQuit = false;
 };
 
-
 class engineChild : public engine {	// example derived class
 public:
 	engineChild () { Init(); OnInit(); PostInit(); }
 	~engineChild () { Quit(); }
 
-	bool MainLoop () {				// this is what's called from the loop in main
+	void OnInit () {
+		ZoneScoped;
+		{ Block Start( "Additional User Init" );
+			// currently this is mostly for feature testing in oneShot mode
+			// this will also contain application specific textures, shaders, and bindsets
+		}
+	}
+
+	void HandleCustomEvents () {
+		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
+		// application specific controls
+	}
+
+	void ImguiPass () {
+		ZoneScoped; scopedTimer Start( "ImGUI Pass" );
+
+		ImguiFrameStart();							// start the imgui frame
+		TonemapControlsWindow();
+
+		// add new profiling data and render
+		static ImGuiUtils::ProfilersWindow profilerWindow;
+		profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
+		profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
+		profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+
+		ImGui::ShowDemoWindow( &showDemoWindow );	// show the demo window
+		QuitConf( &quitConfirm );					// show quit confirm window, if triggered
+		ImguiFrameEnd();							// finish imgui frame and put it in the framebuffer
+	}
+
+
+	void OnUpdate () {
+		ZoneScoped; scopedTimer Start( "Update" );
+		// application-specific update code
+	}
+
+	void OnRender () {
+		ZoneScoped;
+		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
+		DrawAPIGeometry();			// draw any API geometry desired
+		ComputePasses();			// multistage update of displayTexture
+		BlitToScreen();				// fullscreen triangle copying to the screen
+		ImguiPass();				// do all the gui stuff - this needs to be broken out into more pieces
+		window.Swap();				// show what has just been drawn to the back buffer
+	}
+
+	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
 
-		HandleTridentEvents();		// event handling
+		// event handling
+		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
 
@@ -89,34 +135,9 @@ public:
 		OnUpdate();
 		OnRender();
 
-		FrameMark;					// tells tracy that this is the end of a frame
-		PrepareProfilingData();		// get profiling data ready for next frame
+		FrameMark; // tells tracy that this is the end of a frame
+		PrepareProfilingData(); // get profiling data ready for next frame
 		return pQuit;
-	}
-
-	void HandleCustomEvents () {
-		// application specific controls
-	}
-
-	void OnInit () {
-		{ Block Start( "Additional User Init" );
-			// currently this is mostly for feature testing in oneShot mode
-
-			// this will also contain application specific textures, shaders, and bindsets
-		}
-	}
-
-	void OnUpdate () {
-		// application-specific update code
-	}
-
-	void OnRender () {
-		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
-		ComputePasses();			// multistage update of displayTexture
-		BlitToScreen();				// fullscreen triangle copying to the screen
-		ImguiPass();				// do all the gui stuff - this needs to be broken out into more pieces
-		window.Swap();				// show what has just been drawn to the back buffer
 	}
 };
 
