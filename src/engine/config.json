@@ -27,7 +27,7 @@
 		"b":0.618,
 		"a":1.0
 	},
-	"showImGUIDemoWindow":true,
+	"showImGUIDemoWindow":false,
 	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{

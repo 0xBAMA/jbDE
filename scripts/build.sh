@@ -3,7 +3,8 @@
 mkdir build
 cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release
 cd build
-time make -j17 exe # -j arg is max jobs + 1, here configured for 16 compilation threads
+time make -j17 exe_base # -j arg is max jobs + 1, here configured for 16 compilation threads
+time make -j17 exe_base2
 cd ..
 
 if [ "$1" == "noiseTool" ]

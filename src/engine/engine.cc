@@ -14,8 +14,10 @@ void engine::Init () {
 	LoadData();
 }
 
+// after the derived class custom init
 void engine::PostInit () {
 	InitialClear();
+	timerQueries = &timerQueries_engine;
 	window.ShowIfNotHeadless();
 	ReportStartupStats();
 }

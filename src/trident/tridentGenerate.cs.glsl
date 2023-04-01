@@ -9,7 +9,7 @@ uniform vec3 basisZ;
 // what to draw at the center
 uniform int mode;
 
-#define MAXSTEPS 40
+#define MAXSTEPS 45
 #define MAXDIST 2.5
 #define EPSILON 0.001
 

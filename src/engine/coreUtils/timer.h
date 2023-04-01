@@ -88,7 +88,8 @@ public:
 	}
 };
 
-static timerManager timerQueries;
+inline timerManager* timerQueries;
+
 class scopedTimer {
 public:
 	queryPair_CPU c;
@@ -104,12 +105,12 @@ public:
 	~scopedTimer () {
 		// GPU query finish
 		glQueryCounter( q.queryID[ 1 ], GL_TIMESTAMP );
-		timerQueries.queries_GPU.push_back( q );
+		timerQueries->queries_GPU.push_back( q );
 
 		// CPU query finish
 		c.tStop = std::chrono::system_clock::now();
 		c.result = std::chrono::duration_cast<std::chrono::microseconds>( c.tStop - c.tStart ).count() / 1000.0f;
-		timerQueries.queries_CPU.push_back( c );
+		timerQueries->queries_CPU.push_back( c );
 	}
 };
 

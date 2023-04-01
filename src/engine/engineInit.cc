@@ -1,9 +1,8 @@
 #include "engine.h"
 #include "../debug/debug.h"
 
-	ZoneScoped;
 void engine::StartMessage () {
-
+	ZoneScoped;
 	cout << endl << T_YELLOW << BOLD << "  jbDE - the jb Demo Engine" << newline;
 	cout << " By Jon Baker ( 2020 - 2023 ) " << RESET << newline;
 	cout << "  https://jbaker.graphics/ " << newline << newline;
@@ -189,7 +188,6 @@ void engine::SetupTextureData () {
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 		textures[ "Bayer8" ] = bayer8;
-
 	}
 
 	{	Block Start( "Setting Up Bindsets" );
@@ -334,6 +332,10 @@ void engine::InitialClear () {
 void engine::ReportStartupStats () {
 	ZoneScoped;
 
-	cout << endl << T_CYAN << "  " << shaders.size() << " shader programs, " << textures.size() << " textures, " << bindSets.size() << " bindsets" << endl;
+	cout << endl << T_CYAN << "  " << 
+		shaders.size() << " shader programs, " <<
+		textures.size() << " textures, " <<
+		bindSets.size() << " bindsets" << endl;
+
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << TIMEUNIT << " )" << RESET << endl << endl;
 }

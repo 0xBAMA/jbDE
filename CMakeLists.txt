@@ -83,11 +83,13 @@ add_library( TinyOBJLoader src/ModelLoading/TinyOBJLoader/tiny_obj_loader.cc )
 add_library( CompilerFlags INTERFACE )
 target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc++fs -lSDL2 -ldl -Wno-maybe-uninitialized -Wno-unused-function ) # suppresses warnings for Tracy
 
-# this builds the final executable
-add_executable( exe
+# this builds the final executable(s)
+
+# base engine demo
+add_executable( exe_base
 	src/tracy/public/TracyClient.cpp
 	src/noise/perlin.cc
-	src/engine/main.cc
+	src/engine/mains/main_base.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
@@ -95,7 +97,35 @@ add_executable( exe
 	src/imageLibs/LodePNG/lodepng.cc
 )
 
-target_link_libraries( exe
+target_link_libraries( exe_base
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Tracy::TracyClient
+	TinyOBJLoader
+	CompilerFlags
+)
+
+# this is testing that we can have more than one
+add_executable( exe_base2
+	src/tracy/public/TracyClient.cpp
+	src/noise/perlin.cc
+	src/engine/mains/main_base2.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+	src/imageLibs/LodePNG/lodepng.cc
+)
+
+target_link_libraries( exe_base2
 	PUBLIC
 	imgui
 	BigInt

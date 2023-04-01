@@ -1,52 +1,5 @@
 #include "engine.h"
 
-extern timerManager timerQueries;
-
-void engine::DrawAPIGeometry () {
-	ZoneScoped; scopedTimer Start( "API Geometry" );
-	// draw some shit
-}
-
-void engine::ComputePasses () {
-	ZoneScoped;
-
-	{ // dummy draw - draw something into accumulatorTexture
-		scopedTimer Start( "Drawing" );
-		bindSets[ "Drawing" ].apply();
-		glUseProgram( shaders[ "Dummy Draw" ] );
-		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	}
-
-	{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-		scopedTimer Start( "Postprocess" );
-		bindSets[ "Postprocessing" ].apply();
-		glUseProgram( shaders[ "Tonemap" ] );
-		SendTonemappingParameters();
-		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	}
-
-	// shader to apply dithering
-		// ...
-
-	// other postprocessing
-		// ...
-
-	{ // text rendering timestamp - required texture binds are handled internally
-		scopedTimer Start( "Text Rendering" );
-		textRenderer.Update( ImGui::GetIO().DeltaTime );
-		textRenderer.Draw( textures[ "Display Texture" ] );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	}
-
-	{ // show trident with current orientation
-		scopedTimer Start( "Trident" );
-		trident.Update( textures[ "Display Texture" ] );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	}
-}
-
 void engine::ClearColorAndDepth () {
 	ZoneScoped; scopedTimer( "Clear Color and Depth" );
 
@@ -156,7 +109,7 @@ void engine::HandleQuitEvents () {
 
 // for next frame's LegitProfiler data
 void engine::PrepareProfilingData () {
-	timerQueries.gather();
+	timerQueries_engine.gather();
 
 	// get rid of last frame's prepared task data
 	tasks_GPU.clear();
@@ -165,7 +118,7 @@ void engine::PrepareProfilingData () {
 	int color = 0;
 	float offset_CPU = 0;
 	float offset_GPU = 0;
-	for ( unsigned int i = 0; i < timerQueries.queries_CPU.size(); i++ ) {
+	for ( unsigned int i = 0; i < timerQueries_engine.queries_CPU.size(); i++ ) {
 		color++;
 		color = color % legit::Colors::colorList.size();
 		legit::ProfilerTask pt_CPU;
@@ -173,19 +126,18 @@ void engine::PrepareProfilingData () {
 		
 		// calculate start and end times
 		pt_CPU.startTime = offset_CPU / 1000.0f;
-		offset_CPU = offset_CPU + timerQueries.queries_CPU[ i ].result;
+		offset_CPU = offset_CPU + timerQueries_engine.queries_CPU[ i ].result;
 		pt_CPU.endTime = offset_CPU / 1000.0f;
-		pt_CPU.name = timerQueries.queries_CPU[ i ].label;
-		pt_CPU.color = legit::Colors::colorList[ color ];
+		pt_CPU.name = timerQueries_engine.queries_CPU[ i ].label;
+		pt_CPU.color = legit::Colors::colorList[ color ]; // do better
 		tasks_CPU.push_back( pt_CPU );
 
 		pt_GPU.startTime = offset_GPU / 1000.0f;
-		offset_GPU = offset_GPU + timerQueries.queries_GPU[ i ].result;
+		offset_GPU = offset_GPU + timerQueries_engine.queries_GPU[ i ].result;
 		pt_GPU.endTime = offset_GPU / 1000.0f;
-		pt_GPU.name = timerQueries.queries_GPU[ i ].label;
-		pt_GPU.color = legit::Colors::colorList[ color ];
+		pt_GPU.name = timerQueries_engine.queries_GPU[ i ].label;
+		pt_GPU.color = legit::Colors::colorList[ color ]; // do better
 		tasks_GPU.push_back( pt_GPU );
 	}
-
-	timerQueries.clear(); // prepare for next frame's data
+	timerQueries_engine.clear(); // prepare for next frame's data
 }
