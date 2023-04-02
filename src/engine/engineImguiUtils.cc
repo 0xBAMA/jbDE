@@ -17,9 +17,8 @@ void engine::QuitConf ( bool *open ) {
 			ImGui::SameLine();
 			ImGui::Text( "      " );
 			ImGui::SameLine();
-			// button to quit -> set pquit to true
 			if ( ImGui::Button( " Quit " ) ) {
-				pQuit = true;
+				pQuit = true; // button to quit -> set pquit to true so program exits
 			}
 		}
 	}

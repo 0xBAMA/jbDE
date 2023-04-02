@@ -3,7 +3,8 @@
 mkdir build
 cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release
 cd build
-time make -j17 exe_base # -j arg is max jobs + 1, here configured for 16 compilation threads
+# -j arg is max jobs + 1, here configured for 16 compilation threads ( probably set this higher on new machine? )
+time make -j17 exe_base
 time make -j17 exe_base2
 cd ..
 

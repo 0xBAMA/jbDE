@@ -65,17 +65,7 @@ This is a planning document for work on this project and in general, about the t
 --------------------------------------------------------------------------------------------------
 
 - General Engine Stuff
-	- Creating a structure where projects inherit from a base engine class
-		- This will be the basis of jbDE - with a lot of existing utility stuff carried forward from NQADE
-			- All projects will be kept in the same repo, build script generates separate executables
-		- Need to work on figuring out how projects will inherit from the base engine class
-			- How to manage the overriding functions?
-				- Separate files, probably separate .cc files for the derived class
-			- How to build separate executables?
-				- This one I think I have a line on, will just be adding more `add_executable` / `target_link_libraries` statements at the end of CMakeLists.txt
-				- Dump them all in the bin folder - need to make sure I can consistently run all this shit
-		- Is there some way to do this with ECS? I found [a good looking C/C++ ECS library](https://github.com/SanderMertens/flecs)
-	- Once I get to that point, I will be able to maintain the projects automagically
+	- jbDE child applications
 		- Vertexture
 		- SoftBodies
 		- Voraldo
@@ -86,16 +76,6 @@ This is a planning document for work on this project and in general, about the t
 			- SDF Validation Tool might be the new name, need to think on that one
 		- PointDrop
 		- Sponza viewer? tbd
-	- Generalize functions a bit
-		- Add some virtual functions which can be called at the end of the standard initialization stuff
-			- Some ideas from Jaker's [Fwog](https://github.com/JuanDiegoMontoya/Fwog) - simple callbacks are better than the way I currently have it structured
-				- Just have some couple of virtual functions like:
-					- `OnInit()`
-					- `OnUpdate()`
-					- `OnRender()`
-				- And override those as you write your derived classes
-					- Can the parent call the overridden virtual functions? How? I'm not getting the output I expect
-			- Current structure is to complex, too specialized - needs work to make it generalizable
 	- One of the big things I want to focus on is being able to render high-quality animations offline
 		- Maybe get into some Julius Horsthuis-style fractal animation stuff
 		- Make the separate offline rendering machine earn its keep
@@ -139,6 +119,9 @@ This is a planning document for work on this project and in general, about the t
 		- CPU-based dithering?
 			- Might be a nice-to-have
 			- Speed less of a concern
+		- Resampling
+			- High quality resampling options
+			- Barrel distortion kind of thing?
 
 - SoftRast
 	- What is the plan for this?
@@ -153,12 +136,9 @@ This is a planning document for work on this project and in general, about the t
 			- Instead of iterating through and doing N distance checks for every pixel, every frame, just keep LUTs of closest, second closest color for all points in a 3D LDR RGB colorspace, and use dither patterns as before
 	- Probably make this built-in functionality in the engine, part of postprocessing stack?
 
-- Deterministic RNG for the CPU - need deterministic alternative to std::random
+- [Properly Seeding the Mersenne Twistor](https://www.phy.olemiss.edu/~kbeach/guide/2020/01/11/random/)
 	- VAT, Spaceship Generator need repeatability in random number generation
-	- I haven't found a way to seed std::random to be able to get the same sequence back out again
-		- [Properly Seeding the Mersenne Twistor](https://www.phy.olemiss.edu/~kbeach/guide/2020/01/11/random/) is this something? looks promising
-		- would still like a wrapper around the RNG stuff, so it's less to jack around with with all the std::random syntax
-	- Start with Wang Hash - Other methods? Linear congruential, others? Is a mersene twister implementation practical?
+	- Wang Hash - Other methods? Linear congruential, others? Is a mersene twister implementation practical?
 	- Domain Remapping Functions, Point on disk, etc, utilities
 		- [Bias and Gain Functions](https://arxiv.org/abs/2010.09714)
 		- [iq's Usful Functions](https://iquilezles.org/articles/functions/)
@@ -467,6 +447,8 @@ This is a planning document for work on this project and in general, about the t
 - Jump flood algorithm
 	- [Quest for very wide outlines](https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9)
 	- [Jump flood alg for rendering point clouds](https://www.lcg.ufrj.br/thesis/renato-farias-MSc.pdf)
+
+- Applicaiton for ECS? [a good looking C/C++ ECS library](https://github.com/SanderMertens/flecs)
 
 - [Gaussian blur kernel computation](https://lisyarus.github.io/blog/graphics/2023/02/24/blur-coefficients-generator.html)
 
