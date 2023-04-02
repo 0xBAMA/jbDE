@@ -40,12 +40,12 @@ constexpr double pi = 3.14159265358979323846;
 // GLM - vector math library GLM
 #define GLM_FORCE_SWIZZLE
 #define GLM_SWIZZLE_XYZW
-#include "../GLM/glm.hpp"					// general vector types
-#include "../GLM/gtc/matrix_transform.hpp"	// for glm::ortho
-#include "../GLM/gtc/type_ptr.hpp"			// to send matricies gpu-side
-#include "../GLM/gtx/rotate_vector.hpp"
-#include "../GLM/gtx/transform.hpp"
-#include "../GLM/gtx/string_cast.hpp"		// to_string for glm types
+#include "../utils/GLM/glm.hpp"						// general vector types
+#include "../utils/GLM/gtc/matrix_transform.hpp"	// for glm::ortho
+#include "../utils/GLM/gtc/type_ptr.hpp"			// to send matricies gpu-side
+#include "../utils/GLM/gtx/rotate_vector.hpp"
+#include "../utils/GLM/gtx/transform.hpp"
+#include "../utils/GLM/gtx/string_cast.hpp"		// to_string for glm types
 // #define GLX_GLEXT_PROTOTYPES 			// not sure as to the utility of this
 
 // convenience defines for GLM
@@ -62,10 +62,10 @@ using glm::mat4;
 #include <GL/glew.h>
 
 // GUI library (dear ImGUI)
-#include "../ImGUI/TextEditor/TextEditor.h"
-#include "../ImGUI/imgui.h"
-#include "../ImGUI/imgui_impl_sdl2.h"
-#include "../ImGUI/imgui_impl_opengl3.h"
+#include "../utils/ImGUI/TextEditor/TextEditor.h"
+#include "../utils/ImGUI/imgui.h"
+#include "../utils/ImGUI/imgui_impl_sdl2.h"
+#include "../utils/ImGUI/imgui_impl_opengl3.h"
 
 // SDL includes - windowing, gl context, system info
 #include <SDL2/SDL.h>
@@ -74,25 +74,25 @@ using glm::mat4;
 
 //==== Third Party Libraries ==================================================
 // tracy profiler annotation
-#include "../tracy/public/tracy/Tracy.hpp"
+#include "../utils/tracy/public/tracy/Tracy.hpp"
 
 // more general noise solution
-#include "../noise/FastNoise2/include/FastNoise/FastNoise.h"
+#include "../utils/noise/FastNoise2/include/FastNoise/FastNoise.h"
 
 // wrapper for TinyOBJLoader
-#include "../ModelLoading/TinyOBJLoader/tiny_obj_loader.h"
+#include "../utils/ModelLoading/TinyOBJLoader/tiny_obj_loader.h"
 
 // Niels Lohmann - JSON for Modern C++
-#include "../Serialization/JSON/json.hpp"
+#include "../utils/Serialization/JSON/json.hpp"
 using json = nlohmann::json;
 
 // tinyXML2 XML parser
-#include "../Serialization/tinyXML2/tinyxml2.h"
+#include "../utils/Serialization/tinyXML2/tinyxml2.h"
 using XMLDocument = tinyxml2::XMLDocument;
 
 //==== My Stuff ===============================================================
 // my fork of Alexander Sannikov's LegitProfiler
-#include "../ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"
+#include "../utils/ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"
 
 // managing bindings of textures to binding points
 #include "./coreUtils/bindset.h"
@@ -110,13 +110,13 @@ using XMLDocument = tinyxml2::XMLDocument;
 #include "./coreUtils/timer.h"
 
 // orientation trident
-#include "../trident/trident.h"
+#include "../utils/trident/trident.h"
 
 // font rendering header
-#include "../fonts/fontRenderer/renderer.h"
+#include "../utils/fonts/fontRenderer/renderer.h"
 
 // software rasterizer reimplementation
-#include "../SoftRast/SoftRast.h"
+#include "../utils/SoftRast/SoftRast.h"
 
 // shader compilation wrapper
 #include "shaders/lib/shaderWrapper.h"
@@ -134,16 +134,16 @@ using XMLDocument = tinyxml2::XMLDocument;
 #include "../data/wordlistLoader.h"
 
 // diamond square heightmap generation
-#include "../noise/diamondSquare/diamond_square.h"
+#include "../utils/noise/diamondSquare/diamond_square.h"
 
 // particle based erosion
-#include "../erosion/particleBased.h"
+#include "../utils/erosion/particleBased.h"
 
 // Brent Werness' Voxel Automata Terrain, adapted to C++
-#include "../noise/VAT/VAT.h"
+#include "../utils/noise/VAT/VAT.h"
 
 // bringing the old perlin impl back
-#include "../noise/perlin.h"
+#include "../utils/noise/perlin.h"
 
 // config, etc structs
 #include "./dataStructs.h"

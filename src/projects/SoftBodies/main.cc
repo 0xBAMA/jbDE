@@ -5,11 +5,20 @@ public:
 	engineChild () { Init(); OnInit(); PostInit(); }
 	~engineChild () { Quit(); }
 
+	// softbody model
+
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 			// currently this is mostly for feature testing in oneShot mode
 			// this will also contain application specific textures, shaders, and bindsets
+
+			// compile background shader
+			shaders[ "Background" ] = computeShader( "./src/projects/SoftBodies/shaders/background.cs.glsl" ).shaderHandle;
+
+			// compile display shaders
+			// load the model
+
 		}
 	}
 
@@ -20,30 +29,40 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		TonemapControlsWindow();
 
-		static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
-		profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
-		profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
-		profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+		if ( showProfiler ) {
+			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
+			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
+			profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
+			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
+	}
 
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
+	void OnUpdate () {
+		ZoneScoped; scopedTimer Start( "Update" );
+
+		// update the CPU model
+
 	}
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit
+
+		// draw the raster geometry
+
 	}
 
 	void ComputePasses () {
 		ZoneScoped;
 
+		// potentially doing the GPU model update here
+
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
+			glUseProgram( shaders[ "Background" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -56,12 +75,6 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
@@ -77,17 +90,12 @@ public:
 		}
 	}
 
-	void OnUpdate () {
-		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
-	}
-
 	void OnRender () {
 		ZoneScoped;
-		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
-		ComputePasses();			// multistage update of displayTexture
+		ClearColorAndDepth();		// clear the buffer
+		ComputePasses();			// draw the background + timing data
 		BlitToScreen();				// fullscreen triangle copying to the screen
+		DrawAPIGeometry();			// draw the model
 		{
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
@@ -100,12 +108,10 @@ public:
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
 
-		// event handling
 		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
 
-		// derived-class-specific functionality
 		OnUpdate();
 		OnRender();
 

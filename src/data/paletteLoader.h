@@ -2,7 +2,7 @@
 #ifndef PALETTE_H
 #define PALETTE_H
 
-#include "../GLM/glm.hpp"
+#include "../utils/GLM/glm.hpp"
 #include "../engine/coreUtils/image2.h"
 
 struct paletteEntry {

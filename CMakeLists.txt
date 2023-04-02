@@ -36,24 +36,24 @@ include_directories( ${GLEW_INCLUDE_DIRS} )
 link_libraries( ${GLEW_LIBRARIES} )
 
 # FastNoise2
-add_subdirectory( ${PROJECT_SOURCE_DIR}/src/noise/FastNoise2 )
+add_subdirectory( ${PROJECT_SOURCE_DIR}/src/utils/noise/FastNoise2 )
 
 # Tracy Profiler
 option( TRACY_ENABLE "" ON )
 option( TRACY_ON_DEMAND "" ON )
-add_subdirectory( src/tracy )
+add_subdirectory( src/utils/tracy )
 
 # this is for ImGUI
 add_library( imgui
-	src/ImGUI/imgui_impl_sdl2.cc
-	src/ImGUI/imgui_impl_opengl3.cc
-	src/ImGUI/imgui.cc
-	src/ImGUI/imgui_demo.cc
-	src/ImGUI/imgui_draw.cc
-	src/ImGUI/imgui_widgets.cc
-	src/ImGUI/imgui_tables.cc
-	src/ImGUI/TextEditor/TextEditor.cc
-	src/ImGUI/TextEditor/LanguageDefinitions.cc
+	src/utils/ImGUI/imgui_impl_sdl2.cc
+	src/utils/ImGUI/imgui_impl_opengl3.cc
+	src/utils/ImGUI/imgui.cc
+	src/utils/ImGUI/imgui_demo.cc
+	src/utils/ImGUI/imgui_draw.cc
+	src/utils/ImGUI/imgui_widgets.cc
+	src/utils/ImGUI/imgui_tables.cc
+	src/utils/ImGUI/TextEditor/TextEditor.cc
+	src/utils/ImGUI/TextEditor/LanguageDefinitions.cc
 )
 
 target_link_libraries( imgui PUBLIC sdl2 opengl )
@@ -63,22 +63,22 @@ target_compile_definitions( imgui PUBLIC -D IMGUI_IMPL_OPENGL_LOADER_GL3W -D_REE
 
 # this is the bigint library to support the VAT code
 add_library( BigInt
-	src/noise/VAT/BigInt/BigUnsigned.cc
-	src/noise/VAT/BigInt/BigInteger.cc
-	src/noise/VAT/BigInt/BigIntegerAlgorithms.cc
-	src/noise/VAT/BigInt/BigUnsignedInABase.cc
-	src/noise/VAT/BigInt/BigIntegerUtils.cc
+	src/utils/noise/VAT/BigInt/BigUnsigned.cc
+	src/utils/noise/VAT/BigInt/BigInteger.cc
+	src/utils/noise/VAT/BigInt/BigIntegerAlgorithms.cc
+	src/utils/noise/VAT/BigInt/BigUnsignedInABase.cc
+	src/utils/noise/VAT/BigInt/BigIntegerUtils.cc
 )
 
 target_compile_options( BigInt PUBLIC -Wno-deprecated )
 
-add_library( tinyXML2 src/Serialization/tinyXML2/tinyxml2.cc )
+add_library( tinyXML2 src/utils/Serialization/tinyXML2/tinyxml2.cc )
 
-add_library( tinyEXR src/imageLibs/tinyEXR/tinyexr.cc src/imageLibs/tinyEXR/miniz/miniz.c )
+add_library( tinyEXR src/utils/imageLibs/tinyEXR/tinyexr.cc src/utils/imageLibs/tinyEXR/miniz/miniz.c )
 
-add_library( STB_ImageUtilsWrapper src/imageLibs/stb/impl.cc )
+add_library( STB_ImageUtilsWrapper src/utils/imageLibs/stb/impl.cc )
 
-add_library( TinyOBJLoader src/ModelLoading/TinyOBJLoader/tiny_obj_loader.cc )
+add_library( TinyOBJLoader src/utils/ModelLoading/TinyOBJLoader/tiny_obj_loader.cc )
 
 add_library( CompilerFlags INTERFACE )
 target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc++fs -lSDL2 -ldl -Wno-maybe-uninitialized -Wno-unused-function ) # suppresses warnings for Tracy
@@ -87,14 +87,14 @@ target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc
 
 # base engine demo
 add_executable( engineDemo
-	src/tracy/public/TracyClient.cpp
-	src/noise/perlin.cc
+	src/utils/tracy/public/TracyClient.cpp
+	src/utils/noise/perlin.cc
 	src/projects/engineDemo/main.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
 	src/engine/engineImguiUtils.cc
-	src/imageLibs/LodePNG/lodepng.cc
+	src/utils/imageLibs/LodePNG/lodepng.cc
 )
 
 target_link_libraries( engineDemo
@@ -114,18 +114,18 @@ target_link_libraries( engineDemo
 )
 
 # this is testing that we can have more than one
-add_executable( exe_base2
-	src/tracy/public/TracyClient.cpp
-	src/noise/perlin.cc
-	src/projects/main_base2/main.cc
+add_executable( SoftBodies
+	src/utils/tracy/public/TracyClient.cpp
+	src/utils/noise/perlin.cc
+	src/projects/SoftBodies/main.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
 	src/engine/engineImguiUtils.cc
-	src/imageLibs/LodePNG/lodepng.cc
+	src/utils/imageLibs/LodePNG/lodepng.cc
 )
 
-target_link_libraries( exe_base2
+target_link_libraries( SoftBodies
 	PUBLIC
 	imgui
 	BigInt

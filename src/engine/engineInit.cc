@@ -1,5 +1,5 @@
 #include "engine.h"
-#include "../debug/debug.h"
+#include "../utils/debug/debug.h"
 
 void engineBase::StartMessage () {
 	ZoneScoped;
@@ -45,6 +45,7 @@ void engineBase::LoadConfig () {
 
 		config.oneShot = j[ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
 		showDemoWindow = j[ "showImGUIDemoWindow" ];
+		showProfiler = j[ "showProfiler" ];
 
 		// color grading stuff
 		tonemap.tonemapMode = j[ "colorGrade" ][ "tonemapMode" ];
@@ -134,7 +135,7 @@ void engineBase::SetupTextureData () {
 		textures[ "Display Texture" ] = displayTexture;
 
 		// blue noise image on the GPU
-		Image_4U blueNoiseImage{ "src/noise/blueNoise.png" };
+		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
 		glGenTextures( 1, &blueNoiseTexture );
 		glActiveTexture( GL_TEXTURE4 );
 		glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
@@ -230,12 +231,12 @@ void engineBase::ShaderCompile () {
 		shaders[ "Display" ] = regularShader( base + "blit.vs.glsl", base + "blit.fs.glsl" ).shaderHandle;
 
 		// initialize the text renderer
-		shaders[ "Font Renderer" ] = computeShader( "src/fonts/fontRenderer/font.cs.glsl" ).shaderHandle;
+		shaders[ "Font Renderer" ] = computeShader( "src/utils/fonts/fontRenderer/font.cs.glsl" ).shaderHandle;
 		textRenderer.Init( config.width, config.height, shaders[ "Font Renderer" ] );
 
 		// trident shaders
-		shaders[ "Trident Raymarch" ] = computeShader( "./src/trident/tridentGenerate.cs.glsl" ).shaderHandle;
-		shaders[ "Trident Blit" ] = computeShader( "./src/trident/tridentCopy.cs.glsl" ).shaderHandle;
+		shaders[ "Trident Raymarch" ] = computeShader( "./src/utils/trident/tridentGenerate.cs.glsl" ).shaderHandle;
+		shaders[ "Trident Blit" ] = computeShader( "./src/utils/trident/tridentCopy.cs.glsl" ).shaderHandle;
 		trident.basePt = textRenderer.basePt; // location to draw at
 		trident.PassInShaders( shaders[ "Trident Raymarch" ], shaders[ "Trident Blit" ] );
 	}

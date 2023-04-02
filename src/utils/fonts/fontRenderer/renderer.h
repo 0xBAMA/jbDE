@@ -1,5 +1,5 @@
-#include "../../engine/includes.h"
-#include "../../data/colors.h"
+#include "../../../engine/includes.h"
+#include "../../../data/colors.h"
 
 #ifndef FONTRENDERER_H
 #define FONTRENDERER_H
@@ -277,7 +277,7 @@ public:
 		fontWriteShader = shader;
 
 		// generate the altas texture - only ever needed in the context of layerManager
-		Image_4U fontAtlas( "./src/fonts/fontRenderer/whiteOnClear.png" );
+		Image_4U fontAtlas( "./src/utils/fonts/fontRenderer/whiteOnClear.png" );
 		fontAtlas.FlipVertical(); // for some reason loading upside down
 
 		// font atlas GPU setup

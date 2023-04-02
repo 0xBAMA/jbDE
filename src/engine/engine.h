@@ -54,6 +54,7 @@ protected:
 
 //====== ImGui Windows ========================================================
 	bool showDemoWindow;
+	bool showProfiler;
 
 //====== LegitProfiler Data ===================================================
 	void PrepareProfilingData ();
