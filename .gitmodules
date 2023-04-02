@@ -1,9 +1,9 @@
 [submodule "src/noise/FastNoise2"]
-	path = src/noise/FastNoise2
+	path = src/utils/noise/FastNoise2
 	url = https://github.com/Auburn/FastNoise2.git
 [submodule "src/tracy"]
-	path = src/tracy
+	path = src/utils/tracy
 	url = https://github.com/wolfpld/tracy.git
 [submodule "src/ImGUI/LegitProfiler"]
-	path = src/ImGUI/LegitProfiler
+	path = src/utils/ImGUI/LegitProfiler
 	url = https://github.com/0xBAMA/LegitProfiler.git
