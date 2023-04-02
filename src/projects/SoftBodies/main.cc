@@ -39,6 +39,52 @@ public:
 	void ImguiPass () {
 		ZoneScoped;
 
+		ImGui::Begin( "Model Config", NULL, 0 );
+		if ( ImGui::BeginTabBar( "Config Sections", ImGuiTabBarFlags_None ) ) {
+			ImGui::SameLine();
+			if ( ImGui::BeginTabItem( "Simulation" ) ) {
+				ImGui::SliderFloat( "Time Scale", &simulationModel.simParameters.timeScale, 0.0f, 0.01f );
+				ImGui::SliderFloat( "Gravity", &simulationModel.simParameters.gravity, -10.0f, 10.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Noise Amplitude", &simulationModel.simParameters.noiseAmplitudeScale, 0.0f, 0.45f );
+				ImGui::SliderFloat( "Noise Speed", &simulationModel.simParameters.noiseSpeed, 0.0f, 10.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Chassis Node Mass", &simulationModel.simParameters.chassisNodeMass, 0.1f, 10.0f );
+				ImGui::SliderFloat( "Chassis K", &simulationModel.simParameters.chassisKConstant, 0.0f, 15000.0f );
+				ImGui::SliderFloat( "Chassis Damping", &simulationModel.simParameters.chassisDamping, 0.0f, 100.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Suspension K", &simulationModel.simParameters.suspensionKConstant, 0.0f, 15000.0f );
+				ImGui::SliderFloat( "Suspension Damping", &simulationModel.simParameters.suspensionDamping, 0.0f, 100.0f );
+				ImGui::EndTabItem();
+			}
+			if ( ImGui::BeginTabItem( "Render" ) ) {
+				ImGui::Text("Geometry Toggles");
+				ImGui::Separator();
+				ImGui::Checkbox( "Draw Body Panels", &simulationModel.displayParameters.showChassisFaces );
+				ImGui::Checkbox( "Draw Chassis Edges", &simulationModel.displayParameters.showChassisEdges );
+				ImGui::Checkbox( "Draw Chassis Nodes", &simulationModel.displayParameters.showChassisNodes );
+				ImGui::Checkbox( "Draw Suspension Edges", &simulationModel.displayParameters.showSuspensionEdges );
+				ImGui::Text(" ");
+				ImGui::Text("Drawing Mode");
+				ImGui::Separator();
+				ImGui::Checkbox( "Tension Color Only", &simulationModel.displayParameters.tensionColorOnly );
+				ImGui::Text(" ");
+				ImGui::Text("Scaling");
+				ImGui::Separator();
+				ImGui::SliderFloat( "Global Scale", &simulationModel.displayParameters.scale, 0.25f, 0.75f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Chassis Rescale", &simulationModel.displayParameters.chassisRescaleAmnt, 0.8f, 1.1f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Line Scale", &simulationModel.drawParameters.lineScale, 1.0f, 20.0f );
+				ImGui::SliderFloat( "Outline Ratio", &simulationModel.drawParameters.outlineRatio, 0.8f, 2.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Point Scale", &simulationModel.drawParameters.pointScale, 0.8f, 20.0f );
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+		ImGui::End();
+
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
 			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
