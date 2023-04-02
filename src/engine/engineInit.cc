@@ -224,7 +224,7 @@ void engineBase::ShaderCompile () {
 
 		const string base( "./src/engine/shaders/" );
 
-		// tonemapping shader
+		// tonemapping shader - this will need some refinement as time goes on
 		shaders[ "Tonemap" ] = computeShader( base + "tonemap.cs.glsl" ).shaderHandle;
 
 		// create the shader for the triangles to cover the screen

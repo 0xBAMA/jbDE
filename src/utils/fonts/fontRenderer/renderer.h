@@ -427,11 +427,9 @@ public:
 					}
 				}
 			}
-
 			// increment the pointer
 			offsetFromStart += 8 * numColumns;
 		}
-
 	}
 };
 

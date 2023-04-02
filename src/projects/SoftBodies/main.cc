@@ -22,12 +22,14 @@ public:
 				shaders[ "Softbody Display" ] = regularShader( "./src/projects/SoftBodies/shaders/main.vs.glsl", "./src/projects/SoftBodies/shaders/main.fs.glsl" ).shaderHandle;
 
 			// load and initialize the model
-
+			simulationModel.loadFramePoints();
+			simulationModel.GPUSetup();
+			simulationModel.passNewGPUData();
 		}
 	}
 
 	void HandleCustomEvents () {
-		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
+		ZoneScoped;
 		// application specific controls
 	}
 
@@ -46,16 +48,12 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-
-		// update the CPU model
-
+		simulationModel.Update(); // update the CPU model
 	}
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-
-		// draw the raster geometry
-
+		simulationModel.Display(); // draw the raster geometry
 	}
 
 	void ComputePasses () {
@@ -112,9 +110,11 @@ public:
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
 
-		HandleTridentEvents();
-		HandleCustomEvents();
-		HandleQuitEvents();
+		{ scopedTimer Start( "Handle Events" );
+			HandleTridentEvents();
+			HandleCustomEvents();
+			HandleQuitEvents();
+		}
 
 		OnUpdate();
 		OnRender();

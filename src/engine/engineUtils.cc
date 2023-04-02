@@ -44,7 +44,7 @@ void engineBase::BlitToScreen () {
 }
 
 void engineBase::HandleTridentEvents () {
-	ZoneScoped; scopedTimer Start( "HandleTridentEvents" );
+	ZoneScoped;
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
 		constexpr float bigStep = 0.120f;
@@ -87,7 +87,7 @@ void engineBase::HandleTridentEvents () {
 }
 
 void engineBase::HandleQuitEvents () {
-	ZoneScoped; scopedTimer Start( "HandleQuitEvents" );
+	ZoneScoped;
 	//==============================================================================
 	// Need to keep this for pQuit handling ( force quit )
 	// In particular - checking for window close and the SDL_QUIT event can't really be determined

@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1280,
-	"screenHeight":720,
+	"screenWidth":1920,
+	"screenHeight":1080,
 	"windowOffset":{
 		"x":300,
 		"y":200
@@ -13,8 +13,8 @@
 	"OpenGLVersionMajor":4,
 	"OpenGLVersionMinor":3,
 	"reportPlatformInfo":true,
-	"depthTesting":false,
-	"SRGBFramebuffer":true,
+	"depthTesting":true,
+	"SRGBFramebuffer":false,
 	"pointSize":3.0,
 	"SDL_WINDOW_FULLSCREEN":false,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
@@ -33,7 +33,7 @@
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,
-		"gamma":1.1,
+		"gamma":1.337,
 		"colorTemp":6500.0
 	}
 }
