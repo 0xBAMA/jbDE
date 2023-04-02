@@ -3,7 +3,7 @@
 mkdir build
 cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release
 cd build
-# -j arg is max jobs + 1, here configured for 16 compilation threads ( probably set this higher on new machine? )
+# -j arg is max jobs + 1, here configured for 16 compilation threads
 time make -j17 engineDemo
 time make -j17 SoftBodies
 cd ..
@@ -19,5 +19,6 @@ fi
 
 if [ "$1" == "clean" ]
 then
+	rm -r ./bin
 	rm -r ./build
 fi

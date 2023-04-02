@@ -113,11 +113,12 @@ target_link_libraries( engineDemo
 	CompilerFlags
 )
 
-# this is testing that we can have more than one
+# SoftBodies
 add_executable( SoftBodies
 	src/utils/tracy/public/TracyClient.cpp
 	src/utils/noise/perlin.cc
 	src/projects/SoftBodies/main.cc
+	src/projects/SoftBodies/model.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc

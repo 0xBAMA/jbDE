@@ -1,23 +1,27 @@
 #include "../../engine/engine.h"
+#include "model.h"
 
 class engineChild : public engineBase {	// example derived class
 public:
 	engineChild () { Init(); OnInit(); PostInit(); }
 	~engineChild () { Quit(); }
 
-	// softbody model
+	// SoftBody Simulation Model
+	model simulationModel;
 
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
-			// currently this is mostly for feature testing in oneShot mode
 			// this will also contain application specific textures, shaders, and bindsets
 
 			// compile background shader
 			shaders[ "Background" ] = computeShader( "./src/projects/SoftBodies/shaders/background.cs.glsl" ).shaderHandle;
 
 			// compile display shaders
-			// load the model
+			simulationModel.simGeometryShader =
+				shaders[ "Softbody Display" ] = regularShader( "./src/projects/SoftBodies/shaders/main.vs.glsl", "./src/projects/SoftBodies/shaders/main.fs.glsl" ).shaderHandle;
+
+			// load and initialize the model
 
 		}
 	}
