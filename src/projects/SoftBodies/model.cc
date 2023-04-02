@@ -194,7 +194,7 @@ void model::passNewGPUData() {
 			tColors.push_back( glm::vec4( 0. ) );
 		}
 
-	// the ground nodes
+	// the ground nodes - this could be done more efficiently, but whatever
 	for ( float x = -1.0; x < 1.0; x += 0.01 ) {
 		for ( float y = -1.5; y < 1.5; y += 0.01 ) {
 			float groundHeight = getGroundPoint( x / displayParameters.scale, y / displayParameters.scale );
@@ -293,8 +293,8 @@ void model::updateUniforms() {
 	SDL_DisplayMode dm;
 	SDL_GetDesktopDisplayMode( 0, &dm );
 
-	float AR = float( dm.w ) / float( dm.h );
-	glm::mat4 proj = glm::perspective( glm::radians( 65.0f ), AR, -1.0f, 3.0f );
+	const float AR = float( dm.w ) / float( dm.h );
+	const glm::mat4 proj = glm::perspective( glm::radians( 65.0f ), AR, -1.0f, 3.0f );
 
 	glUniformMatrix4fv( glGetUniformLocation( simGeometryShader, "perspective" ), 1, GL_TRUE, glm::value_ptr( proj ) );
 	glUniform1fv( glGetUniformLocation( simGeometryShader, "aspect_ratio" ), 1, &AR );
@@ -303,14 +303,15 @@ void model::updateUniforms() {
 	glUniform1fv( glGetUniformLocation( simGeometryShader, "defaultPointSize" ), 1, &drawParameters.pointScale );
 	glUniform1i( glGetUniformLocation( simGeometryShader, "nodeSelect" ), nodeSelect );
 
-	// rotation parameters
-	glUniform1fv( glGetUniformLocation( simGeometryShader, "theta" ), 1, &displayParameters.theta );
-	glUniform1fv( glGetUniformLocation( simGeometryShader, "phi" ), 1, &displayParameters.phi );
-	glUniform1fv( glGetUniformLocation( simGeometryShader, "roll" ), 1, &displayParameters.roll );
+	glm::mat3 orientationMatrix;
+	orientationMatrix[ 0 ] = trident->basisX;
+	orientationMatrix[ 1 ] = trident->basisY;
+	orientationMatrix[ 2 ] = trident->basisZ;
+	glUniformMatrix3fv( glGetUniformLocation( simGeometryShader, "orientation" ), 1, GL_FALSE, glm::value_ptr( orientationMatrix ) );
 
-	float t = 0.001 * SDL_GetTicks();
+
+	const float t = 0.001f * SDL_GetTicks();
 	glUniform3f( glGetUniformLocation( simGeometryShader, "lightPos" ), 0.75 * cos( t ), 0.5, 0.75 * sin( t ) );
-
 
 	// if ( ++nodeSelect == 4 ) nodeSelect = 0;
 }
@@ -318,21 +319,21 @@ void model::updateUniforms() {
 void model::SingleThreadSoftbodyUpdate() {
 	for ( auto& n : nodes ) {
 		if ( !n.anchored ) {
-			glm::vec3 forceAccumulator = glm::vec3( 0, 0, 0 );
-			float k = 0;
-			float d = 0;
+			glm::vec3 forceAccumulator = glm::vec3( 0.0f );
+			float k = 0.0f;
+			float d = 0.0f;
 			//get your forces from all the connections - accumulate in forceAccumulator vector
 			for ( auto& e : n.edges ) {
 				switch ( e.type ) {
 					case CHASSIS:
-					k = simParameters.chassisKConstant;
-					d = simParameters.chassisDamping;
-					break;
+						k = simParameters.chassisKConstant;
+						d = simParameters.chassisDamping;
+						break;
 					case SUSPENSION:
 					case SUSPENSION1:
-					k = simParameters.suspensionKConstant;
-					d = simParameters.suspensionDamping;
-					break;
+						k = simParameters.suspensionKConstant;
+						d = simParameters.suspensionDamping;
+						break;
 					// case TIRE:
 					//tbd, maybe
 					// break;

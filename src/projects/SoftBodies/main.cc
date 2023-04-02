@@ -25,6 +25,9 @@ public:
 			simulationModel.loadFramePoints();
 			simulationModel.GPUSetup();
 			simulationModel.passNewGPUData();
+
+			// for orientaiton control
+			simulationModel.trident = &trident;
 		}
 	}
 
@@ -62,7 +65,7 @@ public:
 		// potentially doing the GPU model update here
 
 		{ // dummy draw - draw something into accumulatorTexture
-			scopedTimer Start( "Drawing" );
+			scopedTimer Start( "Draw Background" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Background" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );

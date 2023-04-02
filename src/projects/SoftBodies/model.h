@@ -96,10 +96,6 @@ struct displayParameterPack {
 	glm::vec4 groundHigh      = softbodyColors::G1;       // color of the ground at highest point
 	glm::vec4 background      = softbodyColors::BG;       // OpenGL clear color
 
-	float theta               = -0.27f;   // theta euler angle
-	float phi                 = 3.896f;   // phi euler angle
-	float roll                = -0.325f;  // additional roll parameter
-
 	float scale               = 0.4f;     // scales the frame points, about zero
 };
 
@@ -161,6 +157,8 @@ public:
 	GLuint simGeometryVBO;
 	GLuint simGeometryShader;
 	GLuint bodyPanelShader;
+
+	orientTrident * trident;
 
 private:
 	// called from loadFramePoints
