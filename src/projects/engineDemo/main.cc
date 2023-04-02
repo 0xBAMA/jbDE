@@ -1,15 +1,15 @@
-#include "../engine.h"
+#include "../../engine/engine.h"
 
-class engineChild : public engine {	// example derived class
+class engineDemo : public engineBase {	// example derived class
 public:
-	engineChild () { Init(); OnInit(); PostInit(); }
-	~engineChild () { Quit(); }
+	engineDemo () { Init(); OnInit(); PostInit(); }
+	~engineDemo () { Quit(); }
 
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
-			// currently this is mostly for feature testing in oneShot mode
-			// this will also contain application specific textures, shaders, and bindsets
+			// something to put some basic data in the accumulator texture - specific to the demo project
+			shaders[ "Dummy Draw" ] = computeShader( "./src/engine/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 		}
 	}
 
@@ -116,7 +116,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineChild engineInstance;
+	engineDemo engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }

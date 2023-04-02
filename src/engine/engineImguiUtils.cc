@@ -1,6 +1,6 @@
 #include "engine.h"
 
-void engine::QuitConf ( bool *open ) {
+void engineBase::QuitConf ( bool *open ) {
 	if ( *open ) {
 		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos( center, 0, ImVec2( 0.5f, 0.5f ) );
@@ -35,7 +35,7 @@ static void HelpMarker ( const char *desc ) {
 	}
 }
 
-void engine::DrawTextEditor () {
+void engineBase::DrawTextEditor () {
 	ZoneScoped;
 
 	ImGui::Begin( "Editor", NULL, 0 );
@@ -72,7 +72,7 @@ void engine::DrawTextEditor () {
 	ImGui::End();
 }
 
-void engine::TonemapControlsWindow () {
+void engineBase::TonemapControlsWindow () {
 	ZoneScoped;
 
 	ImGui::SetNextWindowSize( { 425, 115 } );
@@ -103,7 +103,7 @@ void engine::TonemapControlsWindow () {
 	ImGui::End();
 }
 
-void engine::ImguiFrameStart () {
+void engineBase::ImguiFrameStart () {
 	ZoneScoped;
 
 	// Start the Dear ImGui frame
@@ -112,7 +112,7 @@ void engine::ImguiFrameStart () {
 	ImGui::NewFrame();
 }
 
-void engine::ImguiFrameEnd () {
+void engineBase::ImguiFrameEnd () {
 	ZoneScoped;
 
 	// get it ready to put on the screen

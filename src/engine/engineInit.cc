@@ -1,14 +1,14 @@
 #include "engine.h"
 #include "../debug/debug.h"
 
-void engine::StartMessage () {
+void engineBase::StartMessage () {
 	ZoneScoped;
 	cout << endl << T_YELLOW << BOLD << "  jbDE - the jb Demo Engine" << newline;
 	cout << " By Jon Baker ( 2020 - 2023 ) " << RESET << newline;
 	cout << "  https://jbaker.graphics/ " << newline << newline;
 }
 
-void engine::LoadConfig () {
+void engineBase::LoadConfig () {
 	ZoneScoped;
 
 	{	Block Start( "Configuring Application" );
@@ -53,7 +53,7 @@ void engine::LoadConfig () {
 	}
 }
 
-void engine::CreateWindowAndContext () {
+void engineBase::CreateWindowAndContext () {
 	ZoneScoped;
 
 	window.config = &config;
@@ -69,7 +69,7 @@ void engine::CreateWindowAndContext () {
 }
 
 // split up into vertex, texture funcs + report platform info ( maybe do this later? )
-void engine::DisplaySetup () {
+void engineBase::DisplaySetup () {
 	ZoneScoped;
 
 	// some info on your current platform
@@ -86,7 +86,7 @@ void engine::DisplaySetup () {
 	}
 }
 
-void engine::SetupVertexData () {
+void engineBase::SetupVertexData () {
 	ZoneScoped;
 
 	{	Block Start( "Setting Up Vertex Data" );
@@ -104,7 +104,7 @@ void engine::SetupVertexData () {
 	}
 }
 
-void engine::SetupTextureData () {
+void engineBase::SetupTextureData () {
 	ZoneScoped;
 
 	{	Block Start( "Setting Up Textures" );
@@ -208,7 +208,7 @@ void engine::SetupTextureData () {
 	}
 }
 
-void engine::LoadData () {
+void engineBase::LoadData () {
 	ZoneScoped;
 
 	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
@@ -216,15 +216,12 @@ void engine::LoadData () {
 	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); /* plantWords */ }
 }
 
-void engine::ShaderCompile () {
+void engineBase::ShaderCompile () {
 	ZoneScoped;
 
 	{	Block Start( "Compiling Shaders" );
 
 		const string base( "./src/engine/shaders/" );
-
-		// something to put some basic data in the accumulator texture
-		shaders[ "Dummy Draw" ] = computeShader( base + "dummyDraw.cs.glsl" ).shaderHandle;
 
 		// tonemapping shader
 		shaders[ "Tonemap" ] = computeShader( base + "tonemap.cs.glsl" ).shaderHandle;
@@ -244,7 +241,7 @@ void engine::ShaderCompile () {
 	}
 }
 
-void engine::ImguiSetup () {
+void engineBase::ImguiSetup () {
 	ZoneScoped;
 
 	{	Block Start( "Configuring dearImGUI" );
@@ -318,7 +315,7 @@ void engine::ImguiSetup () {
 	}
 }
 
-void engine::InitialClear () {
+void engineBase::InitialClear () {
 	ZoneScoped;
 
 	{	Block Start( "Clear Buffer" );
@@ -329,7 +326,7 @@ void engine::InitialClear () {
 	}
 }
 
-void engine::ReportStartupStats () {
+void engineBase::ReportStartupStats () {
 	ZoneScoped;
 
 	cout << endl << T_CYAN << "  " << 

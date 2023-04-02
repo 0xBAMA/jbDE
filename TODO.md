@@ -144,6 +144,7 @@ This is a planning document for work on this project and in general, about the t
 		- [iq's Usful Functions](https://iquilezles.org/articles/functions/)
 		- [Easing Functions](https://easings.net/)
 	- Come up with a way to characterize the output, make sure we are getting "good" RNG
+		- do some histograms with the output, to measure
 
 - [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
 	- Point locations based on [this paper](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
@@ -223,6 +224,7 @@ This is a planning document for work on this project and in general, about the t
 		- Only include english characters, only include foreign characters, only include pictograms? something like that
 		- Make sure we have unique IDs, and Black/Whitelist certain IDs
 			- How do we maintain this if more glyphs get added? ( append only? probably best solution )
+		- Is there some way to do some kind of ML sorting on these?
 
 - Render mode control
 	- Different cameras

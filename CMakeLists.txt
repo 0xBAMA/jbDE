@@ -86,10 +86,10 @@ target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc
 # this builds the final executable(s)
 
 # base engine demo
-add_executable( exe_base
+add_executable( engineDemo
 	src/tracy/public/TracyClient.cpp
 	src/noise/perlin.cc
-	src/engine/mains/main_base.cc
+	src/projects/engineDemo/main.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
@@ -97,7 +97,7 @@ add_executable( exe_base
 	src/imageLibs/LodePNG/lodepng.cc
 )
 
-target_link_libraries( exe_base
+target_link_libraries( engineDemo
 	PUBLIC
 	imgui
 	BigInt
@@ -117,7 +117,7 @@ target_link_libraries( exe_base
 add_executable( exe_base2
 	src/tracy/public/TracyClient.cpp
 	src/noise/perlin.cc
-	src/engine/mains/main_base2.cc
+	src/projects/main_base2/main.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc

@@ -2,7 +2,7 @@
 #define ENGINE
 #include "includes.h"
 
-class engine {
+class engineBase {
 protected:
 //====== Application Handles and Basic Data ===================================
 	windowHandler window;		// OpenGL context and SDL2 window
@@ -71,6 +71,7 @@ protected:
 //====== Program Flags ========================================================
 	bool quitConfirm = false;
 	bool pQuit = false;
+
 };
 
 #endif

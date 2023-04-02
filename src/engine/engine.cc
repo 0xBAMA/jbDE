@@ -1,7 +1,7 @@
 #include "engine.h"
 
 // initialization of OpenGL, etc
-void engine::Init () {
+void engineBase::Init () {
 	ZoneScoped;
 	StartMessage();
 	LoadConfig();
@@ -15,7 +15,7 @@ void engine::Init () {
 }
 
 // after the derived class custom init
-void engine::PostInit () {
+void engineBase::PostInit () {
 	InitialClear();
 	timerQueries = &timerQueries_engine;
 	window.ShowIfNotHeadless();
@@ -23,7 +23,7 @@ void engine::PostInit () {
 }
 
 // terminate ImGUI
-void engine::ImguiQuit () {
+void engineBase::ImguiQuit () {
 	ZoneScoped;
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
@@ -31,7 +31,7 @@ void engine::ImguiQuit () {
 }
 
 // function to terminate, called from destructor
-void engine::Quit () {
+void engineBase::Quit () {
 	ZoneScoped;
 	ImguiQuit();
 	window.Kill();

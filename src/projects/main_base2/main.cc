@@ -1,6 +1,6 @@
-#include "../engine.h"
+#include "../../engine/engine.h"
 
-class engineChild : public engine {	// example derived class
+class engineChild : public engineBase {	// example derived class
 public:
 	engineChild () { Init(); OnInit(); PostInit(); }
 	~engineChild () { Quit(); }

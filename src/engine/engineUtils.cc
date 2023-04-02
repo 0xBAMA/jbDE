@@ -1,6 +1,6 @@
 #include "engine.h"
 
-void engine::ClearColorAndDepth () {
+void engineBase::ClearColorAndDepth () {
 	ZoneScoped; scopedTimer( "Clear Color and Depth" );
 
 	// clear the screen
@@ -14,7 +14,7 @@ void engine::ClearColorAndDepth () {
 	glViewport( 0, 0, width > 0 ? width : config.width, height > 0 ? height : config.height ); // should this be elsewhere?
 }
 
-void engine::SendTonemappingParameters () {
+void engineBase::SendTonemappingParameters () {
 	ZoneScoped;
 	
 	static float prevColorTemperature = 0.0f;
@@ -30,7 +30,7 @@ void engine::SendTonemappingParameters () {
 	glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
 }
 
-void engine::BlitToScreen () {
+void engineBase::BlitToScreen () {
 	ZoneScoped; scopedTimer Start( "Blit to Screen" );
 
 	// display current state of the display texture - there are more efficient ways to do this, look into it
@@ -43,7 +43,7 @@ void engine::BlitToScreen () {
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
 
-void engine::HandleTridentEvents () {
+void engineBase::HandleTridentEvents () {
 	ZoneScoped; scopedTimer Start( "HandleTridentEvents" );
 
 	if ( !ImGui::GetIO().WantCaptureKeyboard ) {
@@ -86,7 +86,7 @@ void engine::HandleTridentEvents () {
 	}
 }
 
-void engine::HandleQuitEvents () {
+void engineBase::HandleQuitEvents () {
 	ZoneScoped; scopedTimer Start( "HandleQuitEvents" );
 	//==============================================================================
 	// Need to keep this for pQuit handling ( force quit )
@@ -108,7 +108,7 @@ void engine::HandleQuitEvents () {
 }
 
 // for next frame's LegitProfiler data
-void engine::PrepareProfilingData () {
+void engineBase::PrepareProfilingData () {
 	timerQueries_engine.gather();
 
 	// get rid of last frame's prepared task data
