@@ -64,6 +64,8 @@ This is a planning document for work on this project and in general, about the t
 
 --------------------------------------------------------------------------------------------------
 
+- [Windows Screenshot Tool](https://getsharex.com/)
+
 - General Engine Stuff
 	- jbDE child applications
 		- Vertexture
@@ -286,6 +288,9 @@ This is a planning document for work on this project and in general, about the t
 ### [Articles](https://jbaker.graphics/writings)
 
 #### Keeping up with projects as they happen, so they don't pile up again
+
+- Web Design stuff
+	- [Prevent Default](https://event.preventdefault.net/)
 
 --------------------------------------------------------------------------------------------------
 
