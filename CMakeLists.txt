@@ -80,21 +80,27 @@ add_library( STB_ImageUtilsWrapper src/utils/imageLibs/stb/impl.cc )
 
 add_library( TinyOBJLoader src/utils/ModelLoading/TinyOBJLoader/tiny_obj_loader.cc )
 
+add_library( LodePNG src/utils/imageLibs/LodePNG/lodepng.cc )
+
+add_library( Perlin src/utils/noise/perlin.cc )
+
+# add_library( Tracy src/utils/tracy/public/TracyClient.cpp ) # not sure what state this is in right now, can't build the server application because of some freetype dependency
+
 add_library( CompilerFlags INTERFACE )
 target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc++fs -lSDL2 -ldl -Wno-maybe-uninitialized -Wno-unused-function ) # suppresses warnings for Tracy
 
 # this builds the final executable(s)
+# probably some room for optimization here, there's a lot of redundant work happening in this last stage
 
+# =================================================================================================
 # base engine demo
+# =================================================================================================
 add_executable( engineDemo
-	src/utils/tracy/public/TracyClient.cpp
-	src/utils/noise/perlin.cc
 	src/projects/engineDemo/main.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
 	src/engine/engineImguiUtils.cc
-	src/utils/imageLibs/LodePNG/lodepng.cc
 )
 
 target_link_libraries( engineDemo
@@ -108,22 +114,23 @@ target_link_libraries( engineDemo
 	STB_ImageUtilsWrapper
 	stdc++fs
 	FastNoise
+	Perlin
 	Tracy::TracyClient
 	TinyOBJLoader
+	LodePNG
 	CompilerFlags
 )
 
+# =================================================================================================
 # SoftBodies
+# =================================================================================================
 add_executable( SoftBodies
-	src/utils/tracy/public/TracyClient.cpp
-	src/utils/noise/perlin.cc
 	src/projects/SoftBodies/main.cc
 	src/projects/SoftBodies/model.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
 	src/engine/engineImguiUtils.cc
-	src/utils/imageLibs/LodePNG/lodepng.cc
 )
 
 target_link_libraries( SoftBodies
@@ -137,7 +144,37 @@ target_link_libraries( SoftBodies
 	STB_ImageUtilsWrapper
 	stdc++fs
 	FastNoise
+	Perlin
 	Tracy::TracyClient
 	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
+# =================================================================================================
+# Vertexture
+# =================================================================================================
+add_executable( Vertexture
+	src/projects/Vertexture/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( Vertexture
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
 	CompilerFlags
 )
