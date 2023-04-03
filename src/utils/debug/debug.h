@@ -13,26 +13,32 @@ void GLAPIENTRY MessageCallback ( 	GLenum source,
 						GLsizei length,
 						const GLchar* message,
 						const void* userParam ) {
-	bool show_high_severity         = true;
-	if( severity == GL_DEBUG_SEVERITY_HIGH && show_high_severity )
-		fprintf( stderr, "        GL CALLBACK: %s type = 0x%x, severity = GL_DEBUG_SEVERITY_HIGH, message = %s\n",
-			( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, message );
 
-	bool show_medium_severity       = true;
-	if( severity == GL_DEBUG_SEVERITY_MEDIUM && show_medium_severity )
-		fprintf( stderr, "        GL CALLBACK: %s type = 0x%x, severity = GL_DEBUG_SEVERITY_MEDIUM, message = %s\n",
-			( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, message );
+	const bool show_high_severity = true;
+	const bool show_medium_severity = true;
+	const bool show_low_severity = true;
+	const bool show_notification_severity = false;
 
-	bool show_low_severity          = true;
-	if( severity == GL_DEBUG_SEVERITY_LOW && show_low_severity )
-		fprintf( stderr, "        GL CALLBACK: %s type = 0x%x, severity = GL_DEBUG_SEVERITY_LOW, message = %s\n",
-			( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, message );
+	const char* errorText = ( type == GL_DEBUG_TYPE_ERROR ) ? "** GL ERROR **" : "";
 
-	bool show_notification_severity = false;
-	if( severity == GL_DEBUG_SEVERITY_NOTIFICATION && show_notification_severity )
-		fprintf( stderr, "        GL CALLBACK: %s type = 0x%x, severity = GL_DEBUG_SEVERITY_NOTIFICATION, message = %s\n",
-			( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, message );
-
+	switch ( severity ) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			if ( show_high_severity )
+				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = HIGH, message = %s\n", errorText, type, message );
+			break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			if ( show_medium_severity )
+				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = MEDIUM, message = %s\n", errorText, type, message );
+			break;
+		case GL_DEBUG_SEVERITY_LOW:
+			if ( show_low_severity )
+				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = LOW, message = %s\n", errorText, type, message );
+			break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			if ( show_notification_severity )
+				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = NOTIFICATION, message = %s\n", errorText, type, message );
+			break;
+	}
 	SDL_Delay( numMsDelayAfterCallback ); // hang a short time so the spew doesn't make it impossible to get back to the error
 }
 
