@@ -9,8 +9,8 @@ public:
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Vertexture/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-			
+			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+
 		}
 	}
 
@@ -21,16 +21,15 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		TonemapControlsWindow();
 
-		static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
-		profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
-		profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
-		profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+		if ( showProfiler ) {
+			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
+			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
+			profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
+			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
-
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void DrawAPIGeometry () {
@@ -44,7 +43,7 @@ public:
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
+			glUseProgram( shaders[ "Background" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -57,12 +56,6 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );

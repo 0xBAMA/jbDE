@@ -22,10 +22,12 @@ public:
 		ZoneScoped;
 		TonemapControlsWindow();
 
-		static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
-		profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
-		profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
-		profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+		if ( showProfiler ) {
+			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
+			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
+			profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
+			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
+		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 

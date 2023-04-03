@@ -90,7 +90,7 @@ add_library( CompilerFlags INTERFACE )
 target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc++fs -lSDL2 -ldl -Wno-maybe-uninitialized -Wno-unused-function ) # suppresses warnings for Tracy
 
 # this builds the final executable(s)
-# probably some room for optimization here, there's a lot of redundant work happening in this last stage
+# probably some room for optimization here, there's a lot of redundant work happening in this last stage ( create library from engine cc files? )
 
 # =================================================================================================
 # base engine demo

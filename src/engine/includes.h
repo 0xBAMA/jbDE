@@ -59,6 +59,7 @@ using glm::mat3;
 using glm::mat4;
 
 // OpenGL Function Loader
+#define GLEW_STATIC // found this in the old Vertexture code... is this something useful?
 #include <GL/glew.h>
 
 // GUI library (dear ImGUI)
