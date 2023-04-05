@@ -24,19 +24,19 @@ void GLAPIENTRY MessageCallback ( 	GLenum source,
 	switch ( severity ) {
 		case GL_DEBUG_SEVERITY_HIGH:
 			if ( show_high_severity )
-				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = HIGH, message = %s\n", errorText, type, message );
+				fprintf( stderr, "\t GL CALLBACK: %s type: 0x%x, severity: HIGH, message: %s\n", errorText, type, message );
 			break;
 		case GL_DEBUG_SEVERITY_MEDIUM:
 			if ( show_medium_severity )
-				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = MEDIUM, message = %s\n", errorText, type, message );
+				fprintf( stderr, "\t GL CALLBACK: %s type: 0x%x, severity: MEDIUM, message: %s\n", errorText, type, message );
 			break;
 		case GL_DEBUG_SEVERITY_LOW:
 			if ( show_low_severity )
-				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = LOW, message = %s\n", errorText, type, message );
+				fprintf( stderr, "\t GL CALLBACK: %s type: 0x%x, severity: LOW, message: %s\n", errorText, type, message );
 			break;
 		case GL_DEBUG_SEVERITY_NOTIFICATION:
 			if ( show_notification_severity )
-				fprintf( stderr, "\t GL CALLBACK: %s type = 0x%x, severity = NOTIFICATION, message = %s\n", errorText, type, message );
+				fprintf( stderr, "\t GL CALLBACK: %s type: 0x%x, severity: NOTIFICATION, message: %s\n", errorText, type, message );
 			break;
 	}
 	SDL_Delay( numMsDelayAfterCallback ); // hang a short time so the spew doesn't make it impossible to get back to the error

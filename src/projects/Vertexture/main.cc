@@ -1,16 +1,26 @@
 #include "../../engine/engine.h"
+#include "vertextureModels.h"
 
 class engineDemo : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
+	engineDemo ( vertextureConfig set ) : gameConfig( set ) { Init(); OnInit(); PostInit(); }
 	~engineDemo () { Quit(); }
+
+	vertextureConfig gameConfig;
+
+	GroundModel * ground;
 
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
+			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 
+			// bindsets for the models
+
+			// initialize game stuff
+			ground = new GroundModel( shaders[ "Ground" ] );
 		}
 	}
 
@@ -21,6 +31,9 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
+
+		// imgui control panel is going to be a big upgrade
+			// also provides a place to show the eventReports
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
@@ -35,6 +48,7 @@ public:
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 		// draw some shit
+		ground->Display();
 	}
 
 	void ComputePasses () {
@@ -48,14 +62,14 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-			scopedTimer Start( "Postprocess" );
-			bindSets[ "Postprocessing" ].apply();
-			glUseProgram( shaders[ "Tonemap" ] );
-			SendTonemappingParameters();
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
+		// { // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
+		// 	scopedTimer Start( "Postprocess" );
+		// 	bindSets[ "Postprocessing" ].apply();
+		// 	glUseProgram( shaders[ "Tonemap" ] );
+		// 	SendTonemappingParameters();
+		// 	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// }
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
@@ -78,10 +92,10 @@ public:
 
 	void OnRender () {
 		ZoneScoped;
-		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
-		ComputePasses();			// multistage update of displayTexture
+		ClearColorAndDepth();
+		ComputePasses();			// draw the background
 		BlitToScreen();				// fullscreen triangle copying to the screen
+		DrawAPIGeometry();			// draw the API geometry - this is drawn over the background
 		{
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
@@ -97,9 +111,8 @@ public:
 		// event handling
 		HandleTridentEvents();
 		HandleCustomEvents();
-		HandleQuitEvents();
+		HandleQuitEvents(); // may have to skip this, tbd - I want to use keydown events to trigger behavior
 
-		// derived-class-specific functionality
 		OnUpdate();
 		OnRender();
 
@@ -110,7 +123,19 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	vertextureConfig config;
+	if ( argc == 5 ) {
+		// cout << argv[0] << endl; // name of application
+		config.numGoodGuys	= atoi( argv[ 1 ] );
+		config.numBadGuys	= atoi( argv[ 2 ] );
+		config.numTrees		= atoi( argv[ 3 ] );
+		config.numBoxes		= atoi( argv[ 4 ] );
+	} else {
+		cout << "Incorrect # of command line args" << endl;
+		cout << "  Game parameters defaulting" << endl;
+	}
+
+	engineDemo engineInstance ( config );
 	while( !engineInstance.MainLoop() );
 	return 0;
 }

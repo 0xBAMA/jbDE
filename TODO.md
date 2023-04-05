@@ -91,18 +91,6 @@ This is a planning document for work on this project and in general, about the t
 		- Some kind of timeline tool? Like what they do for demoscene stuff, sometimes, that could be a cool tool to try to write
 			- Maybe part of the SDF validation tool
 
-- Extending config.json
-	- Lessons learned while doing the config.json for jbDE, window size, etc
-		- It's great, skip having to rebuild on any minor parameter change
-		- How to manage this once we have multiple sub-projects in the jbDE repo?
-		- oneShot is a big one - really interesting recontextualization of what we're doing here
-			- Ability to use engine for tasks which are not specifically realtime- or offline-rendering focused
-				- Data processing, which runs once
-				- Image manipulation
-	- Would startup arguments be useful?
-		- Not sure, Windows turns everything I'm used to being easy on Linux into a pain in the ass
-		- CLI as second class citizen on Windows, not a fan of how that works
-
 - Texture wrapper? At least a function - something to make the declaration of textures cleaner
 	- I can do something that just returns a GLuint, because that's how I'm using it now
 
