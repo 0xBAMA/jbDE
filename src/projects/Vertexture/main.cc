@@ -21,6 +21,13 @@ public:
 
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
+
+			// default orientation
+			trident.basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
+			trident.basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
+			trident.basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
+
+
 		}
 	}
 
@@ -47,6 +54,13 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
+
+		ground->tridentRotation = glm::mat3(
+			trident.basisX,
+			trident.basisY,
+			trident.basisZ
+		);
+
 		// draw some shit
 		ground->Display();
 	}

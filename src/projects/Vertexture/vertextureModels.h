@@ -137,6 +137,7 @@ struct GroundModel {
 
 	}
 
+	glm::mat3 tridentRotation;
 	void Display ( bool selectMode = false ) {
 		// glClearColor( 0, 0, 0, 0 );
 		// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -151,9 +152,13 @@ struct GroundModel {
 		glActiveTexture( GL_TEXTURE0 + 0 ); // Texture unit 0
 		glBindTexture( GL_TEXTURE_2D, heightmap );
 
+		cout << glm::to_string(tridentRotation[ 0 ]) << " " << glm::to_string(tridentRotation[ 1 ]) << " " << glm::to_string(tridentRotation[ 2 ]) << newline;
+
 		glUniform1f( glGetUniformLocation( shader, "time" ), time );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 0 );
+		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ), 1, GL_FALSE, glm::value_ptr( tridentRotation ) );
+
 
 		glDrawArrays( GL_TRIANGLES, 0, numPoints );
 	}
