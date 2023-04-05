@@ -54,6 +54,9 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
+		glActiveTexture( GL_TEXTURE0 + 0 ); // Texture unit 0
+		glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
@@ -62,14 +65,14 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// { // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-		// 	scopedTimer Start( "Postprocess" );
-		// 	bindSets[ "Postprocessing" ].apply();
-		// 	glUseProgram( shaders[ "Tonemap" ] );
-		// 	SendTonemappingParameters();
-		// 	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		// }
+		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
+			scopedTimer Start( "Postprocess" );
+			bindSets[ "Postprocessing" ].apply();
+			glUseProgram( shaders[ "Tonemap" ] );
+			SendTonemappingParameters();
+			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );

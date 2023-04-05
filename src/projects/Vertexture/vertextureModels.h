@@ -138,8 +138,10 @@ struct GroundModel {
 	}
 
 	void Display ( bool selectMode = false ) {
-		glClearColor( 0, 0, 0, 0 );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		// glClearColor( 0, 0, 0, 0 );
+		// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+		float time = TotalTime() / 10000.0f;
 
 		glBindVertexArray( vao );
 		glUseProgram( shader );
@@ -149,6 +151,7 @@ struct GroundModel {
 		glActiveTexture( GL_TEXTURE0 + 0 ); // Texture unit 0
 		glBindTexture( GL_TEXTURE_2D, heightmap );
 
+		glUniform1f( glGetUniformLocation( shader, "time" ), time );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 0 );
 

@@ -7,9 +7,7 @@ in vec3 vPosition;
 
 out vec3 color;
 uniform sampler2D heightmap;
-
-// for later
-// uniform float time;
+uniform float time;
 
 mat4 RotationMatrix ( vec3 axis, float angle ) {
 	axis = normalize( axis );
@@ -27,11 +25,15 @@ void main() {
 	vec4 tRead = texture( heightmap, vPosition.xy / ( 1.618f * 2.0f ) );
 
 	color = vec3( tRead.r );
-	color.r *= 0.4f;
+	color.r *= 0.7f;
 	color.g *= 0.5f;
 	color.b *= 0.4f;
 
-	vec3 vPosition_local = ( RotationMatrix(vec3(0.0f, 1.0f, 0.0f), 0.25) * RotationMatrix(vec3(1.0f, 0.0f, 0.0f), 2.15) * RotationMatrix(vec3(0.0f, 0.0f, 1.0f), 0.5 ) * vec4( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.2f ), 1.0f ) ).xyz;
+	vec3 vPosition_local = ( // I don't like this, move it to the CPU
+		RotationMatrix( vec3( 0.0f, 1.0f, 0.0f ), 0.25f + cos( time ) * 0.1f ) *
+		RotationMatrix( vec3( 1.0f, 0.0f, 0.0f ), 2.15f ) *
+		RotationMatrix( vec3( 0.0f, 0.0f, 1.0f ), 0.5f + sin( time ) * 0.3f ) *
+		vec4( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.3f - 0.15f ), 1.0f ) ).xyz;
 
-	gl_Position = vec4( vPosition_local * vec3( 1.0f, AR, 1.0f ) * 0.2f, 1.0f );
+	gl_Position = vec4( vPosition_local * vec3( 1.0f, AR, 1.0f ) * 0.4f, 1.0f );
 }
