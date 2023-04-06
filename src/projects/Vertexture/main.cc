@@ -26,6 +26,7 @@ public:
 			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
 			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
+			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
 
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
@@ -34,10 +35,7 @@ public:
 			skirts = new SkirtsModel();
 
 			sphere = new SphereModel( shaders[ "Sphere" ] );
-
-			water = new WaterModel();
-
-
+			water = new WaterModel( shaders[ "Water" ] );
 
 
 		}
@@ -70,8 +68,8 @@ public:
 		ImGuiIO &io = ImGui::GetIO();
 		const float width = io.DisplaySize.x;
 		const float height = io.DisplaySize.y;
-		sphere->screenAR = ground->screenAR = width / height;
-		sphere->tridentM = ground->tridentM = glm::mat3(
+		water->screenAR = sphere->screenAR = ground->screenAR = width / height;
+		water->tridentM = sphere->tridentM = ground->tridentM = glm::mat3(
 			trident.basisX,
 			trident.basisY,
 			trident.basisZ
@@ -88,7 +86,7 @@ public:
 		ZoneScoped;
 
 		{ // dummy draw - draw something into accumulatorTexture
-			scopedTimer Start( "Drawing" );
+			scopedTimer Start( "Background" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Background" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
