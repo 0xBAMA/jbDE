@@ -9,23 +9,35 @@ public:
 	vertextureConfig gameConfig;
 
 	GroundModel * ground;
+	SkirtsModel * skirts;
+	SphereModel * sphere;
+	WaterModel * water;
 
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
-			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
-			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
-
-			// bindsets for the models
-
-			// initialize game stuff
-			ground = new GroundModel( shaders[ "Ground" ] );
 
 			// default orientation
 			trident.basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
 			trident.basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
 			trident.basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
+
+			// something to put some basic data in the accumulator
+			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
+			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
+			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
+
+			// initialize game stuff
+			ground = new GroundModel( shaders[ "Ground" ] );
+			textures[ "Ground" ] = ground->heightmap;
+
+			skirts = new SkirtsModel();
+
+			sphere = new SphereModel( shaders[ "Sphere" ] );
+
+			water = new WaterModel();
+
+
 
 
 		}
@@ -55,7 +67,11 @@ public:
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 
-		ground->tridentRotation = glm::mat3(
+		ImGuiIO &io = ImGui::GetIO();
+		const float width = io.DisplaySize.x;
+		const float height = io.DisplaySize.y;
+		sphere->screenAR = ground->screenAR = width / height;
+		sphere->tridentM = ground->tridentM = glm::mat3(
 			trident.basisX,
 			trident.basisY,
 			trident.basisZ
@@ -63,13 +79,13 @@ public:
 
 		// draw some shit
 		ground->Display();
+		skirts->Display();
+		sphere->Display();
+		water->Display();
 	}
 
 	void ComputePasses () {
 		ZoneScoped;
-
-		glActiveTexture( GL_TEXTURE0 + 0 ); // Texture unit 0
-		glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
 
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
@@ -105,6 +121,12 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 		// application-specific update code
+		static int counter = 0;
+		counter++;
+		ground->Update( counter );
+		skirts->Update( counter );
+		sphere->Update( counter );
+		water->Update( counter );
 	}
 
 	void OnRender () {

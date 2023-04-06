@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1920,
-	"screenHeight":1080,
+	"screenWidth":1400,
+	"screenHeight":1400,
 	"windowOffset":{
 		"x":300,
 		"y":200

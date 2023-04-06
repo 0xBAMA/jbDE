@@ -23,7 +23,10 @@ inline float Remap ( float value, float from1, float to1, float from2, float to2
 // 	glm::uvec3 sColor;	// interpolated selection color
 // };
 
+constexpr float globalScale = 1.618f;
 
+//=====================================================================================================================
+//===== Ground ========================================================================================================
 // subdivided quad, displaced in the vertex shader
 struct GroundModel {
 	GLuint vao, vbo;
@@ -31,9 +34,8 @@ struct GroundModel {
 
 	GLuint heightmap;
 
-	float screenAR = 16.0f / 9.0f;
-
-	const float scale = 1.618f;
+	float screenAR;
+	const float scale = globalScale;
 	int numPoints = 0;
 
 	// void subdivide ( std::vector<groundPt> &world, std::vector<glm::vec3> points ) {
@@ -42,12 +44,11 @@ struct GroundModel {
 		if ( glm::distance( points[ 0 ], points[ 2 ] ) < minDisplacement ) {
 			// corner-to-corner distance is small, time to write API geometry
 
-			glm::uvec3 A = { uint32_t( Remap( points[ 0 ].x, -scale, scale, 0.0f, 255.0f ) ), uint32_t( Remap( points[ 0 ].y, -scale, scale, 0.0f, 255.0f ) ), 0 };
-			glm::uvec3 B = { uint32_t( Remap( points[ 1 ].x, -scale, scale, 0.0f, 255.0f ) ), uint32_t( Remap( points[ 1 ].y, -scale, scale, 0.0f, 255.0f ) ), 0 };
-			glm::uvec3 C = { uint32_t( Remap( points[ 2 ].x, -scale, scale, 0.0f, 255.0f ) ), uint32_t( Remap( points[ 2 ].y, -scale, scale, 0.0f, 255.0f ) ), 0 };
-			glm::uvec3 D = { uint32_t( Remap( points[ 3 ].x, -scale, scale, 0.0f, 255.0f ) ), uint32_t( Remap( points[ 3 ].y, -scale, scale, 0.0f, 255.0f ) ), 0 };
+			// glm::vec3 A = { Remap( points[ 0 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 0 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
+			// glm::vec3 B = { Remap( points[ 1 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 1 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
+			// glm::vec3 C = { Remap( points[ 2 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 2 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
+			// glm::vec3 D = { Remap( points[ 3 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 3 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
 
-		// TODO: REVISE BASED ON ORIENTATION CHANGE, IF NEEDED
 			//	A ( 0 )	@=======@ B ( 1 )
 			//			|      /|
 			//			|     / |
@@ -122,7 +123,7 @@ struct GroundModel {
 
 		Image_4U heightmapImage( "./src/projects/Vertexture/textures/rock_height.png" );
 		glGenTextures( 1, &heightmap );
-		glActiveTexture( GL_TEXTURE0 + 0 ); // Texture unit 0
+		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
 		glBindTexture( GL_TEXTURE_2D, heightmap );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -137,55 +138,38 @@ struct GroundModel {
 
 	}
 
-	glm::mat3 tridentRotation;
+	glm::mat3 tridentM;
 	void Display ( bool selectMode = false ) {
 		// glClearColor( 0, 0, 0, 0 );
 		// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-		float time = TotalTime() / 10000.0f;
 
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
 		glEnable( GL_DEPTH_TEST );
 
-		glActiveTexture( GL_TEXTURE0 + 0 ); // Texture unit 0
-		glBindTexture( GL_TEXTURE_2D, heightmap );
-
-		cout << glm::to_string(tridentRotation[ 0 ]) << " " << glm::to_string(tridentRotation[ 1 ]) << " " << glm::to_string(tridentRotation[ 2 ]) << newline;
-
-		glUniform1f( glGetUniformLocation( shader, "time" ), time );
+		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
-		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 0 );
-		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ), 1, GL_FALSE, glm::value_ptr( tridentRotation ) );
-
+		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
+		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
+			1, GL_FALSE, glm::value_ptr( tridentM ) );
 
 		glDrawArrays( GL_TRIANGLES, 0, numPoints );
 	}
 };
 
-// point rendering, for gameplay entities
-struct DudesAndTreesModel {
-	GLuint vao, vbo;
-
-	DudesAndTreesModel () {
-
-	}
-
-	void Update ( int t ) {
-
-	}
-
-	void Display () {
-
-	}
-};
-
+//=====================================================================================================================
+//===== Skirts ========================================================================================================
 // sideskirts for the groundModel
-struct SkirtModel {
+struct SkirtsModel {
 	GLuint vao, vbo;
+	GLuint shader;
 
-	SkirtModel () {
+	float screenAR;
+	const float scale = globalScale;
+	int numPoints = 0;
+
+	SkirtsModel () {
 
 	}
 
@@ -193,23 +177,107 @@ struct SkirtModel {
 
 	}
 
+	glm::mat3 tridentM;
 	void Display () {
 
 	}
 };
 
+//=====================================================================================================================
+//===== Sphere ========================================================================================================
+// point rendering, for gameplay entities
+struct SphereModel {
+	GLuint vao, vbo;
+	GLuint shader;
+	GLuint sphereImage;
+
+	float screenAR;
+	const float scale = globalScale;
+	int numStaticPoints = 0;
+
+	SphereModel ( GLuint sIn ) : shader( sIn ) {
+
+		// blah blah points blah blah
+		std::vector<glm::vec3> points;
+
+		for ( float y = -1.0f; y < 1.0f; y += 0.1618f ) {
+			for ( float x = -1.0f; x < 1.0f; x += 0.1618f ) {
+				points.push_back( glm::vec3( x, y, 0.0f ) );
+			}
+		}
+
+		glGenVertexArrays( 1, &vao );
+		glBindVertexArray( vao );
+		glGenBuffers( 1, &vbo );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo );
+		numStaticPoints = points.size();
+		size_t numBytesPoints = sizeof( glm::vec3 ) * numStaticPoints;
+		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
+
+		// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
+			// the texture for the height, and then they
+
+		GLuint vPosition = glGetAttribLocation( shader, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
+
+		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
+		glGenTextures( 1, &sphereImage );
+		glActiveTexture( GL_TEXTURE10 ); // Texture unit 9
+		glBindTexture( GL_TEXTURE_2D, sphereImage );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+
+	}
+
+	void Update ( int t ) {
+
+	}
+
+	glm::mat3 tridentM;
+	void Display () {
+		glBindVertexArray( vao );
+		glUseProgram( shader );
+
+		glEnable( GL_DEPTH_TEST );
+		glPointSize( 24.0f );
+
+		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
+		glUniform1i( glGetUniformLocation( shader, "sphere" ), 10 );
+		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
+			1, GL_FALSE, glm::value_ptr( tridentM ) );
+
+		glDrawArrays( GL_POINTS, 0, numStaticPoints );
+	}
+};
+
+//=====================================================================================================================
+//===== Water =========================================================================================================
 // textured, transparent quad to represent the water
 struct WaterModel {
 	GLuint vao, vbo;
+	GLuint shader;
+
+	float screenAR;
+	const float scale = globalScale;
+	int numPoints = 0;
 
 	WaterModel () {
 
 	}
 
 	void Update ( int t ) {
-
+		SDL_Delay( 1 );
 	}
 
+	glm::mat3 tridentM;
 	void Display () {
 
 	}
