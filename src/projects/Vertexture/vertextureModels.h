@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include "../../../../src/engine/coreUtils/random.h"
 
 struct vertextureConfig {
 	int numGoodGuys = 10;
@@ -195,23 +196,35 @@ struct SphereModel {
 	const float scale = globalScale;
 	int numStaticPoints = 0;
 
+
 	SphereModel ( GLuint sIn ) : shader( sIn ) {
 
-		// blah blah points blah blah
-		std::vector<glm::vec3> points;
+		rng gen( 0.3f, 1.2f );
+		rng genP( 1.0f, 3.0f );
+		rng genD( -1.4f, 1.4f );
+		rngi flip( -1, 1 );
 
-		for ( float y = -1.0f; y < 1.0f; y += 0.1618f ) {
-			for ( float x = -1.0f; x < 1.0f; x += 0.1618f ) {
-				points.push_back( glm::vec3( x, y, 0.0f ) );
+		std::vector<glm::vec4> points;
+
+		for ( float y = -1.0f; y < 1.0f; y += 0.01618f ) {
+			for ( float x = -1.0f; x < 1.0f; x += 0.01618f ) {
+				// points.push_back( glm::vec4( x, y, 0.0f, gen() ) );
+				points.push_back( glm::vec4( genD(), genD(), 0.0f, genP() ) );
 			}
 		}
+
+		for ( int i = 0; i < 1000000; i++ ) {
+			points.push_back( glm::vec4( gen() * flip(), gen() * flip(), gen(), genP() ) );
+		}
+
+		cout << "points.size() is " << points.size() << newline;
 
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		numStaticPoints = points.size();
-		size_t numBytesPoints = sizeof( glm::vec3 ) * numStaticPoints;
+		size_t numBytesPoints = sizeof( glm::vec4 ) * numStaticPoints;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
 
@@ -220,7 +233,7 @@ struct SphereModel {
 
 		GLuint vPosition = glGetAttribLocation( shader, "vPosition" );
 		glEnableVertexAttribArray( vPosition );
-		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
 		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );
@@ -245,6 +258,8 @@ struct SphereModel {
 		glUseProgram( shader );
 
 		glEnable( GL_DEPTH_TEST );
+		glEnable( GL_PROGRAM_POINT_SIZE );
+
 		glPointSize( 24.0f );
 
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );

@@ -1,20 +1,18 @@
 #version 430
 
-in vec3 color;
 out vec4 glFragColor;
+
+in float radius;
 
 uniform sampler2D sphere;
 
 void main() {
 
-
 	vec4 tRead = texture( sphere, gl_PointCoord.xy );
-
 	if ( tRead.x < 0.05f ) discard;
 
+	gl_FragDepth = gl_FragCoord.z - ( ( radius / 1400.0f ) * tRead.x );
 	glFragColor = vec4( tRead.xyz, 1.0f );
-
-	gl_FragDepth = gl_FragCoord.z - 0.05f * tRead.x;
 
 
 
