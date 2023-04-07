@@ -16,10 +16,11 @@ out float height;
 
 void main() {
 
-	radius = gl_PointSize = vPosition.a;
 
 	vec4 tRead = texture( heightmap, vPosition.xy / ( 1.618f * 2.0f ) );
 	height = tRead.r * 0.4f - 0.2f;
+
+	radius = gl_PointSize = vPosition.a + height * 3.0f;
 
 	// gl_PointSize *= 1.0f + 2.0f * clamp( 0.7f, 1.0f, 2.5f * tRead.r - 2.0f );
 

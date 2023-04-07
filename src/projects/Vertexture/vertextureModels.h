@@ -196,6 +196,7 @@ struct SphereModel {
 	SphereModel ( GLuint sIn ) : shader( sIn ) {
 
 		rng gen( 0.3f, 1.2f );
+		rng genH( 0.0f, 0.1618f );
 		rng genP( 1.0f, 6.0f );
 		rng genD( -scale, scale );
 		rngi flip( -1, 1 );
@@ -209,9 +210,9 @@ struct SphereModel {
 		// 	}
 		// }
 
-		for ( int i = 0; i < 30000; i++ ) {
+		for ( int i = 0; i < 50000; i++ ) {
 			// points.push_back( glm::vec4( genD(), genD(), gen(), genP() * gen() ) );
-			points.push_back( glm::vec4( genD(), genD(), 0.0f, genP() * gen() ) );
+			points.push_back( glm::vec4( genD(), genD(), genH(), genP() * gen() ) );
 		}
 
 

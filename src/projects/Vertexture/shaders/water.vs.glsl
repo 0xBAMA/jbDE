@@ -17,15 +17,11 @@ uniform mat3 trident;
 
 void main() {
 
-	const vec2 texCoord = vPosition.xy / ( 1.618f * 2.0f );
+	// const vec2 texCoord = ( vPosition.xy / ( 1.618f * 2.0f ) ) * 7.0f + vec2( 0.08f * time );
+	const vec2 texCoord = ( vPosition.xy / ( 1.618f * 2.0f ) ) + vec2( 0.08f * time );
 	vec4 cRead = texture( colorMap, texCoord );
 	vec4 nRead = texture( normalMap, texCoord );
 	vec4 hRead = texture( heightMap, texCoord );
-
-	// color = vec3( hRead.r );
-	// color.r *= 0.7f;
-	// color.g *= 0.5f;
-	// color.b *= 0.4f;
 
 	color = cRead.xyz / 2.0f;
 	normal = nRead.xyz;
