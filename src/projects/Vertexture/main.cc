@@ -34,7 +34,7 @@ public:
 			textures[ "Ground" ] = ground->heightmap;
 
 			skirts = new SkirtsModel( shaders[ "Skirts" ] );
-			sphere = new SphereModel( shaders[ "Sphere" ] );
+			sphere = new SphereModel( shaders[ "Sphere" ], gameConfig.numTrees );
 			water = new WaterModel( shaders[ "Water" ] );
 
 		}

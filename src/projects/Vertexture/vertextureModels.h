@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include "../../../../src/engine/coreUtils/random.h"
+#include "../../../../src/data/colors.h"
 
 struct vertextureConfig {
 	int numGoodGuys = 10;
@@ -172,9 +173,9 @@ struct SkirtsModel {
 
 		basePoints.resize( 4 );
 		basePoints[ 0 ] = glm::vec3( -scale, -scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.0f );
+		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.5f );
 		basePoints[ 2 ] = glm::vec3(  scale, -scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3(  scale, -scale, -1.0f );
+		basePoints[ 3 ] = glm::vec3(  scale, -scale, -1.5f );
 
 		// triangle 1 ABC
 		world.push_back( basePoints[ 0 ] );
@@ -186,9 +187,9 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 3 ] );
 
 		basePoints[ 0 ] = glm::vec3( -scale, -scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.0f );
+		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.5f );
 		basePoints[ 2 ] = glm::vec3( -scale,  scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.0f );
+		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 2 ] );
@@ -198,9 +199,9 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 3 ] );
 
 		basePoints[ 0 ] = glm::vec3(  scale, -scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3(  scale, -scale, -1.0f );
+		basePoints[ 1 ] = glm::vec3(  scale, -scale, -1.5f );
 		basePoints[ 2 ] = glm::vec3(  scale,  scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3(  scale,  scale, -1.0f );
+		basePoints[ 3 ] = glm::vec3(  scale,  scale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -210,9 +211,9 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 3 ] );
 
 		basePoints[ 0 ] = glm::vec3(  scale,  scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3(  scale,  scale, -1.0f );
+		basePoints[ 1 ] = glm::vec3(  scale,  scale, -1.5f );
 		basePoints[ 2 ] = glm::vec3( -scale,  scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.0f );
+		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -269,8 +270,9 @@ struct SphereModel {
 	const float scale = globalScale;
 	int numStaticPoints = 0;
 
+	uint32_t numTrees;
 
-	SphereModel ( GLuint sIn ) : shader( sIn ) {
+	SphereModel ( GLuint sIn, uint32_t nTrees ) : shader( sIn ), numTrees( nTrees ) {
 
 		rng gen( 0.3f, 1.2f );
 		rng genH( 0.0f, 0.1618f );
@@ -279,6 +281,7 @@ struct SphereModel {
 		rngi flip( -1, 1 );
 
 		std::vector<glm::vec4> points;
+		std::vector<glm::vec4> colors;
 
 		// for ( float y = -1.0f; y < 1.0f; y += 0.01618f ) {
 		// 	for ( float x = -1.0f; x < 1.0f; x += 0.01618f ) {
@@ -287,10 +290,44 @@ struct SphereModel {
 		// 	}
 		// }
 
+		palette::PickRandomPalette();
+
 		for ( int i = 0; i < 50000; i++ ) {
 			// points.push_back( glm::vec4( genD(), genD(), gen(), genP() * gen() ) );
 			points.push_back( glm::vec4( genD(), genD(), genH(), genP() * gen() ) );
+			colors.push_back( glm::vec4( palette::paletteRef( genH() * 5.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 		}
+
+
+		rng trunkJitter( -0.03f, 0.03f );
+		rng trunkSizes( 2.0f, 9.0f );
+		rng leafSizes( 4.0f, 19.0f );
+		rng foliagePlace( -0.15f, 0.15f );
+		for ( int i = 0; i < numTrees; i++ ) {
+			glm::vec2 basePt = glm::vec2( genD(), genD() );
+
+			float scalar = gen();
+			rng heightGen( 0.75f * scalar, 1.23f * scalar );
+			float constrict = 1.3f;
+			for ( float t = 0; t < scalar; t += 0.002f ) {
+				basePt.x += trunkJitter() * 0.3f;
+				basePt.y += trunkJitter() * 0.3f;
+				constrict *= 0.999f;
+				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
+				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
+				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			}
+
+			for ( int i = 0; i < 500; i++ ) {
+				rng foliagePlace( -0.15f * scale, 0.15f * scale );
+				points.push_back( glm::vec4( trunkJitter() + basePt.x + foliagePlace(), trunkJitter() + basePt.y + foliagePlace(), heightGen(), leafSizes() ) );
+				colors.push_back( glm::vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			}
+		}
+
+
+
 
 
 		// rng genAngle( 0.0f, pi * 2.0f );
@@ -335,8 +372,10 @@ struct SphereModel {
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		numStaticPoints = points.size();
 		size_t numBytesPoints = sizeof( glm::vec4 ) * numStaticPoints;
-		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
+		size_t numBytesColors = sizeof( glm::vec4 ) * numStaticPoints;
+		glBufferData( GL_ARRAY_BUFFER, numBytesPoints + numBytesColors, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
+		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
 
 		// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 			// the texture for the height, and then they
@@ -344,6 +383,10 @@ struct SphereModel {
 		GLuint vPosition = glGetAttribLocation( shader, "vPosition" );
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
+
+		GLuint vColor = glGetAttribLocation( shader, "vColor" );
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
 
 		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );

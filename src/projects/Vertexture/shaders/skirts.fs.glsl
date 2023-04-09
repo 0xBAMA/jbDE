@@ -23,8 +23,8 @@ void main() {
 			glFragColor = vec4( 1.0f, tRead.r, 0.0f, 1.0f );
 		} else {
 			// glFragColor = vec4( 0.1618f, 0.5f, 0.0f, 0.8f );
-			glFragColor = vec4( vec3( 0.0f ), 1.0f );
-			// discard;
+			// glFragColor = vec4( vec3( 0.0f ), 1.0f );
+			discard;
 		}
 	} else {
 		if ( belowGround ) { // ground gradient
