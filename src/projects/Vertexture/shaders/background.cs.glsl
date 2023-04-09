@@ -7,5 +7,7 @@ void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 	uvec3 result = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz;
 	result = uvec3( result * 0.1618f );
+	// result = uvec3( result * 0.1618f );
+	result = uvec3( 0 );
 	imageStore( accumulatorTexture, writeLoc, uvec4( result, 255 ) );
 }

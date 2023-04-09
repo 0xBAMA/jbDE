@@ -166,8 +166,73 @@ struct SkirtsModel {
 	const float scale = globalScale;
 	int numPoints = 0;
 
-	SkirtsModel () {
+	SkirtsModel ( GLuint sIn ) : shader( sIn ) {
+		std::vector<glm::vec3> world;
+		std::vector<glm::vec3> basePoints;
 
+		basePoints.resize( 4 );
+		basePoints[ 0 ] = glm::vec3( -scale, -scale, 1.0f );
+		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.0f );
+		basePoints[ 2 ] = glm::vec3(  scale, -scale, 1.0f );
+		basePoints[ 3 ] = glm::vec3(  scale, -scale, -1.0f );
+
+		// triangle 1 ABC
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		// triangle 2 BCD
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		basePoints[ 0 ] = glm::vec3( -scale, -scale, 1.0f );
+		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.0f );
+		basePoints[ 2 ] = glm::vec3( -scale,  scale, 1.0f );
+		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.0f );
+
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		basePoints[ 0 ] = glm::vec3(  scale, -scale, 1.0f );
+		basePoints[ 1 ] = glm::vec3(  scale, -scale, -1.0f );
+		basePoints[ 2 ] = glm::vec3(  scale,  scale, 1.0f );
+		basePoints[ 3 ] = glm::vec3(  scale,  scale, -1.0f );
+
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		basePoints[ 0 ] = glm::vec3(  scale,  scale, 1.0f );
+		basePoints[ 1 ] = glm::vec3(  scale,  scale, -1.0f );
+		basePoints[ 2 ] = glm::vec3( -scale,  scale, 1.0f );
+		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.0f );
+
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		glGenVertexArrays( 1, &vao );
+		glBindVertexArray( vao );
+		glGenBuffers( 1, &vbo );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo );
+		numPoints = world.size();
+		size_t numBytesPoints = sizeof( glm::vec3 ) * numPoints;
+		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
+
+		GLuint vPosition = glGetAttribLocation( shader, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 	}
 
 	void Update ( int t ) {
@@ -176,7 +241,19 @@ struct SkirtsModel {
 
 	glm::mat3 tridentM;
 	void Display () {
+		glBindVertexArray( vao );
+		glUseProgram( shader );
 
+		glEnable( GL_DEPTH_TEST );
+
+		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
+		glUniform1i( glGetUniformLocation( shader, "waterHeight" ), 13 );
+		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
+			1, GL_FALSE, glm::value_ptr( tridentM ) );
+
+		glDrawArrays( GL_TRIANGLES, 0, numPoints );
 	}
 };
 

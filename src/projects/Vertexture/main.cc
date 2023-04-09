@@ -27,16 +27,15 @@ public:
 			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
 			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
+			shaders[ "Skirts" ] = regularShader( "./src/projects/Vertexture/shaders/skirts.vs.glsl", "./src/projects/Vertexture/shaders/skirts.fs.glsl" ).shaderHandle;
 
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
 			textures[ "Ground" ] = ground->heightmap;
 
-			skirts = new SkirtsModel();
-
+			skirts = new SkirtsModel( shaders[ "Skirts" ] );
 			sphere = new SphereModel( shaders[ "Sphere" ] );
 			water = new WaterModel( shaders[ "Water" ] );
-
 
 		}
 	}
@@ -68,8 +67,8 @@ public:
 		ImGuiIO &io = ImGui::GetIO();
 		const float width = io.DisplaySize.x;
 		const float height = io.DisplaySize.y;
-		water->screenAR = sphere->screenAR = ground->screenAR = width / height;
-		water->tridentM = sphere->tridentM = ground->tridentM = glm::mat3(
+		skirts->screenAR = water->screenAR = sphere->screenAR = ground->screenAR = width / height;
+		skirts->tridentM = water->tridentM = sphere->tridentM = ground->tridentM = glm::mat3(
 			trident.basisX,
 			trident.basisY,
 			trident.basisZ
@@ -77,9 +76,9 @@ public:
 
 		// draw some shit
 		ground->Display();
-		skirts->Display();
 		sphere->Display();
 		water->Display();
+		skirts->Display();
 	}
 
 	void ComputePasses () {

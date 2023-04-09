@@ -5,6 +5,7 @@ out vec4 glFragColor;
 in float radius;
 in vec3 color;
 in vec3 position;
+flat in int index;
 
 uniform sampler2D sphere;
 uniform mat3 trident;
@@ -24,4 +25,5 @@ void main() {
 	// glFragColor = vec4( normal, 1.0f );
 	// glFragColor = vec4( trident * normal, 1.0f );
 	glFragColor = vec4( tRead.xyz * color, 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * ( float( index ) / 20000 ) , 1.0f );
 }
