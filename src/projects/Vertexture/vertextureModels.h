@@ -264,8 +264,11 @@ struct SkirtsModel {
 struct SphereModel {
 	GLuint vao, vbo;
 	GLuint ssbo;
-	GLuint shader, moverShader, movementShader;
+	GLuint shader, moverShader, movementShader, mapUpdateShader;
 	GLuint sphereImage;
+
+	GLuint steepness;
+	GLuint distanceDirection;
 
 	float screenAR;
 	const float scale = globalScale;
@@ -273,8 +276,7 @@ struct SphereModel {
 	int dynamicPointCount = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 256;
-
+	const int simQ = 16 * 50;
 
 	uint32_t numTrees;
 
@@ -357,10 +359,10 @@ struct SphereModel {
 		// cout << "points.size() is " << points.size() << newline;
 
 		std::vector<glm::vec4> ssboPoints;
-		rng size( 1.0f, 5.0f );
+		rng size( 1.0f, 5.5f );
 		for ( int x = 0; x < simQ; x++ ) {
 			for ( int y = 0; y < simQ; y++ ) {
-				ssboPoints.push_back( glm::vec4( x / 100.0f, y / 100.0f, 0.1f * genH(), size() ) );
+				ssboPoints.push_back( glm::vec4( 2.0f * scale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * scale * ( ( y / float( simQ ) ) - 0.5f ), 0.1f * genH(), size() ) );
 				ssboPoints.push_back( glm::vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 				dynamicPointCount++;
 			}
@@ -386,16 +388,24 @@ struct SphereModel {
 
 	void Update ( int t ) {
 
-		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
+		rngi gen( 0, 100000 );
+
+		glUseProgram( mapUpdateShader );
+		glBindImageTexture( 1, steepness, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+		glUniform1i( glGetUniformLocation( mapUpdateShader, "heightmap" ), 9 );
+		glUniform1i( glGetUniformLocation( mapUpdateShader, "inSeed" ), gen() );
+		glDispatchCompute( 512 / 16, 512 / 16, 1 );
+
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 		glUseProgram( movementShader );
-		rngi gen( 0, 100000 );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
+		glUniform1f( glGetUniformLocation( movementShader, "time" ), TotalTime() / 10000.0f );
 		glUniform1i( glGetUniformLocation( movementShader, "inSeed" ), gen() );
 		glUniform1i( glGetUniformLocation( movementShader, "dimension" ), simQ );
-
-		// dispatch the compute shader to update ssbo
-		glDispatchCompute( simQ / 16, simQ / 16, 1 );
+		glDispatchCompute( simQ / 16, simQ / 16, 1 ); // dispatch the compute shader to update ssbo
 	}
 
 	glm::mat3 tridentM;
@@ -420,6 +430,8 @@ struct SphereModel {
 
 		// dynamic points
 		glUseProgram( moverShader );
+		glBindImageTexture( 1, steepness, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glUniform1f( glGetUniformLocation( moverShader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
 		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );

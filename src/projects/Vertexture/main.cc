@@ -27,9 +27,25 @@ public:
 			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphere.cs.glsl" ).shaderHandle;
+			shaders[ "Sphere Map Update" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphereMaps.cs.glsl" ).shaderHandle;
 			shaders[ "Moving Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/movingSphere.vs.glsl", "./src/projects/Vertexture/shaders/movingSphere.fs.glsl" ).shaderHandle;
 			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
 			shaders[ "Skirts" ] = regularShader( "./src/projects/Vertexture/shaders/skirts.vs.glsl", "./src/projects/Vertexture/shaders/skirts.fs.glsl" ).shaderHandle;
+
+			GLuint steepness, distanceDirection;
+			Image_4U steepnessTex( 512, 512 );
+
+			glGenTextures( 1, &steepness );
+			glActiveTexture( GL_TEXTURE14 );
+			glBindTexture( GL_TEXTURE_2D, steepness );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
+			textures[ "Steepness Map" ] = steepness;
+
+			glGenTextures( 1, &distanceDirection );
+			glActiveTexture( GL_TEXTURE15 );
+			glBindTexture( GL_TEXTURE_2D, distanceDirection );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
+			textures[ "Distance/Direction Map" ] = distanceDirection;
 
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
@@ -37,6 +53,10 @@ public:
 
 			skirts = new SkirtsModel( shaders[ "Skirts" ] );
 			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees );
+			sphere->steepness = textures[ "Steepness Map" ];
+			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
+			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
+
 			water = new WaterModel( shaders[ "Water" ] );
 
 		}

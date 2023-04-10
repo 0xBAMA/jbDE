@@ -14,10 +14,14 @@ layout( binding = 3, std430 ) buffer pointData {
 	point_t data[];
 };
 
+uniform sampler2D heightmap;
+
 uniform int dimension;
 uniform int inSeed;
 
 uniform float time;
+
+// list of obstacles
 
 // random utilites
 uint seed = 0;
@@ -49,18 +53,22 @@ vec2 randomInUnitDisk () {
 }
 
 void main() {
-	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
 
-	ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
-	vec4 steepnessRead = imageLoad( steepnessTex, loc );
+	uvec2 loc = gl_GlobalInvocationID.xy;
+	seed = inSeed + loc.x + loc.y * 10256;
 
-	seed = index + uint( inSeed );
-	// data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.004f;
-	data[ index ].position.xy = data[ index ].position.xy + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
-	data[ index ].position.z = sin( time + index ) * 0.05f + 0.09f;
+	vec2 location = ( vec2( loc.xy ) / 512.0f ) - vec2( 0.5f );
 
-	if ( data[ index ].position.x > 1.618f ) data[ index ].position.x -= 2.0f * 1.618f;
-	if ( data[ index ].position.x < -1.618f ) data[ index ].position.x += 2.0f * 1.618f;
-	if ( data[ index ].position.y > 1.618f ) data[ index ].position.y -= 2.0f * 1.618f;
-	if ( data[ index ].position.y < -1.618f ) data[ index ].position.y += 2.0f * 1.618f;
+	float minValue = 1000.0f;
+	float maxValue = -1000.0f;
+	for ( int i = 0; i < 20; i++ ) {
+		float heightRead = texture( heightmap, location + randomInUnitDisk() * 0.03f ).r;
+		minValue = min( heightRead, minValue );
+		maxValue = max( heightRead, maxValue );
+	}
+	// update steepness map - value is the span from local minima to local maxima
+	imageStore( steepnessTex, ivec2( loc ), vec4( maxValue - minValue, texture( heightmap, location ).r, 0.0f, 1.0f ) );
+
+	// update distance/direction map
+	imageStore( distanceDirTex, ivec2( loc ), vec4( 1.0f ) );
 }

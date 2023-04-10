@@ -24,7 +24,8 @@ void main() {
 	// glFragColor = vec4( vec3( dot( trident * vec3( -2.0, 1.0, 1.0 + 2.5 * sin( time * 10.0f ) ), normal ) ), 1.0f );
 	// glFragColor = vec4( normal, 1.0f );
 	// glFragColor = vec4( trident * normal, 1.0f );
-	// glFragColor = vec4( tRead.xyz * color, 1.0f );
-	glFragColor = vec4( tRead.xyz * color * ( 1.4f - gl_FragDepth ), 1.0f );
+	glFragColor = vec4( tRead.xyz * color, 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * ( 1.4f - gl_FragDepth ), 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * gl_FragDepth, 1.0f );
 	// glFragColor = vec4( tRead.xyz * color * ( float( index ) / 20000 ) , 1.0f );
 }
