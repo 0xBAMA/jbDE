@@ -53,11 +53,14 @@ void main() {
 
 	ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
+	vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
 	seed = index + uint( inSeed );
 	// data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.004f;
 	data[ index ].position.xy = data[ index ].position.xy + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
 	data[ index ].position.z = sin( time + index ) * 0.05f + 0.09f;
+
+	data[ index ].color.rgb = distDirRead.xyz;
 
 	if ( data[ index ].position.x > 1.618f ) data[ index ].position.x -= 2.0f * 1.618f;
 	if ( data[ index ].position.x < -1.618f ) data[ index ].position.x += 2.0f * 1.618f;

@@ -279,6 +279,7 @@ struct SphereModel {
 	const int simQ = 16 * 50;
 
 	uint32_t numTrees;
+	std::vector<glm::vec3> obstacles; // x,y location, then radius
 
 	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees ) :
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
@@ -320,6 +321,8 @@ struct SphereModel {
 			float constrict = 1.618f;
 			float scalar = gen();
 			rng heightGen( 0.75f * scalar, 1.23f * scalar );
+
+			obstacles.push_back( glm::vec3( basePt.x, basePt.y, 0.03f ) );
 			for ( float t = 0; t < scalar; t += 0.002f ) {
 				basePt.x += trunkJitter() * 0.5f;
 				basePt.y += trunkJitter() * 0.5f;
@@ -395,6 +398,9 @@ struct SphereModel {
 		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glUniform1i( glGetUniformLocation( mapUpdateShader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( mapUpdateShader, "inSeed" ), gen() );
+		glUniform1i( glGetUniformLocation( mapUpdateShader, "numObstacles" ), obstacles.size() );
+		glUniform3fv( glGetUniformLocation( mapUpdateShader, "obstacles" ), obstacles.size(), glm::value_ptr( obstacles[ 0 ] ) );
+		// for ( auto& ob : obstacles ) { cout << ob.x << ob.y << ob.z << endl; }
 		glDispatchCompute( 512 / 16, 512 / 16, 1 );
 
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

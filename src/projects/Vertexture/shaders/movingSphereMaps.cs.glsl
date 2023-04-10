@@ -22,6 +22,8 @@ uniform int inSeed;
 uniform float time;
 
 // list of obstacles
+uniform int numObstacles;
+uniform vec3 obstacles[ 50 ];
 
 // random utilites
 uint seed = 0;
@@ -69,6 +71,16 @@ void main() {
 	// update steepness map - value is the span from local minima to local maxima
 	imageStore( steepnessTex, ivec2( loc ), vec4( maxValue - minValue, texture( heightmap, location ).r, 0.0f, 1.0f ) );
 
+
+	float minD = 1000.0f;
+	for ( int i = 0; i < numObstacles; i++ ) {
+		float d = distance( 1.618f * ( location * 2.0f ), obstacles[ i ].xy );
+		float radius = obstacles[ i ].z;
+		minD = min( d, minD );
+		if ( d < radius ) {
+			// update direction
+		}
+	}
 	// update distance/direction map
-	imageStore( distanceDirTex, ivec2( loc ), vec4( 1.0f ) );
+	imageStore( distanceDirTex, ivec2( loc ), vec4( minD, 0.0f, 0.0f, 1.0f ) );
 }
