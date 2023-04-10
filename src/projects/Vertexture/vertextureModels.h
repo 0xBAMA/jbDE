@@ -263,16 +263,23 @@ struct SkirtsModel {
 // point rendering, for gameplay entities
 struct SphereModel {
 	GLuint vao, vbo;
-	GLuint shader;
+	GLuint ssbo;
+	GLuint shader, moverShader, movementShader;
 	GLuint sphereImage;
 
 	float screenAR;
 	const float scale = globalScale;
 	int numStaticPoints = 0;
+	int dynamicPointCount = 0;
+
+	// sqrt of num sim movers
+	const int simQ = 256;
+
 
 	uint32_t numTrees;
 
-	SphereModel ( GLuint sIn, uint32_t nTrees ) : shader( sIn ), numTrees( nTrees ) {
+	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees ) :
+		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
 
 		rng gen( 0.3f, 1.2f );
 		rng genH( 0.0f, 0.1618f );
@@ -292,79 +299,38 @@ struct SphereModel {
 
 		palette::PickRandomPalette();
 
+		// ground cover
 		for ( int i = 0; i < 50000; i++ ) {
 			// points.push_back( glm::vec4( genD(), genD(), gen(), genP() * gen() ) );
-			points.push_back( glm::vec4( genD(), genD(), genH(), genP() * gen() ) );
+			points.push_back( glm::vec4( genD(), genD(), genH() * genH(), genP() * gen() ) );
 			colors.push_back( glm::vec4( palette::paletteRef( genH() * 5.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 		}
 
-
 		rng trunkJitter( -0.03f, 0.03f );
-		rng trunkSizes( 2.0f, 9.0f );
-		rng leafSizes( 4.0f, 19.0f );
+		rng trunkSizes( 5.0f, 8.0f );
+		rng basePtPlace( -scale * 0.75f, scale * 0.75f );
+		rng leafSizes( 6.0f, 22.0f );
 		rng foliagePlace( -0.15f, 0.15f );
-		for ( int i = 0; i < numTrees; i++ ) {
-			glm::vec2 basePt = glm::vec2( genD(), genD() );
+		for ( unsigned int i = 0; i < numTrees; i++ ) {
+			const glm::vec2 basePtOrig = glm::vec2( basePtPlace(), basePtPlace() );
 
+			glm::vec2 basePt = basePtOrig;
+			float constrict = 1.618f;
 			float scalar = gen();
 			rng heightGen( 0.75f * scalar, 1.23f * scalar );
-			float constrict = 1.3f;
 			for ( float t = 0; t < scalar; t += 0.002f ) {
-				basePt.x += trunkJitter() * 0.3f;
-				basePt.y += trunkJitter() * 0.3f;
+				basePt.x += trunkJitter() * 0.5f;
+				basePt.y += trunkJitter() * 0.5f;
 				constrict *= 0.999f;
 				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
-				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
-				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
-
 			for ( int i = 0; i < 500; i++ ) {
 				rng foliagePlace( -0.15f * scale, 0.15f * scale );
-				points.push_back( glm::vec4( trunkJitter() + basePt.x + foliagePlace(), trunkJitter() + basePt.y + foliagePlace(), heightGen(), leafSizes() ) );
+				points.push_back( glm::vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), heightGen(), leafSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
 		}
-
-
-
-
-
-		// rng genAngle( 0.0f, pi * 2.0f );
-		// rng genDist( 0.0f, 1.0f );
-		// rng genRad( 0.0f, 0.3f );
-		// for ( int i = 0; i < 100000; i++ ) {
-		// 	const float a = genAngle();
-		// 	const float b = genAngle();
-		// 	const float c = genDist();
-		// 	const float r = genRad();
-
-		// 	glm::vec3 loc = glm::vec3( sin( a ) * r, cos( a ) * r + 1.0f, 0.0f ) * c;
-		// 	loc = glm::rotate( loc, b, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-
-		// 	points.push_back( glm::vec4( loc.x, loc.y, loc.z, genP() * gen() ) );
-		// }
-
-		// rng treeBasePtGen( -globalScale, globalScale );
-		// rng diameterGen( 1.0f, 12.0f );
-
-		// rng placementDiameter( 0.0f, 0.2f );
-		// rng placementAngle( 0.0f, pi * 2.0f );
-
-		// for ( int i = 0; i < 100; i++ ) {
-		// 	glm::vec2 treeBasePt( treeBasePtGen(), treeBasePtGen() );
-		// 	rng heightGen( 0.02f, 1.4f );
-
-		// 	int d = int( diameterGen() );
-		// 	for ( int j = 0; j < 20 * d; j++ ) {
-		// 		const float h = heightGen();
-		// 		const float a = placementAngle();
-		// 		const float d = placementDiameter();
-		// 		points.push_back( glm::vec4( cos( a ) * d, sin( a ) * d, h, diameterGen() * h * 3.0f ) + vec4( treeBasePt, 0.0f, 0.0f ) );
-		// 	}
-		// }
-
-		cout << "points.size() is " << points.size() << newline;
 
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
@@ -388,6 +354,23 @@ struct SphereModel {
 		glEnableVertexAttribArray( vColor );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
 
+		// cout << "points.size() is " << points.size() << newline;
+
+		std::vector<glm::vec4> ssboPoints;
+		rng size( 1.0f, 5.0f );
+		for ( int x = 0; x < simQ; x++ ) {
+			for ( int y = 0; y < simQ; y++ ) {
+				ssboPoints.push_back( glm::vec4( x / 100.0f, y / 100.0f, 0.1f * genH(), size() ) );
+				ssboPoints.push_back( glm::vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				dynamicPointCount++;
+			}
+		}
+
+		glGenBuffers( 1, &ssbo );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * dynamicPointCount, (GLvoid*) &ssboPoints[ 0 ],  GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
+
 		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );
 		glActiveTexture( GL_TEXTURE10 ); // Texture unit 9
@@ -403,6 +386,16 @@ struct SphereModel {
 
 	void Update ( int t ) {
 
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
+
+		glUseProgram( movementShader );
+		rngi gen( 0, 100000 );
+		glUniform1i( glGetUniformLocation( movementShader, "inSeed" ), gen() );
+		glUniform1i( glGetUniformLocation( movementShader, "dimension" ), simQ );
+
+		// dispatch the compute shader to update ssbo
+		glDispatchCompute( simQ / 16, simQ / 16, 1 );
 	}
 
 	glm::mat3 tridentM;
@@ -415,8 +408,7 @@ struct SphereModel {
 
 		glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT );
 
-		glPointSize( 24.0f );
-
+		// static points
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -425,6 +417,17 @@ struct SphereModel {
 			1, GL_FALSE, glm::value_ptr( tridentM ) );
 
 		glDrawArrays( GL_POINTS, 0, numStaticPoints );
+
+		// dynamic points
+		glUseProgram( moverShader );
+		glUniform1f( glGetUniformLocation( moverShader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
+		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );
+		glUniform1i( glGetUniformLocation( moverShader, "sphere" ), 10 );
+		glUniformMatrix3fv( glGetUniformLocation( moverShader, "trident" ),
+			1, GL_FALSE, glm::value_ptr( tridentM ) );
+
+		glDrawArrays( GL_POINTS, 0, dynamicPointCount );
 	}
 };
 

@@ -20,7 +20,8 @@ void main() {
 
 	if ( gl_FrontFacing ){ // backdrop behavior
 		if ( belowGround ) {
-			glFragColor = vec4( 1.0f, tRead.r, 0.0f, 1.0f );
+			// glFragColor = vec4( 1.0f, tRead.r, 0.0f, 1.0f );
+			discard;
 		} else {
 			// glFragColor = vec4( 0.1618f, 0.5f, 0.0f, 0.8f );
 			// glFragColor = vec4( vec3( 0.0f ), 1.0f );
@@ -36,6 +37,8 @@ void main() {
 			glFragColor.r *= 0.7f;
 			glFragColor.g *= 0.5f;
 			glFragColor.b *= 0.4f;
+
+			glFragColor.a = grad * 5.0f;
 
 		} else if ( belowWater ) { // water color
 			glFragColor = vec4( 0.1f, 0.2f, 0.4f, 0.3f );

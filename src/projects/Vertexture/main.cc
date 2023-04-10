@@ -26,6 +26,8 @@ public:
 			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
 			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
+			shaders[ "Sphere Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphere.cs.glsl" ).shaderHandle;
+			shaders[ "Moving Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/movingSphere.vs.glsl", "./src/projects/Vertexture/shaders/movingSphere.fs.glsl" ).shaderHandle;
 			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
 			shaders[ "Skirts" ] = regularShader( "./src/projects/Vertexture/shaders/skirts.vs.glsl", "./src/projects/Vertexture/shaders/skirts.fs.glsl" ).shaderHandle;
 
@@ -34,7 +36,7 @@ public:
 			textures[ "Ground" ] = ground->heightmap;
 
 			skirts = new SkirtsModel( shaders[ "Skirts" ] );
-			sphere = new SphereModel( shaders[ "Sphere" ], gameConfig.numTrees );
+			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees );
 			water = new WaterModel( shaders[ "Water" ] );
 
 		}
