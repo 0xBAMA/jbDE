@@ -56,13 +56,16 @@ void main() {
 	vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
 	seed = index + uint( inSeed );
-	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.0004f );
+
+	if ( distDirRead.z <= 0.0f )
+		data[ index ].position.xy += distDirRead.xy * 0.01f;
+
+	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.001f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
 	// data[ index ].position.xy = data[ index ].position.xy + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
 	// data[ index ].position.xy = data[ index ].position.xy + ( 0.002f * distDirRead.xy + randomInUnitDisk() * 0.04f ) * ( 0.01f / steepnessRead.r );
 	// data[ index ].position.z = sin( time + index ) * 0.05f + 0.09f;
 
-	if ( distDirRead.z <= 0.1f )
-		data[ index ].position.xy += distDirRead.xy * 0.1f;
+	data[ index ].position.z = 0.05 * sin( time + data[ index ].color.a ) + 0.03f;
 
 	// data[ index ].color.rgb = distDirRead.xyz;
 

@@ -17,7 +17,7 @@ void main() {
 	if ( tRead.x < 0.05f ) discard;
 
 	// vec3 normal = trident * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), tRead.x );
-	vec3 normal = transpose( inverse( trident ) ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), tRead.x );
+	vec3 normal = -( transpose( inverse( trident ) ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), tRead.x ) );
 	vec3 worldPosition = position + normal * ( radius / 1400.0f );
 
 	gl_FragDepth = gl_FragCoord.z - ( ( radius / 1400.0f ) * tRead.x );
@@ -25,6 +25,9 @@ void main() {
 	// glFragColor = vec4( normal, 1.0f );
 	// glFragColor = vec4( trident * normal, 1.0f );
 	// glFragColor = vec4( tRead.xyz * color, 1.0f );
-	glFragColor = vec4( tRead.xyz * color * ( 1.4f - gl_FragDepth ), 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * dot( normal, vec3( 1.0f ) ), 1.0f );
+	glFragColor = vec4( tRead.xyz * color * clamp( dot( normal, trident * vec3( 1.0f, 1.0f + 0.25 * sin( 10.0f * time ), 1.0f ) ), 0.1618f, 1.0f ) * 2.5f, 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * ( 1.4f - gl_FragDepth ), 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * ( 1.4f - gl_FragDepth * 2.0f ), 1.0f );
 	// glFragColor = vec4( tRead.xyz * color * ( float( index ) / 20000 ) , 1.0f );
 }
