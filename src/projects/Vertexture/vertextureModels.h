@@ -313,14 +313,15 @@ struct SphereModel {
 		rng trunkSizes( 5.0f, 8.0f );
 		rng basePtPlace( -scale * 0.75f, scale * 0.75f );
 		rng leafSizes( 6.0f, 12.0f );
-		rngN foliagePlace( 0.0f, 0.2f );
+		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
 			const glm::vec2 basePtOrig = glm::vec2( basePtPlace(), basePtPlace() );
 
 			glm::vec2 basePt = basePtOrig;
 			float constrict = 1.618f;
 			float scalar = gen();
-			rng heightGen( 0.75f * scalar, 1.23f * scalar );
+			// rng heightGen( 0.75f * scalar, 1.23f * scalar );
+			rngN heightGen( scalar, 0.025f );
 
 			obstacles.push_back( glm::vec3( basePt.x, basePt.y, 0.06f ) );
 			for ( float t = 0; t < scalar; t += 0.002f ) {
@@ -330,7 +331,7 @@ struct SphereModel {
 				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
-			for ( int j = 0; j < 500; j++ ) {
+			for ( int j = 0; j < 1000; j++ ) {
 				// rng foliagePlace( -0.15f * scale, 0.15f * scale );
 				rngN foliagePlace( 0.0f, 0.1f * scale );
 				points.push_back( glm::vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), heightGen(), leafSizes() ) );

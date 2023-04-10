@@ -22,6 +22,8 @@ out float radius;
 out vec3 color;
 out vec3 position;
 out float height;
+
+out mat3 rot;
 flat out int index;
 
 void main() {
@@ -40,6 +42,8 @@ void main() {
 	color = colorRead.rgb;
 	// color = steepnessRead.rrr;
 	// color = vec3( steepnessRead.rgr );
+
+	rot = trident;
 
 	position = trident * ( positionRead.xyz + vec3( 0.0f, 0.0f, height ) );
 	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ) * 0.4f, 1.0f );

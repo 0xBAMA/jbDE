@@ -65,7 +65,7 @@ void main() {
 	// data[ index ].position.xy = data[ index ].position.xy + ( 0.002f * distDirRead.xy + randomInUnitDisk() * 0.04f ) * ( 0.01f / steepnessRead.r );
 	// data[ index ].position.z = sin( time + index ) * 0.05f + 0.09f;
 
-	data[ index ].position.z = 0.05 * sin( time + data[ index ].color.a ) + 0.03f;
+	data[ index ].position.z = 0.05 * sin( time * 10.0f + data[ index ].color.a ) + 0.06f;
 
 	// data[ index ].color.rgb = distDirRead.xyz;
 
