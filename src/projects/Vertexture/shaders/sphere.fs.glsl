@@ -24,10 +24,12 @@ void main() {
 	gl_FragDepth = gl_FragCoord.z - ( ( radius / 1400.0f ) * tRead.x );
 	// glFragColor = vec4( vec3( dot( trident * vec3( -2.0, 1.0, 1.0 + 2.5 * sin( time * 10.0f ) ), normal ) ), 1.0f );
 	// glFragColor = vec4( normal, 1.0f );
-	glFragColor = vec4( normal, 1.0f );
+	// glFragColor = vec4( normal, 1.0f );
 	// glFragColor = vec4( tRead.xyz * color * clamp( dot( normal, vec3( 1.0f ) ), 0.1618f, 1.0f ), 1.0f );
 	// glFragColor = vec4( tRead.xyz * color * clamp( dot( normal, vec3( 1.0f ) ), 0.1618f, 1.0f ) * 2.5f, 1.0f );
-	// glFragColor = vec4( tRead.xyz * color * clamp( dot( normal, worldPosition - vec3( 1.0f ) ), 0.1618f, 1.0f ) * 2.5f, 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * clamp( dot( normal, worldPosition - rot * vec3( 1.0f ) ), 0.1618f, 1.0f ) * 2.5f, 1.0f );
+	// glFragColor = vec4( tRead.xyz * color * clamp( dot( normal, rot * vec3( 1.0f ) ), 0.1618f, 1.0f ) * 2.5f, 1.0f );
+	glFragColor = vec4( tRead.xyz * color * clamp( dot( rot * normal, vec3( 1.0f, 1.0f, 0.0f ) ), 0.1618f, 1.0f ) * 1.3f, 1.0f );
 	// glFragColor = vec4( tRead.xyz * color, 1.0f );
 	// glFragColor = vec4( tRead.xyz * color * ( 1.4f - gl_FragDepth * 2.0f ), 1.0f );
 	// glFragColor = vec4( tRead.xyz * color * gl_FragDepth, 1.0f );
