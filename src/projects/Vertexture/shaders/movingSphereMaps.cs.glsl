@@ -73,14 +73,16 @@ void main() {
 
 
 	float minD = 1000.0f;
+	vec2 dir = vec2( 0.0f );
 	for ( int i = 0; i < numObstacles; i++ ) {
 		float d = distance( 1.618f * ( location * 2.0f ), obstacles[ i ].xy );
 		float radius = obstacles[ i ].z;
-		minD = min( d, minD );
-		if ( d < radius ) {
+		minD = min( d - radius, minD );
+		if ( minD == ( d - radius ) ) {
 			// update direction
+			dir = normalize( ( 1.618f * location * 2.0f ) - obstacles[ i ].xy );
 		}
 	}
 	// update distance/direction map
-	imageStore( distanceDirTex, ivec2( loc ), vec4( minD, 0.0f, 0.0f, 1.0f ) );
+	imageStore( distanceDirTex, ivec2( loc ), vec4( dir.xy, minD, 1.0f ) );
 }

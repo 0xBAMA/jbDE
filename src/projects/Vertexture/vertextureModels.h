@@ -276,7 +276,7 @@ struct SphereModel {
 	int dynamicPointCount = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 50;
+	const int simQ = 16 * 20;
 
 	uint32_t numTrees;
 	std::vector<glm::vec3> obstacles; // x,y location, then radius
@@ -362,10 +362,10 @@ struct SphereModel {
 		// cout << "points.size() is " << points.size() << newline;
 
 		std::vector<glm::vec4> ssboPoints;
-		rng size( 1.0f, 5.5f );
+		rng size( 1.0f, 9.5f );
 		for ( int x = 0; x < simQ; x++ ) {
 			for ( int y = 0; y < simQ; y++ ) {
-				ssboPoints.push_back( glm::vec4( 2.0f * scale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * scale * ( ( y / float( simQ ) ) - 0.5f ), 0.1f * genH(), size() ) );
+				ssboPoints.push_back( glm::vec4( 2.0f * scale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * scale * ( ( y / float( simQ ) ) - 0.5f ), 0.6f * genH(), size() ) );
 				ssboPoints.push_back( glm::vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 				dynamicPointCount++;
 			}
