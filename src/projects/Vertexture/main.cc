@@ -47,6 +47,8 @@ public:
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
 			textures[ "Distance/Direction Map" ] = distanceDirection;
 
+			// create the shadowmap
+
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
 			textures[ "Ground" ] = ground->heightmap;
@@ -96,7 +98,13 @@ public:
 			trident.basisZ
 		);
 
-		// draw some shit
+		// get shadow depth
+		ground->Display( true );
+		sphere->Display( true );
+		water->Display( true );
+		skirts->Display( true );
+
+		// draw the output
 		ground->Display();
 		sphere->Display();
 		water->Display();

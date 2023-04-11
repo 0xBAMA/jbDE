@@ -52,6 +52,15 @@ struct GroundModel {
 			// glm::vec3 C = { Remap( points[ 2 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 2 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
 			// glm::vec3 D = { Remap( points[ 3 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 3 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
 
+			// // triangle 1 ABC
+			// world.push_back( { points[ 0 ], A } );
+			// world.push_back( { points[ 1 ], B } );
+			// world.push_back( { points[ 2 ], C } );
+			// // triangle 2 BCD
+			// world.push_back( { points[ 1 ], B } );
+			// world.push_back( { points[ 2 ], C } );
+			// world.push_back( { points[ 3 ], D } );
+
 			//	A ( 0 )	@=======@ B ( 1 )
 			//			|      /|
 			//			|     / |
@@ -62,15 +71,6 @@ struct GroundModel {
 			//			|/      |
 			//	C ( 2 )	@=======@ D ( 3 ) --> X
 
-			// // triangle 1 ABC
-			// world.push_back( { points[ 0 ], A } );
-			// world.push_back( { points[ 1 ], B } );
-			// world.push_back( { points[ 2 ], C } );
-			// // triangle 2 BCD
-			// world.push_back( { points[ 1 ], B } );
-			// world.push_back( { points[ 2 ], C } );
-			// world.push_back( { points[ 3 ], D } );
-
 			// triangle 1 ABC
 			world.push_back( points[ 0 ] );
 			world.push_back( points[ 1 ] );
@@ -80,7 +80,7 @@ struct GroundModel {
 			world.push_back( points[ 2 ] );
 			world.push_back( points[ 3 ] );
 		} else {
-			glm::vec3 center = ( points[ 0 ]+  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
+			glm::vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
 			// midpoints between corners
 			glm::vec3 midpoint13 = ( points[ 1 ] + points[ 3 ] ) / 2.0f;
 			glm::vec3 midpoint01 = ( points[ 0 ] + points[ 1 ] ) / 2.0f;
@@ -242,7 +242,7 @@ struct SkirtsModel {
 	}
 
 	glm::mat3 tridentM;
-	void Display () {
+	void Display ( const bool shadowPass = false ) {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
@@ -313,7 +313,7 @@ struct SphereModel {
 		rngN trunkJitter( 0.0f, 0.009f );
 		rng trunkSizes( 5.0f, 8.0f );
 		rng basePtPlace( -scale * 0.75f, scale * 0.75f );
-		rng leafSizes( 6.0f, 12.0f );
+		rng leafSizes( 6.0f, 14.0f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
 			const glm::vec2 basePtOrig = glm::vec2( basePtPlace(), basePtPlace() );
@@ -432,7 +432,7 @@ struct SphereModel {
 	}
 
 	glm::mat3 tridentM;
-	void Display () {
+	void Display ( const bool shadowPass = false ) {
 
 		static orientTrident trident2;
 		// trident2.RotateX( 0.0026f );
@@ -492,19 +492,8 @@ struct WaterModel {
 
 	void subdivide ( std::vector<vec3> &world, std::vector<glm::vec3> points ) {
 		const float minDisplacement = 0.01f;
+		// corner-to-corner distance is small, time to write API geometry
 		if ( glm::distance( points[ 0 ], points[ 2 ] ) < minDisplacement ) {
-			// corner-to-corner distance is small, time to write API geometry
-
-			//	A ( 0 )	@=======@ B ( 1 )
-			//			|      /|
-			//			|     / |
-			//			|    /  |
-			//			|   /   |
-			//			|  /    |
-			//			| /     |
-			//			|/      |
-			//	C ( 2 )	@=======@ D ( 3 ) --> X
-
 			// triangle 1 ABC
 			world.push_back( points[ 0 ] );
 			world.push_back( points[ 1 ] );
@@ -514,7 +503,7 @@ struct WaterModel {
 			world.push_back( points[ 2 ] );
 			world.push_back( points[ 3 ] );
 		} else {
-			glm::vec3 center = ( points[ 0 ]+  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
+			glm::vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
 			// midpoints between corners
 			glm::vec3 midpoint13 = ( points[ 1 ] + points[ 3 ] ) / 2.0f;
 			glm::vec3 midpoint01 = ( points[ 0 ] + points[ 1 ] ) / 2.0f;
@@ -594,7 +583,7 @@ struct WaterModel {
 	}
 
 	glm::mat3 tridentM;
-	void Display () {
+	void Display ( const bool shadowPass = false ) {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
