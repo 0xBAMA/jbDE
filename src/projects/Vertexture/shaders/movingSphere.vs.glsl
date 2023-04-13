@@ -40,9 +40,6 @@ void main() {
 	radius = gl_PointSize = positionRead.a;
 
 	color = colorRead.rgb;
-	// color = steepnessRead.rrr;
-	// color = vec3( steepnessRead.rgr );
-
 	rot = trident;
 
 	position = trident * ( positionRead.xyz + vec3( 0.0f, 0.0f, height ) );
