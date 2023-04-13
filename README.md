@@ -39,6 +39,7 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 - Tick() / Tock() timing wrapper around std::chrono
 - Orientation Trident from Voraldo13, with the addition of multisampled AA in this implementation
 - [Tracy](https://github.com/wolfpld/tracy) profiler integration ( client mode )
+- Raikiri's LegitProfiler for in-engine CPU and GPU profiling
 
 **Data Resources**
 - Bayer pattern header, size 2, 4, 8 patterns
