@@ -8,6 +8,13 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 - Run scripts/build.sh in order to build on Ubuntu. It just automates the building of the executables and moves it to the root directory, as files are referenced relative to that location, and then deletes the build folder (if called with the "clean" option).
 - New in jbDE
 	- All applications inherit from a base engine class, and are built as part of the build script. Dependencies are pretty general across the apps, so there's really just a separate main.cc defining the inherited class for each one, plus whatever additional textures/shaders/etc they require. CMake script will create make targets for each one, `scripts/build.sh` calls each one in sequence.
+	- Current Project List:
+		- EngineDemo - minimal functioning of the display pipeline, imgui demo window, etc
+		- SoftBodies - port of [Softbodies](https://github.com/0xBAMA/SoftBodies) softbody sim on simple car chassis
+		- Vertexture2 - reimplementation of [Vertexture](https://jbaker.graphics/writings/vertexture.html), making heavier use of the GPU, extending the point sprite sphere impostor thing to write correct depths
+		- Future Projects
+			- Port of [Siren](https://github.com/0xBAMA/Siren)
+			- Next version of [Voraldo](https://github.com/0xBAMA/Voraldo13), Voraldo14
 
 ## Features
 **Graphics Stuff**
