@@ -27,7 +27,7 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 **Utilities**
 - CMake parallel build setup
 - Image wrapper for loading/saving/resizing/etc of images ( STB and [LodePNG](https://lodev.org/lodepng/) I/O backends )
-	- Templated for underlying type ( uint8_t or float ) and number of channels ( technically up to 255 channels, but some functions make assumptions about channel count e.g. calculating luma )
+	- Templated for underlying type ( generally assumes it is either uint8_t or float ) and number of channels ( technically up to 255 channels, but some functions make assumptions about channel count e.g. calculating luma )
 	- Incorporates the [irFlip2](https://jbaker.graphics/writings/irFlip2.html#irflip2) image swizzling utility
 	- Supports loading and saving 32-bit per channel floating point images with [TinyEXR](https://github.com/syoyo/tinyexr)
 - JSON parsing using [nlohmann's single header implementation](https://github.com/nlohmann/json)
@@ -39,7 +39,7 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 - Tick() / Tock() timing wrapper around std::chrono
 - Orientation Trident from Voraldo13, with the addition of multisampled AA in this implementation
 - [Tracy](https://github.com/wolfpld/tracy) profiler integration ( client mode )
-- Raikiri's LegitProfiler for in-engine CPU and GPU profiling
+- fork of Raikiri's LegitProfiler for in-engine CPU and GPU profiling + cool visualization
 
 **Data Resources**
 - Bayer pattern header, size 2, 4, 8 patterns
