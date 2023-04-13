@@ -4,8 +4,10 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 
 # Setup
 - Requires `libsdl2-dev`, `libglew-dev` on Ubuntu.
-- Make sure to recurse submodules to pull in FastNoise2 and Tracy profiler code - `git submodule update --init --recursive`, alternatively just run scripts/init.sh to do the same thing.
-- Run scripts/build.sh in order to build on Ubuntu. It just automates the building of the executable and moves it to the root directory, as files are referenced relative to that location, and then deletes the build folder (if called with the "clean" option).
+- Make sure to recurse submodules to pull in submodule code - `git submodule update --init --recursive`, alternatively just run scripts/init.sh to do the same thing.
+- Run scripts/build.sh in order to build on Ubuntu. It just automates the building of the executables and moves it to the root directory, as files are referenced relative to that location, and then deletes the build folder (if called with the "clean" option).
+- New in jbDE
+	- All applications inherit from a base engine class, and are built as part of the build script. Dependencies are pretty general across the apps, so there's really just a separate main.cc defining the inherited class for each one, plus whatever additional textures/shaders/etc they require. CMake script will create make targets for each one, `scripts/build.sh` calls each one in sequence.
 
 ## Features
 **Graphics Stuff**
