@@ -70,6 +70,9 @@ public:
 				cout << "framebuffer creation failed" << endl; abort();
 			}
 
+			// revert to default framebuffer
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
 			// =================================================================================================
 
 			// initialize game stuff
