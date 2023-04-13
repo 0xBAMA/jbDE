@@ -65,7 +65,10 @@ public:
 
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0 );
 			glDrawBuffer( GL_NONE ); // No color buffer is drawn to.
-			if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) return false;
+
+			if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) {
+				cout << "framebuffer creation failed" << endl; abort();
+			}
 
 			// =================================================================================================
 
