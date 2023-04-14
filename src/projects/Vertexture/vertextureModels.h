@@ -268,7 +268,7 @@ struct SphereModel {
 	int dynamicPointCount = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 30;
+	const int simQ = 16 * 400;
 
 	uint32_t numTrees;
 	std::vector<glm::vec3> obstacles; // x,y location, then radius
@@ -378,7 +378,7 @@ struct SphereModel {
 
 		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );
-		glActiveTexture( GL_TEXTURE10 ); // Texture unit 9
+		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
 		glBindTexture( GL_TEXTURE_2D, sphereImage );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );

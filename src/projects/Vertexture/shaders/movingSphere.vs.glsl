@@ -27,7 +27,7 @@ out mat3 rot;
 uniform float scale;
 flat out int index;
 
-void main() {
+void main () {
 
 	index = gl_VertexID;
 	vec4 positionRead = data[ index ].position;

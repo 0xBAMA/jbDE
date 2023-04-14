@@ -19,7 +19,7 @@ out float height;
 out mat3 rot;
 flat out int index;
 
-void main() {
+void main () {
 
 	index = gl_VertexID;
 

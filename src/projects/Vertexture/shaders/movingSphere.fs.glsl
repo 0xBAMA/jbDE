@@ -17,7 +17,7 @@ uniform vec3 lightDirection;
 
 layout( depth_greater ) out float gl_FragDepth;
 
-void main() {
+void main () {
 
 	vec4 tRead = texture( sphere, gl_PointCoord.xy );
 	if ( tRead.x < 0.05f ) discard;
@@ -29,5 +29,6 @@ void main() {
 	// gl_FragDepth = gl_FragCoord.z - ( ( radius / 1024.0f ) * tRead.x );
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / 1024.0f ) * ( 1.0f - tRead.x ) );
 
+	// glFragColor = vec4( normal, 1.0f );
 	glFragColor = vec4( tRead.xyz * color * clamp( dot( rot * normal, lightDirection ), 0.1618f, 1.0f ) * 1.3f, 1.0f );
 }
