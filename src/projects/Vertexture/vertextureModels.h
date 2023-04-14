@@ -117,6 +117,7 @@ struct GroundModel {
 	}
 
 	glm::mat3 tridentM;
+	glm::mat3 tridentD;
 	void Display ( bool selectMode = false ) {
 		// glClearColor( 0, 0, 0, 0 );
 		// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -221,6 +222,7 @@ struct SkirtsModel {
 	}
 
 	glm::mat3 tridentM;
+	glm::mat3 tridentD;
 	void Display ( const bool shadowPass = false ) {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
@@ -300,7 +302,7 @@ struct SphereModel {
 			for ( float t = 0; t < scalar; t += 0.002f ) {
 				basePt.x += trunkJitter() * 0.5f;
 				basePt.y += trunkJitter() * 0.5f;
-				constrict *= 0.999f;
+				constrict *= 0.995f;
 				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
@@ -405,6 +407,7 @@ struct SphereModel {
 	}
 
 	glm::mat3 tridentM;
+	glm::mat3 tridentD;
 	void Display ( const bool shadowPass = false ) {
 
 		static orientTrident trident2;
@@ -556,6 +559,7 @@ struct WaterModel {
 	}
 
 	glm::mat3 tridentM;
+	glm::mat3 tridentD;
 	void Display ( const bool shadowPass = false ) {
 		glBindVertexArray( vao );
 		glUseProgram( shader );

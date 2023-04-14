@@ -13,6 +13,10 @@ public:
 	SphereModel * sphere;
 	WaterModel * water;
 
+	// shadowmapping resources
+	GLuint shadowmapFramebuffer = 0;
+	GLuint depthTexture;
+
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
@@ -50,11 +54,11 @@ public:
 			// =================================================================================================
 
 			// create the shadowmap resources
-			GLuint FramebufferName = 0;
-			glGenFramebuffers( 1, &FramebufferName );
-			glBindFramebuffer( GL_FRAMEBUFFER, FramebufferName );
+			GLuint shadowmapFramebuffer = 0;
+			glGenFramebuffers( 1, &shadowmapFramebuffer );
+			glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
 
-			GLuint depthTexture; // Depth texture. Slower than a depth buffer, but you can sample it later in your shader
+			// Depth texture - slower than a depth buffer, but you can sample it later in your shader
 			glGenTextures( 1, &depthTexture );
 			glBindTexture( GL_TEXTURE_2D, depthTexture );
 			glTexImage2D( GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0 );
@@ -118,17 +122,31 @@ public:
 		const float width = io.DisplaySize.x;
 		const float height = io.DisplaySize.y;
 		skirts->screenAR = water->screenAR = sphere->screenAR = ground->screenAR = width / height;
+
 		skirts->tridentM = water->tridentM = sphere->tridentM = ground->tridentM = glm::mat3(
 			trident.basisX,
 			trident.basisY,
 			trident.basisZ
 		);
 
+		// shadowmap model transform
+		skirts->tridentD = water->tridentD = sphere->tridentD = ground->tridentD = glm::mat3(
+			tridentDepth.basisX,
+			tridentDepth.basisY,
+			tridentDepth.basisZ
+		);
+
+		// prepare to render the shadowmap depth
+		glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
+
 		// get shadow depth
 		ground->Display( true );
 		sphere->Display( true );
 		water->Display( true );
 		skirts->Display( true );
+
+		// revert to default framebuffer
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
 		// draw the output
 		ground->Display();

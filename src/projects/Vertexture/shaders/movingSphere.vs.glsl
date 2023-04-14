@@ -37,7 +37,7 @@ void main() {
 
 	vec4 tRead = texture( heightmap, positionRead.xy / ( 1.618f * 2.0f ) );
 	height = tRead.r * 0.4f - 0.2f;
-	radius = gl_PointSize = positionRead.a;
+	radius = gl_PointSize = positionRead.a * AR;
 
 	color = colorRead.rgb;
 	rot = trident;
