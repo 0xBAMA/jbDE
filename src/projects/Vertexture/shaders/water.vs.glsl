@@ -12,6 +12,7 @@ uniform sampler2D colorMap;
 uniform sampler2D normalMap;
 uniform sampler2D heightMap;
 
+uniform float scale;
 uniform float time;
 uniform mat3 trident;
 
@@ -27,7 +28,7 @@ void main() {
 	color = cRead.xyz / 2.0f;
 	normal = nRead.xyz;
 
-	const vec3 vPosition_local = trident * ( vPosition + vec3( 0.0f, 0.0f, hRead.r * 0.01f ) );
+	const vec3 vPosition_local = scale * trident * ( vPosition + vec3( 0.0f, 0.0f, hRead.r * 0.01f ) );
 	// const vec3 vPosition_local = trident * vPosition;
 	gl_Position = vec4( vPosition_local * vec3( 1.0f, AR, 1.0f ) * 0.4f, 1.0f );
 }

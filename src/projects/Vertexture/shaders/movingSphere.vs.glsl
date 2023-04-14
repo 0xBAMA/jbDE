@@ -24,6 +24,7 @@ out vec3 position;
 out float height;
 
 out mat3 rot;
+uniform float scale;
 flat out int index;
 
 void main() {
@@ -37,11 +38,11 @@ void main() {
 
 	vec4 tRead = texture( heightmap, positionRead.xy / ( 1.618f * 2.0f ) );
 	height = tRead.r * 0.4f - 0.2f;
-	radius = gl_PointSize = positionRead.a * AR;
+	radius = gl_PointSize = scale * positionRead.a * AR;
 
 	color = colorRead.rgb;
 	rot = trident;
 
-	position = trident * ( positionRead.xyz + vec3( 0.0f, 0.0f, height ) );
+	position = scale * trident * ( positionRead.xyz + vec3( 0.0f, 0.0f, height ) );
 	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ) * 0.4f, 1.0f );
 }

@@ -8,6 +8,10 @@ public:
 
 	vertextureConfig gameConfig;
 
+	// size scalar
+	float scale = 1.0f;
+
+	// application data
 	GroundModel * ground;
 	SkirtsModel * skirts;
 	SphereModel * sphere;
@@ -16,6 +20,7 @@ public:
 	// shadowmapping resources
 	GLuint shadowmapFramebuffer = 0;
 	GLuint depthTexture;
+
 
 	void OnInit () {
 		ZoneScoped;
@@ -97,6 +102,11 @@ public:
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
+
+		const uint8_t *state = SDL_GetKeyboardState( NULL );
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { scale *= 1.01f; }
+		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { scale *= 0.99f; }
+
 	}
 
 	void ImguiPass () {
@@ -121,8 +131,13 @@ public:
 		ImGuiIO &io = ImGui::GetIO();
 		const float width = io.DisplaySize.x;
 		const float height = io.DisplaySize.y;
+		// screen aspect ratio
 		skirts->screenAR = water->screenAR = sphere->screenAR = ground->screenAR = width / height;
 
+		// scale adjustment
+		skirts->scale = water->scale = sphere->scale = ground->scale = scale;
+
+		// display model transform
 		skirts->tridentM = water->tridentM = sphere->tridentM = ground->tridentM = glm::mat3(
 			trident.basisX,
 			trident.basisY,
@@ -130,20 +145,20 @@ public:
 		);
 
 		// shadowmap model transform
-		skirts->tridentD = water->tridentD = sphere->tridentD = ground->tridentD = glm::mat3(
-			tridentDepth.basisX,
-			tridentDepth.basisY,
-			tridentDepth.basisZ
-		);
+		// skirts->tridentD = water->tridentD = sphere->tridentD = ground->tridentD = glm::mat3(
+		// 	tridentDepth.basisX,
+		// 	tridentDepth.basisY,
+		// 	tridentDepth.basisZ
+		// );
 
 		// prepare to render the shadowmap depth
 		glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
 
 		// get shadow depth
-		ground->Display( true );
-		sphere->Display( true );
-		water->Display( true );
-		skirts->Display( true );
+		ground->ShadowDisplay();
+		sphere->ShadowDisplay();
+		water->ShadowDisplay();
+		skirts->ShadowDisplay();
 
 		// revert to default framebuffer
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );

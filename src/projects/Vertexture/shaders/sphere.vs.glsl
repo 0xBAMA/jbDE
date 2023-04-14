@@ -7,6 +7,7 @@ in vec4 vColor;
 // in vec2 vTexturePosition;
 
 uniform sampler2D heightmap;
+uniform float scale;
 uniform float time;
 uniform mat3 trident;
 
@@ -26,7 +27,7 @@ void main() {
 	height = tRead.r * 0.4f - 0.2f;
 
 	// radius = gl_PointSize = vPosition.a + height * 16.0f;
-	radius = gl_PointSize = vPosition.a * AR;
+	radius = gl_PointSize = scale * vPosition.a * AR;
 
 	// gl_PointSize *= 1.0f + 2.0f * clamp( 0.7f, 1.0f, 2.5f * tRead.r - 2.0f );
 	// color = mix( mix( vec3( 1.0f, 1.0f, 0.0f ), vec3( 0.1f, 1.0f, 0.0f ), ( radius - 1.0f ) / 6.0f ) * 0.618f, vec3( 0.2f, 0.4f, 0.9f ), 1.0f - tRead.r );
@@ -34,6 +35,6 @@ void main() {
 
 	rot = trident;
 
-	position = trident * ( vPosition.xyz + vec3( 0.0f, 0.0f, height ) );
+	position = scale * trident * ( vPosition.xyz + vec3( 0.0f, 0.0f, height ) );
 	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ) * 0.4f, 1.0f );
 }

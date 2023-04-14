@@ -30,8 +30,8 @@ struct GroundModel {
 
 	GLuint heightmap;
 
+	float scale;
 	float screenAR;
-	const float scale = globalScale;
 	int numPoints = 0;
 
 	// void subdivide ( std::vector<groundPt> &world, std::vector<glm::vec3> points ) {
@@ -80,10 +80,10 @@ struct GroundModel {
 
 		basePoints.resize( 4 );
 
-		basePoints[ 0 ] = glm::vec3( -scale, -scale, 0.0f );
-		basePoints[ 1 ] = glm::vec3( -scale,  scale, 0.0f );
-		basePoints[ 2 ] = glm::vec3(  scale, -scale, 0.0f );
-		basePoints[ 3 ] = glm::vec3(  scale,  scale, 0.0f );
+		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 0.0f );
+		basePoints[ 1 ] = glm::vec3( -globalScale,  globalScale, 0.0f );
+		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale, 0.0f );
+		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, 0.0f );
 		subdivide( world, basePoints );
 
 		glGenVertexArrays( 1, &vao );
@@ -112,7 +112,7 @@ struct GroundModel {
 
 	}
 
-	void Update ( int t ) {
+	void ShadowDisplay () {
 
 	}
 
@@ -129,6 +129,7 @@ struct GroundModel {
 
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
 		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
 			1, GL_FALSE, glm::value_ptr( tridentM ) );
@@ -144,8 +145,8 @@ struct SkirtsModel {
 	GLuint vao, vbo;
 	GLuint shader;
 
+	float scale;
 	float screenAR;
-	const float scale = globalScale;
 	int numPoints = 0;
 
 	SkirtsModel ( GLuint sIn ) : shader( sIn ) {
@@ -153,10 +154,10 @@ struct SkirtsModel {
 		std::vector<glm::vec3> basePoints;
 
 		basePoints.resize( 4 );
-		basePoints[ 0 ] = glm::vec3( -scale, -scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.5f );
-		basePoints[ 2 ] = glm::vec3(  scale, -scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3(  scale, -scale, -1.5f );
+		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 1.0f );
+		basePoints[ 1 ] = glm::vec3( -globalScale, -globalScale, -1.5f );
+		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale, 1.0f );
+		basePoints[ 3 ] = glm::vec3(  globalScale, -globalScale, -1.5f );
 
 		// triangle 1 ABC
 		world.push_back( basePoints[ 0 ] );
@@ -167,10 +168,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3( -scale, -scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3( -scale, -scale, -1.5f );
-		basePoints[ 2 ] = glm::vec3( -scale,  scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.5f );
+		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 1.0f );
+		basePoints[ 1 ] = glm::vec3( -globalScale, -globalScale, -1.5f );
+		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale, 1.0f );
+		basePoints[ 3 ] = glm::vec3( -globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 2 ] );
@@ -179,10 +180,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 2 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3(  scale, -scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3(  scale, -scale, -1.5f );
-		basePoints[ 2 ] = glm::vec3(  scale,  scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3(  scale,  scale, -1.5f );
+		basePoints[ 0 ] = glm::vec3(  globalScale, -globalScale, 1.0f );
+		basePoints[ 1 ] = glm::vec3(  globalScale, -globalScale, -1.5f );
+		basePoints[ 2 ] = glm::vec3(  globalScale,  globalScale, 1.0f );
+		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -191,10 +192,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3(  scale,  scale, 1.0f );
-		basePoints[ 1 ] = glm::vec3(  scale,  scale, -1.5f );
-		basePoints[ 2 ] = glm::vec3( -scale,  scale, 1.0f );
-		basePoints[ 3 ] = glm::vec3( -scale,  scale, -1.5f );
+		basePoints[ 0 ] = glm::vec3(  globalScale,  globalScale, 1.0f );
+		basePoints[ 1 ] = glm::vec3(  globalScale,  globalScale, -1.5f );
+		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale, 1.0f );
+		basePoints[ 3 ] = glm::vec3( -globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -217,13 +218,13 @@ struct SkirtsModel {
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 	}
 
-	void Update ( int t ) {
+	void ShadowDisplay () {
 
 	}
 
 	glm::mat3 tridentM;
 	glm::mat3 tridentD;
-	void Display ( const bool shadowPass = false ) {
+	void Display () {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
@@ -231,6 +232,7 @@ struct SkirtsModel {
 
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( shader, "waterHeight" ), 13 );
 		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
@@ -252,8 +254,8 @@ struct SphereModel {
 	GLuint steepness;
 	GLuint distanceDirection;
 
+	float scale;
 	float screenAR;
-	const float scale = globalScale;
 	int numStaticPoints = 0;
 	int dynamicPointCount = 0;
 
@@ -269,7 +271,7 @@ struct SphereModel {
 		rng gen( 0.3f, 1.2f );
 		rng genH( 0.0f, 0.15f );
 		rng genP( 1.0f, 4.0f );
-		rng genD( -scale, scale );
+		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
 
 		std::vector<glm::vec4> points;
@@ -286,7 +288,7 @@ struct SphereModel {
 
 		rngN trunkJitter( 0.0f, 0.009f );
 		rng trunkSizes( 5.0f, 8.0f );
-		rng basePtPlace( -scale * 0.75f, scale * 0.75f );
+		rng basePtPlace( -globalScale * 0.75f, globalScale * 0.75f );
 		rng leafSizes( 6.0f, 14.0f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
@@ -307,8 +309,8 @@ struct SphereModel {
 				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
 			for ( int j = 0; j < 1000; j++ ) {
-				// rng foliagePlace( -0.15f * scale, 0.15f * scale );
-				rngN foliagePlace( 0.0f, 0.1f * scale );
+				// rng foliagePlace( -0.15f * globalScale, 0.15f * globalScale );
+				rngN foliagePlace( 0.0f, 0.1f * globalScale );
 				rngN foliageHeightGen( scalar, 0.05f );
 				points.push_back( glm::vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
@@ -357,7 +359,7 @@ struct SphereModel {
 		rng phase( 0.0f, pi * 2.0f );
 		for ( int x = 0; x < simQ; x++ ) {
 			for ( int y = 0; y < simQ; y++ ) {
-				ssboPoints.push_back( glm::vec4( 2.0f * scale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * scale * ( ( y / float( simQ ) ) - 0.5f ), 0.6f * genH(), size() ) );
+				ssboPoints.push_back( glm::vec4( 2.0f * globalScale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * globalScale * ( ( y / float( simQ ) ) - 0.5f ), 0.6f * genH(), size() ) );
 				ssboPoints.push_back( glm::vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
 				dynamicPointCount++;
 			}
@@ -381,7 +383,7 @@ struct SphereModel {
 
 	}
 
-	void Update ( int t ) {
+	void ShadowDisplay () {
 
 		rngi gen( 0, 100000 );
 
@@ -408,7 +410,7 @@ struct SphereModel {
 
 	glm::mat3 tridentM;
 	glm::mat3 tridentD;
-	void Display ( const bool shadowPass = false ) {
+	void Display () {
 
 		static orientTrident trident2;
 		// trident2.RotateX( 0.0026f );
@@ -427,6 +429,7 @@ struct SphereModel {
 		// static points
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( shader, "sphere" ), 10 );
 		glUniform3f( glGetUniformLocation( shader, "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
@@ -441,6 +444,7 @@ struct SphereModel {
 		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glUniform1f( glGetUniformLocation( moverShader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( moverShader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( moverShader, "sphere" ), 10 );
 		glUniform3f( glGetUniformLocation( moverShader, "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
@@ -458,8 +462,8 @@ struct WaterModel {
 	GLuint vao, vbo;
 	GLuint shader;
 
+	float scale;
 	float screenAR;
-	const float scale = globalScale;
 	int numPoints = 0;
 
 	GLuint waterColorTexture;
@@ -499,10 +503,10 @@ struct WaterModel {
 
 		basePoints.resize( 4 );
 
-		basePoints[ 0 ] = glm::vec3( -scale, -scale, 0.0f );
-		basePoints[ 1 ] = glm::vec3( -scale,  scale, 0.0f );
-		basePoints[ 2 ] = glm::vec3(  scale, -scale, 0.0f );
-		basePoints[ 3 ] = glm::vec3(  scale,  scale, 0.0f );
+		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 0.0f );
+		basePoints[ 1 ] = glm::vec3( -globalScale,  globalScale, 0.0f );
+		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale, 0.0f );
+		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, 0.0f );
 		subdivide( world, basePoints );
 
 		glGenVertexArrays( 1, &vao );
@@ -554,13 +558,13 @@ struct WaterModel {
 
 	}
 
-	void Update ( int t ) {
+	void ShadowDisplay () {
 
 	}
 
 	glm::mat3 tridentM;
 	glm::mat3 tridentD;
-	void Display ( const bool shadowPass = false ) {
+	void Display () {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
@@ -568,6 +572,7 @@ struct WaterModel {
 
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "colorMap" ), 11 );
 		glUniform1i( glGetUniformLocation( shader, "normalMap" ), 12 );
 		glUniform1i( glGetUniformLocation( shader, "heightMap" ), 13 );
