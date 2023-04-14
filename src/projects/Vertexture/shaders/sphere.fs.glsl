@@ -15,6 +15,8 @@ uniform float time;
 
 uniform vec3 lightDirection;
 
+layout( depth_greater ) out float gl_FragDepth;
+
 void main() {
 
 	vec4 tRead = texture( sphere, gl_PointCoord.xy );
