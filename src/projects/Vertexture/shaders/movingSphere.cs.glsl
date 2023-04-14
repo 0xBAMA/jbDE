@@ -57,8 +57,9 @@ void main() {
 
 	seed = index + uint( inSeed );
 
-	if ( distDirRead.z <= 0.0f )
-		data[ index ].position.xy += distDirRead.xy * 0.01f;
+	if ( distDirRead.z <= 0.0f ) {
+		data[ index ].position.xy += distDirRead.xy * 0.02f;
+	}
 
 	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
 	// data[ index ].position.xy = data[ index ].position.xy + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
@@ -69,6 +70,7 @@ void main() {
 
 	// data[ index ].color.rgb = distDirRead.xyz;
 
+	// wrap
 	if ( data[ index ].position.x > 1.618f ) data[ index ].position.x -= 2.0f * 1.618f;
 	if ( data[ index ].position.x < -1.618f ) data[ index ].position.x += 2.0f * 1.618f;
 	if ( data[ index ].position.y > 1.618f ) data[ index ].position.y -= 2.0f * 1.618f;
