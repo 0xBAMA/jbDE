@@ -4,6 +4,7 @@ uniform sampler2D heightmap;
 uniform sampler2D waterHeight;
 
 uniform float time;
+uniform vec3 groundColor;
 
 in vec3 color;
 in vec2 texCoord;
@@ -34,11 +35,13 @@ void main() {
 			float grad = clamp( 0.1f, 1.0f, position.z / 0.4f + 0.2f / 0.4f );
 			glFragColor = vec4( grad, grad, grad, 1.0f );
 
-			glFragColor.r *= 0.7f;
-			glFragColor.g *= 0.5f;
-			glFragColor.b *= 0.4f;
+			// glFragColor.r *= 0.7f;
+			// glFragColor.g *= 0.5f;
+			// glFragColor.b *= 0.4f;
 
-			glFragColor.a = grad * 5.0f;
+			glFragColor.rgb *= groundColor;
+
+			glFragColor.a = grad * 10.0f;
 
 		} else if ( belowWater ) { // water color
 			glFragColor = vec4( 0.1f, 0.2f, 0.4f, 0.3f );

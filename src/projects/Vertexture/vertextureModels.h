@@ -34,6 +34,8 @@ struct GroundModel {
 	float screenAR;
 	int numPoints = 0;
 
+	glm::vec3 groundColor;
+
 	// void subdivide ( std::vector<groundPt> &world, std::vector<glm::vec3> points ) {
 	void subdivide ( std::vector<vec3> &world, std::vector<glm::vec3> points ) {
 		const float minDisplacement = 0.01f;
@@ -110,6 +112,8 @@ struct GroundModel {
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
 		glGenerateMipmap( GL_TEXTURE_2D );
 
+		rng gen( 0.0f, 1.0f );
+		groundColor = palette::paletteRef( gen() + 0.5f, palette::type::paletteIndexed_interpolated );
 	}
 
 	void ShadowDisplay () {
@@ -127,6 +131,7 @@ struct GroundModel {
 
 		glEnable( GL_DEPTH_TEST );
 
+		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
@@ -148,6 +153,8 @@ struct SkirtsModel {
 	float scale;
 	float screenAR;
 	int numPoints = 0;
+
+	glm::vec3 groundColor;
 
 	SkirtsModel ( GLuint sIn ) : shader( sIn ) {
 		std::vector<glm::vec3> world;
@@ -230,6 +237,7 @@ struct SkirtsModel {
 
 		glEnable( GL_DEPTH_TEST );
 
+		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
 		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
@@ -277,13 +285,11 @@ struct SphereModel {
 		std::vector<glm::vec4> points;
 		std::vector<glm::vec4> colors;
 
-		palette::PickRandomPalette();
-
 		// ground cover
 		for ( int i = 0; i < 50000; i++ ) {
 			// points.push_back( glm::vec4( genD(), genD(), gen(), genP() * gen() ) );
 			points.push_back( glm::vec4( genD(), genD(), genH(), genP() ) );
-			colors.push_back( glm::vec4( palette::paletteRef( genH() * 5.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			colors.push_back( glm::vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 		}
 
 		rngN trunkJitter( 0.0f, 0.009f );
@@ -304,7 +310,7 @@ struct SphereModel {
 			for ( float t = 0; t < scalar; t += 0.002f ) {
 				basePt.x += trunkJitter() * 0.5f;
 				basePt.y += trunkJitter() * 0.5f;
-				constrict *= 0.995f;
+				constrict *= 0.999f;
 				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
@@ -383,8 +389,7 @@ struct SphereModel {
 
 	}
 
-	void ShadowDisplay () {
-
+	void Update ( int counter ) {
 		rngi gen( 0, 100000 );
 
 		glUseProgram( mapUpdateShader );
@@ -406,6 +411,10 @@ struct SphereModel {
 		glUniform1i( glGetUniformLocation( movementShader, "inSeed" ), gen() );
 		glUniform1i( glGetUniformLocation( movementShader, "dimension" ), simQ );
 		glDispatchCompute( simQ / 16, simQ / 16, 1 ); // dispatch the compute shader to update ssbo
+	}
+
+	void ShadowDisplay () {
+
 	}
 
 	glm::mat3 tridentM;

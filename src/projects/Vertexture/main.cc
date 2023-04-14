@@ -84,11 +84,15 @@ public:
 
 			// =================================================================================================
 
+			palette::PickRandomPalette();
+
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
 			textures[ "Ground" ] = ground->heightmap;
 
 			skirts = new SkirtsModel( shaders[ "Skirts" ] );
+			skirts->groundColor = ground->groundColor;
+
 			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees );
 			sphere->steepness = textures[ "Steepness Map" ];
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
@@ -209,10 +213,10 @@ public:
 		// application-specific update code
 		static int counter = 0;
 		counter++;
-		ground->Update( counter );
-		skirts->Update( counter );
+		// ground->Update( counter );
+		// skirts->Update( counter );
 		sphere->Update( counter );
-		water->Update( counter );
+		// water->Update( counter );
 	}
 
 	void OnRender () {

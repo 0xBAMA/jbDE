@@ -10,15 +10,17 @@ uniform sampler2D heightmap;
 uniform float time;
 uniform float scale;
 uniform mat3 trident;
+uniform vec3 groundColor;
 
 void main() {
 
 	vec4 tRead = texture( heightmap, vPosition.xy / ( 1.618f * 2.0f ) );
 
 	color = vec3( tRead.r );
-	color.r *= 0.7f;
-	color.g *= 0.5f;
-	color.b *= 0.4f;
+	// color.r *= 0.7f;
+	// color.g *= 0.5f;
+	// color.b *= 0.4f;
+	color.rgb *= groundColor;
 
 	vec3 vPosition_local = scale * trident * ( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.2f ) );
 
