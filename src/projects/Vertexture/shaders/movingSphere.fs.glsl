@@ -24,6 +24,8 @@ void main() {
 	vec3 normal = inverse( rot ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
 	vec3 worldPosition = position;
 
-	gl_FragDepth = gl_FragCoord.z - ( ( radius / 1024.0f ) * tRead.x );
+	// gl_FragDepth = gl_FragCoord.z - ( ( radius / 1024.0f ) * tRead.x );
+	gl_FragDepth = gl_FragCoord.z + ( ( radius / 1024.0f ) * ( 1.0f - tRead.x ) );
+
 	glFragColor = vec4( tRead.xyz * color * clamp( dot( rot * normal, lightDirection ), 0.1618f, 1.0f ) * 1.3f, 1.0f );
 }

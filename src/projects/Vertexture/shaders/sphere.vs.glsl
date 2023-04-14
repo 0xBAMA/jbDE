@@ -36,5 +36,7 @@ void main() {
 	rot = trident;
 
 	position = scale * trident * ( vPosition.xyz + vec3( 0.0f, 0.0f, height ) );
+	position.z += radius / 1024.0f; // precompensate for depth
+
 	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ) * 0.4f, 1.0f );
 }
