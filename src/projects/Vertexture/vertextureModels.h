@@ -19,13 +19,6 @@ inline float Remap ( float value, float from1, float to1, float from2, float to2
 	return ( value - from1 ) / ( to1 - from1 ) * ( to2 - from2 ) + from2;
 }
 
-// // helper for API geometry init
-// struct groundPt {
-// 	groundPt( glm::vec3 p, glm::uvec3 sC ) : position( p ), sColor( sC ) {}
-// 	glm::vec3 position;	// position for the graphics API
-// 	glm::uvec3 sColor;	// interpolated selection color
-// };
-
 constexpr float globalScale = 1.618f;
 
 //=====================================================================================================================
@@ -46,20 +39,6 @@ struct GroundModel {
 		const float minDisplacement = 0.01f;
 		if ( glm::distance( points[ 0 ], points[ 2 ] ) < minDisplacement ) {
 			// corner-to-corner distance is small, time to write API geometry
-
-			// glm::vec3 A = { Remap( points[ 0 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 0 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
-			// glm::vec3 B = { Remap( points[ 1 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 1 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
-			// glm::vec3 C = { Remap( points[ 2 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 2 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
-			// glm::vec3 D = { Remap( points[ 3 ].x, -scale, scale, 0.0f, 1.0f ), Remap( points[ 3 ].y, -scale, scale, 0.0f, 1.0f ), 0 };
-
-			// // triangle 1 ABC
-			// world.push_back( { points[ 0 ], A } );
-			// world.push_back( { points[ 1 ], B } );
-			// world.push_back( { points[ 2 ], C } );
-			// // triangle 2 BCD
-			// world.push_back( { points[ 1 ], B } );
-			// world.push_back( { points[ 2 ], C } );
-			// world.push_back( { points[ 3 ], D } );
 
 			//	A ( 0 )	@=======@ B ( 1 )
 			//			|      /|
@@ -294,13 +273,6 @@ struct SphereModel {
 		std::vector<glm::vec4> points;
 		std::vector<glm::vec4> colors;
 
-		// for ( float y = -1.0f; y < 1.0f; y += 0.01618f ) {
-		// 	for ( float x = -1.0f; x < 1.0f; x += 0.01618f ) {
-		// 		// points.push_back( glm::vec4( x, y, 0.0f, gen() ) );
-		// 		points.push_back( glm::vec4( genD(), genD(), 0.0f, genP() * gen() ) );
-		// 	}
-		// }
-
 		palette::PickRandomPalette();
 
 		// ground cover
@@ -335,7 +307,8 @@ struct SphereModel {
 			for ( int j = 0; j < 1000; j++ ) {
 				// rng foliagePlace( -0.15f * scale, 0.15f * scale );
 				rngN foliagePlace( 0.0f, 0.1f * scale );
-				points.push_back( glm::vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), heightGen(), leafSizes() ) );
+				rngN foliageHeightGen( scalar, 0.05f );
+				points.push_back( glm::vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
 				colors.push_back( glm::vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
 		}
