@@ -18,9 +18,9 @@ public:
 	WaterModel * water;
 
 	// shadowmapping resources
+	orientTrident tridentDepth;
 	GLuint shadowmapFramebuffer = 0;
 	GLuint depthTexture;
-
 
 	void OnInit () {
 		ZoneScoped;
@@ -57,6 +57,10 @@ public:
 			textures[ "Distance/Direction Map" ] = distanceDirection;
 
 			// =================================================================================================
+
+			// shadowmapping resources:
+			//	http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/#rendering-the-shadow-map
+			//	https://ogldev.org/www/tutorial23/tutorial23.html
 
 			// create the shadowmap resources
 			GLuint shadowmapFramebuffer = 0;
@@ -149,14 +153,15 @@ public:
 		);
 
 		// shadowmap model transform
-		// skirts->tridentD = water->tridentD = sphere->tridentD = ground->tridentD = glm::mat3(
-		// 	tridentDepth.basisX,
-		// 	tridentDepth.basisY,
-		// 	tridentDepth.basisZ
-		// );
+		skirts->tridentD = water->tridentD = sphere->tridentD = ground->tridentD = glm::mat3(
+			tridentDepth.basisX,
+			tridentDepth.basisY,
+			tridentDepth.basisZ
+		);
 
 		// prepare to render the shadowmap depth
 		glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
+		glClear( GL_DEPTH_BUFFER_BIT );
 
 		// get shadow depth
 		ground->ShadowDisplay();
@@ -166,6 +171,7 @@ public:
 
 		// revert to default framebuffer
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		glClear( GL_DEPTH_BUFFER_BIT );
 
 		// draw the output
 		ground->Display();

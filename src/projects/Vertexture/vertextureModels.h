@@ -30,6 +30,9 @@ struct GroundModel {
 
 	GLuint heightmap;
 
+	glm::mat3 tridentM;
+	glm::mat3 tridentD;
+
 	float scale;
 	float screenAR;
 	int numPoints = 0;
@@ -117,15 +120,23 @@ struct GroundModel {
 	}
 
 	void ShadowDisplay () {
+		glBindVertexArray( vao );
+		glUseProgram( shader );
 
+		glEnable( GL_DEPTH_TEST );
+
+		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
+		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
+		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
+		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
+			1, GL_FALSE, glm::value_ptr( tridentD ) );
+
+		glDrawArrays( GL_TRIANGLES, 0, numPoints );
 	}
 
-	glm::mat3 tridentM;
-	glm::mat3 tridentD;
 	void Display ( bool selectMode = false ) {
-		// glClearColor( 0, 0, 0, 0 );
-		// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
@@ -161,9 +172,9 @@ struct SkirtsModel {
 		std::vector<glm::vec3> basePoints;
 
 		basePoints.resize( 4 );
-		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 1.0f );
+		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale,  1.0f );
 		basePoints[ 1 ] = glm::vec3( -globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale, 1.0f );
+		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale,  1.0f );
 		basePoints[ 3 ] = glm::vec3(  globalScale, -globalScale, -1.5f );
 
 		// triangle 1 ABC
@@ -175,9 +186,9 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 1.0f );
+		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale,  1.0f );
 		basePoints[ 1 ] = glm::vec3( -globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale, 1.0f );
+		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale,  1.0f );
 		basePoints[ 3 ] = glm::vec3( -globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
@@ -187,9 +198,9 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 2 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3(  globalScale, -globalScale, 1.0f );
+		basePoints[ 0 ] = glm::vec3(  globalScale, -globalScale,  1.0f );
 		basePoints[ 1 ] = glm::vec3(  globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3(  globalScale,  globalScale, 1.0f );
+		basePoints[ 2 ] = glm::vec3(  globalScale,  globalScale,  1.0f );
 		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
@@ -199,9 +210,9 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3(  globalScale,  globalScale, 1.0f );
+		basePoints[ 0 ] = glm::vec3(  globalScale,  globalScale,  1.0f );
 		basePoints[ 1 ] = glm::vec3(  globalScale,  globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale, 1.0f );
+		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale,  1.0f );
 		basePoints[ 3 ] = glm::vec3( -globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
@@ -268,7 +279,7 @@ struct SphereModel {
 	int dynamicPointCount = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 400;
+	const int simQ = 16 * 40;
 
 	uint32_t numTrees;
 	std::vector<glm::vec3> obstacles; // x,y location, then radius
