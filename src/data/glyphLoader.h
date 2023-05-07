@@ -83,6 +83,8 @@ static void LoadGlyphs () {
 		for ( uint32_t x = 0; x < width; x++ ) {
 			if ( isBlackOrWhite( glyphRecord.GetAtXY( x, y ) ) ) {
 				ReadGlyphAt( x, y, glyphRecord );
+				// known glyph width
+				// increment x by glyph width
 			}
 		}
 	}

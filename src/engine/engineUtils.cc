@@ -141,3 +141,28 @@ void engineBase::PrepareProfilingData () {
 	}
 	timerQueries_engine.clear(); // prepare for next frame's data
 }
+
+
+//=============================================================================
+//==== std::chrono Wrapper - Simplified Tick() / Tock() Interface =============
+//=============================================================================
+
+// no nesting, but makes for a very simple interface
+	// could probably do something stack based, have Tick() push and Tock() pop
+#define NOW std::chrono::steady_clock::now()
+#define TIMECAST(x) std::chrono::duration_cast<std::chrono::microseconds>(x).count()/1000.0f
+
+void engineBase::Tick() {
+	tCurr = NOW;
+}
+
+float engineBase::Tock() {
+	return TIMECAST( NOW - tCurr );
+}
+
+float engineBase::TotalTime() {
+	return TIMECAST( NOW - tStart );
+}
+
+#undef NOW
+#undef TIMECAST

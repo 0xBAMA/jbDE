@@ -330,10 +330,10 @@ void engineBase::InitialClear () {
 void engineBase::ReportStartupStats () {
 	ZoneScoped;
 
-	cout << endl << T_CYAN << "  " << 
+	cout << endl << T_CYAN << "  " <<
 		shaders.size() << " shader programs, " <<
 		textures.size() << " textures, " <<
 		bindSets.size() << " bindsets" << endl;
 
-	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << TIMEUNIT << " )" << RESET << endl << endl;
+	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
 }

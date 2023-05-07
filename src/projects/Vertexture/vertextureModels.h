@@ -126,7 +126,7 @@ struct GroundModel {
 		glEnable( GL_DEPTH_TEST );
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
-		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "time" ), time / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -143,7 +143,7 @@ struct GroundModel {
 		glEnable( GL_DEPTH_TEST );
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
-		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "time" ), time / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -249,7 +249,7 @@ struct SkirtsModel {
 		glEnable( GL_DEPTH_TEST );
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
-		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "time" ), time / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -418,7 +418,7 @@ struct SphereModel {
 		glUseProgram( movementShader );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
-		glUniform1f( glGetUniformLocation( movementShader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( movementShader, "time" ), time / 10000.0f );
 		glUniform1i( glGetUniformLocation( movementShader, "inSeed" ), gen() );
 		glUniform1i( glGetUniformLocation( movementShader, "dimension" ), simQ );
 		glDispatchCompute( simQ / 16, simQ / 16, 1 ); // dispatch the compute shader to update ssbo
@@ -447,7 +447,7 @@ struct SphereModel {
 		glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT );
 
 		// static points
-		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "time" ), time / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -462,7 +462,7 @@ struct SphereModel {
 		glUseProgram( moverShader );
 		glBindImageTexture( 1, steepness, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-		glUniform1f( glGetUniformLocation( moverShader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( moverShader, "time" ), time / 10000.0f );
 		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( moverShader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );
@@ -590,7 +590,7 @@ struct WaterModel {
 
 		glEnable( GL_DEPTH_TEST );
 
-		glUniform1f( glGetUniformLocation( shader, "time" ), TotalTime() / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "time" ), time / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "colorMap" ), 11 );

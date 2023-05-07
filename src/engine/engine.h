@@ -64,6 +64,13 @@ protected:
 public:
 	timerManager timerQueries_engine;
 
+	// startup timer state
+	std::chrono::time_point<std::chrono::steady_clock> tStart = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> tCurr = std::chrono::steady_clock::now();
+	void Tick();
+	float Tock();
+	float TotalTime();
+
 //====== Shutdown Procedures ==================================================
 protected:
 	void ImguiQuit ();

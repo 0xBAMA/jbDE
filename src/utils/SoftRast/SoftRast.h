@@ -326,7 +326,7 @@ public:
 
 		tinyobj::ObjReader reader;
 
-		Tick();
+		// Tick();
 
 		// report any errors or warnings
 		if ( !reader.ParseFromFile( modelPath, readerConfig ) ) {
@@ -463,31 +463,31 @@ public:
 			}
 		}
 
-		if ( verboseLoad ) {
-			cout << "loading took " << Tock() / 1000.0f << "ms" << newline;
-		}
+		// if ( verboseLoad ) {
+		// 	cout << "loading took " << Tock() / 1000.0f << "ms" << newline;
+		// }
 	}
 
 	void DrawModel( const mat3 transform, const vec3 offset = vec3( 0.0f ) ) {
-		Tick();
+		// Tick();
 		for ( auto& t : triangles ) {
 			DrawTriangle( t, transform, offset );
 		}
-		if ( verboseDraw ) {
-			cout << "drawing took " << Tock() / 1000.0f << "ms" << newline;
-		}
+		// if ( verboseDraw ) {
+			// cout << "drawing took " << Tock() / 1000.0f << "ms" << newline;
+		// }
 	}
 
 	void DrawModelWireframe( const mat3 transform, const vec3 offset = vec3( 0.0f ) ) {
-		Tick();
+		// Tick();
 		for ( auto& t : triangles ) {
 			DrawLine( ( transform * ( t.p0 + offset ) ), ( transform * ( t.p1 + offset ) ), vec4( t.n0, 1.0f ) );
 			DrawLine( ( transform * ( t.p1 + offset ) ), ( transform * ( t.p2 + offset ) ), vec4( t.n1, 1.0f ) );
 			DrawLine( ( transform * ( t.p2 + offset ) ), ( transform * ( t.p0 + offset ) ), vec4( t.n2, 1.0f ) );
 		}
-		if ( verboseDraw ) {
-			cout << "drawing took " << Tock() / 1000.0f << "ms" << newline;
-		}
+		// if ( verboseDraw ) {
+			// cout << "drawing took " << Tock() / 1000.0f << "ms" << newline;
+		// }
 	}
 
 	std::vector<triangle> triangles;

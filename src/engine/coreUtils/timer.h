@@ -1,46 +1,7 @@
 #ifndef TIMER
 #define TIMER
 
-//=============================================================================
-//==== std::chrono Wrapper - Simplified Tick() / Tock() Interface =============
-//=============================================================================
-
 #include <chrono>
-// no nesting, but makes for a very simple interface
-	// could probably do something stack based, have Tick() push and Tock() pop
-#define NOW std::chrono::high_resolution_clock::now()
-
-// option to report ms/us
-#define USE_MS
-
-// if not milliseconds, do microseconds
-#ifndef USE_MS
-#define USE_US
-#endif
-
-// TIMEUNIT for ease in the reporting of time quantities, matching units
-
-#ifdef USE_MS
-#define TIMECAST(x) std::chrono::duration_cast<std::chrono::microseconds>(x).count()/1000.0f
-#define TIMEUNIT " ms"
-#endif
-
-#ifdef USE_US
-#define TIMECAST(x) std::chrono::duration_cast<std::chrono::microseconds>(x).count()
-#define TIMEUNIT " us"
-#endif
-
-static auto tInit = NOW;
-static auto t = NOW;
-
-// set base time
-static inline void Tick () { t = NOW; }
-// get difference between base time and current time, return value in useconds
-static inline float Tock () { return TIMECAST( NOW - t ); }
-// getting the time since the engine was started
-static inline float TotalTime () { return TIMECAST( NOW - tInit ); }
-
-
 
 //=============================================================================
 //==== OpenGL Timer Query Wrapper =============================================
@@ -56,8 +17,8 @@ struct queryPair_GPU {
 struct queryPair_CPU {
 	queryPair_CPU ( string s ) : label( s ) {}
 	string label;
-	std::chrono::time_point<std::chrono::system_clock> tStart;
-	std::chrono::time_point<std::chrono::system_clock> tStop;
+	std::chrono::time_point< std::chrono::system_clock > tStart;
+	std::chrono::time_point< std::chrono::system_clock > tStop;
 	float result;
 };
 
@@ -118,8 +79,9 @@ public:
 class Block {
 const int reportWidth = 64;
 public:
+	std::chrono::time_point<std::chrono::steady_clock> tStart;
 	Block( string sectionName ) {
-		Tick();
+		tStart = std::chrono::steady_clock::now();
 		cout << T_BLUE << "    " << sectionName << " " << RESET;
 		for ( unsigned int i = 0; i < reportWidth - sectionName.size(); i++ ) {
 			cout << ".";
@@ -128,11 +90,11 @@ public:
 	}
 
 	~Block() {
-		const float timeInMS = Tock();
+		const float timeInMS = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::steady_clock::now() - tStart ).count() / 1000.0f;
 		const float wholeMS = int( std::floor( timeInMS ) );
 		const float partialMS = int( ( timeInMS - wholeMS ) * 1000.0f );
 		cout << T_GREEN << "done." << T_RED << " ( " << std::setfill( ' ' ) << std::setw( 6 ) << wholeMS << "."
-			<< std::setw( 3 ) << std::setfill( '0' ) << partialMS << TIMEUNIT << " )" << RESET << newline;
+			<< std::setw( 3 ) << std::setfill( '0' ) << partialMS << " )" << RESET << newline;
 	}
 };
 
