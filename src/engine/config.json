@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1400,
-	"screenHeight":1400,
+	"screenWidth":640,
+	"screenHeight":480,
 	"windowOffset":{
 		"x":300,
 		"y":200
@@ -34,6 +34,6 @@
 	"colorGrade":{
 		"tonemapMode":6,
 		"gamma":1.337,
-		"colorTemp":6500.0
+		"colorTemp":6640.0
 	}
 }
