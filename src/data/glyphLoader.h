@@ -83,8 +83,7 @@ static void LoadGlyphs () {
 		for ( uint32_t x = 0; x < width; x++ ) {
 			if ( isBlackOrWhite( glyphRecord.GetAtXY( x, y ) ) ) {
 				ReadGlyphAt( x, y, glyphRecord );
-				// known glyph width
-				// increment x by glyph width
+				x += glyphList[ glyphList.size() - 1 ].glyphData[ 0 ].size(); // less of an optimization than hoped, ~1% speedup
 			}
 		}
 	}
