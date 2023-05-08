@@ -159,19 +159,22 @@ public:
 			tridentDepth.basisZ
 		);
 
-		// prepare to render the shadowmap depth
-		glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
-		glClear( GL_DEPTH_BUFFER_BIT );
+		// // prepare to render the shadowmap depth
+		// glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
+		// glClear( GL_DEPTH_BUFFER_BIT );
 
-		// get shadow depth
-		ground->ShadowDisplay();
-		sphere->ShadowDisplay();
-		water->ShadowDisplay();
-		skirts->ShadowDisplay();
+		// // get shadow depth
+		// ground->ShadowDisplay();
+		// sphere->ShadowDisplay();
+		// water->ShadowDisplay();
+		// skirts->ShadowDisplay();
 
 		// revert to default framebuffer
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		glClear( GL_DEPTH_BUFFER_BIT );
+
+		// TODO: consider setting near and far clip planes based on current scale
+			// currently, zoomed in, we run into a lot of clipping issues
 
 		// draw the output
 		ground->Display();
