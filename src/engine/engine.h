@@ -71,6 +71,12 @@ public:
 	float Tock();
 	float TotalTime();
 
+	// data resources
+	std::vector< glyph > glyphList;
+	std::vector< paletteEntry > paletteList;
+	std::vector< string > colorWords;
+	std::vector< string > badWords;
+
 //====== Shutdown Procedures ==================================================
 protected:
 	void ImguiQuit ();

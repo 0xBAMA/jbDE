@@ -29,7 +29,7 @@
 	},
 	"showImGUIDemoWindow":false,
 	"showProfiler":true,
-	"oneShot":false,
+	"oneShot":true,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,

@@ -7,8 +7,7 @@
 
 #include "../engine/coreUtils/image2.h"
 
-static std::vector< std::string > badWords;
-static inline void LoadBadWords () {
+static inline void LoadBadWords ( std::vector< std::string > &badWords ) {
 	Image_4U source( "./src/data/wordlistBad.png" );
 	for ( uint32_t yPos = 0; yPos < source.Height(); yPos++ ) {
 		string s;
@@ -18,8 +17,7 @@ static inline void LoadBadWords () {
 	}
 }
 
-static std::vector< std::string > colorWords;
-static inline void LoadColorWords () {
+static inline void LoadColorWords ( std::vector< std::string > &colorWords ) {
 	Image_4U source( "./src/data/wordlistColor.png" );
 	for ( uint32_t yPos = 0; yPos < source.Height(); yPos++ ) {
 		string s;

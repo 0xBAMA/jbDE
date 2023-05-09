@@ -10,8 +10,6 @@ struct paletteEntry {
 	std::vector< glm::ivec3 > colors;
 };
 
-inline std::vector< paletteEntry > paletteList; // unordered_map< string, paletteEntry > better? perhaps duplicate, it's not that much data
-
 // static void LoadAllHexfiles() { // temporary, but keeping it around for future use
 // 	for ( const std::filesystem::directory_entry& file : std::filesystem::recursive_directory_iterator( "hexfiles" ) ) {
 // 		palette p;
@@ -59,7 +57,7 @@ inline std::vector< paletteEntry > paletteList; // unordered_map< string, palett
 // 	out.Save( "test.png" );
 // }
 
-static void LoadPalettes () {
+static void LoadPalettes ( std::vector< paletteEntry >& paletteList ) {
 	Image_4U paletteRecord( "./src/data/palettes.png" );
 	for ( uint32_t yPos = 0; yPos < paletteRecord.Height(); yPos++ ) {
 		paletteEntry p;

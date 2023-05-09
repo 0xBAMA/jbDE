@@ -176,6 +176,8 @@ inline vec3 SpectralZucconi6 ( float input ) {
 
 namespace palette {
 
+	static inline std::vector< paletteEntry > * paletteList;
+
 	// I think the best way to do this is to have any state set as a variable in this namespace
 		// e.g. which palette index ( or find the palette by string label ), IQ palette control points, simple gradient endpoints
 
@@ -233,8 +235,9 @@ namespace palette {
 			{ vec3( 0.8f, 0.5f, 0.4f ), vec3( 0.2f, 0.4f, 0.2f ), vec3( 2.0f, 1.0f, 1.0f ), vec3( 0.00f, 0.25f, 0.25f ) }			// watermelon
 		};
 		index = std::clamp( index, 0, 9 );
-		for ( uint8_t pt{ 0 }; pt < 4; pt++ )
+		for ( uint8_t pt{ 0 }; pt < 4; pt++ ) {
 			IQControlPoints[ pt ] = values[ index ][ pt ];
+		}
 	}
 
 	inline vec3 iqPaletteRef ( float t, vec3 a, vec3 b, vec3 c, vec3 d ) {
@@ -245,21 +248,21 @@ namespace palette {
 	inline int PaletteIndex = 0;
 	inline void PickPaletteByLabel ( string label ) {
 		PaletteIndex = 0; // default, if not found
-		for ( unsigned int i = 0; i < paletteList.size(); i++ ) {
-			if ( paletteList[ i ].label == label ) {
+		for ( unsigned int i = 0; i < ( *paletteList ).size(); i++ ) {
+			if ( ( *paletteList )[ i ].label == label ) {
 				PaletteIndex = i;
 			}
 		}
 	}
 
 	inline void PickRandomPalette () {
-		rngi pick( 0, paletteList.size() - 1 );
+		rngi pick( 0, ( *paletteList ).size() - 1 );
 		PaletteIndex = pick();
-		cout << "picked random palette " << PaletteIndex << ": " << paletteList[ PaletteIndex ].label << newline;
+		cout << "picked random palette " << PaletteIndex << ": " << ( *paletteList )[ PaletteIndex ].label << newline;
 	}
 
 	inline string GetCurrentPaletteName () {
-		return paletteList[ PaletteIndex ].label;
+		return ( *paletteList )[ PaletteIndex ].label;
 	}
 
 	// for linear gradient between two colors
@@ -272,18 +275,18 @@ namespace palette {
 
 			// indexing into the currently selected palette / palette size ( nearest neighbor )
 			case type::paletteIndexed:
-				value = vec3( paletteList[ PaletteIndex ].colors[ int( input * ( paletteList[ PaletteIndex ].colors.size() ) ) ] ) / 255.0f;
+				value = vec3( ( *paletteList )[ PaletteIndex ].colors[ int( input * ( ( *paletteList )[ PaletteIndex ].colors.size() ) ) ] ) / 255.0f;
 				break;
 
 			// indexing into the currently selected palette, with the floor of the input, mod by the size of the palette
 			case type::paletteIndexed_modInt:
-				value = vec3( paletteList[ PaletteIndex ].colors[ int( input ) % paletteList[ PaletteIndex ].colors.size() ] ) / 255.0f;
+				value = vec3( ( *paletteList )[ PaletteIndex ].colors[ int( input ) % ( *paletteList )[ PaletteIndex ].colors.size() ] ) / 255.0f;
 				break;
 
 			// same as paletteIndexed, but interpolate between nearest values ( clamp on the ends )
 			case type::paletteIndexed_interpolated:
 				{
-					const float paletteSize = paletteList[ PaletteIndex ].colors.size();
+					const float paletteSize = ( *paletteList )[ PaletteIndex ].colors.size();
 					float index = float( input * ( paletteSize - 1 ) );
 
 					uint32_t indexLow = std::clamp( uint32_t( index ), 0u, uint32_t( paletteSize - 1 ) );
@@ -291,8 +294,8 @@ namespace palette {
 
 					// interpolating in other colorspaces... RGB is not ideal
 					value = glm::mix(
-						vec3( paletteList[ PaletteIndex ].colors[ indexLow ] ) / 255.0f,
-						vec3( paletteList[ PaletteIndex ].colors[ indexHigh ] ) / 255.0f,
+						vec3( ( *paletteList )[ PaletteIndex ].colors[ indexLow ] ) / 255.0f,
+						vec3( ( *paletteList )[ PaletteIndex ].colors[ indexHigh ] ) / 255.0f,
 						index - float( indexLow )
 					);
 				}

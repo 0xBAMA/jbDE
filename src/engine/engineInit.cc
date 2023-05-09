@@ -212,9 +212,19 @@ void engineBase::SetupTextureData () {
 void engineBase::LoadData () {
 	ZoneScoped;
 
-	{ Block Start( "Loading Palettes" ); LoadPalettes(); }
-	{ Block Start( "Loading Font Glyphs" ); LoadGlyphs(); }
-	{ Block Start( "Load Wordlists" ); LoadBadWords(); LoadColorWords(); /* plantWords */ }
+	{ Block Start( "Loading Palettes" );
+		LoadPalettes( paletteList );
+	}
+
+	{ Block Start( "Loading Font Glyphs" );
+		LoadGlyphs( glyphList );
+	}
+
+	{ Block Start( "Load Wordlists" );
+		LoadBadWords( badWords );
+		LoadColorWords( colorWords ); palette::paletteList = &paletteList; // palette ref needs pointer to the list
+		/* plantWords? tbd */
+	}
 }
 
 void engineBase::ShaderCompile () {

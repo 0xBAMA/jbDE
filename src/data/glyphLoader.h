@@ -16,9 +16,7 @@ static bool isBlackOrWhite( color_4U check ) {
 	return check == black || check == white;
 }
 
-static std::vector< glyph > glyphList;
-
-static void ReadGlyphAt ( uint32_t x, uint32_t y, Image_4U &buffer ) {
+static void ReadGlyphAt ( uint32_t x, uint32_t y, Image_4U &buffer, std::vector< glyph > &glyphList ) {
 	// find the footprint of the glyph
 	glyph g;
 
@@ -74,7 +72,7 @@ static void ReadGlyphAt ( uint32_t x, uint32_t y, Image_4U &buffer ) {
 	glyphList.push_back( g );
 }
 
-static void LoadGlyphs () {
+static void LoadGlyphs ( std::vector< glyph > &glyphList ) {
 	Image_4U glyphRecord( "./src/data/bitfontCore2.png" );
 	// iterate through all the pixels in the image
 	const uint32_t height = glyphRecord.Height();
@@ -82,7 +80,7 @@ static void LoadGlyphs () {
 	for ( uint32_t y = 0; y < height; y++ ) {
 		for ( uint32_t x = 0; x < width; x++ ) {
 			if ( isBlackOrWhite( glyphRecord.GetAtXY( x, y ) ) ) {
-				ReadGlyphAt( x, y, glyphRecord );
+				ReadGlyphAt( x, y, glyphRecord, glyphList );
 				x += glyphList[ glyphList.size() - 1 ].glyphData[ 0 ].size(); // less of an optimization than hoped, ~1% speedup
 			}
 		}

@@ -93,7 +93,7 @@ This is a planning document for work on this project and in general, about the t
 - More involved shader wrapper?
 	- More than just compilation
 	- Would be nice to have an abstraction layer over uniforms
-		- std::unordered_map< string, value > kind of thing, but would need to think about how that would work ( unions? )
+		- std::unordered_map< string, value > kind of thing, but would need to think about how that would work ( unions? templating? )
 		- Be able to set the uniform values as members of the shader stuff
 		- Default arguments
 		- Function to update
