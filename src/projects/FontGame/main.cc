@@ -1,15 +1,15 @@
 #include "../../engine/engine.h"
 
-class fontGame : public engineBase {
+class FontGame : public engineBase {
 public:
-	fontGame () { Init(); OnInit(); PostInit(); }
-	~fontGame () { Quit(); }
+	FontGame () { Init(); OnInit(); PostInit(); }
+	~FontGame () { Quit(); }
 
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/fontGame/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/FontGame/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 		}
 	}
 
@@ -118,7 +118,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	fontGame engineInstance;
+	FontGame engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }

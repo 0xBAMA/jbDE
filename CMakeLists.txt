@@ -125,7 +125,7 @@ target_link_libraries( engineDemo
 # FontGame
 # =================================================================================================
 add_executable( FontGame
-	src/projects/fontGame/main.cc
+	src/projects/FontGame/main.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
