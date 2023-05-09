@@ -11,11 +11,11 @@ public:
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/engineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
-			cout << newline;
-			cout << "loaded " << glyphList.size() << " glyphs" << newline;
-			cout << "loaded " << paletteList.size() << " palettes" << newline;
-			cout << "loaded " << badWords.size() << " bad words" << newline;
-			cout << "loaded " << colorWords.size() << " color words" << newline;
+			// cout << newline;
+			// cout << "loaded " << glyphList.size() << " glyphs" << newline;
+			// cout << "loaded " << paletteList.size() << " palettes" << newline;
+			// cout << "loaded " << badWords.size() << " bad words" << newline;
+			// cout << "loaded " << colorWords.size() << " color words" << newline;
 		}
 	}
 
