@@ -9,6 +9,7 @@ time make -j17 engineDemo
 time make -j17 SoftBodies
 time make -j17 Vertexture
 time make -j17 FontGame
+time make -j17 Physarum
 time make -j17 VoxelSpace
 time make -j17 Voraldo14
 cd ..

@@ -68,16 +68,13 @@ This is a planning document for work on this project and in general, about the t
 
 - General Engine Stuff
 	- jbDE child applications
-		- Vertexture
-		- SoftBodies
-		- Voraldo
-		- Physarum
 		- Siren
 		- SDFs - SDF validation tool for the DEC
 			- This needs a new name, SDFs is too generic / overloaded
 			- SDF Validation Tool might be the new name, need to think on that one
 		- PointDrop
 		- Sponza viewer? tbd
+
 	- One of the big things I want to focus on is being able to render high-quality animations offline
 		- Maybe get into some Julius Horsthuis-style fractal animation stuff
 		- Make the separate offline rendering machine earn its keep
