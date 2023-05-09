@@ -122,65 +122,6 @@ target_link_libraries( engineDemo
 )
 
 # =================================================================================================
-# SoftBodies
-# =================================================================================================
-add_executable( SoftBodies
-	src/projects/SoftBodies/main.cc
-	src/projects/SoftBodies/model.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( SoftBodies
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
-# Vertexture
-# =================================================================================================
-add_executable( Vertexture
-	src/projects/Vertexture/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( Vertexture
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
 # FontGame
 # =================================================================================================
 add_executable( FontGame
@@ -268,17 +209,47 @@ target_link_libraries( Siren
 )
 
 # =================================================================================================
-# VoxelSpace
+# SoftBodies
 # =================================================================================================
-add_executable( VoxelSpace
-	src/projects/VoxelSpace/main.cc
+add_executable( SoftBodies
+	src/projects/SoftBodies/main.cc
+	src/projects/SoftBodies/model.cc
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
 	src/engine/engineImguiUtils.cc
 )
 
-target_link_libraries( VoxelSpace
+target_link_libraries( SoftBodies
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
+
+# =================================================================================================
+# Vertexture
+# =================================================================================================
+add_executable( Vertexture
+	src/projects/Vertexture/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( Vertexture
 	PUBLIC
 	imgui
 	BigInt
@@ -308,6 +279,35 @@ add_executable( Voraldo14
 )
 
 target_link_libraries( Voraldo14
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
+
+# =================================================================================================
+# VoxelSpace
+# =================================================================================================
+add_executable( VoxelSpace
+	src/projects/VoxelSpace/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( VoxelSpace
 	PUBLIC
 	imgui
 	BigInt

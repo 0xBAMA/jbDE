@@ -6,13 +6,13 @@ cd build
 # -j arg is max jobs + 1, here configured for 16 compilation threads
 # time make -j17 TracyClient
 time make -j17 engineDemo
-time make -j17 SoftBodies
-time make -j17 Vertexture
 time make -j17 FontGame
 time make -j17 Physarum
 time make -j17 Siren
-time make -j17 VoxelSpace
+time make -j17 SoftBodies
+time make -j17 Vertexture
 time make -j17 Voraldo14
+time make -j17 VoxelSpace
 cd ..
 
 if [ "$1" == "noiseTool" ]

@@ -68,7 +68,6 @@ This is a planning document for work on this project and in general, about the t
 
 - General Engine Stuff
 	- jbDE child applications
-		- Siren
 		- SDFs - SDF validation tool for the DEC
 			- This needs a new name, SDFs is too generic / overloaded
 			- SDF Validation Tool might be the new name, need to think on that one
