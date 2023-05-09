@@ -9,7 +9,7 @@ public:
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/engineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/fontGame/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 		}
 	}
 
