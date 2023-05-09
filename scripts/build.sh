@@ -9,6 +9,7 @@ time make -j17 engineDemo
 time make -j17 SoftBodies
 time make -j17 Vertexture
 time make -j17 FontGame
+time make -j17 Voraldo14
 cd ..
 
 if [ "$1" == "noiseTool" ]

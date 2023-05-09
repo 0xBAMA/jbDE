@@ -206,3 +206,31 @@ target_link_libraries( FontGame
 	LodePNG
 	CompilerFlags
 )
+# =================================================================================================
+# Voraldo14
+# =================================================================================================
+add_executable( Voraldo14
+	src/projects/Voraldo14/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( Voraldo14
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
