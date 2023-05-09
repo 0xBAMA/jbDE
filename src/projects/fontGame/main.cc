@@ -1,9 +1,9 @@
 #include "../../engine/engine.h"
 
-class engineDemo : public engineBase {	// example derived class
+class fontGame : public engineBase {
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	fontGame () { Init(); OnInit(); PostInit(); }
+	~fontGame () { Quit(); }
 
 	void OnInit () {
 		ZoneScoped;
@@ -118,7 +118,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	fontGame engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
