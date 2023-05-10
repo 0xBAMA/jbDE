@@ -7,6 +7,16 @@
 struct glyph {
 	int index = 0;
 	std::vector< std::vector< uint8_t > > glyphData;
+
+	void print () {
+		for ( uint32_t y = 0; y < glyphData.size(); y++ ) {
+			cout << "\n\t";
+			for ( uint32_t x = 0; x < glyphData[ 0 ].size(); x++ ) {
+				cout << ( int ) glyphData[ y ][ x ];
+			}
+			cout << "\n";
+		}
+	}
 };
 
 const color_4U clear ( {   0,   0,   0,   0 } );
