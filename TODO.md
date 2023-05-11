@@ -213,7 +213,7 @@ This is a planning document for work on this project and in general, about the t
 		- Is there some way to do some kind of ML sorting on these?
 
 - Render mode control
-	- Different cameras
+	- Different cameras - add another header in the style of the colorspace conversions header - integer picker and switch kind of deal - UV -> view vector
 		- [Joukowsky transform](https://www.shadertoy.com/view/tsdyWM)
 		- [Fisheye](https://www.shadertoy.com/view/3sSfDz)
 		- [Different Fisheye](https://www.shadertoy.com/view/MlS3zK)
@@ -289,7 +289,6 @@ This is a planning document for work on this project and in general, about the t
 	- Huge dataset, will be an interesting problem to solve
 
 - SoftBodies2
-	- Integrate into jbDE
 	- Support larger models, easy swapping between models - currently nowhere near the cap on the current single thread impl
 		- Consider learning how to use mutexes to make the multithreaded version practical?
 		- I think it will work well on the GPU
