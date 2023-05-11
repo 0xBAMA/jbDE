@@ -15,6 +15,7 @@ public:
 	GroundModel * ground;
 	SkirtsModel * skirts;
 	SphereModel * sphere;
+	LightsModel * lights;
 	WaterModel * water;
 
 	// shadowmapping resources
@@ -36,6 +37,7 @@ public:
 			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphere.cs.glsl" ).shaderHandle;
+			// shaders[ "Light Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingLight.cs.glsl" ).shaderHandle;
 			shaders[ "Sphere Map Update" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphereMaps.cs.glsl" ).shaderHandle;
 			shaders[ "Moving Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/movingSphere.vs.glsl", "./src/projects/Vertexture/shaders/movingSphere.fs.glsl" ).shaderHandle;
 			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
@@ -97,10 +99,20 @@ public:
 			skirts = new SkirtsModel( shaders[ "Skirts" ] );
 			skirts->groundColor = ground->groundColor;
 
+			lights = new LightsModel( shaders[ "Light Movement" ] );
+			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
+			lights->heightmap = textures[ "Ground" ];
+
 			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees );
 			sphere->steepness = textures[ "Steepness Map" ];
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
 			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
+
+
+			// lit objects need to know about the lights - but is this neccesary?
+				// I can hardcode the location in their shaders, then the classes don't need the handle at all
+			ground->lightsSSBO = sphere->lightsSSBO = water->lightsSSBO = lights->ssbo;
+
 
 			water = new WaterModel( shaders[ "Water" ] );
 
@@ -146,7 +158,7 @@ public:
 		skirts->scale = water->scale = sphere->scale = ground->scale = scale;
 
 		// display model transform
-		skirts->tridentM = water->tridentM = sphere->tridentM = ground->tridentM = glm::mat3(
+		skirts->tridentM = water->tridentM = sphere->tridentM = ground->tridentM = lights->tridentM = glm::mat3(
 			trident.basisX,
 			trident.basisY,
 			trident.basisZ

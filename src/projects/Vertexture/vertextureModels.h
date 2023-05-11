@@ -28,6 +28,8 @@ struct GroundModel {
 	GLuint vao, vbo;
 	GLuint shader;
 
+	GLuint lightsSSBO; // needed? tbd
+
 	GLuint heightmap;
 
 	glm::mat3 tridentM;
@@ -263,12 +265,46 @@ struct SkirtsModel {
 	}
 };
 
+
+//=====================================================================================================================
+//===== Lights ========================================================================================================
+// roving lights, apply simple shading to [ground, spheres] for a couple lights
+struct LightsModel {
+	GLuint movementShader;
+	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
+	const int numLights = 7; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+
+	GLuint heightmap;
+	GLuint distanceDirectionMap;
+
+	float timeVal = 0.0f;
+	glm::mat3 tridentM;
+
+	LightsModel ( GLuint sIn ) :
+		movementShader( sIn ) {
+
+		// create the SSBO so it can be used elsewhere
+
+	}
+
+	// we don't need a draw function
+
+	void Update ( int counter ) {
+		rngi gen( 0, 100000 );
+
+		// any required uniform setup
+
+		// dispatch compute shader to update SSBO
+
+	}
+};
+
 //=====================================================================================================================
 //===== Sphere ========================================================================================================
 // point rendering, for gameplay entities
 struct SphereModel {
 	GLuint vao, vbo;
-	GLuint ssbo;
+	GLuint ssbo, lightsSSBO; // lightsSSBO needed? tbd
 	GLuint shader, moverShader, movementShader, mapUpdateShader;
 	GLuint sphereImage;
 
@@ -484,6 +520,8 @@ struct SphereModel {
 struct WaterModel {
 	GLuint vao, vbo;
 	GLuint shader;
+
+	GLuint lightsSSBO; // needed? tbd
 
 	float timeVal = 0.0f;
 	float scale;
