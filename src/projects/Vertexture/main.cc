@@ -23,6 +23,16 @@ public:
 	GLuint shadowmapFramebuffer = 0;
 	GLuint depthTexture;
 
+	// buffer locations are static, hardcoded so that we don't have to manage as much shit in the classes:
+
+		// location 0 is the blue noise texture
+		// location 1 is the steepness texture
+		// location 2 is the distance/direction map
+		// location 3 is the ssbo for the points
+		// location 4 is the ssbo for the lights
+
+		// and the rest with the samplers and shit is going to be passed as uniforms
+
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
@@ -32,12 +42,13 @@ public:
 			trident.basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
 			trident.basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
 
+
 			// something to put some basic data in the accumulator
 			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
 			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
 			shaders[ "Sphere Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphere.cs.glsl" ).shaderHandle;
-			// shaders[ "Light Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingLight.cs.glsl" ).shaderHandle;
+			shaders[ "Light Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingLight.cs.glsl" ).shaderHandle;
 			shaders[ "Sphere Map Update" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphereMaps.cs.glsl" ).shaderHandle;
 			shaders[ "Moving Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/movingSphere.vs.glsl", "./src/projects/Vertexture/shaders/movingSphere.fs.glsl" ).shaderHandle;
 			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
@@ -111,12 +122,6 @@ public:
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
 			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
 
-
-			// lit objects need to know about the lights - but is this neccesary?
-				// I can hardcode the location in their shaders, then the classes don't need the handle at all
-			ground->lightsSSBO = sphere->lightsSSBO = water->lightsSSBO = lights->ssbo;
-
-
 			water = new WaterModel( shaders[ "Water" ] );
 
 		}
@@ -127,7 +132,7 @@ public:
 		// application specific controls
 
 		const uint8_t *state = SDL_GetKeyboardState( NULL );
-		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { scale *= 1.01f; }
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { scale /= 0.99f; }
 		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { scale *= 0.99f; }
 
 	}

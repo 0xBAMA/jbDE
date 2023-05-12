@@ -27,9 +27,6 @@ constexpr float globalScale = 1.618f;
 struct GroundModel {
 	GLuint vao, vbo;
 	GLuint shader;
-
-	GLuint lightsSSBO; // needed? tbd
-
 	GLuint heightmap;
 
 	glm::mat3 tridentM;
@@ -272,7 +269,8 @@ struct SkirtsModel {
 struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
-	const int numLights = 7; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numFloatsPerLight = 8;
 
 	GLuint heightmap;
 	GLuint distanceDirectionMap;
@@ -283,7 +281,31 @@ struct LightsModel {
 	LightsModel ( GLuint sIn ) :
 		movementShader( sIn ) {
 
-		// create the SSBO so it can be used elsewhere
+		// create the SSBO and bind in slot 4
+
+		// need to figure out what the buffer needs to hold
+			// position ( vec3 + some extra value... we'll find a use for it )
+			// color ( vec3 + intensity scalar )
+
+		std::vector< GLfloat > initialSSBOData;
+		rng location( 0.0f, 1.0f );
+		for ( int x = 0; x < numLights; x++ ) {
+			// distribute initial light points
+			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( rng() );
+
+			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( rng() );
+		}
+
+		glGenBuffers( 1, &ssbo );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * numFloatsPerLight * numLights, ( GLvoid * ) &initialSSBOData[ 0 ],  GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, ssbo );
 
 	}
 
@@ -293,6 +315,7 @@ struct LightsModel {
 		rngi gen( 0, 100000 );
 
 		// any required uniform setup
+			// maybe count? not sure what we need yet
 
 		// dispatch compute shader to update SSBO
 
@@ -304,7 +327,7 @@ struct LightsModel {
 // point rendering, for gameplay entities
 struct SphereModel {
 	GLuint vao, vbo;
-	GLuint ssbo, lightsSSBO; // lightsSSBO needed? tbd
+	GLuint ssbo;
 	GLuint shader, moverShader, movementShader, mapUpdateShader;
 	GLuint sphereImage;
 
@@ -520,8 +543,6 @@ struct SphereModel {
 struct WaterModel {
 	GLuint vao, vbo;
 	GLuint shader;
-
-	GLuint lightsSSBO; // needed? tbd
 
 	float timeVal = 0.0f;
 	float scale;
