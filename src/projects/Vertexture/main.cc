@@ -65,6 +65,8 @@ public:
 			//	https://ogldev.org/www/tutorial23/tutorial23.html
 
 			// create the shadowmap resources
+
+			/*
 			GLuint shadowmapFramebuffer = 0;
 			glGenFramebuffers( 1, &shadowmapFramebuffer );
 			glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
@@ -87,6 +89,7 @@ public:
 
 			// revert to default framebuffer
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+			*/
 
 			// =================================================================================================
 
