@@ -214,6 +214,7 @@ void engineBase::LoadData () {
 
 	{ Block Start( "Loading Palettes" );
 		LoadPalettes( paletteList );
+		palette::PopulateLocalList( paletteList );
 	}
 
 	{ Block Start( "Loading Font Glyphs" );
@@ -222,7 +223,8 @@ void engineBase::LoadData () {
 
 	{ Block Start( "Load Wordlists" );
 		LoadBadWords( badWords );
-		LoadColorWords( colorWords ); palette::paletteList = &paletteList; // palette ref needs pointer to the list
+		LoadColorWords( colorWords );
+
 		/* plantWords? tbd */
 	}
 }

@@ -24,6 +24,7 @@
 //
 //***********************************************************
 
+#pragma once
 #ifndef COLORS_H
 #define COLORS_H
 
@@ -35,7 +36,6 @@
 #define USE_COMMAND_LINE_COLOR_SEQUENCES
 
 #ifdef USE_COMMAND_LINE_COLOR_SEQUENCES
-
 	const std::string BLINK		= "\e[5m";
 	const std::string BOLD		= "\e[1m";
 	const std::string RESET		= "\e[0m";
@@ -61,9 +61,7 @@
 	const std::string B_MAGENTA	= "\e[45m";
 	const std::string B_CYAN	= "\e[46m";
 	const std::string B_WHITE	= "\e[47m";
-
 #else
-
 	// windows doesn't recognize any of these - skip it
 	const std::string BLINK		= "";
 	const std::string BOLD		= "";
@@ -86,7 +84,6 @@
 	const std::string B_MAGENTA	= "";
 	const std::string B_CYAN	= "";
 	const std::string B_WHITE	= "";
-
 #endif
 
 inline vec3 GetColorForTemperature ( float temperature ) {
@@ -176,7 +173,14 @@ inline vec3 SpectralZucconi6 ( float input ) {
 
 namespace palette {
 
-	static inline std::vector< paletteEntry > * paletteList;
+	inline std::vector< paletteEntry > paletteListLocal;
+
+	inline void PopulateLocalList ( std::vector< paletteEntry > &engineList ) {
+		paletteListLocal.reserve( engineList.size() );
+		for ( size_t i = 0; i < engineList.size(); i++ ) {
+			paletteListLocal.push_back( engineList[ i ] );
+		}
+	}
 
 	// I think the best way to do this is to have any state set as a variable in this namespace
 		// e.g. which palette index ( or find the palette by string label ), IQ palette control points, simple gradient endpoints
@@ -248,21 +252,21 @@ namespace palette {
 	inline int PaletteIndex = 0;
 	inline void PickPaletteByLabel ( string label ) {
 		PaletteIndex = 0; // default, if not found
-		for ( unsigned int i = 0; i < ( *paletteList ).size(); i++ ) {
-			if ( ( *paletteList )[ i ].label == label ) {
+		for ( unsigned int i = 0; i < paletteListLocal.size(); i++ ) {
+			if ( paletteListLocal[ i ].label == label ) {
 				PaletteIndex = i;
 			}
 		}
 	}
 
 	inline void PickRandomPalette () {
-		rngi pick( 0, ( *paletteList ).size() - 1 );
+		rngi pick( 0, paletteListLocal.size() - 1 );
 		PaletteIndex = pick();
-		cout << "picked random palette " << PaletteIndex << ": " << ( *paletteList )[ PaletteIndex ].label << newline;
+		cout << "picked random palette " << PaletteIndex << ": " << paletteListLocal[ PaletteIndex ].label << newline;
 	}
 
 	inline string GetCurrentPaletteName () {
-		return ( *paletteList )[ PaletteIndex ].label;
+		return paletteListLocal[ PaletteIndex ].label;
 	}
 
 	// for linear gradient between two colors
@@ -275,18 +279,18 @@ namespace palette {
 
 			// indexing into the currently selected palette / palette size ( nearest neighbor )
 			case type::paletteIndexed:
-				value = vec3( ( *paletteList )[ PaletteIndex ].colors[ int( input * ( ( *paletteList )[ PaletteIndex ].colors.size() ) ) ] ) / 255.0f;
+				value = vec3( paletteListLocal[ PaletteIndex ].colors[ int( input * ( paletteListLocal[ PaletteIndex ].colors.size() ) ) ] ) / 255.0f;
 				break;
 
 			// indexing into the currently selected palette, with the floor of the input, mod by the size of the palette
 			case type::paletteIndexed_modInt:
-				value = vec3( ( *paletteList )[ PaletteIndex ].colors[ int( input ) % ( *paletteList )[ PaletteIndex ].colors.size() ] ) / 255.0f;
+				value = vec3( paletteListLocal[ PaletteIndex ].colors[ int( input ) % paletteListLocal[ PaletteIndex ].colors.size() ] ) / 255.0f;
 				break;
 
 			// same as paletteIndexed, but interpolate between nearest values ( clamp on the ends )
 			case type::paletteIndexed_interpolated:
 				{
-					const float paletteSize = ( *paletteList )[ PaletteIndex ].colors.size();
+					const float paletteSize = paletteListLocal[ PaletteIndex ].colors.size();
 					float index = float( input * ( paletteSize - 1 ) );
 
 					uint32_t indexLow = std::clamp( uint32_t( index ), 0u, uint32_t( paletteSize - 1 ) );
@@ -294,8 +298,8 @@ namespace palette {
 
 					// interpolating in other colorspaces... RGB is not ideal
 					value = glm::mix(
-						vec3( ( *paletteList )[ PaletteIndex ].colors[ indexLow ] ) / 255.0f,
-						vec3( ( *paletteList )[ PaletteIndex ].colors[ indexHigh ] ) / 255.0f,
+						vec3( paletteListLocal[ PaletteIndex ].colors[ indexLow ] ) / 255.0f,
+						vec3( paletteListLocal[ PaletteIndex ].colors[ indexHigh ] ) / 255.0f,
 						index - float( indexLow )
 					);
 				}
@@ -348,8 +352,5 @@ namespace palette {
 		return glm::clamp( value, vec3( 0.0f ), vec3( 1.0f ) );
 	}
 };
-
-
-
 
 #endif //COLORS_H
