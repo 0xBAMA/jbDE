@@ -291,20 +291,20 @@ struct LightsModel {
 		rng location( 0.0f, 1.0f );
 		for ( int x = 0; x < numLights; x++ ) {
 			// distribute initial light points
-			initialSSBOData.push_back( rng() );
-			initialSSBOData.push_back( rng() );
-			initialSSBOData.push_back( rng() );
-			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( location() );
 
-			initialSSBOData.push_back( rng() );
-			initialSSBOData.push_back( rng() );
-			initialSSBOData.push_back( rng() );
-			initialSSBOData.push_back( rng() );
+			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( location() );
 		}
 
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * numFloatsPerLight * numLights, ( GLvoid * ) &initialSSBOData[ 0 ],  GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * numFloatsPerLight * numLights, ( GLvoid * ) &initialSSBOData[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, ssbo );
 
 	}
