@@ -13,6 +13,7 @@ cd build
 time make -j17 Vertexture
 # time make -j17 Voraldo14
 # time make -j17 VoxelSpace
+# time make -j5 # so apparently the default target builds everything in a parallel fashion - need to test to see if this is faster
 cd ..
 
 if [ "$1" == "noiseTool" ]
