@@ -15,6 +15,18 @@ uniform float time;
 
 uniform vec3 lightDirection;
 
+// moving lights state
+uniform int lightCount;
+
+struct light_t {
+	vec4 position;
+	vec4 color;
+};
+
+layout( binding = 4, std430 ) buffer lightData {
+	light_t data[];
+};
+
 layout( depth_greater ) out float gl_FragDepth;
 
 void main () {

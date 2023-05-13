@@ -6,7 +6,7 @@ layout( binding = 1, rgba8ui ) uniform uimage2D accumulatorTexture;
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 	uvec3 result = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz;
-	result += uvec3( result.r * 0.1618f );
+	result = uvec3( result.r * 0.1618f );
 	// result = uvec3( 0 );
 	imageStore( accumulatorTexture, writeLoc, uvec4( result, 255 ) );
 }

@@ -289,6 +289,8 @@ struct LightsModel {
 
 		std::vector< GLfloat > initialSSBOData;
 		rng location( 0.0f, 1.0f );
+		rng colorPick( 0.6f, 0.8f );
+
 		for ( int x = 0; x < numLights; x++ ) {
 			// distribute initial light points
 			initialSSBOData.push_back( location() );
@@ -296,10 +298,11 @@ struct LightsModel {
 			initialSSBOData.push_back( location() );
 			initialSSBOData.push_back( location() );
 
-			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( location() );
+			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated );
+			initialSSBOData.push_back( col.r );
+			initialSSBOData.push_back( col.g );
+			initialSSBOData.push_back( col.b );
+			initialSSBOData.push_back( 1.0f );
 		}
 
 		glGenBuffers( 1, &ssbo );
@@ -341,7 +344,7 @@ struct SphereModel {
 	int dynamicPointCount = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 40;
+	const int simQ = 16 * 5;
 
 	uint32_t numTrees;
 	std::vector<glm::vec3> obstacles; // x,y location, then radius
@@ -355,11 +358,11 @@ struct SphereModel {
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
 
-		std::vector<glm::vec4> points;
-		std::vector<glm::vec4> colors;
+		std::vector< glm::vec4 > points;
+		std::vector< glm::vec4 > colors;
 
 		// ground cover
-		for ( int i = 0; i < 50000; i++ ) {
+		for ( int i = 0; i < 5000; i++ ) {
 			// points.push_back( glm::vec4( genD(), genD(), gen(), genP() * gen() ) );
 			points.push_back( glm::vec4( genD(), genD(), genH(), genP() ) );
 			colors.push_back( glm::vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );

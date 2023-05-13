@@ -17,6 +17,19 @@ uniform vec3 lightDirection;
 
 layout( depth_greater ) out float gl_FragDepth;
 
+// moving lights state
+uniform int lightCount;
+
+struct light_t {
+	vec4 position;
+	vec4 color;
+};
+
+layout( binding = 4, std430 ) buffer lightData {
+	light_t data[];
+};
+
+
 void main () {
 
 	vec4 tRead = texture( sphere, gl_PointCoord.xy );

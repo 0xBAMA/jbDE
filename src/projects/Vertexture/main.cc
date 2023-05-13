@@ -104,6 +104,7 @@ public:
 
 			// =================================================================================================
 
+			// used for ground, lights, spheres
 			palette::PickRandomPalette();
 
 			// initialize game stuff
