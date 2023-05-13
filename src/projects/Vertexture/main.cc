@@ -100,6 +100,19 @@ public:
 
 			// revert to default framebuffer
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+				// I think eventually it's going to make more sense to just rewrite things to manage both
+				// color and depth targets, so that we have more explicit state management. I'm not sure
+				// what was causing the state leakage issue I was seeing but I have other things I want to
+				// mess with instead.
+
+				// And maybe that's something I'll want to carry forwards in the future - there is a number
+				// of cool aspects there, you know, you can access that color data and do whatever postprocessing
+				// that you want - also opens up deferred shading, which may be significant for this case
+				// where you are writing depth for these primitives - keeping normals and depth to reconstruct
+				// the world position, we can do whatever lighting on that flat target, and avoid having to
+				// potentially shade the occluded fragments.. I'm not clear on if the current impl will have to
+
 			*/
 
 			// =================================================================================================
