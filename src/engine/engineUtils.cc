@@ -152,15 +152,15 @@ void engineBase::PrepareProfilingData () {
 #define NOW std::chrono::steady_clock::now()
 #define TIMECAST(x) std::chrono::duration_cast<std::chrono::microseconds>(x).count()/1000.0f
 
-void engineBase::Tick() {
+void engineBase::Tick () {
 	tCurr = NOW;
 }
 
-float engineBase::Tock() {
+float engineBase::Tock () {
 	return TIMECAST( NOW - tCurr );
 }
 
-float engineBase::TotalTime() {
+float engineBase::TotalTime () {
 	return TIMECAST( NOW - tStart );
 }
 
