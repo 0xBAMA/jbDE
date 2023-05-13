@@ -95,6 +95,14 @@ static void LoadGlyphs ( std::vector< glyph > &glyphList ) {
 			}
 		}
 	}
+
+	// the above is quite slow - I tried a couple things, and saw about a 40% speedup for
+	// writing out a set of offsets for each glyph, parsing that at runtime to accelerate
+	// searching - I think that I can do better than that, however - that had the overhead
+	// of parsing that stuff encoded as json - and didn't see much speedup by removing the
+	// writeback of the clear color. I scrapped it because I wasn't getting everything
+	// through faithfully. I think for now, it's fine, but 1.4-2.0 seconds at startup does
+	// seem like it could use some attention in the future. We'll see how much it matters.
 }
 
 #endif // GLYPH_H
