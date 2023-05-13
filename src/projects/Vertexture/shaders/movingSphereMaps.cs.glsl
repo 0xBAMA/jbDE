@@ -5,15 +5,6 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba32f ) uniform image2D steepnessTex;    // steepness texture for scaling movement speed
 layout( binding = 2, rgba32f ) uniform image2D distanceDirTex; // distance + direction to nearest obstacle
 
-struct point_t {
-	vec4 position;
-	vec4 color;
-};
-
-layout( binding = 3, std430 ) buffer pointData {
-	point_t data[];
-};
-
 uniform sampler2D heightmap;
 
 uniform int dimension;

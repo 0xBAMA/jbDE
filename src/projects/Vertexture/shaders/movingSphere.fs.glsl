@@ -26,7 +26,7 @@ struct light_t {
 };
 
 layout( binding = 4, std430 ) buffer lightData {
-	light_t data[];
+	light_t lightData[];
 };
 
 

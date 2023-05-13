@@ -13,8 +13,8 @@ struct light_t {
 	vec4 color;
 };
 
-layout( binding = 4, std430 ) buffer lightData {
-	light_t data[];
+layout( binding = 4, std430 ) buffer movingLightState {
+	light_t lightData[];
 };
 
 uniform int dimension;
@@ -53,22 +53,22 @@ vec2 randomInUnitDisk () {
 void main() {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
 
-	ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
+	ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
 	vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
 	seed = index + uint( inSeed );
 
 	if ( distDirRead.z <= 0.0f ) {
-		data[ index ].position.xy += distDirRead.xy * 0.02f;
+		lightData[ index ].position.xy += distDirRead.xy * 0.02f;
 	}
 
-	data[ index ].position.xy = data[ index ].position.xy + normalize( randomInUnitDisk() ) * 0.002f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
-	data[ index ].position.z = 0.05 * sin( time * 10.0f + data[ index ].color.a ) + 0.06f;
+	lightData[ index ].position.xy = lightData[ index ].position.xy + normalize( randomInUnitDisk() ) * 0.002f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
+	lightData[ index ].position.z = 0.05 * sin( time * 10.0f + lightData[ index ].color.a ) + 0.06f;
 
 	// wrap
-	if ( data[ index ].position.x > 1.618f ) data[ index ].position.x -= 2.0f * 1.618f;
-	if ( data[ index ].position.x < -1.618f ) data[ index ].position.x += 2.0f * 1.618f;
-	if ( data[ index ].position.y > 1.618f ) data[ index ].position.y -= 2.0f * 1.618f;
-	if ( data[ index ].position.y < -1.618f ) data[ index ].position.y += 2.0f * 1.618f;
+	if ( lightData[ index ].position.x > 1.618f ) lightData[ index ].position.x -= 2.0f * 1.618f;
+	if ( lightData[ index ].position.x < -1.618f ) lightData[ index ].position.x += 2.0f * 1.618f;
+	if ( lightData[ index ].position.y > 1.618f ) lightData[ index ].position.y -= 2.0f * 1.618f;
+	if ( lightData[ index ].position.y < -1.618f ) lightData[ index ].position.y += 2.0f * 1.618f;
 }
