@@ -14,7 +14,7 @@ void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 
 	// temporary hack for inverted image
-	uvec4 originalValue = imageLoad( accumulatorTexture, ivec2( loc.x, imageSize( accumulatorTexture ).y - loc.y ) );
+	uvec4 originalValue = imageLoad( accumulatorTexture, ivec2( loc.x, imageSize( accumulatorTexture ).y - loc.y - 1 ) );
 
 	vec3 color = tonemap( tonemapMode, colorTempAdjust * ( vec3( originalValue.xyz ) / 255.0 ) );
 	color = gammaCorrect( gamma, color );
