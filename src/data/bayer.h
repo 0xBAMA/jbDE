@@ -6,7 +6,7 @@
 // https://www.shadertoy.com/view/ltsyWl // usage for dithering
 
 
-static inline std::vector< uint8_t > BayerData ( int dimension ) {
+static inline const std::vector< uint8_t > BayerData ( const int dimension ) {
 	ZoneScoped;
 	if ( dimension == 2 ) {
 		std::vector< uint8_t > pattern2 = {
@@ -45,7 +45,7 @@ static inline std::vector< uint8_t > BayerData ( int dimension ) {
 	}
 }
 
-static inline std::vector< uint8_t > Make4Channel( std::vector< uint8_t > &input ) {
+static inline std::vector< uint8_t > Make4Channel( const std::vector< uint8_t > &input ) {
 	std::vector< uint8_t > data;
 	for ( unsigned int i = 0; i < input.size(); i++ ) {
 		for ( unsigned int n = 0; n < 4; n++ ) {

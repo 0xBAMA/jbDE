@@ -29,18 +29,17 @@ struct GroundModel {
 	GLuint shader;
 	GLuint heightmap;
 
-	glm::mat3 tridentM;
-	glm::mat3 tridentD;
+	mat3 tridentM;
+	mat3 tridentD;
 
 	float timeVal = 0.0f;
 	float scale;
 	float screenAR;
 	int numPoints = 0;
 
-	glm::vec3 groundColor;
+	vec3 groundColor;
 
-	// void subdivide ( std::vector<groundPt> &world, std::vector<glm::vec3> points ) {
-	void subdivide ( std::vector<vec3> &world, std::vector<glm::vec3> points ) {
+	void subdivide ( std::vector< vec3 > &world, std::vector< vec3 > points ) {
 		const float minDisplacement = 0.01f;
 		if ( glm::distance( points[ 0 ], points[ 2 ] ) < minDisplacement ) {
 			// corner-to-corner distance is small, time to write API geometry
@@ -64,12 +63,12 @@ struct GroundModel {
 			world.push_back( points[ 2 ] );
 			world.push_back( points[ 3 ] );
 		} else {
-			glm::vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
+			vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
 			// midpoints between corners
-			glm::vec3 midpoint13 = ( points[ 1 ] + points[ 3 ] ) / 2.0f;
-			glm::vec3 midpoint01 = ( points[ 0 ] + points[ 1 ] ) / 2.0f;
-			glm::vec3 midpoint23 = ( points[ 2 ] + points[ 3 ] ) / 2.0f;
-			glm::vec3 midpoint02 = ( points[ 0 ] + points[ 2 ] ) / 2.0f;
+			vec3 midpoint13 = ( points[ 1 ] + points[ 3 ] ) / 2.0f;
+			vec3 midpoint01 = ( points[ 0 ] + points[ 1 ] ) / 2.0f;
+			vec3 midpoint23 = ( points[ 2 ] + points[ 3 ] ) / 2.0f;
+			vec3 midpoint02 = ( points[ 0 ] + points[ 2 ] ) / 2.0f;
 			// recursive calls, next level of subdivision
 			subdivide( world, { midpoint01, points[ 1 ], center, midpoint13 } );
 			subdivide( world, { points[ 0 ], midpoint01, midpoint02, center } );
@@ -79,16 +78,15 @@ struct GroundModel {
 	}
 
 	GroundModel ( GLuint sIn ) : shader( sIn ) {
-		// std::vector<groundPt> world;
-		std::vector<glm::vec3> world;
-		std::vector<glm::vec3> basePoints;
+		std::vector< vec3 > world;
+		std::vector< vec3 > basePoints;
 
 		basePoints.resize( 4 );
 
-		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 0.0f );
-		basePoints[ 1 ] = glm::vec3( -globalScale,  globalScale, 0.0f );
-		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale, 0.0f );
-		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, 0.0f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale, 0.0f );
+		basePoints[ 1 ] = vec3( -globalScale,  globalScale, 0.0f );
+		basePoints[ 2 ] = vec3(  globalScale, -globalScale, 0.0f );
+		basePoints[ 3 ] = vec3(  globalScale,  globalScale, 0.0f );
 		subdivide( world, basePoints );
 
 		glGenVertexArrays( 1, &vao );
@@ -96,7 +94,7 @@ struct GroundModel {
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		numPoints = world.size();
-		size_t numBytesPoints = sizeof( glm::vec3 ) * numPoints;
+		size_t numBytesPoints = sizeof( vec3 ) * numPoints;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
 
@@ -166,17 +164,17 @@ struct SkirtsModel {
 	float screenAR;
 	int numPoints = 0;
 
-	glm::vec3 groundColor;
+	vec3 groundColor;
 
 	SkirtsModel ( GLuint sIn ) : shader( sIn ) {
-		std::vector<glm::vec3> world;
-		std::vector<glm::vec3> basePoints;
+		std::vector< vec3 > world;
+		std::vector< vec3 > basePoints;
 
 		basePoints.resize( 4 );
-		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale,  1.0f );
-		basePoints[ 1 ] = glm::vec3( -globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale,  1.0f );
-		basePoints[ 3 ] = glm::vec3(  globalScale, -globalScale, -1.5f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale,  1.0f );
+		basePoints[ 1 ] = vec3( -globalScale, -globalScale, -1.5f );
+		basePoints[ 2 ] = vec3(  globalScale, -globalScale,  1.0f );
+		basePoints[ 3 ] = vec3(  globalScale, -globalScale, -1.5f );
 
 		// triangle 1 ABC
 		world.push_back( basePoints[ 0 ] );
@@ -187,10 +185,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale,  1.0f );
-		basePoints[ 1 ] = glm::vec3( -globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale,  1.0f );
-		basePoints[ 3 ] = glm::vec3( -globalScale,  globalScale, -1.5f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale,  1.0f );
+		basePoints[ 1 ] = vec3( -globalScale, -globalScale, -1.5f );
+		basePoints[ 2 ] = vec3( -globalScale,  globalScale,  1.0f );
+		basePoints[ 3 ] = vec3( -globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 2 ] );
@@ -199,10 +197,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 2 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3(  globalScale, -globalScale,  1.0f );
-		basePoints[ 1 ] = glm::vec3(  globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3(  globalScale,  globalScale,  1.0f );
-		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, -1.5f );
+		basePoints[ 0 ] = vec3(  globalScale, -globalScale,  1.0f );
+		basePoints[ 1 ] = vec3(  globalScale, -globalScale, -1.5f );
+		basePoints[ 2 ] = vec3(  globalScale,  globalScale,  1.0f );
+		basePoints[ 3 ] = vec3(  globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -211,10 +209,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = glm::vec3(  globalScale,  globalScale,  1.0f );
-		basePoints[ 1 ] = glm::vec3(  globalScale,  globalScale, -1.5f );
-		basePoints[ 2 ] = glm::vec3( -globalScale,  globalScale,  1.0f );
-		basePoints[ 3 ] = glm::vec3( -globalScale,  globalScale, -1.5f );
+		basePoints[ 0 ] = vec3(  globalScale,  globalScale,  1.0f );
+		basePoints[ 1 ] = vec3(  globalScale,  globalScale, -1.5f );
+		basePoints[ 2 ] = vec3( -globalScale,  globalScale,  1.0f );
+		basePoints[ 3 ] = vec3( -globalScale,  globalScale, -1.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -228,7 +226,7 @@ struct SkirtsModel {
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		numPoints = world.size();
-		size_t numBytesPoints = sizeof( glm::vec3 ) * numPoints;
+		size_t numBytesPoints = sizeof( vec3 ) * numPoints;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
 
@@ -241,8 +239,8 @@ struct SkirtsModel {
 
 	}
 
-	glm::mat3 tridentM;
-	glm::mat3 tridentD;
+	mat3 tridentM;
+	mat3 tridentD;
 	void Display () {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
@@ -276,7 +274,7 @@ struct LightsModel {
 	GLuint distanceDirectionMap;
 
 	float timeVal = 0.0f;
-	glm::mat3 tridentM;
+	mat3 tridentM;
 
 	LightsModel ( GLuint sIn ) :
 		movementShader( sIn ) {
@@ -347,7 +345,7 @@ struct SphereModel {
 	const int simQ = 16 * 5;
 
 	uint32_t numTrees;
-	std::vector<glm::vec3> obstacles; // x,y location, then radius
+	std::vector< vec3 > obstacles; // x,y location, then radius
 
 	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees ) :
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
@@ -358,14 +356,13 @@ struct SphereModel {
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
 
-		std::vector< glm::vec4 > points;
-		std::vector< glm::vec4 > colors;
+		std::vector< vec4 > points;
+		std::vector< vec4 > colors;
 
 		// ground cover
 		for ( int i = 0; i < 5000; i++ ) {
-			// points.push_back( glm::vec4( genD(), genD(), gen(), genP() * gen() ) );
-			points.push_back( glm::vec4( genD(), genD(), genH(), genP() ) );
-			colors.push_back( glm::vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			points.push_back( vec4( genD(), genD(), genH(), genP() ) );
+			colors.push_back( vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 		}
 
 		rngN trunkJitter( 0.0f, 0.009f );
@@ -374,28 +371,26 @@ struct SphereModel {
 		rng leafSizes( 6.0f, 14.0f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
-			const glm::vec2 basePtOrig = glm::vec2( basePtPlace(), basePtPlace() );
+			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
 
-			glm::vec2 basePt = basePtOrig;
+			vec2 basePt = basePtOrig;
 			float constrict = 1.618f;
 			float scalar = gen();
-			// rng heightGen( 0.75f * scalar, 1.23f * scalar );
 			rngN heightGen( scalar, 0.025f );
 
-			obstacles.push_back( glm::vec3( basePt.x, basePt.y, 0.06f ) );
+			obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
 			for ( float t = 0; t < scalar; t += 0.002f ) {
 				basePt.x += trunkJitter() * 0.5f;
 				basePt.y += trunkJitter() * 0.5f;
 				constrict *= 0.999f;
-				points.push_back( glm::vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
-				colors.push_back( glm::vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
+				colors.push_back( vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
 			for ( int j = 0; j < 1000; j++ ) {
-				// rng foliagePlace( -0.15f * globalScale, 0.15f * globalScale );
 				rngN foliagePlace( 0.0f, 0.1f * globalScale );
 				rngN foliageHeightGen( scalar, 0.05f );
-				points.push_back( glm::vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
-				colors.push_back( glm::vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
+				colors.push_back( vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
 		}
 
@@ -404,11 +399,11 @@ struct SphereModel {
 		rngN rockHGen( 0.1f, 0.06f );
 		rngN rockSize( 6.0f, 2.5f );
 		for ( unsigned int i = 0; i < numRocks; i++ ) {
-			glm::vec2 basePt = glm::vec2( basePtPlace(), basePtPlace() );
-			obstacles.push_back( glm::vec3( basePt.x, basePt.y, 0.13f ) );
+			vec2 basePt = vec2( basePtPlace(), basePtPlace() );
+			obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
 			for ( int l = 0; l < 1000; l++ ) {
-				points.push_back( glm::vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
-				colors.push_back( glm::vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
+				colors.push_back( vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
 		}
 
@@ -417,8 +412,8 @@ struct SphereModel {
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		numStaticPoints = points.size();
-		size_t numBytesPoints = sizeof( glm::vec4 ) * numStaticPoints;
-		size_t numBytesColors = sizeof( glm::vec4 ) * numStaticPoints;
+		size_t numBytesPoints = sizeof( vec4 ) * numStaticPoints;
+		size_t numBytesColors = sizeof( vec4 ) * numStaticPoints;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints + numBytesColors, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
 		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
@@ -434,15 +429,13 @@ struct SphereModel {
 		glEnableVertexAttribArray( vColor );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
 
-		// cout << "points.size() is " << points.size() << newline;
-
-		std::vector<glm::vec4> ssboPoints;
+		std::vector< vec4 > ssboPoints;
 		rng size( 3.0f, 6.0f );
 		rng phase( 0.0f, pi * 2.0f );
 		for ( int x = 0; x < simQ; x++ ) {
 			for ( int y = 0; y < simQ; y++ ) {
-				ssboPoints.push_back( glm::vec4( 2.0f * globalScale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * globalScale * ( ( y / float( simQ ) ) - 0.5f ), 0.6f * genH(), size() ) );
-				ssboPoints.push_back( glm::vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
+				ssboPoints.push_back( vec4( 2.0f * globalScale * ( ( x / float( simQ ) ) - 0.5f ), 2.0f * globalScale * ( ( y / float( simQ ) ) - 0.5f ), 0.6f * genH(), size() ) );
+				ssboPoints.push_back( vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
 				dynamicPointCount++;
 			}
 		}
@@ -475,7 +468,6 @@ struct SphereModel {
 		glUniform1i( glGetUniformLocation( mapUpdateShader, "inSeed" ), gen() );
 		glUniform1i( glGetUniformLocation( mapUpdateShader, "numObstacles" ), obstacles.size() );
 		glUniform3fv( glGetUniformLocation( mapUpdateShader, "obstacles" ), obstacles.size(), glm::value_ptr( obstacles[ 0 ] ) );
-		// for ( auto& ob : obstacles ) { cout << ob.x << ob.y << ob.z << endl; }
 		glDispatchCompute( 512 / 16, 512 / 16, 1 );
 
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -493,8 +485,8 @@ struct SphereModel {
 
 	}
 
-	glm::mat3 tridentM;
-	glm::mat3 tridentD;
+	mat3 tridentM;
+	mat3 tridentD;
 	void Display () {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
@@ -547,7 +539,7 @@ struct WaterModel {
 	GLuint waterNormalTexture;
 	GLuint waterHeightTexture;
 
-	void subdivide ( std::vector<vec3> &world, std::vector<glm::vec3> points ) {
+	void subdivide ( std::vector< vec3 > &world, std::vector< vec3 > points ) {
 		const float minDisplacement = 0.01f;
 		// corner-to-corner distance is small, time to write API geometry
 		if ( glm::distance( points[ 0 ], points[ 2 ] ) < minDisplacement ) {
@@ -560,12 +552,12 @@ struct WaterModel {
 			world.push_back( points[ 2 ] );
 			world.push_back( points[ 3 ] );
 		} else {
-			glm::vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
+			vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
 			// midpoints between corners
-			glm::vec3 midpoint13 = ( points[ 1 ] + points[ 3 ] ) / 2.0f;
-			glm::vec3 midpoint01 = ( points[ 0 ] + points[ 1 ] ) / 2.0f;
-			glm::vec3 midpoint23 = ( points[ 2 ] + points[ 3 ] ) / 2.0f;
-			glm::vec3 midpoint02 = ( points[ 0 ] + points[ 2 ] ) / 2.0f;
+			vec3 midpoint13 = ( points[ 1 ] + points[ 3 ] ) / 2.0f;
+			vec3 midpoint01 = ( points[ 0 ] + points[ 1 ] ) / 2.0f;
+			vec3 midpoint23 = ( points[ 2 ] + points[ 3 ] ) / 2.0f;
+			vec3 midpoint02 = ( points[ 0 ] + points[ 2 ] ) / 2.0f;
 			// recursive calls, next level of subdivision
 			subdivide( world, { midpoint01, points[ 1 ], center, midpoint13 } );
 			subdivide( world, { points[ 0 ], midpoint01, midpoint02, center } );
@@ -575,15 +567,15 @@ struct WaterModel {
 	}
 
 	WaterModel ( GLuint sIn ) : shader( sIn ) {
-		std::vector<glm::vec3> world;
-		std::vector<glm::vec3> basePoints;
+		std::vector< vec3 > world;
+		std::vector< vec3 > basePoints;
 
 		basePoints.resize( 4 );
 
-		basePoints[ 0 ] = glm::vec3( -globalScale, -globalScale, 0.0f );
-		basePoints[ 1 ] = glm::vec3( -globalScale,  globalScale, 0.0f );
-		basePoints[ 2 ] = glm::vec3(  globalScale, -globalScale, 0.0f );
-		basePoints[ 3 ] = glm::vec3(  globalScale,  globalScale, 0.0f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale, 0.0f );
+		basePoints[ 1 ] = vec3( -globalScale,  globalScale, 0.0f );
+		basePoints[ 2 ] = vec3(  globalScale, -globalScale, 0.0f );
+		basePoints[ 3 ] = vec3(  globalScale,  globalScale, 0.0f );
 		subdivide( world, basePoints );
 
 		glGenVertexArrays( 1, &vao );
@@ -591,7 +583,7 @@ struct WaterModel {
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		numPoints = world.size();
-		size_t numBytesPoints = sizeof( glm::vec3 ) * numPoints;
+		size_t numBytesPoints = sizeof( vec3 ) * numPoints;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
 
@@ -639,8 +631,8 @@ struct WaterModel {
 
 	}
 
-	glm::mat3 tridentM;
-	glm::mat3 tridentD;
+	mat3 tridentM;
+	mat3 tridentD;
 	void Display () {
 		glBindVertexArray( vao );
 		glUseProgram( shader );
