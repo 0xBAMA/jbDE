@@ -15,6 +15,8 @@ in vec3 color;
 out vec4 glFragColor;
 
 void main () {
-	// do the shading logic for any lights
+
+	// do the shading logic for all the lights
+
 	glFragColor = vec4( color, 1.0f );
 }

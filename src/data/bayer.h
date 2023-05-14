@@ -1,4 +1,11 @@
 #include <vector>
+
+
+// analytic evaluation of bayer matrices... interesting
+// https://www.shadertoy.com/view/4ssfWM
+// https://www.shadertoy.com/view/ltsyWl // usage for dithering
+
+
 static inline std::vector< uint8_t > BayerData ( int dimension ) {
 	ZoneScoped;
 	if ( dimension == 2 ) {
