@@ -5,18 +5,17 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba32f ) uniform image2D steepnessTex;    // steepness texture for scaling movement speed
 layout( binding = 2, rgba32f ) uniform image2D distanceDirTex; // distance + direction to nearest obstacle
 
+// moving points state
 struct point_t {
 	vec4 position;
 	vec4 color;
 };
-
 layout( binding = 3, std430 ) buffer pointData {
 	point_t data[];
 };
 
 uniform int dimension;
 uniform int inSeed;
-
 uniform float time;
 
 // random utilites
@@ -48,9 +47,8 @@ vec2 randomInUnitDisk () {
 	return randomUnitVector().xy;
 }
 
-void main() {
+void main () {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
-
 	ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
 	vec4 distDirRead = imageLoad( distanceDirTex, loc );
@@ -62,13 +60,7 @@ void main() {
 	}
 
 	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
-	// data[ index ].position.xy = data[ index ].position.xy + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
-	// data[ index ].position.xy = data[ index ].position.xy + ( 0.002f * distDirRead.xy + randomInUnitDisk() * 0.04f ) * ( 0.01f / steepnessRead.r );
-	// data[ index ].position.z = sin( time + index ) * 0.05f + 0.09f;
-
 	data[ index ].position.z = 0.05 * sin( time * 10.0f + data[ index ].color.a ) + 0.06f;
-
-	// data[ index ].color.rgb = distDirRead.xyz;
 
 	// wrap
 	if ( data[ index ].position.x > 1.618f ) data[ index ].position.x -= 2.0f * 1.618f;

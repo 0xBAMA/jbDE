@@ -496,13 +496,6 @@ struct SphereModel {
 	glm::mat3 tridentM;
 	glm::mat3 tridentD;
 	void Display () {
-
-		static orientTrident trident2;
-		// trident2.RotateX( 0.0026f );
-		// trident2.RotateY( 0.0014f );
-		trident2.RotateZ( 0.0031f );
-		const glm::vec3 lightDirection = trident2.basisX;
-
 		glBindVertexArray( vao );
 		glUseProgram( shader );
 
@@ -517,7 +510,6 @@ struct SphereModel {
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( shader, "sphere" ), 10 );
-		glUniform3f( glGetUniformLocation( shader, "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
 		glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ),
 			1, GL_FALSE, glm::value_ptr( tridentM ) );
 
@@ -532,7 +524,6 @@ struct SphereModel {
 		glUniform1f( glGetUniformLocation( moverShader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( moverShader, "sphere" ), 10 );
-		glUniform3f( glGetUniformLocation( moverShader, "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
 		glUniformMatrix3fv( glGetUniformLocation( moverShader, "trident" ),
 			1, GL_FALSE, glm::value_ptr( tridentM ) );
 

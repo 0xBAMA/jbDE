@@ -4,12 +4,9 @@ layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba32f ) uniform image2D steepnessTex;    // steepness texture for scaling movement speed
 layout( binding = 2, rgba32f ) uniform image2D distanceDirTex; // distance + direction to nearest obstacle
-
 uniform sampler2D heightmap;
-
 uniform int dimension;
 uniform int inSeed;
-
 uniform float time;
 
 // list of obstacles
@@ -45,11 +42,9 @@ vec2 randomInUnitDisk () {
 	return randomUnitVector().xy;
 }
 
-void main() {
-
+void main () {
 	uvec2 loc = gl_GlobalInvocationID.xy;
 	seed = inSeed + loc.x + loc.y * 10256;
-
 	vec2 location = ( vec2( loc.xy ) / 512.0f ) - vec2( 0.5f );
 
 	float minValue = 1000.0f;
@@ -59,9 +54,9 @@ void main() {
 		minValue = min( heightRead, minValue );
 		maxValue = max( heightRead, maxValue );
 	}
+
 	// update steepness map - value is the span from local minima to local maxima
 	imageStore( steepnessTex, ivec2( loc ), vec4( maxValue - minValue, texture( heightmap, location ).r, 0.0f, 1.0f ) );
-
 
 	float minD = 1000.0f;
 	vec2 dir = vec2( 0.0f );
@@ -74,6 +69,7 @@ void main() {
 			dir = normalize( ( 1.618f * location * 2.0f ) - obstacles[ i ].xy );
 		}
 	}
-	// update distance/direction map
+
+	// update distance / direction map
 	imageStore( distanceDirTex, ivec2( loc ), vec4( dir.xy, minD, 1.0f ) );
 }

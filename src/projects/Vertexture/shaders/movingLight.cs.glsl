@@ -7,12 +7,10 @@ layout( binding = 2, rgba32f ) uniform image2D distanceDirTex; // distance + dir
 
 // moving lights state
 uniform int lightCount;
-
 struct light_t {
 	vec4 position;
 	vec4 color;
 };
-
 layout( binding = 4, std430 ) buffer movingLightState {
 	light_t lightData[];
 };
@@ -50,14 +48,13 @@ vec2 randomInUnitDisk () {
 	return randomUnitVector().xy;
 }
 
-void main() {
+void main () {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
-
 	ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
 	vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
-	seed = index + uint( inSeed );
+	seed = index + uint( inSeed ); // initialize the rng state to use the std::random uniformly generated value passed in
 
 	if ( distDirRead.z <= 0.0f ) {
 		lightData[ index ].position.xy += distDirRead.xy * 0.02f;
