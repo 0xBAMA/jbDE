@@ -1,8 +1,8 @@
 #include <vector>
 
-
 // analytic evaluation of bayer matrices... interesting
 // https://www.shadertoy.com/view/4ssfWM
+// https://www.shadertoy.com/view/XtV3RG
 // https://www.shadertoy.com/view/ltsyWl // usage for dithering
 
 
@@ -45,7 +45,7 @@ static inline std::vector< uint8_t > BayerData ( int dimension ) {
 	}
 }
 
-static inline std::vector< uint8_t > Make4Channel( std::vector< uint8_t > input ) {
+static inline std::vector< uint8_t > Make4Channel( std::vector< uint8_t > &input ) {
 	std::vector< uint8_t > data;
 	for ( unsigned int i = 0; i < input.size(); i++ ) {
 		for ( unsigned int n = 0; n < 4; n++ ) {
