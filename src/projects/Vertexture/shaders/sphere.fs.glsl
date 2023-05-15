@@ -45,9 +45,12 @@ void main () {
 		const vec3 viewVector = normalize( worldPosition - eyePosition );
 		const vec3 reflectedVector = normalize( reflect( lightVector, normal ) );
 
+		// todo: better attenuation function than inverse square - parameterize with extra data fields in the ssbo
+			// https://lisyarus.github.io/blog/graphics/2022/07/30/point-light-attenuation.html
+		const float distanceFactor = min( 1.0f / ( pow( distance( worldPosition, lightLocation ) / scale, 2.0f ) ), 3.0f );
+
 		// lighting calculation
 		const float lightDot = dot( normal, lightVector );
-		const float distanceFactor = 1.0f / ( pow( distance( worldPosition, lightLocation ) / scale, 2.0f ) );
 		const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
 		const float specularContribution = distanceFactor * pow( max( dot( reflectedVector, viewVector ), 0.0f ), 60.0f );
 

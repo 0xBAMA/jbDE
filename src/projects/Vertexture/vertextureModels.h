@@ -276,7 +276,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
