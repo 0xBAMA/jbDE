@@ -131,6 +131,7 @@ public:
 			sphere->steepness = textures[ "Steepness Map" ];
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
 			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
+			sphere->frameHeight = config.height;
 
 			water = new WaterModel( shaders[ "Water" ] );
 

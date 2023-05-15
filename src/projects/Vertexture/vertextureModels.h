@@ -511,6 +511,7 @@ struct SphereModel {
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
 		glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( shader, "frameHeight" ), frameHeight );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( shader, "sphere" ), 10 );
@@ -526,6 +527,7 @@ struct SphereModel {
 		glUniform1f( glGetUniformLocation( moverShader, "time" ), timeVal / 10000.0f );
 		glUniform1i( glGetUniformLocation( moverShader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
+		glUniform1f( glGetUniformLocation( moverShader, "frameHeight" ), frameHeight );
 		glUniform1f( glGetUniformLocation( moverShader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );
 		glUniform1i( glGetUniformLocation( moverShader, "sphere" ), 10 );

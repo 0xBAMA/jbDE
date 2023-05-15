@@ -28,6 +28,7 @@ void main () {
 	if ( tRead.x < 0.05f ) discard;
 
 	vec3 normal = inverse( rot ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
+	vec3 worldPosition = position + normal * ( radius / frameHeight );
 
 	// lighting calculations
 	vec3 lightColor = vec3( 0.0f );
@@ -36,6 +37,6 @@ void main () {
 		lightColor += lightData[ i ].color.rgb * ( 1.0f / lightDist );
 	}
 
-	gl_FragDepth = gl_FragCoord.z + ( ( radius / 1024.0f ) * ( 1.0f - tRead.x ) );
-	glFragColor = vec4( tRead.xyz * color * lightColor, 1.0f );
+	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameHeight ) * ( 1.0f - tRead.x ) );
+	glFragColor = vec4( color * lightContribution, 1.0f );
 }

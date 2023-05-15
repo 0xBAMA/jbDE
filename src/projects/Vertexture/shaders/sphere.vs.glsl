@@ -23,7 +23,6 @@ void main () {
 
 	radius = gl_PointSize = scale * vPosition.a * AR;
 	color = vColor.xyz;
-	rot = trident;
 
 	position = scale * trident * ( vPosition.xyz + vec3( 0.0f, 0.0f, height ) );
 	position.z += radius / 1024.0f; // precompensate for depth
