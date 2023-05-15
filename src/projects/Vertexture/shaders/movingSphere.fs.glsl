@@ -10,7 +10,7 @@ struct light_t {
 	vec4 position;
 	vec4 color;
 };
-layout( binding = 4, std430 ) buffer lightData {
+layout( binding = 4, std430 ) buffer lightDataBuffer {
 	light_t lightData[];
 };
 
@@ -28,8 +28,18 @@ void main () {
 	if ( tRead.x < 0.05f ) discard;
 
 	vec3 normal = inverse( rot ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
-	vec3 worldPosition = position;
+
+	// lighting calculations
+	float nearestDistance = 100000.0f;
+	vec3 lightColor = vec3( 0.0f );
+	for ( int i = 0; i < lightCount; i++ ) {
+		const float lightDist = distance( rot * lightData[ i ].position.xyz, position );
+		nearestDistance = min( nearestDistance, lightDist );
+		if ( nearestDistance == lightDist ) {
+			lightColor = lightData[ i ].color.rgb;
+		}
+	}
 
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / 1024.0f ) * ( 1.0f - tRead.x ) );
-	glFragColor = vec4( tRead.xyz * color, 1.0f );
+	glFragColor = vec4( tRead.xyz * color * ( 1.0f / nearestDistance ) * lightColor, 1.0f );
 }
