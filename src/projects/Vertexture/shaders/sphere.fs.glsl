@@ -32,6 +32,11 @@ void main () {
 	vec3 normal = inverse( rot ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
 	vec3 worldPosition = position + normal * ( radius / 1024.0f );
 
+	float nearestDistance = 100000.0f;
+	for ( int i = 0; i < lightCount; i++ ) {
+		nearestDistance = min( nearestDistance, abs( sin( distance( rot * data[ i ].position.xyz, position ) * 35.0f ) ) );
+	}
+
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / 1024.0f ) * ( 1.0f - tRead.x ) );
-	glFragColor = vec4( tRead.xyz * color, 1.0f );
+	glFragColor = vec4( tRead.xyz * color * ( 1.0f / nearestDistance ), 1.0f );
 }

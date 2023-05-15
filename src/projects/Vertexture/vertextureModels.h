@@ -36,6 +36,7 @@ struct GroundModel {
 	float scale;
 	float screenAR;
 	int numPoints = 0;
+	int numLights = 0;
 
 	vec3 groundColor;
 
@@ -102,6 +103,7 @@ struct GroundModel {
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
+		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
 		Image_4U heightmapImage( "./src/projects/Vertexture/textures/rock_height.png" );
 		glGenTextures( 1, &heightmap );
 		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
@@ -142,6 +144,7 @@ struct GroundModel {
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
+		glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -163,6 +166,7 @@ struct SkirtsModel {
 	float scale;
 	float screenAR;
 	int numPoints = 0;
+	int numLights = 0;
 
 	vec3 groundColor;
 
@@ -248,6 +252,7 @@ struct SkirtsModel {
 		glEnable( GL_DEPTH_TEST );
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
+		// glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
@@ -267,8 +272,9 @@ struct SkirtsModel {
 struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
-	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	const int numFloatsPerLight = 8;
+	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
 	GLuint distanceDirectionMap;
@@ -286,15 +292,16 @@ struct LightsModel {
 			// color ( vec3 + intensity scalar )
 
 		std::vector< GLfloat > initialSSBOData;
-		rng location( 0.0f, 1.0f );
+		rng location( -1.0f, 1.0f );
+		rng zDistrib( 0.1f, 0.3f );
 		rng colorPick( 0.6f, 0.8f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 			// distribute initial light points
 			initialSSBOData.push_back( location() );
 			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( location() );
+			initialSSBOData.push_back( zDistrib() );
+			initialSSBOData.push_back( 0.0f );
 
 			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated );
 			initialSSBOData.push_back( col.r );
@@ -320,6 +327,8 @@ struct LightsModel {
 
 		// dispatch compute shader to update SSBO
 
+		// for the time being this can be a no-op, we can just use the original light positions
+
 	}
 };
 
@@ -340,6 +349,7 @@ struct SphereModel {
 	float screenAR;
 	int numStaticPoints = 0;
 	int dynamicPointCount = 0;
+	int numLights = 0;
 
 	// sqrt of num sim movers
 	const int simQ = 16 * 5;
@@ -498,6 +508,7 @@ struct SphereModel {
 
 		// static points
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
+		glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -512,6 +523,7 @@ struct SphereModel {
 		glBindImageTexture( 1, steepness, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glUniform1f( glGetUniformLocation( moverShader, "time" ), timeVal / 10000.0f );
+		glUniform1i( glGetUniformLocation( moverShader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( moverShader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( moverShader, "heightmap" ), 9 );
@@ -534,6 +546,7 @@ struct WaterModel {
 	float scale;
 	float screenAR;
 	int numPoints = 0;
+	int numLights = 0;
 
 	GLuint waterColorTexture;
 	GLuint waterNormalTexture;
@@ -640,6 +653,7 @@ struct WaterModel {
 		glEnable( GL_DEPTH_TEST );
 
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
+		// glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "colorMap" ), 11 );

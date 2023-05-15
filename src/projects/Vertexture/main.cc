@@ -138,6 +138,9 @@ public:
 
 			water = new WaterModel( shaders[ "Water" ] );
 
+			// tbd which of these will actually need to know this information, but it'll be available till then
+			water->numLights = sphere->numLights = skirts->numLights = ground->numLights = lights->numLights;
+
 		}
 	}
 
