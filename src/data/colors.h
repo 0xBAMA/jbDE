@@ -326,9 +326,9 @@ namespace palette {
 				value = GetColorForTemperature( input );
 				break;
 
-			// remap 0-1 to 0-40k
+			// remap 0-1 to 1k-40k
 			case type::paletteTemperature_normalized:
-				value = GetColorForTemperature( input * 40000.0f );
+				value = GetColorForTemperature( input * 40000.0f + 1000.0f );
 				break;
 
 			// reference to the sinusoidal
