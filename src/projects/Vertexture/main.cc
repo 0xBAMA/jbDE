@@ -9,7 +9,7 @@ public:
 	vertextureConfig gameConfig;
 
 	// size scalar
-	float scale = 1.0f;
+	float scale = 0.4f;
 
 	// application data
 	GroundModel * ground;

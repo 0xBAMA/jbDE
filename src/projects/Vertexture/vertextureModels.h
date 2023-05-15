@@ -63,6 +63,9 @@ struct GroundModel {
 			world.push_back( points[ 1 ] );
 			world.push_back( points[ 2 ] );
 			world.push_back( points[ 3 ] );
+
+			// todo: triangle normals
+
 		} else {
 			vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
 			// midpoints between corners
@@ -289,11 +292,11 @@ struct LightsModel {
 
 		// need to figure out what the buffer needs to hold
 			// position ( vec3 + some extra value... we'll find a use for it )
-			// color ( vec3 + intensity scalar )
+			// color ( vec3 + some extra value, again we'll find some kind of use for it )
 
 		std::vector< GLfloat > initialSSBOData;
 		rng location( -1.618f, 1.618f );
-		rng zDistrib( 0.1f, 0.3f );
+		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
 		rng brightness( 0.1f, 0.4f );
 
@@ -348,12 +351,13 @@ struct SphereModel {
 	float timeVal = 0.0f;
 	float scale;
 	float screenAR;
+	float frameHeight;
 	int numStaticPoints = 0;
 	int dynamicPointCount = 0;
 	int numLights = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 30;
+	const int simQ = 16 * 40;
 
 	uint32_t numTrees;
 	std::vector< vec3 > obstacles; // x,y location, then radius
@@ -377,9 +381,9 @@ struct SphereModel {
 		}
 
 		rngN trunkJitter( 0.0f, 0.009f );
-		rng trunkSizes( 5.0f, 8.0f );
+		rng trunkSizes( 12.5f, 20.0f );
 		rng basePtPlace( -globalScale * 0.75f, globalScale * 0.75f );
-		rng leafSizes( 6.0f, 14.0f );
+		rng leafSizes( 15.0f, 35.0f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
 			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
@@ -408,7 +412,7 @@ struct SphereModel {
 		uint32_t numRocks = 10;
 		rngN rockGen( 0.0f, 0.06f );
 		rngN rockHGen( 0.1f, 0.06f );
-		rngN rockSize( 6.0f, 2.5f );
+		rngN rockSize( 6.25f, 16.25f );
 		for ( unsigned int i = 0; i < numRocks; i++ ) {
 			vec2 basePt = vec2( basePtPlace(), basePtPlace() );
 			obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
@@ -441,7 +445,7 @@ struct SphereModel {
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
 
 		std::vector< vec4 > ssboPoints;
-		rng size( 3.0f, 6.0f );
+		rng size( 3.0f * 2.5f, 6.0f * 2.5f );
 		rng phase( 0.0f, pi * 2.0f );
 		for ( int x = 0; x < simQ; x++ ) {
 			for ( int y = 0; y < simQ; y++ ) {
