@@ -33,16 +33,12 @@ void main () {
 	vec3 worldPosition = position + normal * ( radius / 1024.0f );
 
 	// lighting calculations
-	float nearestDistance = 100000.0f;
 	vec3 lightColor = vec3( 0.0f );
 	for ( int i = 0; i < lightCount; i++ ) {
 		const float lightDist = distance( rot * lightData[ i ].position.xyz, position );
-		nearestDistance = min( nearestDistance, lightDist );
-		if ( nearestDistance == lightDist ) {
-			lightColor = lightData[ i ].color.rgb;
-		}
+		lightColor += lightData[ i ].color.rgb * ( 1.0f / lightDist );
 	}
 
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / 1024.0f ) * ( 1.0f - tRead.x ) );
-	glFragColor = vec4( tRead.xyz * color * ( 1.0f / nearestDistance ) * lightColor, 1.0f );
+	glFragColor = vec4( tRead.xyz * color * lightColor, 1.0f );
 }

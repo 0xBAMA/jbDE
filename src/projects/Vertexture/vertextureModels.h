@@ -292,9 +292,10 @@ struct LightsModel {
 			// color ( vec3 + intensity scalar )
 
 		std::vector< GLfloat > initialSSBOData;
-		rng location( -1.0f, 1.0f );
+		rng location( -1.618f, 1.618f );
 		rng zDistrib( 0.1f, 0.3f );
 		rng colorPick( 0.6f, 0.8f );
+		rng brightness( 0.1f, 0.4f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 			// distribute initial light points
@@ -303,7 +304,7 @@ struct LightsModel {
 			initialSSBOData.push_back( zDistrib() );
 			initialSSBOData.push_back( 0.0f );
 
-			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated );
+			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated ) * brightness();
 			initialSSBOData.push_back( col.r );
 			initialSSBOData.push_back( col.g );
 			initialSSBOData.push_back( col.b );
@@ -352,7 +353,7 @@ struct SphereModel {
 	int numLights = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 5;
+	const int simQ = 16 * 30;
 
 	uint32_t numTrees;
 	std::vector< vec3 > obstacles; // x,y location, then radius

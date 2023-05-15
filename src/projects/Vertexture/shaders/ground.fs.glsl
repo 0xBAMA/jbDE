@@ -19,15 +19,11 @@ out vec4 glFragColor;
 void main () {
 
 	// lighting calculations
-	float nearestDistance = 100000.0f;
 	vec3 lightColor = vec3( 0.0f );
 	for ( int i = 0; i < lightCount; i++ ) {
 		const float lightDist = distance( rot * lightData[ i ].position.xyz, position );
-		nearestDistance = min( nearestDistance, lightDist );
-		if ( nearestDistance == lightDist ) {
-			lightColor = lightData[ i ].color.rgb;
-		}
+		lightColor += lightData[ i ].color.rgb * ( 1.0f / lightDist );
 	}
 
-	glFragColor = vec4( color * lightColor * ( 1.0f / nearestDistance ), 1.0f );
+	glFragColor = vec4( color * lightColor, 1.0f );
 }
