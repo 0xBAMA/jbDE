@@ -7,8 +7,8 @@
 struct vertextureConfig {
 	int numGoodGuys = 10;
 	int numBadGuys = 10;
-	int numTrees = 5;
-	int numBoxes = 5;
+	int numTrees = 10;
+	int numBoxes = 10;
 };
 
 // scoring, kills, etc, append a string
@@ -276,7 +276,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
@@ -288,19 +288,21 @@ struct LightsModel {
 	LightsModel ( GLuint sIn ) :
 		movementShader( sIn ) {
 
-		// create the SSBO and bind in slot 4
 
+		// new palette just for the lights
+		palette::PickRandomPalette();
+
+		std::vector< GLfloat > initialSSBOData;
+		rng location( -1.618f, 1.618f );
+		rng zDistrib( 0.3f, 0.8f );
+		rng colorPick( 0.6f, 0.8f );
+		rng brightness( 0.3f, 0.6f );
+
+		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
 			// position ( vec3 + some extra value... we'll find a use for it )
 			// color ( vec3 + some extra value, again we'll find some kind of use for it )
 
-		std::vector< GLfloat > initialSSBOData;
-		rng location( -1.618f, 1.618f );
-		rng zDistrib( 0.2f, 0.6f );
-		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.1f, 0.4f );
-
-		for ( int x = 0; x < numLights; x++ ) {
 			// distribute initial light points
 			initialSSBOData.push_back( location() );
 			initialSSBOData.push_back( location() );
@@ -314,6 +316,7 @@ struct LightsModel {
 			initialSSBOData.push_back( 1.0f );
 		}
 
+		// create the SSBO and bind in slot 4
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * numFloatsPerLight * numLights, ( GLvoid * ) &initialSSBOData[ 0 ], GL_DYNAMIC_COPY );

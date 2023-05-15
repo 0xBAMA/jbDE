@@ -19,11 +19,11 @@ out vec4 glFragColor;
 void main () {
 
 	// lighting calculations
-	vec3 lightColor = vec3( 0.0f );
+	vec3 lightContribution = vec3( 0.0f );
 	for ( int i = 0; i < lightCount; i++ ) {
 		const float lightDist = distance( rot * lightData[ i ].position.xyz, position );
-		lightColor += lightData[ i ].color.rgb * ( 1.0f / lightDist );
+		lightContribution += lightData[ i ].color.rgb * ( 1.0f / lightDist );
 	}
 
-	glFragColor = vec4( color * lightColor, 1.0f );
+	glFragColor = vec4( color * lightContribution, 1.0f );
 }
