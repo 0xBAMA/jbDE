@@ -10,18 +10,35 @@ uniform vec3 groundColor;
 in vec3 vPosition;
 
 out vec3 color;
+out vec3 normal;
 out vec3 position;
 out mat3 rot;
 
 void main () {
-	vec4 tRead = texture( heightmap, vPosition.xy / ( 1.618f * 2.0f ) );
+	const float remap = 1.618f * 2.0f;
+
+	vec4 tRead = texture( heightmap, vPosition.xy / remap );
+
 	color = vec3( tRead.r );
 	color.rgb *= groundColor;
 
 	rot = trident;
 
-	vec3 vPosition_local = scale * rot * ( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.2f ) );
-	position = vPosition_local;
+	// calculating normals
+	vec2 offsetPoints[ 2 ];
+	offsetPoints[ 0 ] = vPosition.xy + vec2( 0.0f, 0.01f );
+	offsetPoints[ 1 ] = vPosition.xy + vec2( 0.01f, 0.0f );
 
-	gl_Position = vec4( vPosition_local * vec3( 1.0f, AR, 1.0f ), 1.0f );
+	vec4 offsetReads[ 2 ];
+	offsetReads[ 0 ] = texture( heightmap, offsetPoints[ 0 ] / remap );
+	offsetReads[ 1 ] = texture( heightmap, offsetPoints[ 1 ] / remap );
+
+	normal = trident * normalize( cross(
+		vec3( vPosition.xy, tRead.r ) - vec3( offsetPoints[ 0 ].xy, offsetReads[ 0 ].r ),
+		vec3( vPosition.xy, tRead.r ) - vec3( offsetPoints[ 1 ].xy, offsetReads[ 1 ].r )
+	) );
+
+	position = scale * trident * ( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.2f ) );
+
+	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ), 1.0f );
 }

@@ -63,9 +63,6 @@ struct GroundModel {
 			world.push_back( points[ 1 ] );
 			world.push_back( points[ 2 ] );
 			world.push_back( points[ 3 ] );
-
-			// todo: triangle normals
-
 		} else {
 			vec3 center = ( points[ 0 ] +  points[ 1 ] + points[ 2 ] + points[ 3 ] ) / 4.0f;
 			// midpoints between corners

@@ -11,6 +11,7 @@ layout( binding = 4, std430 ) buffer lightDataBuffer {
 };
 
 in vec3 color;
+in vec3 normal;
 in vec3 position;
 in mat3 rot;
 
