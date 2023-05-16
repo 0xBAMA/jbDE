@@ -127,6 +127,12 @@ public:
 			skirts = new SkirtsModel( shaders[ "Skirts" ] );
 			skirts->groundColor = ground->groundColor;
 
+			lights = new LightsModel( shaders[ "Light Movement" ] );
+			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
+			lights->heightmap = textures[ "Ground" ];
+
+			// todo: pass in the list of lights, to visualize positions - I think some stuff might be wrong / inverted
+
 			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees );
 			sphere->steepness = textures[ "Steepness Map" ];
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
@@ -135,9 +141,6 @@ public:
 
 			water = new WaterModel( shaders[ "Water" ] );
 
-			lights = new LightsModel( shaders[ "Light Movement" ] );
-			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
-			lights->heightmap = textures[ "Ground" ];
 
 			// tbd which of these will actually need to know this information, but it'll be available till then
 			water->numLights = sphere->numLights = skirts->numLights = ground->numLights = lights->numLights;

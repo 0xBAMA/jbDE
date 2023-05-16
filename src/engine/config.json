@@ -16,9 +16,9 @@
 	"depthTesting":true,
 	"SRGBFramebuffer":false,
 	"pointSize":3.0,
-	"SDL_WINDOW_FULLSCREEN":false,
+	"SDL_WINDOW_FULLSCREEN":true,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
-	"SDL_WINDOW_BORDERLESS":true,
+	"SDL_WINDOW_BORDERLESS":false,
 	"SDL_WINDOW_RESIZABLE":true,
 	"SDL_WINDOW_INPUT_GRABBED":false,
 	"clearColor":{
