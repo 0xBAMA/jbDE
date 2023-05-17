@@ -16,14 +16,13 @@ layout( binding = 4, std430 ) buffer lightDataBuffer {
 in vec3 color;
 in vec3 normal;
 in vec3 position;
-in mat3 rot;
 
 out vec4 glFragColor;
 
 void main () {
 
 	// lighting
-	const vec3 eyePosition = vec3( 0.0f, 0.0f, -1.0f );
+	const vec3 eyePosition = inverse( trident ) * vec3( 0.0f, 0.0f, -1.0f );
 	vec3 lightContribution = vec3( 0.0f );
 	for ( int i = 0; i < lightCount; i++ ) {
 		const vec3 lightLocation = scale * trident * lightData[ i ].position.xyz;

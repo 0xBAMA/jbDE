@@ -31,11 +31,13 @@ void main () {
 	vec4 tRead = texture( sphere, gl_PointCoord.xy );
 	if ( tRead.x < 0.05f ) discard;
 
-	vec3 normal = inverse( trident ) * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
+	const mat3 inverseTrident = inverse( trident );
+
+	vec3 normal = inverseTrident * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
 	vec3 worldPosition = position + normal * ( radius / frameHeight );
 
 	// lighting
-	const vec3 eyePosition = vec3( 0.0f, 0.0f, -1.0f );
+	const vec3 eyePosition = inverseTrident * vec3( 0.0f, 0.0f, -1.0f );
 	vec3 lightContribution = vec3( 0.0f );
 	for ( int i = 0; i < lightCount; i++ ) {
 		const vec3 lightLocation = scale * trident * lightData[ i ].position.xyz;

@@ -133,7 +133,7 @@ public:
 
 			// todo: pass in the list of lights, to visualize positions - I think some stuff might be wrong / inverted
 
-			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees );
+			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees, lights->lightData );
 			sphere->steepness = textures[ "Steepness Map" ];
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
 			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];

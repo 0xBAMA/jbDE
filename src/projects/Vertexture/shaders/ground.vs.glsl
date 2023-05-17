@@ -12,7 +12,6 @@ in vec3 vPosition;
 out vec3 color;
 out vec3 normal;
 out vec3 position;
-out mat3 rot;
 
 void main () {
 	const float remap = 1.618f * 2.0f;
@@ -21,8 +20,6 @@ void main () {
 
 	color = vec3( tRead.r );
 	color.rgb *= groundColor;
-
-	rot = trident;
 
 	// calculating normals
 	vec2 offsetPoints[ 2 ];

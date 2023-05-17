@@ -273,7 +273,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
@@ -282,18 +282,18 @@ struct LightsModel {
 	float timeVal = 0.0f;
 	mat3 tridentM;
 
+	std::vector< GLfloat > lightData;
+
 	LightsModel ( GLuint sIn ) :
 		movementShader( sIn ) {
-
 
 		// new palette just for the lights
 		palette::PickRandomPalette();
 
-		std::vector< GLfloat > initialSSBOData;
 		rng location( -1.618f, 1.618f );
 		rng zDistrib( 0.3f, 0.8f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.3f, 0.6f );
+		rng brightness( 0.1f, 0.3f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -301,22 +301,22 @@ struct LightsModel {
 			// color ( vec3 + some extra value, again we'll find some kind of use for it )
 
 			// distribute initial light points
-			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( location() );
-			initialSSBOData.push_back( zDistrib() );
-			initialSSBOData.push_back( 0.0f );
+			lightData.push_back( location() );
+			lightData.push_back( location() );
+			lightData.push_back( zDistrib() );
+			lightData.push_back( 0.0f );
 
 			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated ) * brightness();
-			initialSSBOData.push_back( col.r );
-			initialSSBOData.push_back( col.g );
-			initialSSBOData.push_back( col.b );
-			initialSSBOData.push_back( 1.0f );
+			lightData.push_back( col.r );
+			lightData.push_back( col.g );
+			lightData.push_back( col.b );
+			lightData.push_back( 1.0f );
 		}
 
 		// create the SSBO and bind in slot 4
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * numFloatsPerLight * numLights, ( GLvoid * ) &initialSSBOData[ 0 ], GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * numFloatsPerLight * numLights, ( GLvoid * ) &lightData[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, ssbo );
 
 	}
@@ -357,12 +357,12 @@ struct SphereModel {
 	int numLights = 0;
 
 	// sqrt of num sim movers
-	const int simQ = 16 * 40;
+	const int simQ = 16 * 20;
 
 	uint32_t numTrees;
 	std::vector< vec3 > obstacles; // x,y location, then radius
 
-	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees ) :
+	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees, std::vector< float > &lights ) :
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
 
 		rng gen( 0.3f, 1.2f );
@@ -419,6 +419,21 @@ struct SphereModel {
 			for ( int l = 0; l < 1000; l++ ) {
 				points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
 				colors.push_back( vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			}
+		}
+
+		// debug spheres for the lights
+		const bool debugLightPositions = true;
+		if ( debugLightPositions == true ) {
+			for ( unsigned int i = 0; i < lights.size() / 8; i++ ) {
+				const size_t basePt = 8 * i;
+
+				vec4 position = vec4( lights[ basePt ], lights[ basePt + 1 ], lights[ basePt + 2 ], 50.0f );
+				// vec4 color = vec4( lights[ basePt + 4 ], lights[ basePt + 5 ], lights[ basePt + 6 ], 1.0f );
+				vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
+
+				points.push_back( position );
+				colors.push_back( color );
 			}
 		}
 
