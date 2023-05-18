@@ -42,8 +42,6 @@ void main () {
 	const vec3 viewVector = inverseTrident * normalize( eyePosition - worldPosition_adjusted );
 	vec3 lightContribution = vec3( 0.0f );
 
-	float dMin = 1000.0f;
-
 	for ( int i = 0; i < lightCount; i++ ) {
 		// phong setup
 		const vec3 lightLocation = lightData[ i ].position.xyz;
@@ -52,8 +50,6 @@ void main () {
 
 		const float lightDot = dot( normal, lightVector );
 		const float dLight = distance( worldPosition_adjusted, lightLocation );
-
-		dMin = min( dLight, dMin );
 
 		// todo: better attenuation function than inverse square - parameterize with extra data fields in the ssbo
 			// https://lisyarus.github.io/blog/graphics/2022/07/30/point-light-attenuation.html
@@ -68,14 +64,4 @@ void main () {
 
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameHeight ) * ( 1.0f - tRead.x ) );
 	glFragColor = vec4( color * lightContribution, 1.0f );
-	// glFragColor = vec4( normal, 1.0f );
-	// glFragColor = vec4( 0.2f / worldPosition_adjusted, 1.0f );
-
-	// glFragColor = vec4( ( dot( viewVector, normal ) < 0.9f ) ? vec3( 1.0f ) : vec3( 0.0f ), 1.0f ); // black dot on white sphere, at center if we are looking at it
-
-	// if ( dMin < 0.3f ) {
-	// 	glFragColor = vec4( color * lightContribution, 1.0f );
-	// } else {
-	// 	glFragColor = vec4( 0.0f, 0.0f, 0.0f, 1.0f );
-	// }
 }

@@ -38,8 +38,6 @@ void main () {
 	const vec3 viewVector = inverseTrident * normalize( eyePosition - worldPosition_adjusted );
 	vec3 lightContribution = vec3( 0.0f );
 
-	float dMin = 1000.0f;
-
 	for ( int i = 0; i < lightCount; i++ ) {
 		// phong setup
 		const vec3 lightLocation = lightData[ i ].position.xyz;
@@ -49,8 +47,6 @@ void main () {
 		// lighting calculation
 		const float lightDot = dot( normal, lightVector );
 		const float dLight = distance( worldPosition_adjusted, lightLocation );
-
-		dMin = min( dLight, dMin );
 
 		const float distanceFactor = min( 1.0f / ( pow( dLight, 2.0f ) ), 5.0f );
 		const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
