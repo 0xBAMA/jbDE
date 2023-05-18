@@ -291,9 +291,9 @@ struct LightsModel {
 		palette::PickRandomPalette();
 
 		rng location( -globalScale, globalScale );
-		rng zDistrib( 0.3f, 0.8f );
+		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.1f, 0.3f );
+		rng brightness( 0.05f, 0.25f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -376,9 +376,9 @@ struct SphereModel {
 	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees, std::vector< float > &lights ) :
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
 
-		rng gen( 0.3f, 1.2f );
-		rng genH( 0.0f, 0.15f );
-		rng genP( 3.0f, 6.0f );
+		rng gen( 0.185f, 0.74f );
+		rng genH( 0.0f, 0.1f );
+		rng genP( 1.85f, 3.7f );
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
 
@@ -391,10 +391,10 @@ struct SphereModel {
 			colors.push_back( vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 		}
 
-		rngN trunkJitter( 0.0f, 0.009f );
-		rng trunkSizes( 12.5f, 20.0f );
+		rngN trunkJitter( 0.0f, 0.006f );
+		rng trunkSizes( 7.75f, 12.36f );
 		rng basePtPlace( -globalScale * 0.75f, globalScale * 0.75f );
-		rng leafSizes( 15.0f, 35.0f );
+		rng leafSizes( 9.27f, 21.6f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
 			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
@@ -402,7 +402,6 @@ struct SphereModel {
 			vec2 basePt = basePtOrig;
 			float constrict = 1.618f;
 			float scalar = gen();
-			rngN heightGen( scalar, 0.025f );
 
 			obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
 			for ( float t = 0; t < scalar; t += 0.002f ) {
@@ -421,9 +420,9 @@ struct SphereModel {
 		}
 
 		uint32_t numRocks = 10;
-		rngN rockGen( 0.0f, 0.06f );
-		rngN rockHGen( 0.1f, 0.06f );
-		rngN rockSize( 6.25f, 16.25f );
+		rngN rockGen( 0.0f, 0.037f );
+		rngN rockHGen( 0.06f, 0.037f );
+		rngN rockSize( 3.86f, 10.0f );
 		for ( unsigned int i = 0; i < numRocks; i++ ) {
 			vec2 basePt = vec2( basePtPlace(), basePtPlace() );
 			obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
