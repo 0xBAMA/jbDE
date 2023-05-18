@@ -19,7 +19,7 @@ inline float Remap ( float value, float from1, float to1, float from2, float to2
 	return ( value - from1 ) / ( to1 - from1 ) * ( to2 - from2 ) + from2;
 }
 
-constexpr float globalScale = 1.618f;
+constexpr float globalScale = 1.0f;
 
 //=====================================================================================================================
 //===== Ground ========================================================================================================
@@ -290,7 +290,7 @@ struct LightsModel {
 		// new palette just for the lights
 		palette::PickRandomPalette();
 
-		rng location( -1.618f, 1.618f );
+		rng location( -globalScale, globalScale );
 		rng zDistrib( 0.3f, 0.8f );
 		rng colorPick( 0.6f, 0.8f );
 		rng brightness( 0.1f, 0.3f );

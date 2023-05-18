@@ -30,10 +30,10 @@ void main () {
 	vec4 positionRead = data[ index ].position;
 	vec4 colorRead = data[ index ].color;
 
-	ivec2 loc = ivec2( ( ( positionRead.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
+	ivec2 loc = ivec2( ( ( positionRead.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
 
-	vec4 tRead = texture( heightmap, positionRead.xy / ( 1.618f * 2.0f ) );
+	vec4 tRead = texture( heightmap, positionRead.xy / 2.0f );
 	height = tRead.r * 0.4f - 0.2f;
 	radius = gl_PointSize = scale * positionRead.a * AR;
 

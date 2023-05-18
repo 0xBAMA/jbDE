@@ -12,7 +12,7 @@ out vec2 texCoord;
 out vec3 position;
 
 void main () {
-	texCoord = vPosition.xy / ( 1.618f * 2.0f );
+	texCoord = vPosition.xy / 2.0f;
 	position = vPosition;
 
 	vec4 tRead = texture( heightmap, texCoord );

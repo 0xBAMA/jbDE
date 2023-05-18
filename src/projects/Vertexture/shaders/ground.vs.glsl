@@ -14,7 +14,7 @@ out vec3 normal;
 out vec3 worldPosition;
 
 void main () {
-	const float remap = 1.618f * 2.0f;
+	const float remap = 2.0f;
 
 	vec4 tRead = texture( heightmap, vPosition.xy / remap );
 
