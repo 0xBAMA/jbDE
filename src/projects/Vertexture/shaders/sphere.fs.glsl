@@ -38,6 +38,7 @@ void main () {
 	vec3 worldPosition_adjusted = worldPosition - normal * ( radius / frameHeight );
 
 	// lighting
+	const float maxDistFactor = 5.0f;
 	const vec3 eyePosition = vec3( 0.0f, 0.0f, -5.0f );
 	const vec3 viewVector = inverseTrident * normalize( eyePosition - worldPosition_adjusted );
 	vec3 lightContribution = vec3( 0.0f );
@@ -55,7 +56,7 @@ void main () {
 			// https://lisyarus.github.io/blog/graphics/2022/07/30/point-light-attenuation.html
 
 		// lighting calculation
-		const float distanceFactor = min( 1.0f / ( pow( dLight, 2.0f ) ), 5.0f );
+		const float distanceFactor = min( 1.0f / ( pow( dLight, 2.0f ) ), maxDistFactor );
 		const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
 		const float specularContribution = distanceFactor * pow( max( dot( reflectedVector, viewVector ), 0.0f ), 60.0f );
 

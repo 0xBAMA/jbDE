@@ -432,7 +432,7 @@ struct SphereModel {
 		}
 
 		// debug spheres for the lights
-		const bool debugLightPositions = true;
+		const bool debugLightPositions = false;
 		if ( debugLightPositions == true ) {
 			for ( unsigned int i = 0; i < lights.size() / 8; i++ ) {
 				const size_t basePt = 8 * i;
