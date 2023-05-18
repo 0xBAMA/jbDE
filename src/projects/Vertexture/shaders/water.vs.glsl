@@ -14,7 +14,7 @@ out vec3 color;
 out vec3 normal;
 
 void main () {
-	const vec2 texCoord = ( vPosition.xy / ( 1.618f * 2.0f ) ) * 4.51f + vec2( 0.8f * time );
+	const vec2 texCoord = ( vPosition.xy / 2.0f ) * 4.51f + vec2( 0.8f * time );
 	vec4 cRead = texture( colorMap, texCoord );
 	vec4 nRead = texture( normalMap, texCoord );
 	vec4 hRead = texture( heightMap, texCoord );

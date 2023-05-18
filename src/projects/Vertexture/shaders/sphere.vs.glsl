@@ -18,7 +18,7 @@ flat out int index;
 void main () {
 	index = gl_VertexID;
 	vec4 tRead = texture( heightmap, vPosition.xy / 2.0f );
-	height = tRead.r * 0.4f - 0.2f;
+	height = tRead.r * 0.4f - 0.4f;
 
 	radius = gl_PointSize = scale * vPosition.a * AR;
 	color = vColor.xyz;

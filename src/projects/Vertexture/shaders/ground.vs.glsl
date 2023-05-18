@@ -35,7 +35,7 @@ void main () {
 		vec3( vPosition.xy, tRead.r ) - vec3( offsetPoints[ 1 ].xy, offsetReads[ 1 ].r )
 	) );
 
-	worldPosition = vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.2f );
+	worldPosition = vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.4f );
 	vec3 position = scale * trident * worldPosition;
 
 	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ), 1.0f );

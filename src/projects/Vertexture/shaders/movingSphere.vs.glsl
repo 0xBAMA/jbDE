@@ -34,7 +34,7 @@ void main () {
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
 
 	vec4 tRead = texture( heightmap, positionRead.xy / 2.0f );
-	height = tRead.r * 0.4f - 0.2f;
+	height = tRead.r * 0.4f - 0.4f;
 	radius = gl_PointSize = scale * positionRead.a * AR;
 
 	color = colorRead.rgb;

@@ -175,10 +175,10 @@ struct SkirtsModel {
 		std::vector< vec3 > basePoints;
 
 		basePoints.resize( 4 );
-		basePoints[ 0 ] = vec3( -globalScale, -globalScale,  1.0f );
-		basePoints[ 1 ] = vec3( -globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = vec3(  globalScale, -globalScale,  1.0f );
-		basePoints[ 3 ] = vec3(  globalScale, -globalScale, -1.5f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale,  0.2f );
+		basePoints[ 1 ] = vec3( -globalScale, -globalScale, -0.5f );
+		basePoints[ 2 ] = vec3(  globalScale, -globalScale,  0.2f );
+		basePoints[ 3 ] = vec3(  globalScale, -globalScale, -0.5f );
 
 		// triangle 1 ABC
 		world.push_back( basePoints[ 0 ] );
@@ -189,10 +189,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = vec3( -globalScale, -globalScale,  1.0f );
-		basePoints[ 1 ] = vec3( -globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = vec3( -globalScale,  globalScale,  1.0f );
-		basePoints[ 3 ] = vec3( -globalScale,  globalScale, -1.5f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale,  0.2f );
+		basePoints[ 1 ] = vec3( -globalScale, -globalScale, -0.5f );
+		basePoints[ 2 ] = vec3( -globalScale,  globalScale,  0.2f );
+		basePoints[ 3 ] = vec3( -globalScale,  globalScale, -0.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 2 ] );
@@ -201,10 +201,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 2 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = vec3(  globalScale, -globalScale,  1.0f );
-		basePoints[ 1 ] = vec3(  globalScale, -globalScale, -1.5f );
-		basePoints[ 2 ] = vec3(  globalScale,  globalScale,  1.0f );
-		basePoints[ 3 ] = vec3(  globalScale,  globalScale, -1.5f );
+		basePoints[ 0 ] = vec3(  globalScale, -globalScale,  0.2f );
+		basePoints[ 1 ] = vec3(  globalScale, -globalScale, -0.5f );
+		basePoints[ 2 ] = vec3(  globalScale,  globalScale,  0.2f );
+		basePoints[ 3 ] = vec3(  globalScale,  globalScale, -0.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -213,10 +213,10 @@ struct SkirtsModel {
 		world.push_back( basePoints[ 1 ] );
 		world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = vec3(  globalScale,  globalScale,  1.0f );
-		basePoints[ 1 ] = vec3(  globalScale,  globalScale, -1.5f );
-		basePoints[ 2 ] = vec3( -globalScale,  globalScale,  1.0f );
-		basePoints[ 3 ] = vec3( -globalScale,  globalScale, -1.5f );
+		basePoints[ 0 ] = vec3(  globalScale,  globalScale,  0.2f );
+		basePoints[ 1 ] = vec3(  globalScale,  globalScale, -0.5f );
+		basePoints[ 2 ] = vec3( -globalScale,  globalScale,  0.2f );
+		basePoints[ 3 ] = vec3( -globalScale,  globalScale, -0.5f );
 
 		world.push_back( basePoints[ 0 ] );
 		world.push_back( basePoints[ 1 ] );
@@ -621,10 +621,10 @@ struct WaterModel {
 
 		basePoints.resize( 4 );
 
-		basePoints[ 0 ] = vec3( -globalScale, -globalScale, 0.0f );
-		basePoints[ 1 ] = vec3( -globalScale,  globalScale, 0.0f );
-		basePoints[ 2 ] = vec3(  globalScale, -globalScale, 0.0f );
-		basePoints[ 3 ] = vec3(  globalScale,  globalScale, 0.0f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale, -0.2f );
+		basePoints[ 1 ] = vec3( -globalScale,  globalScale, -0.2f );
+		basePoints[ 2 ] = vec3(  globalScale, -globalScale, -0.2f );
+		basePoints[ 3 ] = vec3(  globalScale,  globalScale, -0.2f );
 		subdivide( world, basePoints );
 
 		glGenVertexArrays( 1, &vao );

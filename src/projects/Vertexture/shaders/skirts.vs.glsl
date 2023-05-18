@@ -16,6 +16,6 @@ void main () {
 	position = vPosition;
 
 	vec4 tRead = texture( heightmap, texCoord );
-	vec3 vPosition_local = scale * trident * ( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.2f ) );
+	vec3 vPosition_local = scale * trident * ( vPosition + vec3( 0.0f, 0.0f, tRead.r * 0.4f - 0.4f ) );
 	gl_Position = vec4( vPosition_local * vec3( 1.0f, AR, 1.0f ), 1.0f );
 }
