@@ -356,8 +356,10 @@ struct SphereModel {
 	int dynamicPointCount = 0;
 	int numLights = 0;
 
+	const bool debugLightPositions = false;
+
 	// sqrt of num sim movers
-	const int simQ = 16 * 20;
+	const int simQ = 16 * 15;
 
 	uint32_t numTrees;
 	std::vector< vec3 > obstacles; // x,y location, then radius
@@ -432,7 +434,6 @@ struct SphereModel {
 		}
 
 		// debug spheres for the lights
-		const bool debugLightPositions = true;
 		if ( debugLightPositions == true ) {
 			for ( unsigned int i = 0; i < lights.size() / 8; i++ ) {
 				const size_t basePt = 8 * i;
