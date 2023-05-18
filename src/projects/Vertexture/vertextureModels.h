@@ -273,7 +273,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
@@ -293,7 +293,7 @@ struct LightsModel {
 		rng location( -1.618f, 1.618f );
 		rng zDistrib( 0.3f, 0.8f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.1f, 0.3f );
+		rng brightness( 0.2f, 0.7f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -361,6 +361,15 @@ struct SphereModel {
 
 	uint32_t numTrees;
 	std::vector< vec3 > obstacles; // x,y location, then radius
+
+	// it would be desirable to merge the lists of triangles
+
+	// I'm also wondering if we can do a 32 bit buffer with id values, so I can pick points
+		// that would let me visualize some of the vector math pretty easily, with lines between points, or else indicating directions
+		// + putting that much work into infrastructure would be motivating to do more with this thing, it would make sense to do this
+		// if I'm going to go through the effort to set up the deferred shading pipeline
+
+	// refractive spheres done as a second pass over top of the Gbuffer would be stupid cool
 
 	SphereModel ( GLuint sIn, GLuint sInMover, GLuint sInMove, uint32_t nTrees, std::vector< float > &lights ) :
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {

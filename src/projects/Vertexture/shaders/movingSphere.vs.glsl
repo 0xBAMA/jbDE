@@ -20,7 +20,7 @@ layout( binding = 3, std430 ) buffer pointData {
 
 out float radius;
 out vec3 color;
-out vec3 position;
+out vec3 worldPosition;
 out float height;
 out mat3 rot;
 flat out int index;
@@ -40,7 +40,9 @@ void main () {
 	color = colorRead.rgb;
 	rot = trident;
 
-	position = scale * trident * ( positionRead.xyz + vec3( 0.0f, 0.0f, height ) );
+	worldPosition = positionRead.xyz + vec3( 0.0f, 0.0f, height );
+
+	vec3 position = scale * trident * ( worldPosition );
 	position.z += radius / 1024.0f; // precompensate for depth offset in fragment shader
 	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ), 1.0f );
 }

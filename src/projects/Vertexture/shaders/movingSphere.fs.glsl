@@ -18,7 +18,7 @@ layout( binding = 4, std430 ) buffer lightDataBuffer {
 
 in float radius;
 in vec3 color;
-in vec3 position;
+in vec3 worldPosition;
 flat in int index;
 
 layout( depth_greater ) out float gl_FragDepth;
@@ -31,24 +31,30 @@ void main () {
 	const mat3 inverseTrident = inverse( trident );
 
 	vec3 normal = inverseTrident * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
-	vec3 worldPosition = position + normal * ( radius / frameHeight );
+	vec3 worldPosition_adjusted = worldPosition + normal * ( radius / frameHeight );
 
 	// lighting
-	const vec3 eyePosition = inverseTrident * vec3( 0.0f, 0.0f, -1.0f );
+	const vec3 eyePosition = vec3( 0.0f, 0.0f, -5.0f );
+	const vec3 viewVector = inverseTrident * normalize( eyePosition - worldPosition_adjusted );
 	vec3 lightContribution = vec3( 0.0f );
-	for ( int i = 0; i < lightCount; i++ ) {
-		const vec3 lightLocation = scale * trident * lightData[ i ].position.xyz;
 
+	float dMin = 1000.0f;
+
+	for ( int i = 0; i < lightCount; i++ ) {
 		// phong setup
-		const vec3 lightVector = normalize( worldPosition - lightLocation );
-		const vec3 viewVector = normalize( worldPosition - eyePosition );
+		const vec3 lightLocation = lightData[ i ].position.xyz;
+		const vec3 lightVector = normalize( lightLocation - worldPosition_adjusted );
 		const vec3 reflectedVector = normalize( reflect( lightVector, normal ) );
 
 		// lighting calculation
 		const float lightDot = dot( normal, lightVector );
-		const float distanceFactor = 1.0f / ( pow( distance( worldPosition, lightLocation ) / scale, 2.0f ) );
+		const float dLight = distance( worldPosition_adjusted, lightLocation );
+
+		dMin = min( dLight, dMin );
+
+		const float distanceFactor = min( 1.0f / ( pow( dLight, 2.0f ) ), 5.0f );
 		const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
-		const float specularContribution = distanceFactor * pow( max( dot( reflectedVector, viewVector ), 0.0f ), 6000.0f /* todo: make this a parameter on the light? I guess it's more a material property  */ );
+		const float specularContribution = distanceFactor * pow( max( dot( reflectedVector, viewVector ), 0.0f ), 60.0f );
 
 		lightContribution += lightData[ i ].color.rgb * ( diffuseContribution + ( ( lightDot > 0.0f ) ? specularContribution : 0.0f ) );
 	}
