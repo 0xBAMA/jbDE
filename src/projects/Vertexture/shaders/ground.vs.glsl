@@ -26,7 +26,7 @@ void main () {
 	offsetPoints[ 0 ] = vPosition.xy + vec2( 0.0f, 0.003f );
 	offsetPoints[ 1 ] = vPosition.xy + vec2( 0.003f, 0.0f );
 
-	vec4 offsetReads[ 2 ];
+	vec4 offsetReads[ 2 ]; // consider: https://vec3.ca/bicubic-filtering-in-fewer-taps / https://www.shadertoy.com/view/MtVGWz - better filtering, to get rid of these stupid linear interpolation artifacts
 	offsetReads[ 0 ] = texture( heightmap, offsetPoints[ 0 ] / remap );
 	offsetReads[ 1 ] = texture( heightmap, offsetPoints[ 1 ] / remap );
 

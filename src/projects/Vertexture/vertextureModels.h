@@ -273,7 +273,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 8; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
@@ -293,7 +293,7 @@ struct LightsModel {
 		rng location( -1.618f, 1.618f );
 		rng zDistrib( 0.3f, 0.8f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.2f, 0.7f );
+		rng brightness( 0.1f, 0.3f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -376,7 +376,7 @@ struct SphereModel {
 
 		rng gen( 0.3f, 1.2f );
 		rng genH( 0.0f, 0.15f );
-		rng genP( 1.0f, 4.0f );
+		rng genP( 3.0f, 6.0f );
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
 
@@ -432,7 +432,7 @@ struct SphereModel {
 		}
 
 		// debug spheres for the lights
-		const bool debugLightPositions = false;
+		const bool debugLightPositions = true;
 		if ( debugLightPositions == true ) {
 			for ( unsigned int i = 0; i < lights.size() / 8; i++ ) {
 				const size_t basePt = 8 * i;
@@ -445,6 +445,8 @@ struct SphereModel {
 				colors.push_back( color );
 			}
 		}
+
+		cout << "static points: " << points.size() << newline;
 
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
@@ -478,6 +480,8 @@ struct SphereModel {
 				dynamicPointCount++;
 			}
 		}
+
+		cout << "dynamic points: " << dynamicPointCount << newline;
 
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
