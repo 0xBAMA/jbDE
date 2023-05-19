@@ -11,6 +11,9 @@ public:
 	// size scalar
 	float scale = 0.4f;
 
+	// height scalar
+	float heightScale = 0.2f;
+
 	// application data
 	GroundModel * ground;
 	SkirtsModel * skirts;
@@ -120,6 +123,11 @@ public:
 			// used for ground, spheres, skirts
 			palette::PickRandomPalette();
 
+
+			// generate heightmap
+				// RangeRemap( rangeRemapInputs_t ) to get it to [0..1]
+
+
 			// initialize game stuff
 			ground = new GroundModel( shaders[ "Ground" ] );
 			textures[ "Ground" ] = ground->heightmap;
@@ -131,8 +139,6 @@ public:
 			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
 			lights->heightmap = textures[ "Ground" ];
 
-			// todo: pass in the list of lights, to visualize positions - I think some stuff might be wrong / inverted
-
 			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees, lights->lightData );
 			sphere->steepness = textures[ "Steepness Map" ];
 			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
@@ -141,6 +147,8 @@ public:
 
 			water = new WaterModel( shaders[ "Water" ] );
 
+			// I think everybody needs this info
+			water->heightScale = sphere->heightScale = skirts->heightScale = ground->heightScale = lights->heightScale = heightScale;
 
 			// tbd which of these will actually need to know this information, but it'll be available till then
 			water->numLights = sphere->numLights = skirts->numLights = ground->numLights = lights->numLights;

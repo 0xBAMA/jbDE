@@ -34,6 +34,7 @@ struct GroundModel {
 
 	float timeVal = 0.0f;
 	float scale;
+	float heightScale;
 	float screenAR;
 	int numPoints = 0;
 	int numLights = 0;
@@ -127,6 +128,7 @@ struct GroundModel {
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "heightScale" ), heightScale );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "heightmap" ), 9 );
@@ -144,6 +146,7 @@ struct GroundModel {
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "heightScale" ), heightScale );
 		glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
@@ -164,6 +167,7 @@ struct SkirtsModel {
 
 	float timeVal = 0.0f;
 	float scale;
+	float heightScale;
 	float screenAR;
 	int numPoints = 0;
 	int numLights = 0;
@@ -253,6 +257,7 @@ struct SkirtsModel {
 
 		glUniform3f( glGetUniformLocation( shader, "groundColor" ), groundColor.x, groundColor.y, groundColor.z );
 		// glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
+		glUniform1f( glGetUniformLocation( shader, "heightScale" ), heightScale );
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
@@ -279,6 +284,7 @@ struct LightsModel {
 	GLuint heightmap;
 	GLuint distanceDirectionMap;
 
+	float heightScale;
 	float timeVal = 0.0f;
 	mat3 tridentM;
 
@@ -350,6 +356,7 @@ struct SphereModel {
 
 	float timeVal = 0.0f;
 	float scale;
+	float heightScale;
 	float screenAR;
 	float frameHeight;
 	int numStaticPoints = 0;
@@ -541,6 +548,7 @@ struct SphereModel {
 
 		// static points
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
+		glUniform1f( glGetUniformLocation( shader, "heightScale" ), heightScale );
 		glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "frameHeight" ), frameHeight );
@@ -556,6 +564,7 @@ struct SphereModel {
 		glUseProgram( moverShader );
 		glBindImageTexture( 1, steepness, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 		glBindImageTexture( 2, distanceDirection, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+		glUniform1f( glGetUniformLocation( moverShader, "heightScale" ), heightScale );
 		glUniform1f( glGetUniformLocation( moverShader, "time" ), timeVal / 10000.0f );
 		glUniform1i( glGetUniformLocation( moverShader, "lightCount" ), numLights );
 		glUniform1f( glGetUniformLocation( moverShader, "AR" ), screenAR );
@@ -579,6 +588,7 @@ struct WaterModel {
 
 	float timeVal = 0.0f;
 	float scale;
+	float heightScale;
 	float screenAR;
 	int numPoints = 0;
 	int numLights = 0;
@@ -620,10 +630,10 @@ struct WaterModel {
 
 		basePoints.resize( 4 );
 
-		basePoints[ 0 ] = vec3( -globalScale, -globalScale, -0.2f );
-		basePoints[ 1 ] = vec3( -globalScale,  globalScale, -0.2f );
-		basePoints[ 2 ] = vec3(  globalScale, -globalScale, -0.2f );
-		basePoints[ 3 ] = vec3(  globalScale,  globalScale, -0.2f );
+		basePoints[ 0 ] = vec3( -globalScale, -globalScale, 0.01f );
+		basePoints[ 1 ] = vec3( -globalScale,  globalScale, 0.01f );
+		basePoints[ 2 ] = vec3(  globalScale, -globalScale, 0.01f );
+		basePoints[ 3 ] = vec3(  globalScale,  globalScale, 0.01f );
 		subdivide( world, basePoints );
 
 		glGenVertexArrays( 1, &vao );
@@ -689,6 +699,7 @@ struct WaterModel {
 
 		glUniform1f( glGetUniformLocation( shader, "time" ), timeVal / 10000.0f );
 		// glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
+		glUniform1f( glGetUniformLocation( shader, "heightScale" ), heightScale );
 		glUniform1f( glGetUniformLocation( shader, "AR" ), screenAR );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform1i( glGetUniformLocation( shader, "colorMap" ), 11 );

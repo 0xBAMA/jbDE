@@ -5,6 +5,7 @@ uniform sampler2D heightmap;
 uniform float scale;
 uniform float time;
 uniform mat3 trident;
+uniform float heightScale;
 
 in vec4 vColor;
 in vec4 vPosition;
@@ -18,7 +19,7 @@ flat out int index;
 void main () {
 	index = gl_VertexID;
 	vec4 tRead = texture( heightmap, vPosition.xy / 2.0f );
-	height = tRead.r * 0.4f - 0.4f;
+	height = ( tRead.r * heightScale ) - heightScale;
 
 	radius = gl_PointSize = scale * vPosition.a * AR;
 	color = vColor.xyz;

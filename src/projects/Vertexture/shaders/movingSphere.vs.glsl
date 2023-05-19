@@ -5,6 +5,7 @@ uniform sampler2D heightmap;
 uniform float time;
 uniform mat3 trident;
 uniform float scale;
+uniform float heightScale;
 
 layout( binding = 1, rgba32f ) uniform image2D steepnessTex;    // steepness texture for scaling movement speed
 layout( binding = 2, rgba32f ) uniform image2D distanceDirTex; // distance + direction to nearest obstacle
@@ -34,7 +35,7 @@ void main () {
 	vec4 steepnessRead = imageLoad( steepnessTex, loc );
 
 	vec4 tRead = texture( heightmap, positionRead.xy / 2.0f );
-	height = tRead.r * 0.4f - 0.4f;
+	height = ( tRead.r * heightScale ) - heightScale;
 	radius = gl_PointSize = scale * positionRead.a * AR;
 
 	color = colorRead.rgb;
