@@ -315,7 +315,7 @@ public:
 
 
 	// remapping the data in the image ( particularly useful for floating point types, heightmap kind of stuff )
-	enum remapOperation_T {
+	enum remapOperation_t {
 		// no op
 		NOOP,
 
@@ -336,7 +336,7 @@ public:
 
 	// data for one channel's remapping operation
 	struct rangeRemapInputs_t {
-		remapOperation_T rangeType = HARDCLIP;
+		remapOperation_t rangeType = HARDCLIP;
 		float	rangeStartLow	= 0.0f, rangeStartHigh	= 0.0f;
 		float	rangeEndLow		= 0.0f, rangeEndHigh	= 0.0f;
 	};
