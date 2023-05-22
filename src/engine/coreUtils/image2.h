@@ -50,15 +50,17 @@ public:
 		imageType & operator [] ( int c ) { return data[ c ]; }		// for color[ c ] = val
 
 		friend bool operator == ( const color& l, const color& r ) {
-			for ( int i = 0; i < numChannels; i++ )
-				if ( l.data[ i ] != r.data[ i ] )
+			for ( int i = 0; i < numChannels; i++ ) {
+				if ( l.data[ i ] != r.data[ i ] ) {
 					return false;
+				}
+			}
 			return true;
 		}
 
 		float GetLuma () const {
 		// we're going to basically bake in the assumption that it has 3 color channels
-			// because this luma calculation is basically just for the RGB color situation
+			// because this luma calculation is basically just valid for the RGB color situation
 			const bool isUint = std::is_same< uint8_t, imageType >::value;
 			const float scaleFactors[] = { 0.299f, 0.587f, 0.114f };
 			float sum = 0.0f;
@@ -424,6 +426,35 @@ public:
 			for ( uint8_t c { 0 }; c < numChannels; c++ ) // populate values
 				data[ baseIndex + c ] = col[ c ];
 		} else { cout << "Out of Bounds Write :(\n"; }
+	}
+
+	// getting filtered samples
+	enum samplerType_t {
+		NEAREST_FILTER,
+		LINEAR_FILTER
+		// cubic? catmull? will need to review how exactly these work
+	};
+
+	// need to be able to get linear filtered samples - potentially higher order interpolation? tbd, would be nice
+	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) {
+		color c;
+
+		switch ( samplerType ) {
+		case NEAREST_FILTER:
+			// todo
+			break;
+
+		case LINEAR_FILTER:
+			// figure out the fractional pixel location
+			// figure out the four nearest samples
+			// figure out the output, based on mixing them
+			break;
+
+		default:
+			break;
+		}
+
+		return c;
 	}
 
 	imageType GetPixelMin ( channel in ) const {
