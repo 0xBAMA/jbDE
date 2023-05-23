@@ -21,30 +21,7 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-			// hardcoded image dimensions
-			Image_4U comparison( 107 * 15, 150 * 25 );
 
-			for ( int r1 = 0; r1 < 15; r1++ ) {
-				for ( int r2 = 0; r2 < 25; r2++ ) {
-					// load the test image from disk
-					Image_4U test( "test.png" );
-
-					// remap the ranges to usable float parameters
-					float k1 = RangeRemap( r1, 0.0f, 15.0f, -1.0f, 1.0f );
-					float k2 = RangeRemap( r2, 0.0f, 25.0f, -1.0f, 1.0f );
-					test.BarrelDistort( k1, k2 );
-
-					// add to the output buffer
-					uint32_t baseX = r1 * 107;
-					uint32_t baseY = r2 * 150;
-					for ( uint32_t y = 0; y < 150; y++ ) {
-						for ( uint32_t x = 0; x < 107; x++ ) {
-							comparison.SetAtXY( baseX + x, baseY + y, test.GetAtXY( x, y ) );
-						}
-					}
-				}
-			}
-			comparison.Save( "rangeVisualizeNormalized.png" );
 		}
 	}
 
