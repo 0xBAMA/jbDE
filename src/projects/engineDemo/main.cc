@@ -18,15 +18,15 @@ public:
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
 			Image_4U testSource( "test.png" );
-			Image_4U testDest( testSource.Width() * 15, testSource.Height() * 15 );
+			Image_4U testDest( testSource.Width() * 15 + 200, testSource.Height() * 15 + 200 );
 
-			const uint32_t dWidth = testDest.Width();
-			const uint32_t dHeight = testDest.Height();
-			for ( uint32_t y { 0 }; y < dHeight; y++ ) {
-				for ( uint32_t x { 0 }; x < dWidth; x++ ) {
+			const int dWidth = testSource.Width() * 15;
+			const int dHeight = testSource.Height() * 15;
+			for ( int y { -100 }; y < dHeight + 200; y++ ) {
+				for ( int x { -100 }; x < dWidth + 200; x++ ) {
 					vec2 samplePos = vec2( ( float ) x / ( float ) dWidth, ( float ) y / ( float ) dHeight );
-					color_4U sample = testSource.Sample( samplePos.x, samplePos.y, Image_4U::samplerType_t::NEAREST_FILTER );
-					testDest.SetAtXY( x, y, sample );
+					color_4U sample = testSource.Sample( samplePos.x, samplePos.y, Image_4U::samplerType_t::LINEAR_FILTER );
+					testDest.SetAtXY( x + 100, y + 100, sample );
 				}
 			}
 

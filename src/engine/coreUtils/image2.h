@@ -447,13 +447,31 @@ public:
 			break;
 
 		case LINEAR_FILTER:
+		{
 			// figure out the fractional pixel location
+			vec2 floorCoord = glm::floor( sampleLocationInPixelSpace );
+			vec2 fractCoord = glm::fract( sampleLocationInPixelSpace );
 
 			// figure out the four nearest samples
+			color samples[ 4 ] = {
+				GetAtXY( ( uint32_t ) floorCoord.x, ( uint32_t ) floorCoord.y ),
+				GetAtXY( ( uint32_t ) floorCoord.x + 1, ( uint32_t ) floorCoord.y ),
+				GetAtXY( ( uint32_t ) floorCoord.x, ( uint32_t ) floorCoord.y + 1 ),
+				GetAtXY( ( uint32_t ) floorCoord.x + 1, ( uint32_t ) floorCoord.y + 1 )
+			};
 
 			// figure out the output, based on mixing them
+			for ( uint8_t channel = 0; channel < numChannels; channel++ ) {
+				// horizontal interpolation first
+				imageType value1 = ( imageType ) glm::mix( samples[ 0 ][ channel ], samples[ 1 ][ channel ], fractCoord.x );
+				imageType value2 = ( imageType ) glm::mix( samples[ 2 ][ channel ], samples[ 3 ][ channel ], fractCoord.x );
+
+				// then the vertical interpolation between those samples
+				c[ channel ] = ( imageType ) glm::mix( value1, value2, fractCoord.y );
+			}
 
 			break;
+		}
 
 		default:
 			break;
