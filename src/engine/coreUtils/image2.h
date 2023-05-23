@@ -403,7 +403,7 @@ public:
 		}
 	}
 
-	void BarrelDistort ( const float k1, const float k2 ) {
+	void BarrelDistort ( const float k1, const float k2, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
@@ -429,8 +429,10 @@ public:
 				// restore back to the normalized space
 				remapped = remapped * 0.5f + vec2( 0.5f );
 
-				// scale about the image center, to keep the image close to the same size
-				// remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
+				if ( normalize ) {
+					// scale about the image center, to keep the image close to the same size
+					remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
+				}
 
 				// get the sample of the cached copy
 				SetAtXY( x, y, cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) );
