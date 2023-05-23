@@ -275,6 +275,9 @@ This is a planning document for work on this project and in general, about the t
 
 ### [Articles](https://jbaker.graphics/writings)
 
+- follow up on the lighting on vertexture
+	- probably wait till I have the deferred stuff in place
+
 #### Keeping up with projects as they happen, so they don't pile up again
 
 - Web Design stuff
@@ -295,6 +298,7 @@ This is a planning document for work on this project and in general, about the t
 	- Support larger models, easy swapping between models - currently nowhere near the cap on the current single thread impl
 		- Consider learning how to use mutexes to make the multithreaded version practical?
 		- I think it will work well on the GPU
+			- Structure is designed for parallelism
 	- I want to change the way the tension / compression coloring is done
 		- Instead of just hard cut red to blue, I want to fade, through white at neutral
 	- Simple cloth sim
@@ -390,6 +394,7 @@ This is a planning document for work on this project and in general, about the t
 		- I thing the poisson disk sampling thing would be an interesting way to generate them from meshes
 			- Generate evenly spaced sample points on the triangles, get texture, normal, etc samples
 	- [Surface Splatting](https://www.shadertoy.com/view/XllGRl)
+	- [Software Rasterization of 2 Billion Points in Real Time](https://arxiv.org/abs/2204.01287)
 
 - Something with Cellular Automata
 	- 3D CA is super cool, I would like to do more with that one project where I was doing the the realtime wireWorld sim

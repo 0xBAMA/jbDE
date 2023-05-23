@@ -439,15 +439,20 @@ public:
 	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) {
 		color c;
 
+		vec2 sampleLocationInPixelSpace = vec2( x * ( width - 1 ), y * ( height - 1 ) );
+
 		switch ( samplerType ) {
 		case NEAREST_FILTER:
-			// todo
+			c = GetAtXY( ( uint32_t ) sampleLocationInPixelSpace.x, ( uint32_t ) sampleLocationInPixelSpace.y );
 			break;
 
 		case LINEAR_FILTER:
 			// figure out the fractional pixel location
+
 			// figure out the four nearest samples
+
 			// figure out the output, based on mixing them
+
 			break;
 
 		default:

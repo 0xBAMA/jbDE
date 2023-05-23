@@ -16,6 +16,21 @@ public:
 			// cout << "loaded " << paletteList.size() << " palettes" << newline;
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
+
+			Image_4U testSource( "test.png" );
+			Image_4U testDest( testSource.Width() * 15, testSource.Height() * 15 );
+
+			const uint32_t dWidth = testDest.Width();
+			const uint32_t dHeight = testDest.Height();
+			for ( uint32_t y { 0 }; y < dHeight; y++ ) {
+				for ( uint32_t x { 0 }; x < dWidth; x++ ) {
+					vec2 samplePos = vec2( ( float ) x / ( float ) dWidth, ( float ) y / ( float ) dHeight );
+					color_4U sample = testSource.Sample( samplePos.x, samplePos.y, Image_4U::samplerType_t::NEAREST_FILTER );
+					testDest.SetAtXY( x, y, sample );
+				}
+			}
+
+			testDest.Save( "testInterp.png" );
 		}
 	}
 
