@@ -442,7 +442,6 @@ public:
 
 	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) {
 		color c;
-
 		vec2 sampleLocationInPixelSpace = vec2( x * ( width - 1 ), y * ( height - 1 ) );
 
 		switch ( samplerType ) {
@@ -521,13 +520,6 @@ public:
 		}
 		return avg;
 	}
-
-	color SampleLinear ( glm::vec2 location ) {
-		// get a linearly interpolated sample from the image
-
-	}
-
-	// better sampling functions?
 
 	uint32_t Width () const { return width; }
 	uint32_t Height () const { return height; }
