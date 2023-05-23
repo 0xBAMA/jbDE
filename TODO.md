@@ -229,6 +229,7 @@ This is a planning document for work on this project and in general, about the t
 			- [Barrel distortion](https://www.decarpentier.nl/lens-distortion)
 	- different traversal methods
 		- [Amanatides / Woo A Fast Voxel Traversal Algorithm](https://www.cse.chalmers.se/edu/year/2011/course/TDA361/grid.pdf)
+		- [Cyril Crassin paper](https://jcgt.org/published/0007/03/04/)
 		- Some kind of DDA traversal
 		- Supercover
 
@@ -248,6 +249,8 @@ This is a planning document for work on this project and in general, about the t
 	- Would help to keep from overwhelming GPU with large job dispatch, this has been an issue before
 	- No block swap after each tile
 	- Configurable delay between tile invocations
+		- Some kind of rudimentary job system for this? Operations in sequence, each job has a list of volume tiles + sizes + operation parameters
+		- How do copy loadbuffer ops interact with this? do we need special handling for those?
 
 --------------------------------------------------------------------------------------------------
 
