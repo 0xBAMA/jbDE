@@ -436,6 +436,10 @@ public:
 	};
 
 	// need to be able to get linear filtered samples - potentially higher order interpolation? tbd, would be nice
+	color Sample ( vec2 pos, samplerType_t samplerType = LINEAR_FILTER ) {
+		return Sample( pos.x, pos.y, samplerType );
+	}
+
 	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) {
 		color c;
 
