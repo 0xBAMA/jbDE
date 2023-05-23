@@ -403,6 +403,41 @@ public:
 		}
 	}
 
+	void BarrelDistort ( const float k1, const float k2 ) {
+		// create an identical copy of the data, since we will be overwriting the entire image
+		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
+
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				// pixel coordinate in UV space
+				const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+				// distort the position, based on brown-conrady distortion logic described in https://www.shadertoy.com/view/wtBXRz:
+					// k1 is the main distortion coefficient, positive is barrel distortion, negative is pincusion distortion
+					// k2 tweaks the edges of the distortion - can be 0.0
+
+				vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+				const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
+				remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
+
+				// per the ttyy shadertoy example:
+					// additional tangential distortion due to off center lens elements is not modeled, but would go here
+
+				// restore back to the normalized space
+				remapped = remapped * 0.5f + vec2( 0.5f );
+
+				// scale about the image center, to keep the image close to the same size
+				// remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
+
+				// get the sample of the cached copy
+				SetAtXY( x, y, cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) );
+			}
+		}
+	}
+
 //======= Access to Internal Data =====================================================================================
 
 	bool BoundsCheck ( uint32_t x, uint32_t y ) const {

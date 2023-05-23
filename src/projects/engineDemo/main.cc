@@ -17,20 +17,13 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-			Image_4U testSource( "test.png" );
-			Image_4U testDest( testSource.Width() * 15 + 200, testSource.Height() * 15 + 200 );
-
-			const int dWidth = testSource.Width() * 15;
-			const int dHeight = testSource.Height() * 15;
-			for ( int y { -100 }; y < dHeight + 200; y++ ) {
-				for ( int x { -100 }; x < dWidth + 200; x++ ) {
-					vec2 samplePos = vec2( ( float ) x / ( float ) dWidth, ( float ) y / ( float ) dHeight );
-					color_4U sample = testSource.Sample( samplePos.x, samplePos.y, Image_4U::samplerType_t::LINEAR_FILTER );
-					testDest.SetAtXY( x + 100, y + 100, sample );
+			for ( float k1 = -0.5f; k1 < 1.0f; k1 += 0.2f ) {
+				for ( float k2 = -0.5f; k2 < 1.0f; k2 += 0.2f ) {
+					Image_4U test( "test.png" );
+					test.BarrelDistort( k1, k2 );
+					test.Save( "[" + std::to_string( k1 ) + "][" + std::to_string( k2 ) + "].png" );
 				}
 			}
-
-			testDest.Save( "testInterp.png" );
 		}
 	}
 
