@@ -442,7 +442,7 @@ public:
 
 	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) {
 		color c;
-		vec2 sampleLocationInPixelSpace = vec2( x * ( width - 1 ), y * ( height - 1 ) );
+		const vec2 sampleLocationInPixelSpace = vec2( x * ( width - 1 ), y * ( height - 1 ) );
 
 		switch ( samplerType ) {
 		case NEAREST_FILTER:
@@ -452,8 +452,8 @@ public:
 		case LINEAR_FILTER:
 		{
 			// figure out the fractional pixel location
-			vec2 floorCoord = glm::floor( sampleLocationInPixelSpace );
-			vec2 fractCoord = glm::fract( sampleLocationInPixelSpace );
+			const vec2 floorCoord = glm::floor( sampleLocationInPixelSpace );
+			const vec2 fractCoord = glm::fract( sampleLocationInPixelSpace );
 
 			// figure out the four nearest samples
 			color samples[ 4 ] = {
