@@ -109,6 +109,13 @@ This is a planning document for work on this project and in general, about the t
 		- Resampling
 			- High quality resampling options
 			- Barrel distortion kind of thing?
+				- more types of lens distorts
+		- Add tonemapping to the image wrapper?
+			- some new curves
+				- https://alextardif.com/Tonemapping.html
+				- https://github.com/h3r2tic/tony-mc-mapface - this one is supposed to be really good
+		- Add dithering to the image wrapper
+		- colorspace conversion + tonemapping code port to C++
 
 - SoftRast
 	- What is the plan for this?
