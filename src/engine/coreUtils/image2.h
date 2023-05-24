@@ -420,6 +420,7 @@ public:
 		}
 	}
 
+	// Brown-Conrady lens distortion model
 	void BarrelDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
@@ -432,7 +433,7 @@ public:
 				// pixel coordinate in UV space
 				const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
 
-				// distort the position, based on brown-conrady distortion logic described in https://www.shadertoy.com/view/wtBXRz:
+				// distort the position, based on the logic described in https://www.shadertoy.com/view/wtBXRz:
 					// k1 is the main distortion coefficient, positive is barrel distortion, negative is pincusion distortion
 					// k2 tweaks the edges of the distortion - can be 0.0
 
@@ -477,11 +478,14 @@ public:
 
 				for ( int i = 0; i < iterations; i++ ) {
 
+					// operating on the squared radius... is there a better way? scale k1, k2, tangentialSkew? tbd
+					const float scalar = ( i / ( float ) iterations );
+
 					// pixel coordinate in UV space
 					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
 
 					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
-					const float r2 = ( remapped.x * remapped.x + remapped.y * remapped.y ) * ( i / ( float ) iterations );
+					const float r2 = ( remapped.x * remapped.x + remapped.y * remapped.y ) * scalar;
 					remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
 
 					// tangential distortion
