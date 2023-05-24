@@ -51,7 +51,7 @@ public:
 		);
 
 		model = Image_1F( size, size, &data[ 0 ][ 0 ] );
-		model.Save( "test.exr", backend::TINYEXR );
+		model.Save( "test.exr", Image_1F::backend::TINYEXR );
 	}
 
 	glm::vec3 GetSurfaceNormal ( uint32_t x, uint32_t y ) {
@@ -144,7 +144,7 @@ public:
 	}
 
 	void Save ( string filename ) {
-		model.Save( filename, backend::TINYEXR );
+		model.Save( filename, Image_1F::backend::TINYEXR );
 	}
 
 	// simulation field

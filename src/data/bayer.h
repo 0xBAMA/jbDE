@@ -5,7 +5,6 @@
 // https://www.shadertoy.com/view/XtV3RG
 // https://www.shadertoy.com/view/ltsyWl // usage for dithering
 
-
 static inline const std::vector< uint8_t > BayerData ( const int dimension ) {
 	ZoneScoped;
 	if ( dimension == 2 ) {

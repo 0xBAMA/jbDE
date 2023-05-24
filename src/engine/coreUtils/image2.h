@@ -28,14 +28,21 @@
 
 //===== Image2 ========================================================================================================
 
+// TODO:
+	// CPU side dithering
+	// CPU side tonemapping - float type only, most likely
+	// higher quality sampling stuff, tbd
+	// more types of lens distorts - https://www.tangramvision.com/blog/camera-modeling-exploring-distortion-and-distortion-models-part-ii
+		// Kannala-Brandt might be worth taking a look at http://close-range.com/docs/A_GENERIC_CAMERA_MODEL_AND_CALIBRATION_METHOD_Kannala-Brandt_pdf697.pdf
+		// Giliam de Carpentier barrel distortion article offers a different formulation https://www.decarpentier.nl/lens-distortion
+
+
 enum channel {
 	red = 0,
 	green = 1,
 	blue = 2,
 	alpha = 3
 };
-
-enum class backend { STB_IMG, LODEPNG, TINYEXR };
 
 template < typename imageType, int numChannels > class Image2 {
 public:
@@ -119,13 +126,14 @@ public:
 	}
 
 	// load image from path
+	enum class backend { STB_IMG, LODEPNG, TINYEXR };
 	Image2 ( string path, backend loader = backend::LODEPNG ) {
 		if ( !Load( path, loader ) ) {
 			cout << "image load failed with path " << path << newline << flush;
 		}
 	}
 
-	// load from e.g. GPU memory
+	// load from e.g. GPU memory, also used for copying from another image with GetImageDataBasePtr()
 	Image2 ( uint32_t x, uint32_t y, imageType* contents ) : width( x ), height( y ) {
 		const size_t numBers = width * height * numChannels;
 		data.reserve( numBers );
@@ -239,11 +247,6 @@ public:
 	}
 
 //======= Esoterica ===================================================================================================
-
-// more esoteric stuff
-	// dithering, CPU side, could be of value
-	// sampling stuff? want to figure out some high quality sampling operations
-		// barrel distortion
 
 	void Swizzle ( const char swizzle [ numChannels ] ) {
 	// options for each char are the following:
@@ -446,16 +449,11 @@ public:
 
 // Lens distortion - makes use of interpolated reads
 
-		// Kannala-Brandt might be worth taking a look at
-		// http://close-range.com/docs/A_GENERIC_CAMERA_MODEL_AND_CALIBRATION_METHOD_Kannala-Brandt_pdf697.pdf
-
-		// Giliam de Carpentier barrel distortion article offers a different formulation
-		// https://www.decarpentier.nl/lens-distortion
-
-	// this uses the Brown-Conrady lens distortion model
+	// this one uses the Brown-Conrady lens distortion model
 		// Some sample values:
 			// { k1 = -0.2, k2 = 0.2, tangentialSkew =  0.2 }
 			// { k1 =  0.5, k2 = 0.4, tangentialSkew = -0.2 }
+
 	void BrownConradyLensDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );

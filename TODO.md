@@ -98,18 +98,12 @@ This is a planning document for work on this project and in general, about the t
 		- Be able to set the uniform values as members of the shader stuff
 		- Default arguments
 		- Function to update
+		- ".Use()" would call glUseProgram, pass current state of uniforms
 
 - Image Wrapper Changes
 	- Applications
 		- Better Pixel Sorting, Add Thresholding Stuff
 			- Need to do a little more research on how this is done, my previous impl is literally "sort rows or columns by color channel value or luma"
-		- CPU-based dithering?
-			- Might be a nice-to-have
-			- Speed less of a concern
-		- Resampling
-			- High quality resampling options
-			- Barrel distortion kind of thing?
-				- more types of lens distorts
 		- Add tonemapping to the image wrapper?
 			- some new curves
 				- https://alextardif.com/Tonemapping.html
