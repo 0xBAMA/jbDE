@@ -21,22 +21,6 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-			Image_4F test( "test.png" );
-			// Image_4F::rangeRemapInputs_t rrr[ 4 ] = {
-			// 	{ Image_4F::remapOperation_t::AUTONORMALIZE, 0.0f, 0.0f, 0.0f, 0.0f },
-			// 	{ Image_4F::remapOperation_t::AUTONORMALIZE, 0.0f, 0.0f, 0.0f, 0.0f },
-			// 	{ Image_4F::remapOperation_t::AUTONORMALIZE, 0.0f, 0.0f, 0.0f, 0.0f },
-			// 	{ Image_4F::remapOperation_t::HARDCLIP,      0.0f, 1.0f, 0.0f, 1.0f }
-			// };
-			// test.RangeRemap( rrr );
-			// test.BrownConradyLensDistort( -0.2f, 0.2f, 0.2f, true );
-			test.BrownConradyLensDistortMSBlurred( 100, -0.2f, 0.2f, 0.2f, true );
-			// test.BrownConradyLensDistortMSBlurred( 100, 0.5f, 0.4f, -0.2f, true );
-			// test.BrownConradyLensDistort( 0.5f, 0.4f, -0.2f, true );
-
-			test.SaturateAlpha();
-			test.Save( "distorted.png" );
-
 		}
 	}
 
