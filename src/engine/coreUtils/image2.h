@@ -485,12 +485,12 @@ public:
 					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
 
 					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
-					const float r2 = ( remapped.x * remapped.x + remapped.y * remapped.y ) * scalar;
-					remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
+					const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
+					remapped *= 1.0f + ( scalar * k1 * r2 ) * ( scalar * k2 * r2 * r2 );
 
 					// tangential distortion
 					if ( tangentialSkew != 0.0f ) {
-						const float angle = r2 * tangentialSkew;
+						const float angle = r2 * scalar * tangentialSkew;
 						mat2 r( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) );
 						remapped = r * remapped;
 					}

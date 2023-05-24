@@ -21,7 +21,6 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-
 		}
 	}
 
