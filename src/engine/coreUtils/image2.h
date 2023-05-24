@@ -453,6 +453,9 @@ public:
 		// https://www.decarpentier.nl/lens-distortion
 
 	// this uses the Brown-Conrady lens distortion model
+		// Some sample values:
+			// { k1 = -0.2, k2 = 0.2, tangentialSkew =  0.2 }
+			// { k1 =  0.5, k2 = 0.4, tangentialSkew = -0.2 }
 	void BrownConradyLensDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
@@ -464,6 +467,12 @@ public:
 			for ( uint32_t x { 0 }; x < width; x++ ) {
 				// pixel coordinate in UV space
 				const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+				// TODO: normalize the width/height ratio
+					// want to be able to support different behaviors
+						// current behavior, treates image as -1..1
+						// correction for aspect ratio, so the distort is circular
+						// correction for aspect ratio, but like 1/AR, so the distort shifts wrt the center of the image
 
 				// distort the position, based on the logic described in https://www.shadertoy.com/view/wtBXRz:
 					// k1 is the main distortion coefficient, positive is barrel distortion, negative is pincusion distortion

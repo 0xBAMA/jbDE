@@ -375,6 +375,7 @@ This is a planning document for work on this project and in general, about the t
 	- Fogleman's [Heightmap Meshing Utility](https://github.com/fogleman/hmm)
 	- Raymarching heightmaps / terrain
 		- [ollj](https://www.shadertoy.com/view/Mtc3WX)
+		- [sjz1](https://www.shadertoy.com/view/clG3DD) - terrain + quick cosine function
 
 - Fluid/Physics Simulation
 	- [SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
