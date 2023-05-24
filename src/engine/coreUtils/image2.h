@@ -461,6 +461,59 @@ public:
 		}
 	}
 
+	// same as above, but combines multiple samples with strength increasing from 0 to the specified parameters in order to blur
+	void BarrelDistortMSBlurred ( const int iterations, const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
+		// create an identical copy of the data, since we will be overwriting the entire image
+		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
+
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				// making use of zero initialization
+				color accumulated;
+
+				for ( int i = 0; i < iterations; i++ ) {
+
+					// pixel coordinate in UV space
+					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+					const float r2 = ( remapped.x * remapped.x + remapped.y * remapped.y ) * ( i / ( float ) iterations );
+					remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
+
+					// tangential distortion
+					if ( tangentialSkew != 0.0f ) {
+						const float angle = r2 * tangentialSkew;
+						mat2 r( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) );
+						remapped = r * remapped;
+					}
+
+					// restore back to the normalized space
+					remapped = remapped * 0.5f + vec2( 0.5f );
+
+					if ( normalize ) {
+						// scale about the image center, to keep the image close to the same size
+						remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
+					}
+
+					// get the sample of the cached copy
+					accumulated = accumulated + cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER );
+				}
+
+				accumulated = accumulated / ( float ) iterations;
+				SetAtXY( x, y, accumulated );
+			}
+		}
+	}
+
+	void BlendOverConstantColor ( color background ) {
+		// use the alpha channel in the existing image, alpha blend every pixel in the image over this background color value
+
+	}
+
 //======= Access to Internal Data =====================================================================================
 
 	bool BoundsCheck ( uint32_t x, uint32_t y ) const {
