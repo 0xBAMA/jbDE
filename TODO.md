@@ -9,6 +9,7 @@ This is a planning document for work on this project and in general, about the t
 - jbDE - WIP - Replaces NQADE
 
 - Top Priority: Getting up and running on the new machine(s)
+	- [Another potential vector for getting up and running](https://askubuntu.com/questions/1451506/how-to-make-ubuntu-22-04-work-with-a-radeon-rx-7900-xtx) - will require another OS reinstall on that machine
 
 	- Motivation
 		- 4x floating point perf going from Radeon VII -> Radeon RX 7900XTX ( similar memory bandwidth, though, no HBM on the 7900XTX )
@@ -396,11 +397,15 @@ This is a planning document for work on this project and in general, about the t
 	- [Surface Splatting](https://www.shadertoy.com/view/XllGRl)
 	- [Software Rasterization of 2 Billion Points in Real Time](https://arxiv.org/abs/2204.01287)
 
+- Something with GPU hashmaps
+	- https://nosferalatu.com/SimpleGPUHashTable.html
+
 - Something with Cellular Automata
 	- 3D CA is super cool, I would like to do more with that one project where I was doing the the realtime wireWorld sim
 	- Maybe some explorations along the lines of the Wolfram 8-bit totalistic thing
 		- How many bits to represent 2D equivalent? 3D?
 		- Exploring the space, generate noise field for randomly picked rules and then you can watch it kind of thing
+	- [Forest Fire Model](https://en.wikipedia.org/wiki/Forest-fire_model)
 
 - Data visualization for its own sake
 	- [Byte-level file format details by corkami](https://github.com/corkami/pics/blob/master/binary/README.md#images)

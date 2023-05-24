@@ -420,8 +420,16 @@ public:
 		}
 	}
 
-	// Brown-Conrady lens distortion model
-	void BarrelDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
+// Lens distortion - makes use of interpolated reads
+
+		// Kannala-Brandt might be worth taking a look at
+		// http://close-range.com/docs/A_GENERIC_CAMERA_MODEL_AND_CALIBRATION_METHOD_Kannala-Brandt_pdf697.pdf
+
+		// Giliam de Carpentier barrel distortion article offers a different formulation
+		// https://www.decarpentier.nl/lens-distortion
+
+	// this uses the Brown-Conrady lens distortion model
+	void BrownConradyLensDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
@@ -463,7 +471,7 @@ public:
 	}
 
 	// same as above, but combines multiple samples with strength increasing from 0 to the specified parameters in order to blur
-	void BarrelDistortMSBlurred ( const int iterations, const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
+	void BrownConradyLensDistortMSBlurred ( const int iterations, const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
@@ -590,6 +598,15 @@ public:
 
 			break;
 		}
+
+		// more methods ( higher order filtering, would be a nice-to-have )
+
+			// catmull-rom / bicubic
+				// https://www.decarpentier.nl/2d-catmull-rom-in-4-samples
+				// https://www.shadertoy.com/view/MtVGWz
+				// http://vec3.ca/bicubic-filtering-in-fewer-taps/
+
+			// lanzcos?
 
 		default:
 			break;
