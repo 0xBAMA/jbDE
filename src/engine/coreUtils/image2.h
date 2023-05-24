@@ -420,7 +420,7 @@ public:
 		}
 	}
 
-	void BarrelDistort ( const float k1, const float k2, const bool normalize = false ) {
+	void BarrelDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
@@ -440,8 +440,12 @@ public:
 				const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
 				remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
 
-				// per the ttyy shadertoy example:
-					// additional tangential distortion due to off center lens elements is not modeled, but would go here
+				// tangential distortion
+				if ( tangentialSkew != 0.0f ) {
+					const float angle = r2 * tangentialSkew;
+					mat2 r( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) );
+					remapped = r * remapped;
+				}
 
 				// restore back to the normalized space
 				remapped = remapped * 0.5f + vec2( 0.5f );
