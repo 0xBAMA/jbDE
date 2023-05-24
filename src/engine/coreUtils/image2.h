@@ -58,8 +58,9 @@ public:
 			return true;
 		}
 
-		// two operators needed for blending - sum + division by float normalization factor
-		color operator + ( const color& other ) {
+		// operators needed for blending - sum + division by float normalization factor
+			// adding some others, just in case I need them at some point
+		color operator + ( const color& other ) const {
 			color temp;
 			for ( int c { 0 }; c < numChannels; c++ ) {
 				temp.data[ c ] = this->data[ c ] + other.data[ c ];
@@ -67,10 +68,26 @@ public:
 			return temp;
 		}
 
-		color operator / ( const float divisor ) {
+		color operator - ( const color& other ) const {
+			color temp;
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				temp.data[ c ] = this->data[ c ] - other.data[ c ];
+			}
+			return temp;
+		}
+
+		color operator / ( const float divisor ) const {
 			color temp;
 			for ( int c { 0 }; c < numChannels; c++ ) {
 				temp.data[ c ] = this->data[ c ] / divisor;
+			}
+			return temp;
+		}
+
+		color operator * ( const float scalar ) const {
+			color temp;
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				temp.data[ c ] = this->data[ c ] * scalar;
 			}
 			return temp;
 		}
@@ -86,6 +103,9 @@ public:
 			}
 			return sqrt( sum );
 		}
+
+		// add swizzle? or is that too redundant? would probably make more sense on the color than on the image
+
 	};
 
 //===== Constructors ==================================================================================================
@@ -365,7 +385,7 @@ public:
 	};
 
 	// remap a single value from [inLow, inHigh] to [outLow, outHigh]
-	imageType RangeRemapValue ( imageType value, imageType inLow, imageType inHigh, imageType outLow, imageType outHigh ) {
+	imageType RangeRemapValue ( imageType value, imageType inLow, imageType inHigh, imageType outLow, imageType outHigh ) const {
 		return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
 	}
 
@@ -563,11 +583,11 @@ public:
 	};
 
 	// need to be able to get linear filtered samples - potentially higher order interpolation? tbd, would be nice
-	color Sample ( vec2 pos, samplerType_t samplerType = LINEAR_FILTER ) {
+	color Sample ( vec2 pos, samplerType_t samplerType = LINEAR_FILTER ) const {
 		return Sample( pos.x, pos.y, samplerType );
 	}
 
-	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) {
+	color Sample ( float x, float y, samplerType_t samplerType = LINEAR_FILTER ) const {
 		color c;
 		const vec2 sampleLocationInPixelSpace = vec2( x * ( width - 1 ), y * ( height - 1 ) );
 
