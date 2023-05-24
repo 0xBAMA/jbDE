@@ -58,6 +58,23 @@ public:
 			return true;
 		}
 
+		// two operators needed for blending - sum + division by float normalization factor
+		color operator + ( const color& other ) {
+			color temp;
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				temp.data[ c ] = this->data[ c ] + other.data[ c ];
+			}
+			return temp;
+		}
+
+		color operator / ( const float divisor ) {
+			color temp;
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				temp.data[ c ] = this->data[ c ] / divisor;
+			}
+			return temp;
+		}
+
 		float GetLuma () const {
 		// we're going to basically bake in the assumption that it has 3 color channels
 			// because this luma calculation is basically just valid for the RGB color situation
