@@ -268,6 +268,10 @@ public:
 		}
 	}
 
+	void SaturateAlpha () {
+		Swizzle( "rgb1" );
+	}
+
 	// show only a subset of the image, or make it larger, and fill with all zeroes
 	void Crop ( uint32_t newWidth, uint32_t newHeight, uint32_t offsetX = 0, uint32_t offsetY = 0 ) {
 		// out of bounds reads are all zeroes, we will keep that convention for simplicity

@@ -34,7 +34,7 @@ public:
 			// test.BrownConradyLensDistortMSBlurred( 100, 0.5f, 0.4f, -0.2f, true );
 			// test.BrownConradyLensDistort( 0.5f, 0.4f, -0.2f, true );
 
-			test.Swizzle( "rgb1" ); // some kind of alias for this would be handy - saturating the alpha channel
+			test.SaturateAlpha();
 			test.Save( "distorted.png" );
 
 		}
