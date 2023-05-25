@@ -142,6 +142,17 @@ public:
 		}
 	}
 
+	// construct from another image of the same type
+	Image2< imageType, numChannels > ( const Image2< imageType, numChannels > &source ) {
+		width = source.Width();
+		height = source.Height();
+		const size_t numBers = width * height * numChannels;
+		data.reserve( numBers );
+		for ( size_t idx = 0; idx < numBers; idx++ ) {
+			data.push_back( source.GetImageDataBasePtr()[ idx ] );
+		}
+	}
+
 //===== Functions =====================================================================================================
 //======= Basic =======================================================================================================
 
@@ -502,6 +513,9 @@ public:
 	}
 
 	// same as above, but combines multiple samples with strength increasing from 0 to the specified parameters in order to blur
+
+		// note that this implementation will fail with uint images - the accumulator values will overflow, it causes problems - this is probably easily solvable
+
 	void BrownConradyLensDistortMSBlurred ( const int iterations, const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
 		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
@@ -725,7 +739,7 @@ public:
 	uint32_t Height () const { return height; }
 
 	// tbd, need to make sure this works for passing texture data to GPU
-	imageType* GetImageDataBasePtr () { return data.data(); }
+	const imageType* GetImageDataBasePtr () const { return data.data(); }
 
 private:
 
