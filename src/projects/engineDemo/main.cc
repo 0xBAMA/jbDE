@@ -21,6 +21,34 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
+			// source data
+			Image_4U testSrc( "test.png" );
+			testSrc.Resize( 0.45f );
+
+			// somewhere to put the outputs
+			Image_4U samples( testSrc.Width() * 10, testSrc.Height() * 10 );
+
+			for ( int y { 0 }; y < 10; y++ ) {
+				for ( int x { 0 }; x < 10; x++ ) {
+					// copy the scaled data, to operate on
+					Image_4U thisIteration( testSrc.Width(), testSrc.Height(), testSrc.GetImageDataBasePtr() );
+
+					// test grid showing parameter ranges
+					const float strength = RangeRemap( x, 0.0f, 10.0f, 1.0f, 5.0f );
+					const float cylinder = RangeRemap( y, 0.0f, 10.0f, 0.0f, 5.0f );
+					thisIteration.DeCarpentierLensDistort( strength, cylinder );
+
+					// put it into the samples image
+					const uint32_t baseX = testSrc.Width() * x;
+					const uint32_t baseY = testSrc.Height() * y;
+					for ( uint32_t yy = 0; yy < thisIteration.Height(); yy++ ) {
+						for ( uint32_t xx = 0; xx < thisIteration.Width(); xx++ ) {
+							samples.SetAtXY( baseX + xx, baseY + yy, thisIteration.GetAtXY( xx, yy ) );
+						}
+					}
+				}
+			}
+			samples.Save( "distorted.png" );
 		}
 	}
 

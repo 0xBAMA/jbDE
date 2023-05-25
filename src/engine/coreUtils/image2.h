@@ -33,8 +33,8 @@
 	// CPU side tonemapping - float type only, most likely
 	// higher quality sampling stuff, tbd
 	// more types of lens distorts - https://www.tangramvision.com/blog/camera-modeling-exploring-distortion-and-distortion-models-part-ii
+		// there's more to the Brown-Conrady model https://arxiv.org/pdf/1804.03584v1.pdf - cubic contribution, too, for assymetric warps
 		// Kannala-Brandt might be worth taking a look at http://close-range.com/docs/A_GENERIC_CAMERA_MODEL_AND_CALIBRATION_METHOD_Kannala-Brandt_pdf697.pdf
-		// Giliam de Carpentier barrel distortion article offers a different formulation https://www.decarpentier.nl/lens-distortion
 
 
 enum channel {
@@ -548,6 +548,43 @@ public:
 
 				accumulated = accumulated / ( float ) iterations;
 				SetAtXY( x, y, accumulated );
+			}
+		}
+	}
+
+	// DeCarpienter Barrel Distortion from https://www.decarpentier.nl/lens-distortion
+	void DeCarpentierLensDistort ( const float strength, const float cylinderRatio ) {
+		const float aspectRatio = ( float ) width / ( float ) height;
+		const float FoVDegrees = 90.0f;
+		const float barrelDistortionHeight = tan( glm::radians( FoVDegrees ) / 2.0f );
+		const float scaledHeight = strength * barrelDistortionHeight;
+		const float cylAspectRatio = aspectRatio * cylinderRatio;
+		const float aspectDiagSq = aspectRatio * aspectRatio + 1.0f;
+		const float diagSq = scaledHeight * scaledHeight * aspectDiagSq;
+
+		// cached copy of the original image data
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		// iterate through all the pixels
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				// calculate the normalized pixel coordinates
+				const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+				// remap tc from [0..1] to [-1..1]
+				const vec2 signedUV = 2.0f * normalizedPosition - vec2( 1.0f );
+
+				// clamp to minimum value of 1.0 to prevent degenerate case
+				const float z = glm::max( 0.5f * sqrt( diagSq - 1.0f ) + 0.5f, 1.0f );
+				const float ny = ( z - 1.0f ) / ( cylAspectRatio * cylAspectRatio + 1.0f );
+				const vec2 vUVDot = sqrt( ny ) * vec2( cylAspectRatio, 1.0f ) * signedUV;
+				const vec3 vUV = vec3( 0.5f, 0.5f, 1.0f ) * z + vec3( -0.5f, -0.5f, 0.0f ) + vec3( normalizedPosition.xy(), 0.0f ); // is this correct? should be signedUV?
+				const vec3 tempTC = dot( vUVDot, vUVDot ) * vec3( -0.5f, -0.5f, -1.0f ) + vUV;
+				const vec2 sampleLocation = tempTC.xy() / tempTC.z;
+
+				// sample from the cached copy and write to the current data
+				SetAtXY( x, y, cachedCopy.Sample( sampleLocation, samplerType_t::LINEAR_FILTER ) );
 			}
 		}
 	}
