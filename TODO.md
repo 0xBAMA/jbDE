@@ -518,6 +518,8 @@ This is a planning document for work on this project and in general, about the t
 	- [For RC Helicopter](http://myresearch.company/flywheel.phtml)
 	- [Video](https://www.youtube.com/watch?v=cjV-yDNdeOI) - stabilization using an old hard drive motor, interesting
 
+- [Photometric Stereo Rig](https://www.artstation.com/artwork/WmKeO3)
+
 - Projector + Short DoF Photography
 	- <https://twitter.com/JoanieLemercier/status/1534226118877782022>
 	- Laser sweep / spinning mirror thing? maybe easier / cheaper than using a DLP etc type display projector
