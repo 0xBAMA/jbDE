@@ -456,7 +456,7 @@ public:
 
 	void BrownConradyLensDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
-		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
 		const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
 
@@ -504,7 +504,7 @@ public:
 	// same as above, but combines multiple samples with strength increasing from 0 to the specified parameters in order to blur
 	void BrownConradyLensDistortMSBlurred ( const int iterations, const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
 		// create an identical copy of the data, since we will be overwriting the entire image
-		Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
 		const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
 
