@@ -474,275 +474,284 @@ public:
 		}
 	}
 
-	{ // Lens distortion - makes use of interpolated reads
-		// this one uses the Brown-Conrady lens distortion model
-			// Some sample values:
-				// { k1 = -0.2, k2 = 0.2, tangentialSkew =  0.2 }
-				// { k1 =  0.5, k2 = 0.4, tangentialSkew = -0.2 }
+// Lens distortion - makes use of interpolated reads
+	// this one uses the Brown-Conrady lens distortion model
+		// Some sample values:
+			// { k1 = -0.2, k2 = 0.2, tangentialSkew =  0.2 }
+			// { k1 =  0.5, k2 = 0.4, tangentialSkew = -0.2 }
 
-		void BrownConradyLensDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
-			// create an identical copy of the data, since we will be overwriting the entire image
-			const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+	void BrownConradyLensDistort ( const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
+		// create an identical copy of the data, since we will be overwriting the entire image
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
-			const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
+		const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
 
-			// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
-			for ( uint32_t y { 0 }; y < height; y++ ) {
-				for ( uint32_t x { 0 }; x < width; x++ ) {
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				// pixel coordinate in UV space
+				const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+				// TODO: normalize the width/height ratio
+					// want to be able to support different behaviors
+						// current behavior, treates image as -1..1
+						// correction for aspect ratio, so the distort is circular
+						// correction for aspect ratio, but like 1/AR, so the distort shifts wrt the center of the image
+
+				// distort the position, based on the logic described in https://www.shadertoy.com/view/wtBXRz:
+					// k1 is the main distortion coefficient, positive is barrel distortion, negative is pincusion distortion
+					// k2 tweaks the edges of the distortion - can be 0.0
+
+				vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+				const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
+				remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
+
+				// tangential distortion
+				if ( tangentialSkew != 0.0f ) {
+					const float angle = r2 * tangentialSkew;
+					remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
+				}
+
+				// restore back to the normalized space
+				remapped = remapped * 0.5f + vec2( 0.5f );
+
+				if ( normalize ) {
+					// scale about the image center, to keep the image close to the same size
+					remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
+				}
+
+				// get the sample of the cached copy
+				SetAtXY( x, y, cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) );
+			}
+		}
+	}
+
+	// same as above, but combines multiple samples with strength increasing from 0 to the specified parameters in order to blur
+		// note that the MS versions of this function assume they have enough range to average across the N samples
+
+	void BrownConradyLensDistortMSBlurred ( const int iterations, const float k1, const float k2, const float t1, const bool normalize = false ) {
+		BrownConradyLensDistortMSBlurred( iterations, -k1, k1, -k2, k2, -t1, t1, normalize );
+	}
+
+	// pass zero as min values to get the old behavior
+	void BrownConradyLensDistortMSBlurred ( const int iterations,
+		const float k1min, const float k1max,
+		const float k2min, const float k2max,
+		const float t1min, const float t1max,
+		const bool normalize = false ) {
+
+		// create an identical copy of the data, since we will be overwriting the entire image
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				color accumulated; // making use of zero initialization
+				for ( int i = 0; i < iterations; i++ ) {
 					// pixel coordinate in UV space
 					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
-
-					// TODO: normalize the width/height ratio
-						// want to be able to support different behaviors
-							// current behavior, treates image as -1..1
-							// correction for aspect ratio, so the distort is circular
-							// correction for aspect ratio, but like 1/AR, so the distort shifts wrt the center of the image
-
-					// distort the position, based on the logic described in https://www.shadertoy.com/view/wtBXRz:
-						// k1 is the main distortion coefficient, positive is barrel distortion, negative is pincusion distortion
-						// k2 tweaks the edges of the distortion - can be 0.0
-
 					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
 					const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
-					remapped *= 1.0f + ( k1 * r2 ) * ( k2 * r2 * r2 );
 
-					// tangential distortion
-					if ( tangentialSkew != 0.0f ) {
-						const float angle = r2 * tangentialSkew;
-						remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
-					}
+					const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, k1min, k1max );
+					const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, k2min, k2max );
+					const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, t1min, t1max );
 
-					// restore back to the normalized space
-					remapped = remapped * 0.5f + vec2( 0.5f );
+					remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
 
-					if ( normalize ) {
-						// scale about the image center, to keep the image close to the same size
+					const float angle = r2 * iterationT1;
+					remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
+
+					remapped = remapped * 0.5f + vec2( 0.5f ); // restore back to the normalized space
+
+					if ( normalize ) { // scale about the image center, to keep the image close to the same size
+						const float normalizeFactor = ( abs( iterationK1 ) < 1.0f ) ? ( 1.0f - abs( iterationK1 ) ) : ( 1.0f / ( iterationK1 + 1.0f ) );
 						remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
 					}
 
 					// get the sample of the cached copy
-					SetAtXY( x, y, cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) );
+					accumulated = accumulated + cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER );
 				}
+
+				accumulated = accumulated / ( float ) iterations;
+				SetAtXY( x, y, accumulated );
 			}
 		}
+	}
 
-		// same as above, but combines multiple samples with strength increasing from 0 to the specified parameters in order to blur
+	void BrownConradyLensDistortMSBlurredChromatic ( const int iterations, const float k1, const float k2, const float t1 ) {
+		BrownConradyLensDistortMSBlurredChromatic( iterations, -k1, k1, -k2, k2, -t1, t1 );
+	}
 
-			// note that this implementation will fail with uint images - the accumulator values will overflow, it causes problems - this is probably easily solvable
+	void BrownConradyLensDistortMSBlurredChromatic ( const int iterations,
+		const float k1min, const float k1max,
+		const float k2min, const float k2max,
+		const float t1min, const float t1max ) {
+		// create an identical copy of the data, since we will be overwriting the entire image
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
 
-		void BrownConradyLensDistortMSBlurred ( const int iterations, const float k1, const float k2, const float tangentialSkew, const bool normalize = false ) {
-			// create an identical copy of the data, since we will be overwriting the entire image
-			const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
 
-			const float normalizeFactor = ( abs( k1 ) < 1.0f ) ? ( 1.0f - abs( k1 ) ) : ( 1.0f / ( k1 + 1.0f ) );
+				color weight;
+				color weightAccum;
+				color accumulated;
 
-			// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
-			for ( uint32_t y { 0 }; y < height; y++ ) {
-				for ( uint32_t x { 0 }; x < width; x++ ) {
+				const float midPoint = ( float ) iterations / 2.0f;
+				for ( int i = 0; i < iterations; i++ ) {
 
-					// making use of zero initialization
-					color accumulated;
+					const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, k1min, k1max );
+					const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, k2min, k2max );
+					const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, t1min, t1max );
 
-					for ( int i = 0; i < iterations; i++ ) {
-
-						// operating on the squared radius... is there a better way? scale k1, k2, tangentialSkew? tbd
-						const float scalar = ( i / ( float ) iterations );
-
-						// pixel coordinate in UV space
-						const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
-
-						vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
-						const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
-						remapped *= 1.0f + ( scalar * k1 * r2 ) * ( scalar * k2 * r2 * r2 );
-
-						// tangential distortion
-						if ( tangentialSkew != 0.0f ) {
-							const float angle = r2 * scalar * tangentialSkew;
-							remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
-						}
-
-						// restore back to the normalized space
-						remapped = remapped * 0.5f + vec2( 0.5f );
-
-						if ( normalize ) {
-							// scale about the image center, to keep the image close to the same size
-							remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
-						}
-
-						// get the sample of the cached copy
-						accumulated = accumulated + cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER );
-					}
-
-					accumulated = accumulated / ( float ) iterations;
-					SetAtXY( x, y, accumulated );
-				}
-			}
-		}
-
-		void BrownConradyLensDistortMSBlurredChromatic ( const int iterations, const float k1, const float k2, const float t1 ) {
-			// create an identical copy of the data, since we will be overwriting the entire image
-			const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
-
-			// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
-			for ( uint32_t y { 0 }; y < height; y++ ) {
-				for ( uint32_t x { 0 }; x < width; x++ ) {
-
-					color weight;
-					color weightAccum;
-					color accumulated;
-
-					const float midPoint = ( float ) iterations / 2.0f;
-					for ( int i = 0; i < iterations; i++ ) {
-
-						const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, -k1, k1 );
-						const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, -k2, k2 );
-						const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, -t1, t1 );
-
-						// pixel coordinate in UV space
-						const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
-
-						vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
-						const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
-
-						remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
-						// remapped *= 1.0f + ( iterationK1 * r2 ) + ( iterationK2 * r2 * r2 ); // interesting
-
-						// tangential distortion
-						if ( iterationT1 != 0.0f ) {
-							const float angle = r2 * iterationT1;
-							remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
-						}
-
-						// restore back to the normalized space
-						remapped = remapped * 0.5f + vec2( 0.5f );
-
-						// red to green if less than midpoint, green to blue if greater
-						if ( i < midPoint ) {
-							weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
-							weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
-							weight[ blue ]	= 0.0f;
-							weight[ alpha ]	= 1.0f;
-						} else {
-							weight[ red ]	= 0.0f;
-							weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
-							weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
-							weight[ alpha ]	= 1.0f;
-						}
-
-						// get the sample of the cached copy
-						accumulated = accumulated + ( cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) * weight );
-						weightAccum = weightAccum + weight;
-					}
-
-					accumulated = accumulated / weightAccum;
-					SetAtXY( x, y, accumulated );
-				}
-			}
-		}
-
-
-		void BrownConradyLensDistortMSBlurredChromaticNormalized ( const int iterations, const float k1, const float k2, const float t1 ) {
-			// create an identical copy of the data, since we will be overwriting the entire image
-			const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
-
-			// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
-			for ( uint32_t y { 0 }; y < height; y++ ) {
-				for ( uint32_t x { 0 }; x < width; x++ ) {
-
-					color weight;
-					color weightAccum;
-					color accumulated;
-
-					const float midPoint = ( float ) iterations / 2.0f;
-					for ( int i = 0; i < iterations; i++ ) {
-
-						const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, -k1, k1 );
-						const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, -k2, k2 );
-						const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, -t1, t1 );
-
-						const float normalizeFactor = ( abs( iterationK1 ) < 1.0f ) ?
-							( 1.0f - abs( iterationK1 ) ) :
-							( 1.0f / ( iterationK1 + 1.0f ) );
-
-						// pixel coordinate in UV space
-						const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
-
-						vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
-						const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
-
-						remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
-						// remapped *= 1.0f + ( iterationK1 * r2 ) + ( iterationK2 * r2 * r2 ); // interesting
-
-						// tangential distortion
-						if ( iterationT1 != 0.0f ) {
-							const float angle = r2 * iterationT1;
-							remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
-						}
-
-						// restore back to the normalized space
-						remapped = remapped * 0.5f + vec2( 0.5f );
-
-						// scale about the image center, to keep the image close to the same size
-						remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
-
-						// red to green if less than midpoint, green to blue if greater
-						if ( i < midPoint ) {
-							weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
-							weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
-							weight[ blue ]	= 0.0f;
-							weight[ alpha ]	= 1.0f;
-						} else {
-							weight[ red ]	= 0.0f;
-							weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
-							weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
-							weight[ alpha ]	= 1.0f;
-						}
-
-						// get the sample of the cached copy
-						accumulated = accumulated + ( cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) * weight );
-						weightAccum = weightAccum + weight;
-					}
-
-					accumulated = accumulated / weightAccum;
-					SetAtXY( x, y, accumulated );
-				}
-			}
-		}
-
-		// DeCarpienter Barrel Distortion from https://www.decarpentier.nl/lens-distortion
-		void DeCarpentierLensDistort ( const float strength, const float cylinderRatio ) {
-			const float aspectRatio = ( float ) width / ( float ) height;
-			const float FoVDegrees = 90.0f;
-			const float barrelDistortionHeight = tan( glm::radians( FoVDegrees ) / 2.0f );
-			const float scaledHeight = strength * barrelDistortionHeight;
-			const float cylAspectRatio = aspectRatio * cylinderRatio;
-			const float aspectDiagSq = aspectRatio * aspectRatio + 1.0f;
-			const float diagSq = scaledHeight * scaledHeight * aspectDiagSq;
-
-			// cached copy of the original image data
-			const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
-
-			// iterate through all the pixels
-			for ( uint32_t y { 0 }; y < height; y++ ) {
-				for ( uint32_t x { 0 }; x < width; x++ ) {
-
-					// calculate the normalized pixel coordinates
+					// pixel coordinate in UV space
 					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
 
-					// remap tc from [0..1] to [-1..1]
-					const vec2 signedUV = 2.0f * normalizedPosition - vec2( 1.0f );
+					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+					const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
 
-					// clamp to minimum value of 1.0 to prevent degenerate case
-					const float z = glm::max( 0.5f * sqrt( diagSq - 1.0f ) + 0.5f, 1.0f );
-					const float ny = ( z - 1.0f ) / ( cylAspectRatio * cylAspectRatio + 1.0f );
-					const vec2 vUVDot = sqrt( ny ) * vec2( cylAspectRatio, 1.0f ) * signedUV;
-					const vec3 vUV = vec3( 0.5f, 0.5f, 1.0f ) * z + vec3( -0.5f, -0.5f, 0.0f ) + vec3( normalizedPosition.xy(), 0.0f ); // is this correct? should be signedUV?
-					const vec3 tempTC = dot( vUVDot, vUVDot ) * vec3( -0.5f, -0.5f, -1.0f ) + vUV;
-					const vec2 sampleLocation = tempTC.xy() / tempTC.z;
+					remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
+					// remapped *= 1.0f + ( iterationK1 * r2 ) + ( iterationK2 * r2 * r2 ); // interesting
 
-					// sample from the cached copy and write to the current data
-					SetAtXY( x, y, cachedCopy.Sample( sampleLocation, samplerType_t::LINEAR_FILTER ) );
+					if ( iterationT1 != 0.0f ) { // tangential distortion
+						const float angle = r2 * iterationT1;
+						remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
+					}
+
+					remapped = remapped * 0.5f + vec2( 0.5f ); // restore back to the normalized space
+
+					if ( i < midPoint ) { // red to green if less than midpoint, green to blue if greater
+						weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
+						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
+						weight[ blue ]	= 0.0f;
+						weight[ alpha ]	= 1.0f;
+					} else {
+						weight[ red ]	= 0.0f;
+						weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
+						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ alpha ]	= 1.0f;
+					}
+
+					// get the sample of the cached copy
+					accumulated = accumulated + ( cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) * weight );
+					weightAccum = weightAccum + weight;
 				}
+
+				// normalize wrt the accumulated weights
+				accumulated = accumulated / weightAccum;
+				SetAtXY( x, y, accumulated );
+			}
+		}
+	}
+
+	void BrownConradyLensDistortMSBlurredChromaticNormalized ( const int iterations, const float k1, const float k2, const float t1 ) {
+		BrownConradyLensDistortMSBlurredChromaticNormalized( iterations, -k1, k1, -k2, k2, -t1, t1 );
+	}
+
+	void BrownConradyLensDistortMSBlurredChromaticNormalized ( const int iterations,
+		const float k1min, const float k1max,
+		const float k2min, const float k2max,
+		const float t1min, const float t1max ) {
+
+		// create an identical copy of the data, since we will be overwriting the entire image
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				color weight;
+				color weightAccum;
+				color accumulated;
+
+				const float midPoint = ( float ) iterations / 2.0f;
+				for ( int i = 0; i < iterations; i++ ) {
+
+					const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, k1min, k1max );
+					const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, k2min, k2max );
+					const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, t1min, t1max );
+
+					// pixel coordinate in UV space
+					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+					const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
+
+					remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
+					// remapped *= 1.0f + ( iterationK1 * r2 ) + ( iterationK2 * r2 * r2 ); // interesting
+
+					if ( iterationT1 != 0.0f ) { // tangential distortion
+						const float angle = r2 * iterationT1;
+						remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
+					}
+
+					remapped = remapped * 0.5f + vec2( 0.5f ); // restore back to the normalized space
+
+					// scale about the image center, to keep the image close to the same size
+					const float normalizeFactor = ( abs( iterationK1 ) < 1.0f ) ?
+						( 1.0f - abs( iterationK1 ) ) :
+						( 1.0f / ( iterationK1 + 1.0f ) );
+					remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
+
+					if ( i < midPoint ) { // red to green if less than midpoint, green to blue if greater
+						weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
+						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
+						weight[ blue ]	= 0.0f;
+						weight[ alpha ]	= 1.0f;
+					} else {
+						weight[ red ]	= 0.0f;
+						weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
+						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ alpha ]	= 1.0f;
+					}
+
+					// get the sample of the cached copy
+					accumulated = accumulated + ( cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) * weight );
+					weightAccum = weightAccum + weight;
+				}
+
+				// normalize wrt the accumulated weights
+				accumulated = accumulated / weightAccum;
+				SetAtXY( x, y, accumulated );
+			}
+		}
+	}
+
+	// DeCarpienter Barrel Distortion from https://www.decarpentier.nl/lens-distortion
+	void DeCarpentierLensDistort ( const float strength, const float cylinderRatio ) {
+		const float aspectRatio = ( float ) width / ( float ) height;
+		const float FoVDegrees = 90.0f;
+		const float barrelDistortionHeight = tan( glm::radians( FoVDegrees ) / 2.0f );
+		const float scaledHeight = strength * barrelDistortionHeight;
+		const float cylAspectRatio = aspectRatio * cylinderRatio;
+		const float aspectDiagSq = aspectRatio * aspectRatio + 1.0f;
+		const float diagSq = scaledHeight * scaledHeight * aspectDiagSq;
+
+		// cached copy of the original image data
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		// iterate through all the pixels
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				// calculate the normalized pixel coordinates
+				const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+				// remap tc from [0..1] to [-1..1]
+				const vec2 signedUV = 2.0f * normalizedPosition - vec2( 1.0f );
+
+				// clamp to minimum value of 1.0 to prevent degenerate case
+				const float z = glm::max( 0.5f * sqrt( diagSq - 1.0f ) + 0.5f, 1.0f );
+				const float ny = ( z - 1.0f ) / ( cylAspectRatio * cylAspectRatio + 1.0f );
+				const vec2 vUVDot = sqrt( ny ) * vec2( cylAspectRatio, 1.0f ) * signedUV;
+				const vec3 vUV = vec3( 0.5f, 0.5f, 1.0f ) * z + vec3( -0.5f, -0.5f, 0.0f ) + vec3( normalizedPosition.xy(), 0.0f ); // is this correct? should be signedUV?
+				const vec3 tempTC = dot( vUVDot, vUVDot ) * vec3( -0.5f, -0.5f, -1.0f ) + vUV;
+				const vec2 sampleLocation = tempTC.xy() / tempTC.z;
+
+				// sample from the cached copy and write to the current data
+				SetAtXY( x, y, cachedCopy.Sample( sampleLocation, samplerType_t::LINEAR_FILTER ) );
 			}
 		}
 	}
