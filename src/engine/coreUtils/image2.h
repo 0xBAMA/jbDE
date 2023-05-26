@@ -510,8 +510,7 @@ public:
 				// tangential distortion
 				if ( tangentialSkew != 0.0f ) {
 					const float angle = r2 * tangentialSkew;
-					mat2 r( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) );
-					remapped = r * remapped;
+					remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
 				}
 
 				// restore back to the normalized space
@@ -560,8 +559,7 @@ public:
 					// tangential distortion
 					if ( tangentialSkew != 0.0f ) {
 						const float angle = r2 * scalar * tangentialSkew;
-						mat2 r( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) );
-						remapped = r * remapped;
+						remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
 					}
 
 					// restore back to the normalized space
