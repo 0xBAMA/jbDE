@@ -67,7 +67,7 @@ public:
 
 		// operators needed for blending - sum + division by float normalization factor
 			// adding some others, just in case I need them at some point
-		color operator + ( const color& other ) const {
+		color operator + ( const color &other ) const {
 			color temp;
 			for ( int c { 0 }; c < numChannels; c++ ) {
 				temp.data[ c ] = this->data[ c ] + other.data[ c ];
@@ -75,7 +75,7 @@ public:
 			return temp;
 		}
 
-		color operator - ( const color& other ) const {
+		color operator - ( const color &other ) const {
 			color temp;
 			for ( int c { 0 }; c < numChannels; c++ ) {
 				temp.data[ c ] = this->data[ c ] - other.data[ c ];
@@ -95,6 +95,22 @@ public:
 			color temp;
 			for ( int c { 0 }; c < numChannels; c++ ) {
 				temp.data[ c ] = this->data[ c ] * scalar;
+			}
+			return temp;
+		}
+
+		color operator / ( const color &divisor ) const {
+			color temp;
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				temp.data[ c ] = this->data[ c ] / divisor.data[ c ];
+			}
+			return temp;
+		}
+
+		color operator * ( const color &scalar ) const {
+			color temp;
+			for ( int c { 0 }; c < numChannels; c++ ) {
+				temp.data[ c ] = this->data[ c ] * scalar.data[ c ];
 			}
 			return temp;
 		}
