@@ -150,7 +150,7 @@ public:
 	}
 
 	// load from e.g. GPU memory, also used for copying from another image with GetImageDataBasePtr()
-	Image2 ( uint32_t x, uint32_t y, imageType* contents ) : width( x ), height( y ) {
+	Image2 ( uint32_t x, uint32_t y, const imageType* contents ) : width( x ), height( y ) {
 		const size_t numBers = width * height * numChannels;
 		data.reserve( numBers );
 		for ( size_t idx = 0; idx < numBers; idx++ ) {
@@ -575,6 +575,68 @@ public:
 				}
 
 				accumulated = accumulated / ( float ) iterations;
+				SetAtXY( x, y, accumulated );
+			}
+		}
+	}
+
+
+	void BrownConradyLensDistortMSBlurredChromatic ( const int iterations, const float k1, const float k2, const float t1 ) {
+		// create an identical copy of the data, since we will be overwriting the entire image
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				color weight;
+				color weightAccum;
+				color accumulated;
+
+				const float midPoint = ( float ) iterations / 2.0f;
+				for ( int i = 0; i < iterations; i++ ) {
+
+					const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, -k1, k1 );
+					const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, -k2, k2 );
+					const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, -t1, t1 );
+
+					// pixel coordinate in UV space
+					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+					const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
+
+					remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
+					// remapped *= 1.0f + ( iterationK1 * r2 ) + ( iterationK2 * r2 * r2 ); // interesting
+
+					// tangential distortion
+					if ( iterationT1 != 0.0f ) {
+						const float angle = r2 * iterationT1;
+						remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
+					}
+
+					// restore back to the normalized space
+					remapped = remapped * 0.5f + vec2( 0.5f );
+
+					// red to green if less than midpoint, green to blue if greater
+					if ( i < midPoint ) {
+						weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
+						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
+						weight[ blue ]	= 0.0f;
+						weight[ alpha ]	= 1.0f;
+					} else {
+						weight[ red ]	= 0.0f;
+						weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
+						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ alpha ]	= 1.0f;
+					}
+
+					// get the sample of the cached copy
+					accumulated = accumulated + ( cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) * weight );
+					weightAccum = weightAccum + weight;
+				}
+
+				accumulated = accumulated / weightAccum;
 				SetAtXY( x, y, accumulated );
 			}
 		}
