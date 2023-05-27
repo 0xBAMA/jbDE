@@ -122,6 +122,35 @@ target_link_libraries( engineDemo
 )
 
 # =================================================================================================
+# AirplaneMode2
+# =================================================================================================
+add_executable( AirplaneMode2
+	src/projects/AirplaneMode2/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( AirplaneMode2
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
+
+# =================================================================================================
 # FontGame
 # =================================================================================================
 add_executable( FontGame
