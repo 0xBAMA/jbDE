@@ -791,7 +791,8 @@ public:
 		NEAREST_FILTER,
 		LINEAR_FILTER,
 		CUBIC_LAGRANGE_FILTER,
-		CUBIC_HERMITE_FILTER
+		CUBIC_HERMITE_FILTER,
+		SIN_FILTER
 	};
 
 	vec4 CubicLagrangeWeight ( vec4 A, vec4 B, vec4 C, vec4 D, float t ) {
@@ -890,6 +891,12 @@ public:
 		case CUBIC_HERMITE_FILTER:
 		{
 
+			break;
+		}
+
+		case SIN_FILTER:
+		{
+			// https://www.shadertoy.com/view/XdGXWt this is interesting
 			break;
 		}
 
