@@ -21,10 +21,14 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-			Image_4F test( "test.png" );
-			test.BrownConradyLensDistortMSBlurredChromatic( 100, 0.25f, 0.125f, 0.1618f );
-			test.SaturateAlpha();
-			test.Save( "distorted.png" );
+			// Image_4F test( "test.png" );
+			// test.BrownConradyLensDistortMSBlurredChromatic( 100, 0.25f, 0.125f, 0.1618f );
+			// test.SaturateAlpha();
+			// test.Save( "distorted.png" );
+
+			// very interesting - can call stuff from the command line
+				// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
+			// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
 
 		}
 	}
