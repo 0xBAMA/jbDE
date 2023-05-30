@@ -823,10 +823,10 @@ public:
 		// hermite weights for cubic interpolation
 		float t2 = t * t;
 		float t3 = t * t * t;
-		vec3 a = -A / 2.0f + ( 3.0f * B ) / 2.0f - ( 3.0f * C ) / 2.0f + D / 2.0f;
-		vec3 b = A - ( 5.0f * B ) / 2.0f + 2.0f * C - D / 2.0f;
-		vec3 c = -A / 2.0f + C / 2.0f;
-		vec3 d = B;
+		vec4 a = -A / 2.0f + ( 3.0f * B ) / 2.0f - ( 3.0f * C ) / 2.0f + D / 2.0f;
+		vec4 b = A - ( 5.0f * B ) / 2.0f + 2.0f * C - D / 2.0f;
+		vec4 c = -A / 2.0f + C / 2.0f;
+		vec4 d = B;
 		return a * t3 + b * t2 + c * t + d;
 	}
 
