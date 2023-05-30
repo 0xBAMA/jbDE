@@ -789,9 +789,46 @@ public:
 	// getting filtered samples
 	enum samplerType_t {
 		NEAREST_FILTER,
-		LINEAR_FILTER
-		// cubic? catmull? will need to review how exactly these work
+		LINEAR_FILTER,
+		CUBIC_LAGRANGE_FILTER,
+		CUBIC_HERMITE_FILTER
 	};
+
+	vec4 CubicLagrangeWeight ( vec4 A, vec4 B, vec4 C, vec4 D, float t ) {
+		// cubic lagrange weights for cubic interpolation
+		const float c_x0 = -1.0f;
+		const float c_x1 =  0.0f;
+		const float c_x2 =  1.0f;
+		const float c_x3 =  2.0f;
+		return A * (
+			( t - c_x1 ) / ( c_x0 - c_x1 ) *
+			( t - c_x2 ) / ( c_x0 - c_x2 ) *
+			( t - c_x3 ) / ( c_x0 - c_x3 )
+		) + B * (
+			( t - c_x0 ) / ( c_x1 - c_x0 ) *
+			( t - c_x2 ) / ( c_x1 - c_x2 ) *
+			( t - c_x3 ) / ( c_x1 - c_x3 )
+		) + C * (
+			( t - c_x0 ) / ( c_x2 - c_x0 ) *
+			( t - c_x1 ) / ( c_x2 - c_x1 ) *
+			( t - c_x3 ) / ( c_x2 - c_x3 )
+		) + D * (
+			( t - c_x0 ) / ( c_x3 - c_x0 ) *
+			( t - c_x1 ) / ( c_x3 - c_x1 ) *
+			( t - c_x2 ) / ( c_x3 - c_x2 )
+		);
+	}
+
+	vec4 CubicHermiteWeight ( vec4 A, vec4 B, vec4 C, vec4 D, float t ) {
+		// hermite weights for cubic interpolation
+		float t2 = t * t;
+		float t3 = t * t * t;
+		vec3 a = -A / 2.0f + ( 3.0f * B ) / 2.0f - ( 3.0f * C ) / 2.0f + D / 2.0f;
+		vec3 b = A - ( 5.0f * B ) / 2.0f + 2.0f * C - D / 2.0f;
+		vec3 c = -A / 2.0f + C / 2.0f;
+		vec3 d = B;
+		return a * t3 + b * t2 + c * t + d;
+	}
 
 	// need to be able to get linear filtered samples - potentially higher order interpolation? tbd, would be nice
 	color Sample ( vec2 pos, samplerType_t samplerType = LINEAR_FILTER ) const {
@@ -842,6 +879,19 @@ public:
 				// http://vec3.ca/bicubic-filtering-in-fewer-taps/
 
 			// lanzcos?
+
+		// lagrange / hermite demofox impl from https://www.shadertoy.com/view/MllSzX
+		case CUBIC_LAGRANGE_FILTER:
+		{
+
+			break;
+		}
+
+		case CUBIC_HERMITE_FILTER:
+		{
+
+			break;
+		}
 
 		default:
 			break;

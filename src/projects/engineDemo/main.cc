@@ -22,7 +22,7 @@ public:
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
 			Image_4F test( "test.png" );
-			test.BrownConradyLensDistortMSBlurredChromatic( 100, 0.1f, 0.1f, 0.1618f );
+			test.BrownConradyLensDistortMSBlurredChromatic( 100, 0.25f, 0.125f, 0.1618f );
 			test.SaturateAlpha();
 			test.Save( "distorted.png" );
 
