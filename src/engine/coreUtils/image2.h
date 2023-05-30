@@ -901,7 +901,7 @@ public:
 	}
 
 	imageType GetPixelMin ( channel in ) const {
-		imageType currentMin = 100000000.0f;
+		imageType currentMin = std::numeric_limits< imageType >::max();
 		for ( uint32_t y { 0 }; y < height; y++ ) {
 			for ( uint32_t x { 0 }; x < width; x++ ) {
 				currentMin = std::min( GetAtXY( x, y )[ in ], currentMin );
@@ -911,7 +911,7 @@ public:
 	}
 
 	imageType GetPixelMax ( channel in ) const {
-		imageType currentMax = -100000000.0f;
+		imageType currentMax = std::numeric_limits< imageType >::min();
 		for ( uint32_t y { 0 }; y < height; y++ ) {
 			for ( uint32_t x { 0 }; x < width; x++ ) {
 				currentMax = std::max( GetAtXY( x, y )[ in ], currentMax );

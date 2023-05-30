@@ -7,10 +7,10 @@ cd build
 
 # engine stuff
 # time make -j17 TracyClient
-# time make -j17 engineDemo
+time make -j17 engineDemo
 
 # child apps
-time make -j17 AirplaneMode2
+# time make -j17 AirplaneMode2
 # time make -j17 FontGame
 # time make -j17 Physarum
 # time make -j17 Siren
