@@ -50,9 +50,9 @@ vec2 randomInUnitDisk () {
 
 void main () {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
-	ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
-	vec4 steepnessRead = imageLoad( steepnessTex, loc );
-	vec4 distDirRead = imageLoad( distanceDirTex, loc );
+	const ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
+	const vec4 steepnessRead = imageLoad( steepnessTex, loc );
+	const vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
 	seed = index + uint( inSeed ); // initialize the rng state to use the std::random uniformly generated value passed in
 
