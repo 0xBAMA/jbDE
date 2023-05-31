@@ -7,16 +7,18 @@ void engineBase::ClearColorAndDepth () {
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	ImGuiIO &io = ImGui::GetIO();
-	const int width = ( int ) io.DisplaySize.x;
-	const int height = ( int ) io.DisplaySize.y;
-	// prevent -1, -1 being passed on first frame, since ImGui hasn't rendered yet
-	glViewport( 0, 0, width > 0 ? width : config.width, height > 0 ? height : config.height ); // should this be elsewhere?
+	// ImGuiIO &io = ImGui::GetIO();
+	// const int width = ( int ) io.DisplaySize.x;
+	// const int height = ( int ) io.DisplaySize.y;
+	// // prevent -1, -1 being passed on first frame, since ImGui hasn't rendered yet
+	// glViewport( 0, 0, width > 0 ? width : config.width, height > 0 ? height : config.height ); // should this be elsewhere?
+
+	glViewport( 0, 0, config.width, config.height );
 }
 
 void engineBase::SendTonemappingParameters () {
 	ZoneScoped;
-	
+
 	static float prevColorTemperature = 0.0f;
 	static vec3 temperatureColor;
 	if ( tonemap.colorTemp != prevColorTemperature ) {
@@ -38,8 +40,9 @@ void engineBase::BlitToScreen () {
 	const GLuint shader = shaders[ "Display" ];
 	glUseProgram( shader );
 	glBindVertexArray( displayVAO );
-	ImGuiIO &io = ImGui::GetIO();
-	glUniform2f( glGetUniformLocation( shader, "resolution" ), io.DisplaySize.x, io.DisplaySize.y );
+	// ImGuiIO &io = ImGui::GetIO();
+	// glUniform2f( glGetUniformLocation( shader, "resolution" ), io.DisplaySize.x, io.DisplaySize.y );
+	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
 
