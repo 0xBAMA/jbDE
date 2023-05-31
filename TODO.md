@@ -117,6 +117,7 @@ This is a planning document for work on this project and in general, about the t
 		- I'm not looking to just write OpenGL again, really just a subset related to the actual rasterization of geometry, and even then pretty limited scope
 		- I think I've also done most of what I want to do with it
 			- I think I will probably do a more flexible OBJ voxelizer for Voraldo14, but beyond that I don't have much in the way of plans for it
+	- Maintainence of my own buffers, this is something I want to use for plant simulation ( think, write nearest plant ID value per pixel, use this to track how much energy is recieved for that plant ID summed across all pixels )
 
 - Dithering stuff
 	- Palette based version: Precompute 3d LUT texture(s) in order to avoid having to do the distance calculations

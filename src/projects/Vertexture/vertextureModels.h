@@ -9,6 +9,10 @@ struct vertextureConfig {
 	int numBadGuys = 10;
 	int numTrees = 10;
 	int numBoxes = 10;
+
+	// TODO: add some more stuff on this, to parameterize further - point sizes etc
+		// also load from json file, for ability to hot reload
+		//  e.g. R to regenerate reads from config file on disk, with all current edits ( don't have to recompile )
 };
 
 // scoring, kills, etc, append a string
@@ -20,6 +24,8 @@ inline float Remap ( float value, float from1, float to1, float from2, float to2
 }
 
 constexpr float globalScale = 1.0f;
+
+// going to consolidate the below classes into one geometry management class, it's going to be easier to manage scope
 
 //=====================================================================================================================
 //===== Ground ========================================================================================================
@@ -384,7 +390,7 @@ struct SphereModel {
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
 
 		rng gen( 0.185f, 0.74f );
-		rng genH( 0.0f, 0.03f );
+		rng genH( 0.0f, 0.04f );
 		rng genP( 1.85f, 3.7f );
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
@@ -401,9 +407,9 @@ struct SphereModel {
 		}
 
 		rngN trunkJitter( 0.0f, 0.006f );
-		rng trunkSizes( 7.75f, 12.36f );
+		rng trunkSizes( 2.75f, 10.36f );
 		rng basePtPlace( -globalScale * 0.75f, globalScale * 0.75f );
-		rng leafSizes( 9.27f, 21.6f );
+		rng leafSizes( 4.27f, 18.6f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
 			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
@@ -480,7 +486,7 @@ struct SphereModel {
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
 
 		std::vector< vec4 > ssboPoints;
-		rng size( 3.0f * 2.5f, 6.0f * 2.5f );
+		rng size( 4.5f, 9.0f );
 		rng phase( 0.0f, pi * 2.0f );
 		for ( int x = 0; x < simQ; x++ ) {
 			for ( int y = 0; y < simQ; y++ ) {
