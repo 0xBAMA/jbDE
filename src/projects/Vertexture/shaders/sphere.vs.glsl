@@ -11,6 +11,7 @@ in vec4 vColor;
 in vec4 vPosition;
 
 out float radius;
+out float roughness;
 out vec3 color;
 out vec3 worldPosition;
 out float height;
@@ -23,6 +24,7 @@ void main () {
 
 	radius = gl_PointSize = scale * vPosition.a * AR;
 	color = vColor.xyz;
+	roughness = vColor.a;
 
 	// temporary for debug spheres
 	if ( vPosition.a == 50.0f ) {

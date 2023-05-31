@@ -20,6 +20,7 @@ layout( binding = 3, std430 ) buffer pointData {
 };
 
 out float radius;
+out float roughness;
 out vec3 color;
 out vec3 worldPosition;
 out float height;
@@ -39,6 +40,8 @@ void main () {
 	radius = gl_PointSize = scale * positionRead.a * AR;
 
 	color = colorRead.rgb;
+	roughness = colorRead.a;
+
 	rot = trident;
 
 	worldPosition = positionRead.xyz + vec3( 0.0f, 0.0f, height );

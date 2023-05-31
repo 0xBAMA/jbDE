@@ -20,6 +20,7 @@ layout( binding = 4, std430 ) buffer lightDataBuffer {
 };
 
 in float radius;
+in float roughness;
 in vec3 color;
 in vec3 worldPosition;
 in float height;
@@ -58,7 +59,7 @@ void main () {
 		// lighting calculation
 		const float distanceFactor = min( 1.0f / ( pow( dLight, 2.0f ) ), maxDistFactor );
 		const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
-		const float specularContribution = distanceFactor * pow( max( dot( reflectedVector, viewVector ), 0.0f ), 60.0f );
+		const float specularContribution = distanceFactor * pow( max( dot( -reflectedVector, viewVector ), 0.0f ), roughness );
 
 		lightContribution += lightData[ i ].color.rgb * ( diffuseContribution + ( ( lightDot > 0.0f ) ? specularContribution : 0.0f ) );
 	}

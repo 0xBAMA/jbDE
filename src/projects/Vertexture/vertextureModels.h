@@ -278,7 +278,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 64; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
@@ -299,7 +299,7 @@ struct LightsModel {
 		rng location( -globalScale, globalScale );
 		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.05f, 0.25f );
+		rng brightness( 0.01f, 0.06f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -389,6 +389,8 @@ struct SphereModel {
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
 
+		rng gen_normalize( 0.01f, 40.0f );
+
 		std::vector< vec4 > points;
 		std::vector< vec4 > colors;
 
@@ -416,13 +418,13 @@ struct SphereModel {
 				basePt.y += trunkJitter() * 0.5f;
 				constrict *= 0.999f;
 				points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
-				colors.push_back( vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				colors.push_back( vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
 			}
 			for ( int j = 0; j < 1000; j++ ) {
 				rngN foliagePlace( 0.0f, 0.1f * globalScale );
 				rngN foliageHeightGen( scalar, 0.05f );
 				points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
-				colors.push_back( vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				colors.push_back( vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
 			}
 		}
 
@@ -435,7 +437,7 @@ struct SphereModel {
 			obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
 			for ( int l = 0; l < 1000; l++ ) {
 				points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
-				colors.push_back( vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+				colors.push_back( vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
 			}
 		}
 
