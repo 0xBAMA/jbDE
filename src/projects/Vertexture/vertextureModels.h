@@ -278,7 +278,7 @@ struct LightsModel {
 	GLuint movementShader;
 	GLuint ssbo; // this will definitely need the SSBO, because it is responsible for creating the SSBO
 	const int numFloatsPerLight = 8;
-	const int numLights = 64; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
+	const int numLights = 16; // tbd - if we do a large number, might want to figure out some way to do some type of culling?
 	// alternatively, move to deferred shading, but that's a whole can of worms
 
 	GLuint heightmap;
@@ -299,7 +299,7 @@ struct LightsModel {
 		rng location( -globalScale, globalScale );
 		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.01f, 0.06f );
+		rng brightness( 0.01f, 0.2f );
 
 		for ( int x = 0; x < numLights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -384,7 +384,7 @@ struct SphereModel {
 		shader( sIn ), moverShader( sInMover ), movementShader( sInMove ), numTrees( nTrees ) {
 
 		rng gen( 0.185f, 0.74f );
-		rng genH( 0.0f, 0.1f );
+		rng genH( 0.0f, 0.03f );
 		rng genP( 1.85f, 3.7f );
 		rng genD( -globalScale, globalScale );
 		rngi flip( -1, 1 );
