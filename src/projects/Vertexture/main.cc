@@ -36,6 +36,43 @@ public:
 
 		// and the rest with the samplers and shit is going to be passed as uniforms
 
+	void InitModels () {
+	
+			// used for ground, spheres, skirts
+			palette::PickRandomPalette();
+
+
+			// generate heightmap
+				// RangeRemap( rangeRemapInputs_t ) to get it to [0..1]
+
+
+			// initialize game stuff
+			ground = new GroundModel( shaders[ "Ground" ] );
+			textures[ "Ground" ] = ground->heightmap;
+
+			skirts = new SkirtsModel( shaders[ "Skirts" ] );
+			skirts->groundColor = ground->groundColor;
+
+			lights = new LightsModel( shaders[ "Light Movement" ] );
+			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
+			lights->heightmap = textures[ "Ground" ];
+
+			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees, lights->lightData );
+			sphere->steepness = textures[ "Steepness Map" ];
+			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
+			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
+			sphere->frameHeight = config.height;
+
+			water = new WaterModel( shaders[ "Water" ] );
+
+			// I think everybody needs this info
+			water->heightScale = sphere->heightScale = skirts->heightScale = ground->heightScale = lights->heightScale = heightScale;
+
+			// tbd which of these will actually need to know this information, but it'll be available till then
+			water->numLights = sphere->numLights = skirts->numLights = ground->numLights = lights->numLights;
+
+	}
+
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
@@ -120,38 +157,7 @@ public:
 
 			// =================================================================================================
 
-			// used for ground, spheres, skirts
-			palette::PickRandomPalette();
-
-
-			// generate heightmap
-				// RangeRemap( rangeRemapInputs_t ) to get it to [0..1]
-
-
-			// initialize game stuff
-			ground = new GroundModel( shaders[ "Ground" ] );
-			textures[ "Ground" ] = ground->heightmap;
-
-			skirts = new SkirtsModel( shaders[ "Skirts" ] );
-			skirts->groundColor = ground->groundColor;
-
-			lights = new LightsModel( shaders[ "Light Movement" ] );
-			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
-			lights->heightmap = textures[ "Ground" ];
-
-			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees, lights->lightData );
-			sphere->steepness = textures[ "Steepness Map" ];
-			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
-			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
-			sphere->frameHeight = config.height;
-
-			water = new WaterModel( shaders[ "Water" ] );
-
-			// I think everybody needs this info
-			water->heightScale = sphere->heightScale = skirts->heightScale = ground->heightScale = lights->heightScale = heightScale;
-
-			// tbd which of these will actually need to know this information, but it'll be available till then
-			water->numLights = sphere->numLights = skirts->numLights = ground->numLights = lights->numLights;
+			InitModels();
 
 		}
 	}
@@ -163,6 +169,10 @@ public:
 		const uint8_t *state = SDL_GetKeyboardState( NULL );
 		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { scale /= 0.99f; }
 		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { scale *= 0.99f; }
+
+		if ( state[ SDL_SCANCODE_R ] ) {
+			InitModels();
+		}
 
 	}
 
