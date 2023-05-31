@@ -3,7 +3,7 @@
 	"MSAACount":8,
 	"startOnScreen":1,
 	"screenWidth":640,
-	"screenHeight":480,
+	"screenHeight":350,
 	"windowOffset":{
 		"x":300,
 		"y":200
@@ -29,7 +29,7 @@
 	},
 	"showImGUIDemoWindow":false,
 	"showProfiler":true,
-	"oneShot":true,
+	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,
