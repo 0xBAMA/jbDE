@@ -30,7 +30,10 @@ struct vertextureConfig {
 
 	// static / dynamic point counts, updated and reported during init
 	int numPointsGround = 0;
-
+	int numPointsSkirts = 0;
+	int numPointsSpheres = 0;
+	int numPointsMovingSpheres = 0;
+	int numPointsWater = 0;
 
 	// default orientation
 	vec3 basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
@@ -54,6 +57,10 @@ struct openGLResources {
 	std::unordered_map< string, GLuint > shaders;
 
 	// eventually, framebuffer stuff for deferred work
+		// depth
+		// normals
+		// albedo
+		// ...
 
 };
 
@@ -72,7 +79,6 @@ inline void subdivide (
 	const float minDisplacement = 0.01f ) {
 
 	if ( glm::distance( inputPoints[ 0 ], inputPoints[ 2 ] ) < minDisplacement ) {
-
 		/* corner-to-corner distance is small, time to write API geometry
 			A ( 0 )	@=======@ B ( 1 )
 					|      /|
@@ -82,35 +88,27 @@ inline void subdivide (
 					|  /    |
 					| /     |
 					|/      |
-			C ( 2 )	@=======@ D ( 3 ) --> X
-		*/
-
+			C ( 2 )	@=======@ D ( 3 ) --> X */
 		// triangle 1 ABC
 		pointsVector.push_back( inputPoints[ 0 ] );
 		pointsVector.push_back( inputPoints[ 1 ] );
 		pointsVector.push_back( inputPoints[ 2 ] );
-
 		// triangle 2 BCD
 		pointsVector.push_back( inputPoints[ 1 ] );
 		pointsVector.push_back( inputPoints[ 2 ] );
 		pointsVector.push_back( inputPoints[ 3 ] );
-
 	} else {
-
 		const vec3 center = ( inputPoints[ 0 ] +  inputPoints[ 1 ] + inputPoints[ 2 ] + inputPoints[ 3 ] ) / 4.0f;
-
 		// midpoints between corners
 		const vec3 midpoint13 = ( inputPoints[ 1 ] + inputPoints[ 3 ] ) / 2.0f;
 		const vec3 midpoint01 = ( inputPoints[ 0 ] + inputPoints[ 1 ] ) / 2.0f;
 		const vec3 midpoint23 = ( inputPoints[ 2 ] + inputPoints[ 3 ] ) / 2.0f;
 		const vec3 midpoint02 = ( inputPoints[ 0 ] + inputPoints[ 2 ] ) / 2.0f;
-
 		// recursive calls, next level of subdivision
 		subdivide( pointsVector, { midpoint01, inputPoints[ 1 ], center, midpoint13 }, minDisplacement );
 		subdivide( pointsVector, { inputPoints[ 0 ], midpoint01, midpoint02, center }, minDisplacement );
 		subdivide( pointsVector, { center, midpoint13, midpoint23, inputPoints[ 3 ] }, minDisplacement );
 		subdivide( pointsVector, { midpoint02, center, inputPoints[ 2 ], midpoint23 }, minDisplacement );
-
 	}
 }
 
@@ -255,9 +253,77 @@ void APIGeometryContainer::Initialize () {
 
 	// skirts
 		// shader, vao / vbo
-		// uses heightmap from the ground
 	{
+		std::vector< vec3 > world;
+		std::vector< vec3 > basePoints;
 
+		basePoints.resize( 4 );
+		basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
+		basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
+		basePoints[ 2 ] = vec3(  1.0, -1.0,  0.2f );
+		basePoints[ 3 ] = vec3(  1.0, -1.0, -0.5f );
+
+		// triangle 1 ABC
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		// triangle 2 BCD
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
+		basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
+		basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
+		basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
+
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		basePoints[ 0 ] = vec3(  1.0, -1.0,  0.2f );
+		basePoints[ 1 ] = vec3(  1.0, -1.0, -0.5f );
+		basePoints[ 2 ] = vec3(  1.0,  1.0,  0.2f );
+		basePoints[ 3 ] = vec3(  1.0,  1.0, -0.5f );
+
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		basePoints[ 0 ] = vec3(  1.0,  1.0,  0.2f );
+		basePoints[ 1 ] = vec3(  1.0,  1.0, -0.5f );
+		basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
+		basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
+
+		world.push_back( basePoints[ 0 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 2 ] );
+		world.push_back( basePoints[ 1 ] );
+		world.push_back( basePoints[ 3 ] );
+
+		GLuint vao, vbo;
+		glGenVertexArrays( 1, &vao );
+		glBindVertexArray( vao );
+		glGenBuffers( 1, &vbo );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo );
+		config.numPointsSkirts = world.size();
+		size_t numBytesPoints = sizeof( vec3 ) * config.numPointsSkirts;
+		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
+
+		resources.VAOs[ "Skirts" ] = vao;
+		resources.VBOs[ "Skirts" ] = vbo;
+
+		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Skirts" ], "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 	}
 
 	// spheres
@@ -356,6 +422,9 @@ void APIGeometryContainer::Shadow () {
 
 void APIGeometryContainer::Render () {
 
+	// matrix for the view transform
+	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ );
+
 	// ground
 	glBindVertexArray( resources.VAOs[ "Ground" ] );
 	glUseProgram( resources.shaders[ "Ground" ] );
@@ -367,13 +436,33 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "scale" ), config.scale );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "heightmap" ), 9 );
-	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Ground" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_TRIANGLES, 0, config.numPointsGround );
 
+	// spheres
+
+	// water
+
+	// skirts
+	glBindVertexArray( resources.VAOs[ "Skirts" ] );
+	glUseProgram( resources.shaders[ "Skirts" ] );
+	glEnable( GL_DEPTH_TEST );
+	glUniform3f( glGetUniformLocation( resources.shaders[ "Skirts" ], "groundColor" ), config.groundColor.x, config.groundColor.y, config.groundColor.z );
+	// glUniform1i( glGetUniformLocation( shader, "lightCount" ), numLights );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "heightScale" ), config.heightScale );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "AR" ), config.screenAR );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "scale" ), config.scale );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "heightmap" ), 9 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "waterHeight" ), 13 );
+	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Skirts" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glDrawArrays( GL_TRIANGLES, 0, config.numPointsSkirts );
 
 }
 
 void APIGeometryContainer::Update () {
+
+	// run the stuff to update the moving point locations
+	// run the stuff to update the light positions
 
 }
