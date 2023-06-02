@@ -23,6 +23,11 @@ public:
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 
+			// initial model orientation
+			trident.basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
+			trident.basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
+			trident.basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
+
 			// initialize the graphics api shit
 			data.Reset();
 
