@@ -1,30 +1,13 @@
 #include "../../engine/engine.h"
-#include "vertextureModels.h"
+#include "vertexture.h"
 
-class engineDemo : public engineBase {	// example derived class
+class Vertexture2 : public engineBase {
 public:
-	engineDemo ( vertextureConfig set ) : gameConfig( set ) { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
-
-	vertextureConfig gameConfig;
-
-	// size scalar
-	float scale = 0.4f;
-
-	// height scalar
-	float heightScale = 0.2f;
+	Vertexture2 () { Init(); OnInit(); PostInit(); }
+	~Vertexture2 () { Quit(); }
 
 	// application data
-	GroundModel * ground;
-	SkirtsModel * skirts;
-	SphereModel * sphere;
-	LightsModel * lights;
-	WaterModel * water;
-
-	// shadowmapping resources
-	orientTrident tridentDepth;
-	GLuint shadowmapFramebuffer = 0;
-	GLuint depthTexture;
+	APIGeometryContainer data;
 
 	// buffer locations are static, hardcoded so that we don't have to manage as much shit in the classes:
 
@@ -36,128 +19,12 @@ public:
 
 		// and the rest with the samplers and shit is going to be passed as uniforms
 
-	void InitModels () {
-	
-			// used for ground, spheres, skirts
-			palette::PickRandomPalette();
-
-
-			// generate heightmap
-				// RangeRemap( rangeRemapInputs_t ) to get it to [0..1]
-
-
-			// initialize game stuff
-			ground = new GroundModel( shaders[ "Ground" ] );
-			textures[ "Ground" ] = ground->heightmap;
-
-			skirts = new SkirtsModel( shaders[ "Skirts" ] );
-			skirts->groundColor = ground->groundColor;
-
-			lights = new LightsModel( shaders[ "Light Movement" ] );
-			lights->distanceDirectionMap = textures[ "Distance/Direction Map" ];
-			lights->heightmap = textures[ "Ground" ];
-
-			sphere = new SphereModel( shaders[ "Sphere" ], shaders[ "Moving Sphere" ], shaders[ "Sphere Movement" ], gameConfig.numTrees, lights->lightData );
-			sphere->steepness = textures[ "Steepness Map" ];
-			sphere->distanceDirection = textures[ "Distance/Direction Map" ];
-			sphere->mapUpdateShader = shaders[ "Sphere Map Update" ];
-			sphere->frameHeight = config.height;
-
-			water = new WaterModel( shaders[ "Water" ] );
-
-			// I think everybody needs this info
-			water->heightScale = sphere->heightScale = skirts->heightScale = ground->heightScale = lights->heightScale = heightScale;
-
-			// tbd which of these will actually need to know this information, but it'll be available till then
-			water->numLights = sphere->numLights = skirts->numLights = ground->numLights = lights->numLights;
-
-	}
-
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 
-			// default orientation
-			trident.basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
-			trident.basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
-			trident.basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
-
-
-			// something to put some basic data in the accumulator
-			shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
-			shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
-			shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
-			shaders[ "Sphere Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphere.cs.glsl" ).shaderHandle;
-			shaders[ "Light Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingLight.cs.glsl" ).shaderHandle;
-			shaders[ "Sphere Map Update" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphereMaps.cs.glsl" ).shaderHandle;
-			shaders[ "Moving Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/movingSphere.vs.glsl", "./src/projects/Vertexture/shaders/movingSphere.fs.glsl" ).shaderHandle;
-			shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
-			shaders[ "Skirts" ] = regularShader( "./src/projects/Vertexture/shaders/skirts.vs.glsl", "./src/projects/Vertexture/shaders/skirts.fs.glsl" ).shaderHandle;
-
-			GLuint steepness, distanceDirection;
-			Image_4U steepnessTex( 512, 512 );
-
-			glGenTextures( 1, &steepness );
-			glActiveTexture( GL_TEXTURE14 );
-			glBindTexture( GL_TEXTURE_2D, steepness );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-			textures[ "Steepness Map" ] = steepness;
-
-			glGenTextures( 1, &distanceDirection );
-			glActiveTexture( GL_TEXTURE15 );
-			glBindTexture( GL_TEXTURE_2D, distanceDirection );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-			textures[ "Distance/Direction Map" ] = distanceDirection;
-
-			// =================================================================================================
-
-			// shadowmapping resources:
-			//	http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/#rendering-the-shadow-map
-			//	https://ogldev.org/www/tutorial23/tutorial23.html
-
-			// create the shadowmap resources
-
-			/*
-			GLuint shadowmapFramebuffer = 0;
-			glGenFramebuffers( 1, &shadowmapFramebuffer );
-			glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
-
-			// Depth texture - slower than a depth buffer, but you can sample it later in your shader
-			glGenTextures( 1, &depthTexture );
-			glBindTexture( GL_TEXTURE_2D, depthTexture );
-			glTexImage2D( GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0 );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0 );
-			glDrawBuffer( GL_NONE ); // No color buffer is drawn to.
-
-			if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) {
-				cout << "framebuffer creation failed" << endl; abort();
-			}
-
-			// revert to default framebuffer
-			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-
-				// I think eventually it's going to make more sense to just rewrite things to manage both
-				// color and depth targets, so that we have more explicit state management. I'm not sure
-				// what was causing the state leakage issue I was seeing but I have other things I want to
-				// mess with instead.
-
-				// And maybe that's something I'll want to carry forwards in the future - there is a number
-				// of cool aspects there, you know, you can access that color data and do whatever postprocessing
-				// that you want - also opens up deferred shading, which may be significant for this case
-				// where you are writing depth for these primitives - keeping normals and depth to reconstruct
-				// the world position, we can do whatever lighting on that flat target, and avoid having to
-				// potentially shade the occluded fragments.. I'm not clear on if the current impl will have to
-
-			*/
-
-			// =================================================================================================
-
-			InitModels();
+			// initialize the graphics api shit
+			data.Reset();
 
 		}
 	}
@@ -167,11 +34,11 @@ public:
 		// application specific controls
 
 		const uint8_t *state = SDL_GetKeyboardState( NULL );
-		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { scale /= 0.99f; }
-		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { scale *= 0.99f; }
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { data.config.scale /= 0.99f; }
+		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { data.config.scale *= 0.99f; }
 
 		if ( state[ SDL_SCANCODE_R ] ) {
-			InitModels();
+			data.Reset(); SDL_Delay( 40 ); // debounce
 		}
 
 	}
@@ -195,51 +62,15 @@ public:
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 
-		ImGuiIO &io = ImGui::GetIO();
-		const float width = io.DisplaySize.x;
-		const float height = io.DisplaySize.y;
-		// screen aspect ratio
-		skirts->screenAR = water->screenAR = sphere->screenAR = ground->screenAR = width / height;
-
-		// scale adjustment
-		skirts->scale = water->scale = sphere->scale = ground->scale = scale;
-
-		// display model transform
-		skirts->tridentM = water->tridentM = sphere->tridentM = ground->tridentM = lights->tridentM = glm::mat3(
-			trident.basisX,
-			trident.basisY,
-			trident.basisZ
-		);
-
-		// shadowmap model transform
-		skirts->tridentD = water->tridentD = sphere->tridentD = ground->tridentD = glm::mat3(
-			tridentDepth.basisX,
-			tridentDepth.basisY,
-			tridentDepth.basisZ
-		);
-
-		// // prepare to render the shadowmap depth
-		// glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
-		// glClear( GL_DEPTH_BUFFER_BIT );
-
-		// // get shadow depth
-		// ground->ShadowDisplay();
-		// sphere->ShadowDisplay();
-		// water->ShadowDisplay();
-		// skirts->ShadowDisplay();
-
-		// revert to default framebuffer
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		glClear( GL_DEPTH_BUFFER_BIT );
+		// ImGuiIO &io = ImGui::GetIO();
+		// const float width = io.DisplaySize.x;
+		// const float height = io.DisplaySize.y;
 
 		// TODO: consider setting near and far clip planes based on current scale
 			// currently, zoomed in, we run into a lot of clipping issues
 
 		// draw the output
-		ground->Display();
-		sphere->Display();
-		water->Display();
-		skirts->Display();
+		data.Render();
 	}
 
 	void ComputePasses () {
@@ -248,10 +79,13 @@ public:
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Background" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Background" ] );
+			glUseProgram( data.resources.shaders[ "Background" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
+
+		// do the deferred update here
+			// use the drawing bindset - I think this should go pretty smoothly once I have the Gbuffer
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
@@ -278,13 +112,9 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
+
 		// application-specific update code
-		static int counter = 0;
-		counter++;
-		// ground->Update( counter );
-		// skirts->Update( counter );
-		sphere->Update( counter );
-		// water->Update( counter );
+		data.Update();
 	}
 
 	void OnRender () {
@@ -320,19 +150,19 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	vertextureConfig config;
-	if ( argc == 5 ) {
-		// cout << argv[0] << endl; // name of application
-		config.numGoodGuys	= atoi( argv[ 1 ] );
-		config.numBadGuys	= atoi( argv[ 2 ] );
-		config.numTrees		= atoi( argv[ 3 ] );
-		config.numBoxes		= atoi( argv[ 4 ] );
-	} else {
-		cout << "Incorrect # of command line args" << endl;
-		cout << "  Game parameters defaulting" << endl;
-	}
+	// vertextureConfig config;
+	// if ( argc == 5 ) {
+	// 	// cout << argv[0] << endl; // name of application
+	// 	config.numGoodGuys	= atoi( argv[ 1 ] );
+	// 	config.numBadGuys	= atoi( argv[ 2 ] );
+	// 	config.numTrees		= atoi( argv[ 3 ] );
+	// 	config.numBoxes		= atoi( argv[ 4 ] );
+	// } else {
+	// 	cout << "Incorrect # of command line args" << endl;
+	// 	cout << "  Game parameters defaulting" << endl;
+	// }
 
-	engineDemo engineInstance ( config );
+	Vertexture2 engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }

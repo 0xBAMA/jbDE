@@ -35,5 +35,31 @@
 		"tonemapMode":6,
 		"gamma":1.337,
 		"colorTemp":6640.0
+	},
+	"app":{
+		"Vertexture":{
+			"Guys":100,
+			"Trees":10,
+			"Rocks":10,
+			"GroundCover":100,
+			"InitialScale":1.0,
+			"InitialHeightScale":0.2,
+			"ShowLightDebugLocations":false,
+			"basisX":{
+				"x":0.610246,
+				"y":0.454481,
+				"z":0.648863
+			},
+			"basisY":{
+				"x":0.791732,
+				"y":-0.321969,
+				"z":-0.519100
+			},
+			"basisZ":{
+				"x":-0.027008,
+				"y":0.830518,
+				"z":-0.556314
+			}
+		}
 	}
 }

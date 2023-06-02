@@ -63,7 +63,7 @@ public:
 	glm::vec3 basisZ;
 
 	// want something to set this from the application settings
-	int modeSelect = 1;
+	int modeSelect = 0; // 0 is the menger sponge, 1 is the ball
 
 	glm::ivec2 basePt;
 
