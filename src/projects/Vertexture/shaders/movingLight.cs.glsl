@@ -1,5 +1,5 @@
 #version 430
-layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
+layout( local_size_x = 16, local_size_y = 1, local_size_z = 1 ) in;
 
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba32f ) uniform image2D steepnessTex;    // steepness texture for scaling movement speed
@@ -15,7 +15,6 @@ layout( binding = 4, std430 ) buffer movingLightState {
 	light_t lightData[];
 };
 
-uniform int dimension;
 uniform int inSeed;
 uniform float time;
 
@@ -49,23 +48,23 @@ vec2 randomInUnitDisk () {
 }
 
 void main () {
-	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
-	const ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.618f ) / ( 2.0f * 1.618f ) ) * vec2( 512.0f ) );
-	const vec4 steepnessRead = imageLoad( steepnessTex, loc );
-	const vec4 distDirRead = imageLoad( distanceDirTex, loc );
+	const uint index = gl_GlobalInvocationID.x;
+	const ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
+	// const vec4 steepnessRead = imageLoad( steepnessTex, loc );
+	// const vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
 	seed = index + uint( inSeed ); // initialize the rng state to use the std::random uniformly generated value passed in
 
-	if ( distDirRead.z <= 0.0f ) {
-		lightData[ index ].position.xy += distDirRead.xy * 0.02f;
-	}
+	// if ( distDirRead.z <= 0.0f ) {
+		// lightData[ index ].position.xy += distDirRead.xy * 0.02f;
+	// }
 
-	lightData[ index ].position.xy = lightData[ index ].position.xy + normalize( randomInUnitDisk() ) * 0.002f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
-	lightData[ index ].position.z = 0.05 * sin( time * 10.0f + lightData[ index ].color.a ) + 0.06f;
+	lightData[ index ].position.xy = lightData[ index ].position.xy + lightData[ 0 ].color.xy * 0.01f;
+	// lightData[ index ].position.z = 0.2f * sin( time + lightData[ index ].color.a ) + 0.21f;
 
 	// wrap
-	if ( lightData[ index ].position.x > 1.618f ) lightData[ index ].position.x -= 2.0f * 1.618f;
-	if ( lightData[ index ].position.x < -1.618f ) lightData[ index ].position.x += 2.0f * 1.618f;
-	if ( lightData[ index ].position.y > 1.618f ) lightData[ index ].position.y -= 2.0f * 1.618f;
-	if ( lightData[ index ].position.y < -1.618f ) lightData[ index ].position.y += 2.0f * 1.618f;
+	if ( lightData[ index ].position.x > 1.0f ) lightData[ index ].position.x -= 2.0f;
+	if ( lightData[ index ].position.x < -1.0f ) lightData[ index ].position.x += 2.0f;
+	if ( lightData[ index ].position.y > 1.0f ) lightData[ index ].position.y -= 2.0f;
+	if ( lightData[ index ].position.y < -1.0f ) lightData[ index ].position.y += 2.0f;
 }

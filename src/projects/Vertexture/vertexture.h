@@ -12,7 +12,7 @@ struct vertextureConfig {
 	int Trees = 10;
 	int Rocks = 10;
 	int GroundCover = 100;
-	int Lights = 16;
+	int Lights = 64;
 
 	// timekeeping since last reset
 	float timeVal = 0.0f;
@@ -22,6 +22,10 @@ struct vertextureConfig {
 	float heightScale = 0.2f;
 	bool showLightDebugLocations = false;
 	vec3 groundColor = vec3( 0.0f );
+
+	// output settings
+	bool showTiming = false;
+	bool showTrident = false;
 
 	std::vector< vec3 > obstacles; // x,y location, then radius
 
@@ -137,11 +141,14 @@ struct APIGeometryContainer {
 	void Terminate ();	// delete resources
 
 	// main loop functions
+	void Update ();	// run the movement compute shaders
 	void Shadow ();	// update the shadowmap(s)
 	void Render ();	// update the Gbuffer
-	void Update ();	// run the movement compute shaders
 
 		// TODO: function to composite the deferred data + light calcs into the VSRA accumulator
+
+	// ImGui manipulation of program state
+	void ControlWindow ();
 
 	// application data + state
 	vertextureConfig config;
@@ -157,11 +164,15 @@ void APIGeometryContainer::LoadConfig () {
 	config.Guys			= j[ "app" ][ "Vertexture" ][ "Guys" ];
 	config.Trees		= j[ "app" ][ "Vertexture" ][ "Trees" ];
 	config.Rocks		= j[ "app" ][ "Vertexture" ][ "Rocks" ];
+	config.Lights		= j[ "app" ][ "Vertexture" ][ "Lights" ];
 	config.GroundCover	= j[ "app" ][ "Vertexture" ][ "GroundCover" ];
 	config.showLightDebugLocations = j[ "app" ][ "Vertexture" ][ "ShowLightDebugLocations" ];
-		// ...
-	
+
+		// todo: write out the rest of the parameterization ( point sizes, counts, other distributions... )
+
 	// other program state
+	config.showTrident	= j[ "app" ][ "Vertexture" ][ "showTrident" ];
+	config.showTiming	= j[ "app" ][ "Vertexture" ][ "showTiming" ];
 	config.scale		= j[ "app" ][ "Vertexture" ][ "InitialScale" ];
 	config.heightScale	= j[ "app" ][ "Vertexture" ][ "InitialHeightScale" ];
 	config.basisX		= vec3( j[ "app" ][ "Vertexture" ][ "basisX" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "z" ] );
@@ -221,7 +232,7 @@ void APIGeometryContainer::Initialize () {
 		rng location( -1.0f, 1.0f );
 		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.01f, 0.2f );
+		rng brightness( 0.01f, 0.026f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -399,9 +410,9 @@ void APIGeometryContainer::Initialize () {
 		}
 
 		rngN trunkJitter( 0.0f, 0.006f );
-		rng trunkSizes( 2.75f, 10.36f );
+		rng trunkSizes( 1.75f, 6.36f );
 		rng basePtPlace( -0.75f, 0.75f );
-		rng leafSizes( 4.27f, 18.6f );
+		rng leafSizes( 2.27f, 14.6f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( int i = 0; i < config.Trees; i++ ) { // trees
 			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
@@ -427,7 +438,7 @@ void APIGeometryContainer::Initialize () {
 
 		rngN rockGen( 0.0f, 0.037f );
 		rngN rockHGen( 0.06f, 0.037f );
-		rngN rockSize( 3.86f, 10.0f );
+		rngN rockSize( 3.86f, 6.0f );
 		for ( int i = 0; i < config.Rocks; i++ ) {
 			vec2 basePt = vec2( basePtPlace(), basePtPlace() );
 			config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
@@ -583,6 +594,8 @@ void APIGeometryContainer::Initialize () {
 		resources.VBOs[ "Water" ] = vbo;
 	}
 
+	// todo: deferred pass resources
+
 }
 
 void APIGeometryContainer::InitReport () {
@@ -669,8 +682,8 @@ void APIGeometryContainer::Shadow () {
 
 void APIGeometryContainer::Render () {
 
-	// matrix for the view transform
-	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ );
+	// then the regular view of the geometry
+	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 
 	// ground
 	glBindVertexArray( resources.VAOs[ "Ground" ] );
@@ -774,7 +787,22 @@ void APIGeometryContainer::Update () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
 	glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
 
-	// run the stuff to update the light positions
-		// todo
+	// run the stuff to update the light positions - this needs more work
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	glUseProgram( resources.shaders[ "Light Movement" ] );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Light Movement" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Light Movement" ], "inSeed" ), gen() );
+	glDispatchCompute( config.Lights / 16, 1, 1 ); // dispatch the compute shader to update ssbo
 
+}
+
+void APIGeometryContainer::ControlWindow () {
+	ImGui::Begin( "Controls Window", NULL, 0 );
+
+	ImGui::Checkbox( "Show Timing", &config.showTiming );
+	ImGui::Checkbox( "Show Trident", &config.showTrident );
+
+	// etc
+
+	ImGui::End();
 }

@@ -51,8 +51,9 @@ public:
 	void ImguiPass () {
 		ZoneScoped;
 
-		// imgui control panel is going to be a big upgrade
-			// also provides a place to show the eventReports
+		data.ControlWindow();
+
+		// something to show log events? tbd, that part of vertexture didn't really carry over, we'll see
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
@@ -89,8 +90,11 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// do the deferred update here
-			// use the drawing bindset - I think this should go pretty smoothly once I have the Gbuffer
+		// todo: do the deferred update here
+		{	// use the drawing bindset - I think this should go pretty smoothly once I have the Gbuffer
+			scopedTimer Start( "Deferred Pass" );
+
+		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
@@ -103,15 +107,19 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
-			textRenderer.Update( ImGui::GetIO().DeltaTime );
-			textRenderer.Draw( textures[ "Display Texture" ] );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			if ( data.config.showTiming ) {
+				textRenderer.Update( ImGui::GetIO().DeltaTime );
+				textRenderer.Draw( textures[ "Display Texture" ] );
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
 		}
 
 		{ // show trident with current orientation
 			scopedTimer Start( "Trident" );
-			trident.Update( textures[ "Display Texture" ] );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			if ( data.config.showTrident ) {
+				trident.Update( textures[ "Display Texture" ] );
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
 		}
 	}
 

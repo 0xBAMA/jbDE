@@ -38,6 +38,9 @@
 	},
 	"app":{
 		"Vertexture":{
+			"showTrident":false,
+			"showTiming":false,
+			"Lights":32,
 			"Guys":256,
 			"Trees":11,
 			"Rocks":7,
