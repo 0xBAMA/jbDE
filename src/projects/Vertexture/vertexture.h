@@ -21,6 +21,7 @@ struct vertextureConfig {
 	float scale = 0.4f;
 	float heightScale = 0.2f;
 	bool showLightDebugLocations = false;
+	vec3 groundColor = vec3( 0.0f );
 
 	// TODO: add some more stuff on this, to parameterize further - point sizes etc
 		// also load from json file, for ability to hot reload
@@ -28,12 +29,8 @@ struct vertextureConfig {
 			// also do the shaders etc, so we have hot update on that
 
 	// static / dynamic point counts, updated and reported during init
-	int groundStaticPointsCount = 0;
-	int waterStaticPointsCount = 0;
-	int skirtsStaticPointsCount = 0;
-	int pointsStaticPointsCount = 0;
-	int pointsDynamicPointsCount = 0;
-		// ...
+	int numPointsGround = 0;
+
 
 	// default orientation
 	vec3 basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
@@ -43,6 +40,7 @@ struct vertextureConfig {
 	// for computing screen AR, from config.json
 	uint32_t width = 640;
 	uint32_t height = 350;
+	float screenAR = ( float ) width / ( float ) height;
 
 };
 
@@ -158,6 +156,10 @@ void APIGeometryContainer::LoadConfig () {
 	// pull from j["app"]["Vertexture"][...]
 		// this informs the behavior of Initialize()
 
+	// ...
+
+	// update AR with current value of screen dims
+	config.screenAR = ( float ) config.width / ( float ) config.height;
 
 }
 
@@ -194,29 +196,86 @@ void APIGeometryContainer::Initialize () {
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
 	resources.textures[ "Distance/Direction Map" ] = distanceDirection;
 
-	// pick a first palette
-		// lights
+	// pick a first palette ( lights )
+	palette::PickRandomPalette();
+
+		// randomly positioned + colored lights
 			// ssbo, shader for movement
 
-	// pick a second palette
-		// ground
-			// shader, vao / vbo
-			// heightmap texture
+	// pick a second palette ( ground, skirts, spheres )
+	palette::PickRandomPalette();
 
-		// skirts
-			// shader, vao / vbo
-			// uses heightmap from above
+	// ground
+		// shader, vao / vbo
+		// heightmap texture
+	{
+		std::vector< vec3 > world;
+		std::vector< vec3 > basePoints;
 
-		// spheres
-			// sphere heightmap texture
-				// try the math version, see if that's faster? from the nvidia paper
-			// shader + vertex buffer of the static points
-				// optionally include the debug spheres for the light positions
-			// shader + ssbo buffer of the dynamic points
+		basePoints.resize( 4 );
+		basePoints[ 0 ] = vec3( -1.0f, -1.0f, 0.0f );
+		basePoints[ 1 ] = vec3( -1.0f,  1.0f, 0.0f );
+		basePoints[ 2 ] = vec3(  1.0f, -1.0f, 0.0f );
+		basePoints[ 3 ] = vec3(  1.0f,  1.0f, 0.0f );
+		subdivide( world, basePoints );
 
-		// water
-			// shader, vao / vbo
-			// 3x textures
+		GLuint vao, vbo, heightmap;
+		glGenVertexArrays( 1, &vao );
+		glBindVertexArray( vao );
+		glGenBuffers( 1, &vbo );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo );
+		config.numPointsGround = world.size();
+		size_t numBytesPoints = sizeof( vec3 ) * config.numPointsGround;
+		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
+
+		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Ground" ], "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
+
+		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
+		Image_4U heightmapImage( "./src/projects/Vertexture/textures/rock_height.png" );
+		glGenTextures( 1, &heightmap );
+		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
+		glBindTexture( GL_TEXTURE_2D, heightmap );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, heightmapImage.Width(), heightmapImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+
+		resources.VAOs[ "Ground" ] = vao;
+		resources.VBOs[ "Ground" ] = vbo;
+		resources.textures[ "Heightmap" ] = heightmap;
+
+		rng gen( 0.0f, 1.0f ); // this can probably be tuned better
+		config.groundColor = palette::paletteRef( gen() + 0.5f, palette::type::paletteIndexed_interpolated );
+	}
+
+	// skirts
+		// shader, vao / vbo
+		// uses heightmap from the ground
+	{
+
+	}
+
+	// spheres
+		// sphere heightmap texture
+			// try the math version, see if that's faster? from the nvidia paper
+		// shader + vertex buffer of the static points
+			// optionally include the debug spheres for the light positions
+		// shader + ssbo buffer of the dynamic points
+	{
+
+	}
+
+	// water
+		// shader, vao / vbo
+		// 3x textures
+	{
+
+	}
 
 }
 
@@ -296,6 +355,22 @@ void APIGeometryContainer::Shadow () {
 }
 
 void APIGeometryContainer::Render () {
+
+	// ground
+	glBindVertexArray( resources.VAOs[ "Ground" ] );
+	glUseProgram( resources.shaders[ "Ground" ] );
+	glEnable( GL_DEPTH_TEST );
+	glUniform3f( glGetUniformLocation( resources.shaders[ "Ground" ], "groundColor" ), config.groundColor.x, config.groundColor.y, config.groundColor.z );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "heightScale" ), config.heightScale );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "lightCount" ), config.Lights );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "AR" ), config.screenAR );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "scale" ), config.scale );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "heightmap" ), 9 );
+	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ );
+	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Ground" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glDrawArrays( GL_TRIANGLES, 0, config.numPointsGround );
+
 
 }
 

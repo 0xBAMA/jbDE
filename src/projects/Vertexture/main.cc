@@ -113,6 +113,11 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
+		// main view transform
+		data.config.basisX = trident.basisX;
+		data.config.basisY = trident.basisY;
+		data.config.basisZ = trident.basisZ;
+
 		// application-specific update code
 		data.Update();
 	}
