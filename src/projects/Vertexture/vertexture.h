@@ -23,6 +23,8 @@ struct vertextureConfig {
 	bool showLightDebugLocations = false;
 	vec3 groundColor = vec3( 0.0f );
 
+	std::vector< vec3 > obstacles; // x,y location, then radius
+
 	// TODO: add some more stuff on this, to parameterize further - point sizes etc
 		// also load from json file, for ability to hot reload
 		//  e.g. R to regenerate reads from config file on disk, with all current edits ( don't have to recompile )
@@ -32,6 +34,7 @@ struct vertextureConfig {
 	int numPointsGround = 0;
 	int numPointsSkirts = 0;
 	int numPointsSpheres = 0;
+	int numPointsDebugSpheres = 0;
 	int numPointsMovingSpheres = 0;
 	int numPointsWater = 0;
 
@@ -151,14 +154,25 @@ void APIGeometryContainer::LoadConfig () {
 	// load the config from disk
 	json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 
-	// pull from j["app"]["Vertexture"][...]
-		// this informs the behavior of Initialize()
-
-	// ...
+	// this informs the behavior of Initialize()
+	config.Guys			= j[ "app" ][ "Vertexture" ][ "Guys" ];
+	config.Trees		= j[ "app" ][ "Vertexture" ][ "Trees" ];
+	config.Rocks		= j[ "app" ][ "Vertexture" ][ "Rocks" ];
+	config.GroundCover	= j[ "app" ][ "Vertexture" ][ "GroundCover" ];
+	config.showLightDebugLocations = j[ "app" ][ "Vertexture" ][ "ShowLightDebugLocations" ];
+		// ...
+	
+	// other program state
+	config.scale		= j[ "app" ][ "Vertexture" ][ "InitialScale" ];
+	config.heightScale	= j[ "app" ][ "Vertexture" ][ "InitialHeightScale" ];
+	config.basisX		= vec3( j[ "app" ][ "Vertexture" ][ "basisX" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "z" ] );
+	config.basisY		= vec3( j[ "app" ][ "Vertexture" ][ "basisY" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "z" ] );
+	config.basisZ		= vec3( j[ "app" ][ "Vertexture" ][ "basisZ" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "z" ] );
 
 	// update AR with current value of screen dims
+	config.width = j[ "screenWidth" ];
+	config.height = j[ "screenHeight" ];
 	config.screenAR = ( float ) config.width / ( float ) config.height;
-
 }
 
 void APIGeometryContainer::Initialize () {
@@ -367,7 +381,131 @@ void APIGeometryContainer::Initialize () {
 			// optionally include the debug spheres for the light positions
 		// shader + ssbo buffer of the dynamic points
 	{
+		std::vector< vec4 > points;
+		std::vector< vec4 > colors;
 
+		// these should come from the config
+		rng gen( 0.185f, 0.74f );
+		rng genH( 0.0f, 0.04f );
+		rng genP( 1.85f, 3.7f );
+		rng genD( -1.0f, 1.0f );
+		rngi flip( -1, 1 );
+		rng gen_normalize( 0.01f, 40.0f );
+		for ( int i = 0; i < config.GroundCover; i++ ) { // ground cover
+			points.push_back( vec4( genD(), genD(), genH(), genP() ) );
+			colors.push_back( vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+		}
+
+		rngN trunkJitter( 0.0f, 0.006f );
+		rng trunkSizes( 2.75f, 10.36f );
+		rng basePtPlace( -0.75f, 0.75f );
+		rng leafSizes( 4.27f, 18.6f );
+		rngN foliagePlace( 0.0f, 0.1618f );
+		for ( int i = 0; i < config.Trees; i++ ) { // trees
+			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
+			vec2 basePt = basePtOrig;
+			float constrict = 1.618f;
+			float scalar = gen();
+
+			config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
+			for ( float t = 0; t < scalar; t += 0.002f ) {
+				basePt.x += trunkJitter() * 0.5f;
+				basePt.y += trunkJitter() * 0.5f;
+				constrict *= 0.999f;
+				points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
+				colors.push_back( vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
+			}
+			for ( int j = 0; j < 1000; j++ ) {
+				rngN foliagePlace( 0.0f, 0.1f );
+				rngN foliageHeightGen( scalar, 0.05f );
+				points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
+				colors.push_back( vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
+			}
+		}
+
+		rngN rockGen( 0.0f, 0.037f );
+		rngN rockHGen( 0.06f, 0.037f );
+		rngN rockSize( 3.86f, 10.0f );
+		for ( int i = 0; i < config.Rocks; i++ ) {
+			vec2 basePt = vec2( basePtPlace(), basePtPlace() );
+			config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
+			for ( int l = 0; l < 1000; l++ ) {
+				points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
+				colors.push_back( vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
+			}
+		}
+
+		// debug spheres for the lights
+		if ( config.showLightDebugLocations == true ) {
+			for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
+				const size_t basePt = 8 * i;
+
+				vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 50.0f );
+				// vec4 color = vec4( lights[ basePt + 4 ], lights[ basePt + 5 ], lights[ basePt + 6 ], 1.0f );
+				vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
+
+				points.push_back( position );
+				colors.push_back( color );
+			}
+		}
+
+		GLuint vao, vbo;
+		glGenVertexArrays( 1, &vao );
+		glBindVertexArray( vao );
+		glGenBuffers( 1, &vbo );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo );
+		config.numPointsSpheres = points.size();
+		size_t numBytesPoints = sizeof( vec4 ) * config.numPointsSpheres;
+		size_t numBytesColors = sizeof( vec4 ) * config.numPointsSpheres;
+		glBufferData( GL_ARRAY_BUFFER, numBytesPoints + numBytesColors, NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
+		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
+
+		// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
+			// the texture for the height, and then they
+
+		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Sphere" ], "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
+		GLuint vColor = glGetAttribLocation( resources.shaders[ "Sphere" ], "vColor" );
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
+
+		std::vector< vec4 > ssboPoints;
+		int dynamicPointCount = 0;
+		rng size( 4.5f, 9.0f );
+		rng phase( 0.0f, pi * 2.0f );
+		for ( int x = 0; x < config.Guys; x++ ) {
+			for ( int y = 0; y < config.Guys; y++ ) {
+				ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * genH(), size() ) );
+				ssboPoints.push_back( vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
+				dynamicPointCount++;
+			}
+		}
+		config.numPointsMovingSpheres = dynamicPointCount;
+
+		GLuint ssbo;
+		glGenBuffers( 1, &ssbo );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * dynamicPointCount, (GLvoid*) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
+
+		GLuint sphereImage;
+		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
+		glGenTextures( 1, &sphereImage );
+		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
+		glBindTexture( GL_TEXTURE_2D, sphereImage );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+
+		resources.textures[ "Sphere Image" ] = sphereImage;
+		resources.SSBOs[ "Moving Spheres" ] = ssbo;
+		resources.VAOs[ "Sphere" ] = vao;
+		resources.VBOs[ "Sphere" ] = vbo;
 	}
 
 	// water
@@ -543,6 +681,38 @@ void APIGeometryContainer::Render () {
 	glDrawArrays( GL_TRIANGLES, 0, config.numPointsGround );
 
 	// spheres
+	glBindVertexArray( resources.VAOs[ "Sphere" ] );
+	glUseProgram( resources.shaders[ "Sphere" ] );
+	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_PROGRAM_POINT_SIZE );
+	glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT );
+
+	// static points
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightScale" ), config.heightScale );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "lightCount" ), config.Lights );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "AR" ), config.screenAR );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "frameHeight" ), config.height );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightmap" ), 9 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "sphere" ), 10 );
+	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glDrawArrays( GL_POINTS, 0, config.numPointsSpheres );
+
+	// dynamic points
+	glUseProgram( resources.shaders[ "Moving Sphere" ] );
+	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightScale" ), config.heightScale );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "lightCount" ), config.Lights );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "AR" ), config.screenAR );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameHeight" ), config.height );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "scale" ), config.scale );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightmap" ), 9 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "sphere" ), 10 );
+	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glDrawArrays( GL_POINTS, 0, config.numPointsMovingSpheres );
 
 	// water
 	glBindVertexArray( resources.VAOs[ "Water" ] );
@@ -579,6 +749,26 @@ void APIGeometryContainer::Render () {
 void APIGeometryContainer::Update () {
 
 	// run the stuff to update the moving point locations
+	rngi gen( 0, 100000 );
+	glUseProgram( resources.shaders[ "Sphere Map Update" ] );
+	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), gen() );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
+	glUniform3fv( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "obstacles" ), config.obstacles.size(), glm::value_ptr( config.obstacles[ 0 ] ) );
+	glDispatchCompute( 512 / 16, 512 / 16, 1 );
+
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	glUseProgram( resources.shaders[ "Sphere Movement" ] );
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, resources.SSBOs[ "Moving Sphere" ] );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Moving Sphere" ] );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), gen() );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
+	glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
+
 	// run the stuff to update the light positions
+		// todo
 
 }

@@ -392,7 +392,7 @@ struct SphereModel {
 		rng gen( 0.185f, 0.74f );
 		rng genH( 0.0f, 0.04f );
 		rng genP( 1.85f, 3.7f );
-		rng genD( -globalScale, globalScale );
+		rng genD( -1.0f, 1.0f );
 		rngi flip( -1, 1 );
 
 		rng gen_normalize( 0.01f, 40.0f );
@@ -408,7 +408,7 @@ struct SphereModel {
 
 		rngN trunkJitter( 0.0f, 0.006f );
 		rng trunkSizes( 2.75f, 10.36f );
-		rng basePtPlace( -globalScale * 0.75f, globalScale * 0.75f );
+		rng basePtPlace( -1.0f * 0.75f, 1.0f * 0.75f );
 		rng leafSizes( 4.27f, 18.6f );
 		rngN foliagePlace( 0.0f, 0.1618f );
 		for ( unsigned int i = 0; i < numTrees; i++ ) {
