@@ -49,9 +49,9 @@ vec2 randomInUnitDisk () {
 
 void main () {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
-	ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
-	vec4 steepnessRead = imageLoad( steepnessTex, loc );
-	vec4 distDirRead = imageLoad( distanceDirTex, loc );
+	const ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
+	const vec4 steepnessRead = imageLoad( steepnessTex, loc );
+	const vec4 distDirRead = imageLoad( distanceDirTex, loc );
 
 	seed = index + uint( inSeed );
 
