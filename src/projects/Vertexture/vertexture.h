@@ -34,7 +34,6 @@ struct vertextureConfig {
 	int numPointsGround = 0;
 	int numPointsSkirts = 0;
 	int numPointsSpheres = 0;
-	int numPointsDebugSpheres = 0;
 	int numPointsMovingSpheres = 0;
 	int numPointsWater = 0;
 
@@ -244,7 +243,7 @@ void APIGeometryContainer::Initialize () {
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * config.Lights, ( GLvoid * ) &lightData[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, ssbo );
-		
+
 		resources.SSBOs[ "Lights" ] = ssbo;
 	}
 
@@ -487,7 +486,7 @@ void APIGeometryContainer::Initialize () {
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * dynamicPointCount, (GLvoid*) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * dynamicPointCount, ( GLvoid * ) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
 		GLuint sphereImage;
@@ -503,7 +502,7 @@ void APIGeometryContainer::Initialize () {
 		glGenerateMipmap( GL_TEXTURE_2D );
 
 		resources.textures[ "Sphere Image" ] = sphereImage;
-		resources.SSBOs[ "Moving Spheres" ] = ssbo;
+		resources.SSBOs[ "Moving Sphere" ] = ssbo;
 		resources.VAOs[ "Sphere" ] = vao;
 		resources.VBOs[ "Sphere" ] = vbo;
 	}
@@ -516,7 +515,6 @@ void APIGeometryContainer::Initialize () {
 		std::vector< vec3 > basePoints;
 
 		basePoints.resize( 4 );
-
 		basePoints[ 0 ] = vec3( -1.0f, -1.0f, 0.01f );
 		basePoints[ 1 ] = vec3( -1.0f,  1.0f, 0.01f );
 		basePoints[ 2 ] = vec3(  1.0f, -1.0f, 0.01f );
@@ -585,9 +583,14 @@ void APIGeometryContainer::Initialize () {
 }
 
 void APIGeometryContainer::InitReport () {
-
 	// tell the stats for the current run of the program
-
+	cout << "\nVertexture2 Init Complete:\n";
+	cout << "Point Totals:\n";
+	cout << "\tGround:\t" << config.numPointsGround << newline;
+	cout << "\tSkirts:\t" << config.numPointsSkirts << newline;
+	cout << "\tSpheres:\t" << config.numPointsSpheres << newline;
+	cout << "\tMoving Spheres:\t" << config.numPointsMovingSpheres << newline;
+	cout << "\tWater:\t" << config.numPointsWater << newline << newline;
 }
 
 void APIGeometryContainer::Terminate () {

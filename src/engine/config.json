@@ -39,10 +39,10 @@
 	"app":{
 		"Vertexture":{
 			"Guys":256,
-			"Trees":10,
-			"Rocks":10,
-			"GroundCover":5000,
-			"InitialScale":1.0,
+			"Trees":11,
+			"Rocks":7,
+			"GroundCover":7000,
+			"InitialScale":0.6,
 			"InitialHeightScale":0.2,
 			"ShowLightDebugLocations":false,
 			"basisX":{

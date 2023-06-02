@@ -43,7 +43,7 @@ public:
 		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { data.config.scale *= 0.99f; }
 
 		if ( state[ SDL_SCANCODE_R ] ) {
-			data.Reset(); SDL_Delay( 40 ); // debounce
+			data.Reset(); // SDL_Delay( 40 ); // debounce
 		}
 
 	}
