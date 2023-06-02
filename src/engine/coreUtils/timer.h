@@ -94,7 +94,7 @@ public:
 		const float wholeMS = int( std::floor( timeInMS ) );
 		const float partialMS = int( ( timeInMS - wholeMS ) * 1000.0f );
 		cout << T_GREEN << "done." << T_RED << " ( " << std::setfill( ' ' ) << std::setw( 6 ) << wholeMS << "."
-			<< std::setw( 3 ) << std::setfill( '0' ) << partialMS << " )" << RESET << newline;
+			<< std::setw( 3 ) << std::setfill( '0' ) << partialMS << " ms )" << RESET << newline;
 	}
 };
 
