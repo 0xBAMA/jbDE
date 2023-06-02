@@ -197,8 +197,42 @@ void APIGeometryContainer::Initialize () {
 	// pick a first palette ( lights )
 	palette::PickRandomPalette();
 
-		// randomly positioned + colored lights
-			// ssbo, shader for movement
+	// randomly positioned + colored lights
+		// ssbo, shader for movement
+	std::vector< GLfloat > lightData;
+	{
+		GLuint ssbo;
+		rng location( -1.0f, 1.0f );
+		rng zDistrib( 0.2f, 0.6f );
+		rng colorPick( 0.6f, 0.8f );
+		rng brightness( 0.01f, 0.2f );
+
+		for ( int x = 0; x < config.Lights; x++ ) {
+		// need to figure out what the buffer needs to hold
+			// position ( vec3 + some extra value... we'll find a use for it )
+			// color ( vec3 + some extra value, again we'll find some kind of use for it )
+
+			// distribute initial light points
+			lightData.push_back( location() );
+			lightData.push_back( location() );
+			lightData.push_back( zDistrib() );
+			lightData.push_back( 0.0f );
+
+			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated ) * brightness();
+			lightData.push_back( col.r );
+			lightData.push_back( col.g );
+			lightData.push_back( col.b );
+			lightData.push_back( 1.0f );
+		}
+
+		// create the SSBO and bind in slot 4
+		glGenBuffers( 1, &ssbo );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * config.Lights, ( GLvoid * ) &lightData[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, ssbo );
+		
+		resources.SSBOs[ "Lights" ] = ssbo;
+	}
 
 	// pick a second palette ( ground, skirts, spheres )
 	palette::PickRandomPalette();
@@ -413,6 +447,8 @@ void APIGeometryContainer::Initialize () {
 }
 
 void APIGeometryContainer::InitReport () {
+
+	// tell the stats for the current run of the program
 
 }
 
