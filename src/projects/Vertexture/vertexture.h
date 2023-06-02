@@ -179,6 +179,9 @@ void APIGeometryContainer::Initialize () {
 	// if this is the first time that this has run
 		// probably something we can do if we check for this behavior, something - tbd
 
+	// clear existing list of obstacles
+	config.obstacles.resize( 0 );
+
 	// create all the graphics api resources
 
 	const string basePath( "./src/projects/Vertexture/shaders/" );
@@ -586,11 +589,11 @@ void APIGeometryContainer::InitReport () {
 	// tell the stats for the current run of the program
 	cout << "\nVertexture2 Init Complete:\n";
 	cout << "Point Totals:\n";
-	cout << "\tGround:\t" << config.numPointsGround << newline;
-	cout << "\tSkirts:\t" << config.numPointsSkirts << newline;
-	cout << "\tSpheres:\t" << config.numPointsSpheres << newline;
-	cout << "\tMoving Spheres:\t" << config.numPointsMovingSpheres << newline;
-	cout << "\tWater:\t" << config.numPointsWater << newline << newline;
+	cout << "\tGround:\t\t\t" << config.numPointsGround << newline;
+	cout << "\tSkirts:\t\t\t" << config.numPointsSkirts << newline;
+	cout << "\tSpheres:\t\t" << config.numPointsSpheres << newline;
+	cout << "\tMoving Spheres:\t\t" << config.numPointsMovingSpheres << newline;
+	cout << "\tWater:\t\t\t" << config.numPointsWater << newline << newline;
 }
 
 void APIGeometryContainer::Terminate () {

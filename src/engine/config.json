@@ -42,7 +42,7 @@
 			"Trees":11,
 			"Rocks":7,
 			"GroundCover":7000,
-			"InitialScale":0.6,
+			"InitialScale":0.45,
 			"InitialHeightScale":0.2,
 			"ShowLightDebugLocations":false,
 			"basisX":{
