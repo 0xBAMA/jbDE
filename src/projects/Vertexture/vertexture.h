@@ -168,15 +168,16 @@ void APIGeometryContainer::Initialize () {
 
 	// create all the graphics api resources
 
-	resources.shaders[ "Background" ] = computeShader( "./src/projects/Vertexture/shaders/background.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Ground" ] = regularShader( "./src/projects/Vertexture/shaders/ground.vs.glsl", "./src/projects/Vertexture/shaders/ground.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/sphere.vs.glsl", "./src/projects/Vertexture/shaders/sphere.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphere.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Light Movement" ] = computeShader( "./src/projects/Vertexture/shaders/movingLight.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere Map Update" ] = computeShader( "./src/projects/Vertexture/shaders/movingSphereMaps.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Moving Sphere" ] = regularShader( "./src/projects/Vertexture/shaders/movingSphere.vs.glsl", "./src/projects/Vertexture/shaders/movingSphere.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Water" ] = regularShader( "./src/projects/Vertexture/shaders/water.vs.glsl", "./src/projects/Vertexture/shaders/water.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Skirts" ] = regularShader( "./src/projects/Vertexture/shaders/skirts.vs.glsl", "./src/projects/Vertexture/shaders/skirts.fs.glsl" ).shaderHandle;
+	const string basePath( "./src/projects/Vertexture/shaders/" );
+	resources.shaders[ "Background" ] = computeShader( basePath + "background.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Ground" ] = regularShader( basePath + "ground.vs.glsl", basePath + "ground.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere" ] = regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere Movement" ] = computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Light Movement" ] = computeShader( basePath + "movingLight.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere Map Update" ] = computeShader( basePath + "movingSphereMaps.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Moving Sphere" ] = regularShader( basePath + "movingSphere.vs.glsl", basePath + "movingSphere.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Water" ] = regularShader( basePath + "water.vs.glsl", basePath + "water.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Skirts" ] = regularShader( basePath + "skirts.vs.glsl", basePath + "skirts.fs.glsl" ).shaderHandle;
 
 	GLuint steepness, distanceDirection;
 	Image_4U steepnessTex( 512, 512 );
