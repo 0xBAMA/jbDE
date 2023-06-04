@@ -121,7 +121,7 @@ void engineBase::SetupTextureData () {
 		glGenTextures( 1, &accumulatorTexture );
 		glActiveTexture( GL_TEXTURE3 );
 		glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
 		textures[ "Accumulator" ] = accumulatorTexture;
 
 		glGenTextures( 1, &displayTexture );
@@ -195,11 +195,11 @@ void engineBase::SetupTextureData () {
 
 		bindSets[ "Drawing" ] = bindSet( {
 			binding( 0, textures[ "Blue Noise" ], GL_RGBA8UI ),
-			binding( 1, textures[ "Accumulator" ], GL_RGBA8UI )
+			binding( 1, textures[ "Accumulator" ], GL_RGBA16F )
 		} );
 
 		bindSets[ "Postprocessing" ] = bindSet( {
-			binding( 0, textures[ "Accumulator" ], GL_RGBA8UI ),
+			binding( 0, textures[ "Accumulator" ], GL_RGBA16F ),
 			binding( 1, textures[ "Display Texture" ], GL_RGBA8UI )
 		} );
 

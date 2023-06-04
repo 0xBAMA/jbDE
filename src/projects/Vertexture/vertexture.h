@@ -861,10 +861,8 @@ void APIGeometryContainer::Render () {
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Skirts" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsSkirts );
 
-
 	// revert to default framebuffer
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-
 }
 
 void APIGeometryContainer::Update () {
