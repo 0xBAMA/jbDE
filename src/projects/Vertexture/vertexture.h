@@ -34,13 +34,6 @@ struct vertextureConfig {
 		//  e.g. R to regenerate reads from config file on disk, with all current edits ( don't have to recompile )
 			// also do the shaders etc, so we have hot update on that
 
-	// static / dynamic point counts, updated and reported during init
-	int numPointsGround = 0;
-	int numPointsSkirts = 0;
-	int numPointsSpheres = 0;
-	int numPointsMovingSpheres = 0;
-	int numPointsWater = 0;
-
 	// default orientation
 	vec3 basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
 	vec3 basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
@@ -61,6 +54,13 @@ struct openGLResources {
 	std::unordered_map< string, GLuint > SSBOs;
 	std::unordered_map< string, GLuint > textures;
 	std::unordered_map< string, GLuint > shaders;
+
+	// static / dynamic point counts, updated and reported during init
+	int numPointsGround = 0;
+	int numPointsSkirts = 0;
+	int numPointsSpheres = 0;
+	int numPointsMovingSpheres = 0;
+	int numPointsWater = 0;
 
 	// eventually, framebuffer stuff for deferred work
 		// depth
@@ -374,8 +374,8 @@ void APIGeometryContainer::Initialize () {
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		config.numPointsSkirts = world.size();
-		size_t numBytesPoints = sizeof( vec3 ) * config.numPointsSkirts;
+		resources.numPointsSkirts = world.size();
+		size_t numBytesPoints = sizeof( vec3 ) * resources.numPointsSkirts;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
 
@@ -467,9 +467,9 @@ void APIGeometryContainer::Initialize () {
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		config.numPointsSpheres = points.size();
-		size_t numBytesPoints = sizeof( vec4 ) * config.numPointsSpheres;
-		size_t numBytesColors = sizeof( vec4 ) * config.numPointsSpheres;
+		resources.numPointsSpheres = points.size();
+		size_t numBytesPoints = sizeof( vec4 ) * resources.numPointsSpheres;
+		size_t numBytesColors = sizeof( vec4 ) * resources.numPointsSpheres;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints + numBytesColors, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
 		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
@@ -500,7 +500,7 @@ void APIGeometryContainer::Initialize () {
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * dynamicPointCount, ( GLvoid * ) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * resources.numPointsMovingSpheres, ( GLvoid * ) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
 		GLuint sphereImage;
@@ -540,8 +540,8 @@ void APIGeometryContainer::Initialize () {
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		config.numPointsWater = world.size();
-		size_t numBytesPoints = sizeof( vec3 ) * config.numPointsWater;
+		resources.numPointsWater = world.size();
+		size_t numBytesPoints = sizeof( vec3 ) * resources.numPointsWater;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
 
@@ -602,11 +602,11 @@ void APIGeometryContainer::InitReport () {
 	// tell the stats for the current run of the program
 	cout << "\nVertexture2 Init Complete:\n";
 	cout << "Point Totals:\n";
-	cout << "\tGround:\t\t\t" << config.numPointsGround << newline;
-	cout << "\tSkirts:\t\t\t" << config.numPointsSkirts << newline;
-	cout << "\tSpheres:\t\t" << config.numPointsSpheres << newline;
-	cout << "\tMoving Spheres:\t\t" << config.numPointsMovingSpheres << newline;
-	cout << "\tWater:\t\t\t" << config.numPointsWater << newline << newline;
+	cout << "\tGround:\t\t\t" << resources.numPointsGround << newline;
+	cout << "\tSkirts:\t\t\t" << resources.numPointsSkirts << newline;
+	cout << "\tSpheres:\t\t" << resources.numPointsSpheres << newline;
+	cout << "\tMoving Spheres:\t\t" << resources.numPointsMovingSpheres << newline;
+	cout << "\tWater:\t\t\t" << resources.numPointsWater << newline << newline;
 }
 
 void APIGeometryContainer::Terminate () {
@@ -697,7 +697,7 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "scale" ), config.scale );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "heightmap" ), 9 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Ground" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_TRIANGLES, 0, config.numPointsGround );
+	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsGround );
 
 	// spheres
 	glBindVertexArray( resources.VAOs[ "Sphere" ] );
@@ -716,7 +716,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "sphere" ), 10 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_POINTS, 0, config.numPointsSpheres );
+	glDrawArrays( GL_POINTS, 0, resources.numPointsSpheres );
 
 	// dynamic points
 	glUseProgram( resources.shaders[ "Moving Sphere" ] );
@@ -731,7 +731,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "sphere" ), 10 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_POINTS, 0, config.numPointsMovingSpheres );
+	glDrawArrays( GL_POINTS, 0, resources.numPointsMovingSpheres );
 
 	// water
 	glBindVertexArray( resources.VAOs[ "Water" ] );
@@ -746,7 +746,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "normalMap" ), 12 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "heightMap" ), 13 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Water" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_TRIANGLES, 0, config.numPointsWater );
+	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsWater );
 
 	// skirts
 	glBindVertexArray( resources.VAOs[ "Skirts" ] );
@@ -761,7 +761,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "waterHeight" ), 13 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Skirts" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_TRIANGLES, 0, config.numPointsSkirts );
+	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsSkirts );
 
 }
 
