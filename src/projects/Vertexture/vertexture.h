@@ -46,6 +46,22 @@ struct vertextureConfig {
 
 };
 
+struct rnGenerators {
+	// these should come from the config, construct everything in the APIGeometryContainer::LoadConfig() function
+
+	// needed:
+	// 	entity height min, max
+	// 	entity phase gen - rngN probably do spread about 0
+	// 	tree height step
+	// 		tree number of points in canopy
+	// 	tree jitter diameter
+	// 		tree diameter for sim should be linked ( * 10.0f, looks like? )
+	// 	trunk constrict parameter ( try values >1.0 )
+	// 	trunk point size min, max
+	// 	canopy point size min, max
+	// 	ground cover point size min, max
+};
+
 // graphics api resources
 struct openGLResources {
 
@@ -194,17 +210,16 @@ void APIGeometryContainer::Initialize () {
 	config.obstacles.resize( 0 );
 
 	// create all the graphics api resources
-
 	const string basePath( "./src/projects/Vertexture/shaders/" );
-	resources.shaders[ "Background" ] = computeShader( basePath + "background.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Ground" ] = regularShader( basePath + "ground.vs.glsl", basePath + "ground.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere" ] = regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere Movement" ] = computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Light Movement" ] = computeShader( basePath + "movingLight.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere Map Update" ] = computeShader( basePath + "movingSphereMaps.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Moving Sphere" ] = regularShader( basePath + "movingSphere.vs.glsl", basePath + "movingSphere.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Water" ] = regularShader( basePath + "water.vs.glsl", basePath + "water.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Skirts" ] = regularShader( basePath + "skirts.vs.glsl", basePath + "skirts.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Background" ]			= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Light Movement" ]		= computeShader( basePath + "movingLight.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere Map Update" ]	= computeShader( basePath + "movingSphereMaps.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Ground" ]				= regularShader( basePath + "ground.vs.glsl", basePath + "ground.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere" ]				= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Moving Sphere" ]		= regularShader( basePath + "movingSphere.vs.glsl", basePath + "movingSphere.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Water" ]				= regularShader( basePath + "water.vs.glsl", basePath + "water.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Skirts" ]				= regularShader( basePath + "skirts.vs.glsl", basePath + "skirts.fs.glsl" ).shaderHandle;
 
 	GLuint steepness, distanceDirection;
 	Image_4U steepnessTex( 512, 512 );
@@ -271,20 +286,22 @@ void APIGeometryContainer::Initialize () {
 		std::vector< vec3 > world;
 		std::vector< vec3 > basePoints;
 
-		basePoints.resize( 4 );
-		basePoints[ 0 ] = vec3( -1.0f, -1.0f, 0.0f );
-		basePoints[ 1 ] = vec3( -1.0f,  1.0f, 0.0f );
-		basePoints[ 2 ] = vec3(  1.0f, -1.0f, 0.0f );
-		basePoints[ 3 ] = vec3(  1.0f,  1.0f, 0.0f );
-		subdivide( world, basePoints );
+		{
+			basePoints.resize( 4 );
+			basePoints[ 0 ] = vec3( -1.0f, -1.0f, 0.0f );
+			basePoints[ 1 ] = vec3( -1.0f,  1.0f, 0.0f );
+			basePoints[ 2 ] = vec3(  1.0f, -1.0f, 0.0f );
+			basePoints[ 3 ] = vec3(  1.0f,  1.0f, 0.0f );
+			subdivide( world, basePoints );
+		}
 
 		GLuint vao, vbo, heightmap;
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		config.numPointsGround = world.size();
-		size_t numBytesPoints = sizeof( vec3 ) * config.numPointsGround;
+		resources.numPointsGround = world.size();
+		size_t numBytesPoints = sizeof( vec3 ) * resources.numPointsGround;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
 
@@ -318,56 +335,58 @@ void APIGeometryContainer::Initialize () {
 		std::vector< vec3 > world;
 		std::vector< vec3 > basePoints;
 
-		basePoints.resize( 4 );
-		basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
-		basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
-		basePoints[ 2 ] = vec3(  1.0, -1.0,  0.2f );
-		basePoints[ 3 ] = vec3(  1.0, -1.0, -0.5f );
+		{
+			basePoints.resize( 4 );
+			basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
+			basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
+			basePoints[ 2 ] = vec3(  1.0, -1.0,  0.2f );
+			basePoints[ 3 ] = vec3(  1.0, -1.0, -0.5f );
 
-		// triangle 1 ABC
-		world.push_back( basePoints[ 0 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 2 ] );
-		// triangle 2 BCD
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 3 ] );
+			// triangle 1 ABC
+			world.push_back( basePoints[ 0 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 2 ] );
+			// triangle 2 BCD
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
-		basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
-		basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
-		basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
+			basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
+			basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
+			basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
+			basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
 
-		world.push_back( basePoints[ 0 ] );
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 3 ] );
+			world.push_back( basePoints[ 0 ] );
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = vec3(  1.0, -1.0,  0.2f );
-		basePoints[ 1 ] = vec3(  1.0, -1.0, -0.5f );
-		basePoints[ 2 ] = vec3(  1.0,  1.0,  0.2f );
-		basePoints[ 3 ] = vec3(  1.0,  1.0, -0.5f );
+			basePoints[ 0 ] = vec3(  1.0, -1.0,  0.2f );
+			basePoints[ 1 ] = vec3(  1.0, -1.0, -0.5f );
+			basePoints[ 2 ] = vec3(  1.0,  1.0,  0.2f );
+			basePoints[ 3 ] = vec3(  1.0,  1.0, -0.5f );
 
-		world.push_back( basePoints[ 0 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 3 ] );
+			world.push_back( basePoints[ 0 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 3 ] );
 
-		basePoints[ 0 ] = vec3(  1.0,  1.0,  0.2f );
-		basePoints[ 1 ] = vec3(  1.0,  1.0, -0.5f );
-		basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
-		basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
+			basePoints[ 0 ] = vec3(  1.0,  1.0,  0.2f );
+			basePoints[ 1 ] = vec3(  1.0,  1.0, -0.5f );
+			basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
+			basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
 
-		world.push_back( basePoints[ 0 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 2 ] );
-		world.push_back( basePoints[ 1 ] );
-		world.push_back( basePoints[ 3 ] );
+			world.push_back( basePoints[ 0 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 2 ] );
+			world.push_back( basePoints[ 1 ] );
+			world.push_back( basePoints[ 3 ] );
+		}
 
 		GLuint vao, vbo;
 		glGenVertexArrays( 1, &vao );
@@ -395,71 +414,93 @@ void APIGeometryContainer::Initialize () {
 		// shader + ssbo buffer of the dynamic points
 	{
 		std::vector< vec4 > points;
+		std::vector< vec4 > ssboPoints;
 		std::vector< vec4 > colors;
 
-		// these should come from the config
-		rng gen( 0.185f, 0.74f );
-		rng genH( 0.0f, 0.04f );
-		rng genP( 1.85f, 3.7f );
-		rng genD( -1.0f, 1.0f );
-		rngi flip( -1, 1 );
-		rng gen_normalize( 0.01f, 40.0f );
-		for ( int i = 0; i < config.GroundCover; i++ ) { // ground cover
-			points.push_back( vec4( genD(), genD(), genH(), genP() ) );
-			colors.push_back( vec4( palette::paletteRef( genH() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
-		}
+		{
+			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
+				// the texture for the height, and then they displace vertically in the shader
 
-		rngN trunkJitter( 0.0f, 0.006f );
-		rng trunkSizes( 1.75f, 6.36f );
-		rng basePtPlace( -0.75f, 0.75f );
-		rng leafSizes( 2.27f, 14.6f );
-		rngN foliagePlace( 0.0f, 0.1618f );
-		for ( int i = 0; i < config.Trees; i++ ) { // trees
-			const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
-			vec2 basePt = basePtOrig;
-			float constrict = 1.618f;
-			float scalar = gen();
+			rng heightGen( 0.0f, 0.04f );
+			rng phaseGen( 1.85f, 3.7f );
+			rng randomWorldXYGen( -1.0f, 1.0f );
+			rngN trunkJitter( 0.0f, 0.006f );
+			rng trunkSizes( 1.5f, 4.76f );
+			rng treeHeightGen( 0.185f, 0.74f );
+			rng basePtPlace( -0.75f, 0.75f );
+			rng leafSizes( 1.27f, 10.6f );
+			rngN foliagePlace( 0.0f, 0.1618f );
+			rng roughnessGen( 0.01f, 40.0f );
+			rngN rockGen( 0.0f, 0.037f );
+			rngN rockHGen( 0.06f, 0.037f );
+			rngN rockSize( 3.86f, 6.0f );
 
-			config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
-			for ( float t = 0; t < scalar; t += 0.002f ) {
-				basePt.x += trunkJitter() * 0.5f;
-				basePt.y += trunkJitter() * 0.5f;
-				constrict *= 0.999f;
-				points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
-				colors.push_back( vec4( palette::paletteRef( genH(), palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
+			for ( int i = 0; i < config.GroundCover; i++ ) { // randomly placed, uniformly distributed ground cover
+				points.push_back( vec4( randomWorldXYGen(), randomWorldXYGen(), heightGen(), phaseGen() ) );
+				colors.push_back( vec4( palette::paletteRef( heightGen() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
 			}
-			for ( int j = 0; j < 1000; j++ ) {
-				rngN foliagePlace( 0.0f, 0.1f );
-				rngN foliageHeightGen( scalar, 0.05f );
-				points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
-				colors.push_back( vec4( palette::paletteRef( genH() + 0.3f, palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
+
+			for ( int i = 0; i < config.Trees; i++ ) { // trees
+				const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
+				vec2 basePt = basePtOrig;
+				float constrict = 1.618f;
+				float scalar = treeHeightGen();
+
+				// add a new obstacle at the tree location
+				config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
+
+				// create the points for the trunk
+				for ( float t = 0; t < scalar; t += 0.002f ) {
+					basePt.x += trunkJitter() * 0.5f;
+					basePt.y += trunkJitter() * 0.5f;
+					constrict *= 0.999f;
+					points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
+					colors.push_back( vec4( palette::paletteRef( heightGen(), palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
+				}
+
+				// create the points for the canopy
+				for ( int j = 0; j < 1000; j++ ) {
+					rngN foliagePlace( 0.0f, 0.1f );
+					rngN foliageHeightGen( scalar, 0.05f );
+					points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
+					colors.push_back( vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
+				}
 			}
-		}
 
-		rngN rockGen( 0.0f, 0.037f );
-		rngN rockHGen( 0.06f, 0.037f );
-		rngN rockSize( 3.86f, 6.0f );
-		for ( int i = 0; i < config.Rocks; i++ ) {
-			vec2 basePt = vec2( basePtPlace(), basePtPlace() );
-			config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
-			for ( int l = 0; l < 1000; l++ ) {
-				points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
-				colors.push_back( vec4( palette::paletteRef( genH() + 0.2f, palette::type::paletteIndexed_interpolated ), gen_normalize() ) );
+			for ( int i = 0; i < config.Rocks; i++ ) {
+				vec2 basePt = vec2( basePtPlace(), basePtPlace() );
+				config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
+				for ( int l = 0; l < 1000; l++ ) {
+					points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
+					colors.push_back( vec4( palette::paletteRef( heightGen() + 0.2f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
+				}
 			}
-		}
 
-		// debug spheres for the lights
-		if ( config.showLightDebugLocations == true ) {
-			for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
-				const size_t basePt = 8 * i;
+			// debug spheres for the lights
+			if ( config.showLightDebugLocations == true ) {
+				for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
+					const size_t basePt = 8 * i;
 
-				vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 50.0f );
-				// vec4 color = vec4( lights[ basePt + 4 ], lights[ basePt + 5 ], lights[ basePt + 6 ], 1.0f );
-				vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
+					vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 50.0f );
+					// vec4 color = vec4( lights[ basePt + 4 ], lights[ basePt + 5 ], lights[ basePt + 6 ], 1.0f );
+					vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
 
-				points.push_back( position );
-				colors.push_back( color );
+					points.push_back( position );
+					colors.push_back( color );
+				}
 			}
+
+			int dynamicPointCount = 0;
+			rng size( 0.5f, 4.0f );
+			rng phase( 0.0f, pi * 2.0f );
+			for ( int x = 0; x < config.Guys; x++ ) {
+				for ( int y = 0; y < config.Guys; y++ ) {
+					ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * heightGen(), size() ) );
+					ssboPoints.push_back( vec4( palette::paletteRef( heightGen() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
+					dynamicPointCount++;
+				}
+			}
+			resources.numPointsMovingSpheres = dynamicPointCount;
 		}
 
 		GLuint vao, vbo;
@@ -474,28 +515,12 @@ void APIGeometryContainer::Initialize () {
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
 		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
 
-		// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
-			// the texture for the height, and then they
-
 		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Sphere" ], "vPosition" );
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 		GLuint vColor = glGetAttribLocation( resources.shaders[ "Sphere" ], "vColor" );
 		glEnableVertexAttribArray( vColor );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
-
-		std::vector< vec4 > ssboPoints;
-		int dynamicPointCount = 0;
-		rng size( 4.5f, 9.0f );
-		rng phase( 0.0f, pi * 2.0f );
-		for ( int x = 0; x < config.Guys; x++ ) {
-			for ( int y = 0; y < config.Guys; y++ ) {
-				ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * genH(), size() ) );
-				ssboPoints.push_back( vec4( palette::paletteRef( genH() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
-				dynamicPointCount++;
-			}
-		}
-		config.numPointsMovingSpheres = dynamicPointCount;
 
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
@@ -504,7 +529,7 @@ void APIGeometryContainer::Initialize () {
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
 		GLuint sphereImage;
-		Image_4U heightmapImage( "./src/projects/Vertexture/textures/sphere.png" );
+		Image_4U sphereImageData( "./src/projects/Vertexture/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );
 		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
 		glBindTexture( GL_TEXTURE_2D, sphereImage );
@@ -512,7 +537,7 @@ void APIGeometryContainer::Initialize () {
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, sphereImageData.GetImageDataBasePtr() );
 		glGenerateMipmap( GL_TEXTURE_2D );
 
 		resources.textures[ "Sphere Image" ] = sphereImage;

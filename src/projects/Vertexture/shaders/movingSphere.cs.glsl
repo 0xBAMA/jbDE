@@ -59,6 +59,10 @@ void main () {
 		data[ index ].position.xy += distDirRead.xy * 0.02f;
 	}
 
+	// do something to measure how much we have moved since last frame ...
+		// if this value stays low for multiple updates, it is probably stuck on the concave area between
+		// two obstacles, and we want to reset the position to a random location on the simulattion plane
+
 	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.0001f ) * ( 1.0f / steepnessRead.r );
 	data[ index ].position.z = 0.02 * sin( time * 10.0f + data[ index ].color.a ) + 0.02f;
 
