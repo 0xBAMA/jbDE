@@ -86,6 +86,7 @@ public:
 			// currently, zoomed in, we run into a lot of clipping issues
 
 		// draw the output
+		glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 		data.Render();
 	}
 

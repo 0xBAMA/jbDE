@@ -259,7 +259,7 @@ void APIGeometryContainer::Initialize () {
 	glGenTextures( 1, &fbColor );
 	glActiveTexture( GL_TEXTURE17 );
 	glBindTexture( GL_TEXTURE_2D, fbColor );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -294,7 +294,7 @@ void APIGeometryContainer::Initialize () {
 		rng location( -1.0f, 1.0f );
 		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.01f, 0.026f );
+		rng brightness( 0.01f, 0.086f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -760,6 +760,7 @@ void APIGeometryContainer::Render () {
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	// ground
 	glBindVertexArray( resources.VAOs[ "Ground" ] );

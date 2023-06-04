@@ -22,10 +22,10 @@
 	"SDL_WINDOW_RESIZABLE":true,
 	"SDL_WINDOW_INPUT_GRABBED":false,
 	"clearColor":{
-		"r":0.618,
-		"g":0.618,
-		"b":0.618,
-		"a":1.0
+		"r":0.0,
+		"g":0.0,
+		"b":0.0,
+		"a":0.0
 	},
 	"showImGUIDemoWindow":false,
 	"showProfiler":true,
