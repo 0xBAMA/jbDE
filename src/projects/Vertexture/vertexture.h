@@ -68,6 +68,7 @@ struct openGLResources {
 	std::unordered_map< string, GLuint > VAOs;
 	std::unordered_map< string, GLuint > VBOs;
 	std::unordered_map< string, GLuint > SSBOs;
+	std::unordered_map< string, GLuint > FBOs;
 	std::unordered_map< string, GLuint > textures;
 	std::unordered_map< string, GLuint > shaders;
 
@@ -212,6 +213,7 @@ void APIGeometryContainer::Initialize () {
 	// create all the graphics api resources
 	const string basePath( "./src/projects/Vertexture/shaders/" );
 	resources.shaders[ "Background" ]			= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Deferred" ]				= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Light Movement" ]		= computeShader( basePath + "movingLight.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Map Update" ]	= computeShader( basePath + "movingSphereMaps.cs.glsl" ).shaderHandle;
@@ -235,6 +237,51 @@ void APIGeometryContainer::Initialize () {
 	glBindTexture( GL_TEXTURE_2D, distanceDirection );
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
 	resources.textures[ "Distance/Direction Map" ] = distanceDirection;
+
+	// setup the buffers for the rendering process - need depth, worldspace position - maybe?, normals, color
+	GLuint primaryFramebuffer;
+	glGenFramebuffers( 1, &primaryFramebuffer );
+	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
+
+	// create the textures and fill out the framebuffer information
+	GLuint fbDepth, fbColor, fbNormal, fbPosition;
+
+	// do the depth texture
+	glGenTextures( 1, &fbDepth );
+	glActiveTexture( GL_TEXTURE16 );
+	glBindTexture( GL_TEXTURE_2D, fbDepth );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth, 0 );
+
+	// do the color texture
+	glGenTextures( 1, &fbColor );
+	glActiveTexture( GL_TEXTURE17 );
+	glBindTexture( GL_TEXTURE_2D, fbColor );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbColor, 0 ); // last argument is mip, interesting
+
+	// do the normal texture
+	// glGenTextures( 1, &fbNormal );
+
+	// do the position texture
+	// glGenTextures( 1, &fbPosition );
+
+	// make sure they're accessible from above
+	resources.textures[ "fbDepth" ] = fbDepth;
+	resources.textures[ "fbColor" ] = fbColor;
+
+	resources.FBOs[ "Primary" ] = primaryFramebuffer;
+	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+		cout << "framebuffer creation successful" << endl;
+	}
+
+	// generate all the geometry
 
 	// pick a first palette ( lights )
 	palette::PickRandomPalette();
@@ -638,6 +685,8 @@ void APIGeometryContainer::Terminate () {
 
 	// TODO: destroy the graphics api resources
 
+	glDeleteFramebuffers( 1, &resources.FBOs[ "Primary" ] );
+
 }
 
 void APIGeometryContainer::Shadow () {
@@ -709,6 +758,8 @@ void APIGeometryContainer::Render () {
 
 	// then the regular view of the geometry
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
+
+	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
 
 	// ground
 	glBindVertexArray( resources.VAOs[ "Ground" ] );
@@ -787,6 +838,10 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "waterHeight" ), 13 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Skirts" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsSkirts );
+
+
+	// revert to default framebuffer
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
 }
 
