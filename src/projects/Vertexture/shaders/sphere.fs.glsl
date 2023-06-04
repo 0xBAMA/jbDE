@@ -26,8 +26,10 @@ in vec3 worldPosition;
 in float height;
 flat in int index; // flat means no interpolation across primitive
 
-out vec4 glFragColor;
 layout( depth_greater ) out float gl_FragDepth;
+layout( location = 0 ) out vec4 glFragColor;
+layout( location = 1 ) out vec4 normalResult;
+layout( location = 2 ) out vec4 positionResult;
 
 void main () {
 	vec4 tRead = texture( sphere, gl_PointCoord.xy );
@@ -66,4 +68,6 @@ void main () {
 
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameHeight ) * ( 1.0f - tRead.x ) );
 	glFragColor = vec4( color * lightContribution, 1.0f );
+	normalResult = vec4( normal, 1.0f );
+	positionResult = vec4( worldPosition_adjusted, 1.0f );
 }

@@ -31,16 +31,6 @@ public:
 			// initialize the graphics api shit
 			data.Reset();
 
-			// add the bindset which is used for compositing the deferred pass information
-			bindSets[ "Deferred" ] = bindSet( {
-				binding( 0, textures[ "Blue Noise" ], GL_RGBA8UI ),
-				binding( 1, textures[ "Accumulator" ], GL_RGBA8UI ),
-				binding( 2, data.resources.textures[ "fbDepth" ], GL_R32F ),
-				binding( 3, data.resources.textures[ "fbColor" ], GL_RGBA8 ) // ,
-				// binding( 4, ),
-				// binding( 5, )
-			} );
-
 		}
 	}
 
@@ -86,7 +76,6 @@ public:
 			// currently, zoomed in, we run into a lot of clipping issues
 
 		// draw the output
-		glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 		data.Render();
 	}
 
@@ -104,12 +93,14 @@ public:
 		// todo: do the deferred update here
 		{	// I think this should go pretty smoothly once I have the Gbuffer
 			scopedTimer Start( "Deferred Pass" );
-			bindSets[ "Deferred" ].apply();
 			glUseProgram( data.resources.shaders[ "Deferred" ] );
+			bindSets[ "Drawing" ].apply();
 
 			// from glActiveTexture... this sucks, not sure what the correct way is
 			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "depthTexture" ), 16 );
 			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "colorTexture" ), 17 );
+			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
+			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
 
 			glUniform2f( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );

@@ -9,7 +9,9 @@ uniform vec3 groundColor;
 in vec2 texCoord;
 in vec3 position;
 
-out vec4 glFragColor;
+layout( location = 0 ) out vec4 glFragColor;
+layout( location = 1 ) out vec4 normalResult;
+layout( location = 2 ) out vec4 positionResult; // do we need this? tbd
 
 void main() {
 	vec4 tRead = texture( heightmap, texCoord );

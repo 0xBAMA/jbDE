@@ -15,17 +15,19 @@ void main () {
 	// uvec3 result = uvec3( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).r * 0.1618f );
 	// imageStore( accumulatorTexture, writeLoc, uvec4( result, 255 ) );
 
-	// vec4 depth = imageLoad( depthTexture, writeLoc ).rgba;
-	// vec4 color = imageLoad( colorTexture, writeLoc ).rgba;
-
 	vec2 sampleLocation = ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution;
 	sampleLocation.y = 1.0f - sampleLocation.y;
 	vec4 color = texture( colorTexture, sampleLocation );
 	vec4 depth = texture( depthTexture, sampleLocation );
+	vec4 normal = texture( normalTexture, sampleLocation );
+	vec4 position = texture( positionTexture, sampleLocation );
 
 	// eventually, move the lighting calcs here
 
-	vec3 outputValue = ( 1.0f - depth.r ) * color.rgb;
+	// vec3 outputValue = ( 1.0f - depth.r ) * color.rgb;
+	// vec3 outputValue *= normal.xyz;
+	// vec3 outputValue = abs( position.rgb );
+	vec3 outputValue = 0.5f * ( normal.rgb + vec3( 1.0f ) );
 
 	imageStore( accumulatorTexture, writeLoc, uvec4( uvec3( outputValue * 255 ), 255 ) );
 }

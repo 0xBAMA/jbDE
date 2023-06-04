@@ -259,7 +259,7 @@ void APIGeometryContainer::Initialize () {
 	glGenTextures( 1, &fbColor );
 	glActiveTexture( GL_TEXTURE17 );
 	glBindTexture( GL_TEXTURE_2D, fbColor );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -267,14 +267,35 @@ void APIGeometryContainer::Initialize () {
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbColor, 0 ); // last argument is mip, interesting
 
 	// do the normal texture
-	// glGenTextures( 1, &fbNormal );
+	glGenTextures( 1, &fbNormal );
+	glActiveTexture( GL_TEXTURE18 );
+	glBindTexture( GL_TEXTURE_2D, fbNormal );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, fbNormal, 0 );
 
 	// do the position texture
-	// glGenTextures( 1, &fbPosition );
+	glGenTextures( 1, &fbPosition );
+	glActiveTexture( GL_TEXTURE19 );
+	glBindTexture( GL_TEXTURE_2D, fbPosition );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbPosition, 0 );
+
+	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers( 3, bufs );
 
 	// make sure they're accessible from above
 	resources.textures[ "fbDepth" ] = fbDepth;
 	resources.textures[ "fbColor" ] = fbColor;
+	resources.textures[ "fbNormal" ] = fbNormal;
+	resources.textures[ "fbPosition" ] = fbPosition;
 
 	resources.FBOs[ "Primary" ] = primaryFramebuffer;
 	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {

@@ -5,6 +5,12 @@
 
 static int numMsDelayAfterCallback = 100;
 
+// want to override these with the config
+static bool show_high_severity = true;
+static bool show_medium_severity = true;
+static bool show_low_severity = true;
+static bool show_notification_severity = false;
+
 //gl debug dump
 void GLAPIENTRY MessageCallback ( 	GLenum source,
 						GLenum type,
@@ -13,11 +19,6 @@ void GLAPIENTRY MessageCallback ( 	GLenum source,
 						GLsizei length,
 						const GLchar* message,
 						const void* userParam ) {
-
-	const bool show_high_severity = true;
-	const bool show_medium_severity = true;
-	const bool show_low_severity = true;
-	const bool show_notification_severity = false;
 
 	const char* errorText = ( type == GL_DEBUG_TYPE_ERROR ) ? "** GL ERROR **" : "";
 
@@ -63,6 +64,10 @@ void GLDebugEnable () {
 	// cout << "max 3dtexture size reports: " << val << " on all 3 edges" << endl << endl;
 	// glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
 	// cout << "max compute texture image units reports: " << val << endl << endl;
+
+	GLint val;
+	glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
+	cout << "max draw buffers: " << val << endl;
 }
 
 #endif
