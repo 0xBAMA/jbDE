@@ -3,6 +3,7 @@
 uniform sampler2D sphere;
 uniform mat3 trident;
 uniform int inSeed;
+uniform float AR;
 uniform float time;
 uniform float scale;
 uniform float frameHeight;
@@ -62,12 +63,17 @@ layout( location = 2 ) out vec4 positionResult;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
-	vec4 tRead = texture( sphere, gl_PointCoord.xy );
+	vec2 sampleLocation = gl_PointCoord.xy +
+		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
+		vec2( ( 1.5f / frameHeight ), ( 1.5f / frameHeight ) * AR );
+
+	vec4 tRead = texture( sphere, sampleLocation );
 	if ( tRead.x < 0.05f ) discard;
+	if ( tRead.x < 0.35f ) if ( normalizedRandomFloat() < 0.5f ) discard;
 
 	const mat3 inverseTrident = inverse( trident );
 
-	vec3 normal = inverseTrident * vec3( 2.0f * ( gl_PointCoord.xy - vec2( 0.5f ) ), -tRead.x );
+	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -tRead.x );
 	vec3 worldPosition_adjusted = worldPosition + normal * ( radius / frameHeight );
 
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameHeight ) * ( 1.0f - tRead.x ) );

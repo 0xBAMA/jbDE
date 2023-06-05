@@ -40,7 +40,7 @@
 		"Vertexture":{
 			"showTrident":false,
 			"showTiming":false,
-			"Lights":512,
+			"Lights":256,
 			"Guys":512,
 			"Trees":6,
 			"Rocks":4,
