@@ -29,11 +29,6 @@ struct vertextureConfig {
 
 	std::vector< vec3 > obstacles; // x,y location, then radius
 
-	// TODO: add some more stuff on this, to parameterize further - point sizes etc
-		// also load from json file, for ability to hot reload
-		//  e.g. R to regenerate reads from config file on disk, with all current edits ( don't have to recompile )
-			// also do the shaders etc, so we have hot update on that
-
 	// default orientation
 	vec3 basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
 	vec3 basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
@@ -161,8 +156,7 @@ struct APIGeometryContainer {
 	void Update ();	// run the movement compute shaders
 	void Shadow ();	// update the shadowmap(s)
 	void Render ();	// update the Gbuffer
-
-		// TODO: function to composite the deferred data + light calcs into the VSRA accumulator
+	void DeferredPass (); // do the deferred lighting operations
 
 	// ImGui manipulation of program state
 	void ControlWindow ();
@@ -315,7 +309,7 @@ void APIGeometryContainer::Initialize () {
 		rng location( -1.0f, 1.0f );
 		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.01f, 0.086f );
+		rng brightness( 0.01f, 0.026f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -498,7 +492,7 @@ void APIGeometryContainer::Initialize () {
 			rng basePtPlace( -0.75f, 0.75f );
 			rng leafSizes( 1.27f, 10.6f );
 			rngN foliagePlace( 0.0f, 0.1618f );
-			rng roughnessGen( 0.01f, 40.0f );
+			rng roughnessGen( 0.1f, 40.0f );
 			rngN rockGen( 0.0f, 0.037f );
 			rngN rockHGen( 0.06f, 0.037f );
 			rngN rockSize( 3.86f, 6.0f );
@@ -773,6 +767,25 @@ void APIGeometryContainer::Shadow () {
 	*/
 
 	// =================================================================================================
+}
+
+void APIGeometryContainer::DeferredPass () {
+	glUseProgram( resources.shaders[ "Deferred" ] );
+
+	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
+	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Deferred" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+
+	// from glActiveTexture... this sucks, not sure what the correct way is
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexture" ), 16 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "colorTexture" ), 17 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
+
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "lightCount" ), config.Lights );
+
+	glUniform2f( glGetUniformLocation( resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
+	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 void APIGeometryContainer::Render () {

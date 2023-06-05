@@ -93,18 +93,8 @@ public:
 		// todo: do the deferred update here
 		{	// I think this should go pretty smoothly once I have the Gbuffer
 			scopedTimer Start( "Deferred Pass" );
-			glUseProgram( data.resources.shaders[ "Deferred" ] );
 			bindSets[ "Drawing" ].apply();
-
-			// from glActiveTexture... this sucks, not sure what the correct way is
-			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "depthTexture" ), 16 );
-			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "colorTexture" ), 17 );
-			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
-			glUniform1i( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
-
-			glUniform2f( glGetUniformLocation( data.resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			data.DeferredPass();
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping

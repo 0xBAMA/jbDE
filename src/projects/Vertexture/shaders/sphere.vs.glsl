@@ -11,7 +11,7 @@ in vec4 vColor;
 in vec4 vPosition;
 
 out float radius;
-out float roughness;
+flat out float roughness;
 out vec3 color;
 out vec3 worldPosition;
 out float height;
