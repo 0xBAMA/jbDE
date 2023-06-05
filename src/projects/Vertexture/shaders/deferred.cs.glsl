@@ -39,7 +39,8 @@ void main () {
 
 		// lighting
 		const mat3 inverseTrident = inverse( trident );
-		const float maxDistFactor = 5.0f;
+		// const float maxDistFactor = 100.0f;
+		const float maxDistFactor = 10000000.0f;
 		const vec3 eyePosition = vec3( 0.0f, 0.0f, -5.0f );
 		const vec3 viewVector = inverseTrident * normalize( eyePosition - position.xyz );
 		vec3 lightContribution = vec3( 0.0f );

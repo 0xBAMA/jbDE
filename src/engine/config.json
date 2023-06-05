@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":640,
-	"screenHeight":350,
+	"screenWidth":1024,
+	"screenHeight":576,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -39,12 +39,12 @@
 	"app":{
 		"Vertexture":{
 			"showTrident":false,
-			"showTiming":true,
-			"Lights":64,
-			"Guys":2048,
+			"showTiming":false,
+			"Lights":512,
+			"Guys":512,
 			"Trees":6,
 			"Rocks":4,
-			"GroundCover":18000,
+			"GroundCover":4000,
 			"InitialScale":0.65,
 			"InitialHeightScale":0.2,
 			"ShowLightDebugLocations":true,

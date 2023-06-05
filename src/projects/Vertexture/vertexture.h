@@ -44,9 +44,12 @@ struct vertextureConfig {
 struct rnGenerators {
 	// these should come from the config, construct everything in the APIGeometryContainer::LoadConfig() function
 
+	rngi shaderWangSeed = rngi( 0, 100000 );
+
 	// needed:
 	// 	entity height min, max
 	// 	entity phase gen - rngN probably do spread about 0
+	// 	dudes max height for the bouncing
 	// 	tree height step
 	// 		tree number of points in canopy
 	// 	tree jitter diameter
@@ -162,6 +165,7 @@ struct APIGeometryContainer {
 	// application data + state
 	vertextureConfig config;
 	openGLResources resources;
+	rnGenerators rngs;
 
 };
 
@@ -308,9 +312,9 @@ void APIGeometryContainer::Initialize () {
 	{
 		GLuint ssbo;
 		rng location( -1.0f, 1.0f );
-		rng zDistrib( 0.2f, 0.6f );
+		rng zDistrib( 0.0f, 0.0f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.001f, 0.006f );
+		rng brightness( 0.002f, 0.005f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -328,6 +332,11 @@ void APIGeometryContainer::Initialize () {
 			lightData.push_back( col.g );
 			lightData.push_back( col.b );
 			lightData.push_back( 1.0f );
+
+			// halfway through, switch colors
+			if ( x == ( config.Lights / 2 ) ) {
+				palette::PickRandomPalette();
+			}
 		}
 
 		// create the SSBO and bind in slot 4
@@ -484,7 +493,7 @@ void APIGeometryContainer::Initialize () {
 			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 				// the texture for the height, and then they displace vertically in the shader
 
-			rng heightGen( 0.0f, 0.04f );
+			rng heightGen( 0.0f, 0.14f );
 			rng phaseGen( 1.85f, 3.7f );
 			rng randomWorldXYGen( -1.0f, 1.0f );
 			rngN trunkJitter( 0.0f, 0.006f );
@@ -522,7 +531,8 @@ void APIGeometryContainer::Initialize () {
 				}
 
 				// create the points for the canopy
-				for ( int j = 0; j < 1000; j++ ) {
+				// for ( int j = 0; j < 1000; j++ ) {
+				for ( int j = 0; j < 5000; j++ ) {
 					rngN foliageHeightGen( scalar, 0.05f );
 					points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
 					colors.push_back( vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
@@ -553,8 +563,8 @@ void APIGeometryContainer::Initialize () {
 			}
 
 			int dynamicPointCount = 0;
-			rng size( 0.5f, 4.0f );
-			rng phase( 0.0f, pi * 2.0f );
+			rng size( 0.5f, 4.5f );
+			rng phase( 0.0f, pi * 6.0f );
 			for ( int x = 0; x < config.Guys; x++ ) {
 				for ( int y = 0; y < config.Guys; y++ ) {
 					ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * heightGen(), size() ) );
@@ -819,6 +829,7 @@ void APIGeometryContainer::Render () {
 
 	// static points
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightScale" ), config.heightScale );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "AR" ), config.screenAR );
@@ -835,6 +846,7 @@ void APIGeometryContainer::Render () {
 	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightScale" ), config.heightScale );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "time" ), config.timeVal / 10000.0f );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameHeight" ), config.height );
@@ -880,13 +892,14 @@ void APIGeometryContainer::Render () {
 
 void APIGeometryContainer::Update () {
 
+	config.timeVal += 0.1f;
+
 	// run the stuff to update the moving point locations
-	rngi gen( 0, 100000 );
 	glUseProgram( resources.shaders[ "Sphere Map Update" ] );
 	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), gen() );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
 	glUniform3fv( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "obstacles" ), config.obstacles.size(), glm::value_ptr( config.obstacles[ 0 ] ) );
 	glDispatchCompute( 512 / 16, 512 / 16, 1 );
@@ -896,7 +909,7 @@ void APIGeometryContainer::Update () {
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, resources.SSBOs[ "Moving Sphere" ] );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Moving Sphere" ] );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), gen() );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
 	glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
 
@@ -904,7 +917,7 @@ void APIGeometryContainer::Update () {
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	glUseProgram( resources.shaders[ "Light Movement" ] );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Light Movement" ], "time" ), config.timeVal / 10000.0f );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Light Movement" ], "inSeed" ), gen() );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Light Movement" ], "inSeed" ), rngs.shaderWangSeed() );
 	glDispatchCompute( config.Lights / 16, 1, 1 ); // dispatch the compute shader to update ssbo
 
 }
