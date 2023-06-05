@@ -8,36 +8,36 @@
 struct vertextureConfig {
 
 	// scaling the size of the GPU resources
-	int Guys = 100;
-	int Trees = 10;
-	int Rocks = 10;
-	int GroundCover = 100;
-	int Lights = 64;
+	int Guys;
+	int Trees;
+	int Rocks;
+	int GroundCover;
+	int Lights;
 
 	// timekeeping since last reset
-	float timeVal = 0.0f;
+	float timeVal;
 
 	// visualization parameters
-	float scale = 0.4f;
-	float heightScale = 0.2f;
-	bool showLightDebugLocations = false;
-	vec3 groundColor = vec3( 0.0f );
+	float scale;
+	float heightScale;
+	bool showLightDebugLocations;
+	vec3 groundColor;
 
 	// output settings
-	bool showTiming = false;
-	bool showTrident = false;
+	bool showTiming;
+	bool showTrident;
 
 	std::vector< vec3 > obstacles; // x,y location, then radius
 
 	// default orientation
-	vec3 basisX = vec3(  0.610246f,  0.454481f,  0.648863f );
-	vec3 basisY = vec3(  0.791732f, -0.321969f, -0.519100f );
-	vec3 basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
+	vec3 basisX;
+	vec3 basisY;
+	vec3 basisZ;
 
 	// for computing screen AR, from config.json
-	uint32_t width = 640;
-	uint32_t height = 350;
-	float screenAR = ( float ) width / ( float ) height;
+	uint32_t width;
+	uint32_t height;
+	float screenAR;
 
 };
 
@@ -74,11 +74,9 @@ struct openGLResources {
 	int numPointsMovingSpheres = 0;
 	int numPointsWater = 0;
 
-	// eventually, framebuffer stuff for deferred work
-		// depth
-		// normals
-		// albedo
-		// ...
+	// separate tridents for each shadowmap
+	// textures for each shadowmap
+	// FBOs for each shadowmap
 
 };
 
@@ -194,6 +192,9 @@ void APIGeometryContainer::LoadConfig () {
 	config.width = j[ "screenWidth" ];
 	config.height = j[ "screenHeight" ];
 	config.screenAR = ( float ) config.width / ( float ) config.height;
+
+	// reset amount of time since last reset
+	config.timeVal = 0.0f;
 }
 
 void APIGeometryContainer::Initialize () {
@@ -309,7 +310,7 @@ void APIGeometryContainer::Initialize () {
 		rng location( -1.0f, 1.0f );
 		rng zDistrib( 0.2f, 0.6f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.01f, 0.026f );
+		rng brightness( 0.001f, 0.006f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -490,7 +491,7 @@ void APIGeometryContainer::Initialize () {
 			rng trunkSizes( 1.5f, 4.76f );
 			rng treeHeightGen( 0.185f, 0.74f );
 			rng basePtPlace( -0.75f, 0.75f );
-			rng leafSizes( 1.27f, 10.6f );
+			rng leafSizes( 1.27f, 12.6f );
 			rngN foliagePlace( 0.0f, 0.1618f );
 			rng roughnessGen( 0.1f, 40.0f );
 			rngN rockGen( 0.0f, 0.037f );
@@ -522,7 +523,6 @@ void APIGeometryContainer::Initialize () {
 
 				// create the points for the canopy
 				for ( int j = 0; j < 1000; j++ ) {
-					rngN foliagePlace( 0.0f, 0.1f );
 					rngN foliageHeightGen( scalar, 0.05f );
 					points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
 					colors.push_back( vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
@@ -543,8 +543,8 @@ void APIGeometryContainer::Initialize () {
 				for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
 					const size_t basePt = 8 * i;
 
-					vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 50.0f );
-					// vec4 color = vec4( lights[ basePt + 4 ], lights[ basePt + 5 ], lights[ basePt + 6 ], 1.0f );
+					vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 10.0f );
+					// vec4 color = vec4( 1.0f, 1.0f, 1.0f, 11.0f );
 					vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
 
 					points.push_back( position );

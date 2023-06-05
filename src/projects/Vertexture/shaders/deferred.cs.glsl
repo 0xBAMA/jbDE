@@ -25,8 +25,7 @@ layout( binding = 4, std430 ) buffer lightDataBuffer {
 
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
-	// uvec3 result = uvec3( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).r * 0.1618f );
-	// imageStore( accumulatorTexture, writeLoc, uvec4( result, 255 ) );
+	uvec3 blueNoise = uvec3( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).r * 0.0618f );
 
 	vec2 sampleLocation = ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution;
 	sampleLocation.y = 1.0f - sampleLocation.y;
@@ -45,8 +44,7 @@ void main () {
 		const vec3 viewVector = inverseTrident * normalize( eyePosition - position.xyz );
 		vec3 lightContribution = vec3( 0.0f );
 
-		// pack into one of the remaining fields
-		// const float roughness = smoothstep( normal.a , 0.0f, 1.0f );
+		// pack into one of the remaining fields ( or add additional rendered target with material properties )
 		const float roughness = 1.0f;
 
 		for ( int i = 0; i < lightCount; i++ ) {
@@ -88,7 +86,13 @@ void main () {
 		// 	outputValue = color.rgb;
 		// }
 
+		// imageStore( accumulatorTexture, writeLoc, vec4( outputValue + ( blueNoise / 511.0f ), 1.0f ) );
+
+		vec4 previous = imageLoad( accumulatorTexture, writeLoc );
+		outputValue = mix( previous.xyz, outputValue.xyz, 0.01f );
+
 		imageStore( accumulatorTexture, writeLoc, vec4( outputValue, 1.0f ) );
+
 	} else {
 		imageStore( accumulatorTexture, writeLoc, vec4( vec3( 0.0f ), 1.0f ) );
 	}

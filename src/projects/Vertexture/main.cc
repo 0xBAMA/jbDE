@@ -52,6 +52,7 @@ public:
 		ZoneScoped;
 
 		data.ControlWindow();
+		TonemapControlsWindow();
 
 		// something to show log events? tbd, that part of vertexture didn't really carry over, we'll see
 
@@ -67,6 +68,10 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
+
+		// is there a way to jitter the subpixel samples easily? blending/reprojection - resolve more static spheres over several frames
+			// using the analytic model from the nvidia paper? would maybe be faster, too? tbd
+			// https://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf
 
 		// ImGuiIO &io = ImGui::GetIO();
 		// const float width = io.DisplaySize.x;
