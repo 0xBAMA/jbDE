@@ -304,10 +304,10 @@ void APIGeometryContainer::Initialize () {
 	std::vector< GLfloat > lightData;
 	{
 		GLuint ssbo;
-		rng location( -1.0f, 1.0f );
-		rng zDistrib( 0.0f, 0.5f );
+		rng location( -1.115f, 1.115f );
+		rng zDistrib( -0.25f, 0.85f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.002f, 0.005f );
+		rng brightness( 0.0005f, 0.0035f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -359,74 +359,98 @@ void APIGeometryContainer::Initialize () {
 			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 				// the texture for the height, and then they displace vertically in the shader
 
-			rng heightGen( 0.0f, 0.14f );
-			rng phaseGen( 1.85f, 3.7f );
+			rng heightGen( -0.15f, 0.25f );
+			rng phaseGen( 1.85f, 5.7f );
 			rng randomWorldXYGen( -1.0f, 1.0f );
 			rngN trunkJitter( 0.0f, 0.006f );
 			rng trunkSizes( 1.5f, 4.76f );
 			rng treeHeightGen( 0.185f, 0.74f );
 			rng basePtPlace( -0.75f, 0.75f );
 			rng leafSizes( 1.27f, 12.6f );
-			rngN foliagePlace( 0.0f, 0.1618f );
+			rngN foliagePlace( 0.0f, 0.618f );
 			rng roughnessGen( 0.1f, 40.0f );
 			rngN rockGen( 0.0f, 0.037f );
 			rngN rockHGen( 0.06f, 0.037f );
 			rngN rockSize( 3.86f, 6.0f );
 
-			for ( int i = 0; i < config.GroundCover; i++ ) { // randomly placed, uniformly distributed ground cover
-				points.push_back( vec4( randomWorldXYGen(), randomWorldXYGen(), heightGen(), phaseGen() ) );
-				colors.push_back( vec4( palette::paletteRef( heightGen() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			// for ( int i = 0; i < config.GroundCover; i++ ) { // randomly placed, uniformly distributed ground cover
+			// 	points.push_back( vec4( randomWorldXYGen(), randomWorldXYGen(), heightGen(), phaseGen() ) );
+			// 	colors.push_back( vec4( palette::paletteRef( heightGen() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
+			// }
+
+			// for ( int i = 0; i < config.Trees; i++ ) { // trees
+
+			vec2 basePt = vec2( 0.0f );
+
+			// 	float constrict = 1.618f;
+			// 	float scalar = treeHeightGen();
+
+			// 	// add a new obstacle at the tree location
+			// 	config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
+
+			// 	// create the points for the trunk
+			// 	for ( float t = 0; t < scalar; t += 0.002f ) {
+			// 		basePt.x += trunkJitter() * 0.5f;
+			// 		basePt.y += trunkJitter() * 0.5f;
+			// 		constrict *= 0.999f;
+			// 		points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
+			// 		colors.push_back( vec4( palette::paletteRef( heightGen(), palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
+			// 	}
+
+			// 	// create the points for the canopy
+			// 	// for ( int j = 0; j < 1000; j++ ) {
+
+			// rngN foliageHeightGen( 0.25, 0.15f );
+			// 	for ( int j = 0; j < 10000; j++ ) {
+			// 		vec3 place = vec3( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen() );
+			// 		if ( de( place * 5.0f ) < 0.0f ) {
+			// 			j--;
+			// 			continue;
+			// 		}
+			// 		points.push_back( vec4( place.xyz(), leafSizes() ) );
+			// 		colors.push_back( vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
+			// 	}
+
+
+			vec4 lineColor = vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() );
+
+			rng divisorsGen( 16.0f, 36.0f );
+			vec3 divisors = vec3( divisorsGen(), divisorsGen(), divisorsGen() );
+			for ( float t = 0.0f; t < 800.0f; t += 0.01f ) {
+				vec3 pointLoc =
+					vec3(
+						sin( t / divisors.x ),
+						cos( t / divisors.y ),
+						0.2f * sin( t / divisors.z )
+					) +  vec3( 0.0f, 0.0f, 0.2f );
+
+				points.push_back( vec4( pointLoc, 5.0f ) );
+				colors.push_back( lineColor );
 			}
+			// }
 
-			for ( int i = 0; i < config.Trees; i++ ) { // trees
-				const vec2 basePtOrig = vec2( basePtPlace(), basePtPlace() );
-				vec2 basePt = basePtOrig;
-				float constrict = 1.618f;
-				float scalar = treeHeightGen();
+			// for ( int i = 0; i < config.Rocks; i++ ) {
+			// 	vec2 basePt = vec2( basePtPlace(), basePtPlace() );
+			// 	config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
+			// 	for ( int l = 0; l < 1000; l++ ) {
+			// 		points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
+			// 		colors.push_back( vec4( palette::paletteRef( heightGen() + 0.2f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
+			// 	}
+			// }
 
-				// add a new obstacle at the tree location
-				config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
+			// debug spheres for the lights - want to do this another way
+			// if ( config.showLightDebugLocations == true ) {
+			// 	for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
+			// 		const size_t basePt = 8 * i;
 
-				// create the points for the trunk
-				for ( float t = 0; t < scalar; t += 0.002f ) {
-					basePt.x += trunkJitter() * 0.5f;
-					basePt.y += trunkJitter() * 0.5f;
-					constrict *= 0.999f;
-					points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
-					colors.push_back( vec4( palette::paletteRef( heightGen(), palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
-				}
+			// 		vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 10.0f );
+			// 		// vec4 color = vec4( 1.0f, 1.0f, 1.0f, 11.0f );
+			// 		vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
 
-				// create the points for the canopy
-				// for ( int j = 0; j < 1000; j++ ) {
-				for ( int j = 0; j < 5000; j++ ) {
-					rngN foliageHeightGen( scalar, 0.05f );
-					points.push_back( vec4( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen(), leafSizes() ) );
-					colors.push_back( vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
-				}
-			}
-
-			for ( int i = 0; i < config.Rocks; i++ ) {
-				vec2 basePt = vec2( basePtPlace(), basePtPlace() );
-				config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
-				for ( int l = 0; l < 1000; l++ ) {
-					points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
-					colors.push_back( vec4( palette::paletteRef( heightGen() + 0.2f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
-				}
-			}
-
-			// debug spheres for the lights
-			if ( config.showLightDebugLocations == true ) {
-				for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
-					const size_t basePt = 8 * i;
-
-					vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 10.0f );
-					// vec4 color = vec4( 1.0f, 1.0f, 1.0f, 11.0f );
-					vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
-
-					points.push_back( position );
-					colors.push_back( color );
-				}
-			}
+			// 		points.push_back( position );
+			// 		colors.push_back( color );
+			// 	}
+			// }
 
 			int dynamicPointCount = 0;
 			rng size( 0.5f, 4.5f );
