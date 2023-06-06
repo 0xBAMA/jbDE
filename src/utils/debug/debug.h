@@ -68,6 +68,10 @@ void GLDebugEnable () {
 	GLint val;
 	glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
 	cout << "max draw buffers: " << val << endl;
+
+	glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
+	cout << "max combined texture image units: " << val << endl;
+
 }
 
 #endif
