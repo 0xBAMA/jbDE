@@ -59,7 +59,7 @@ void main () {
 		// lightData[ index ].position.xy += distDirRead.xy * 0.02f;
 	// }
 
-	lightData[ index ].position.xy = lightData[ index ].position.xy + lightData[ 0 ].color.xy * 0.01f;
+	lightData[ index ].position.xy = lightData[ index ].position.xy + vec2( 0.001f );
 	// lightData[ index ].position.z = 0.2f * sin( time + lightData[ index ].color.a ) + 0.21f;
 
 	// wrap

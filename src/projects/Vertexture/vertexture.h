@@ -71,11 +71,8 @@ struct openGLResources {
 	std::unordered_map< string, GLuint > shaders;
 
 	// static / dynamic point counts, updated and reported during init
-	int numPointsGround = 0;
-	int numPointsSkirts = 0;
 	int numPointsSpheres = 0;
 	int numPointsMovingSpheres = 0;
-	int numPointsWater = 0;
 
 	// separate tridents for each shadowmap
 	// textures for each shadowmap
@@ -215,27 +212,23 @@ void APIGeometryContainer::Initialize () {
 	resources.shaders[ "Deferred" ]				= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Light Movement" ]		= computeShader( basePath + "movingLight.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere Map Update" ]	= computeShader( basePath + "movingSphereMaps.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Ground" ]				= regularShader( basePath + "ground.vs.glsl", basePath + "ground.fs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere" ]				= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
 	resources.shaders[ "Moving Sphere" ]		= regularShader( basePath + "movingSphere.vs.glsl", basePath + "movingSphere.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Water" ]				= regularShader( basePath + "water.vs.glsl", basePath + "water.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Skirts" ]				= regularShader( basePath + "skirts.vs.glsl", basePath + "skirts.fs.glsl" ).shaderHandle;
 
-	GLuint steepness, distanceDirection;
-	Image_4U steepnessTex( 512, 512 );
+	// GLuint steepness, distanceDirection;
+	// Image_4U steepnessTex( 512, 512 );
 
-	glGenTextures( 1, &steepness );
-	glActiveTexture( GL_TEXTURE14 );
-	glBindTexture( GL_TEXTURE_2D, steepness );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-	resources.textures[ "Steepness Map" ] = steepness;
+	// glGenTextures( 1, &steepness );
+	// glActiveTexture( GL_TEXTURE14 );
+	// glBindTexture( GL_TEXTURE_2D, steepness );
+	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
+	// resources.textures[ "Steepness Map" ] = steepness;
 
-	glGenTextures( 1, &distanceDirection );
-	glActiveTexture( GL_TEXTURE15 );
-	glBindTexture( GL_TEXTURE_2D, distanceDirection );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-	resources.textures[ "Distance/Direction Map" ] = distanceDirection;
+	// glGenTextures( 1, &distanceDirection );
+	// glActiveTexture( GL_TEXTURE15 );
+	// glBindTexture( GL_TEXTURE_2D, distanceDirection );
+	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
+	// resources.textures[ "Distance/Direction Map" ] = distanceDirection;
 
 	// setup the buffers for the rendering process - need depth, worldspace position - maybe?, normals, color
 	GLuint primaryFramebuffer;
@@ -312,7 +305,7 @@ void APIGeometryContainer::Initialize () {
 	{
 		GLuint ssbo;
 		rng location( -1.0f, 1.0f );
-		rng zDistrib( 0.0f, 0.0f );
+		rng zDistrib( 0.0f, 0.5f );
 		rng colorPick( 0.6f, 0.8f );
 		rng brightness( 0.002f, 0.005f );
 
@@ -348,135 +341,8 @@ void APIGeometryContainer::Initialize () {
 		resources.SSBOs[ "Lights" ] = ssbo;
 	}
 
-	// pick a second palette ( ground, skirts, spheres )
+	// pick another palette ( spheres )
 	palette::PickRandomPalette();
-
-	// ground
-		// shader, vao / vbo
-		// heightmap texture
-	{
-		std::vector< vec3 > world;
-		std::vector< vec3 > basePoints;
-
-		{
-			basePoints.resize( 4 );
-			basePoints[ 0 ] = vec3( -1.0f, -1.0f, 0.0f );
-			basePoints[ 1 ] = vec3( -1.0f,  1.0f, 0.0f );
-			basePoints[ 2 ] = vec3(  1.0f, -1.0f, 0.0f );
-			basePoints[ 3 ] = vec3(  1.0f,  1.0f, 0.0f );
-			subdivide( world, basePoints );
-		}
-
-		GLuint vao, vbo, heightmap;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
-		glGenBuffers( 1, &vbo );
-		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		resources.numPointsGround = world.size();
-		size_t numBytesPoints = sizeof( vec3 ) * resources.numPointsGround;
-		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
-
-		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Ground" ], "vPosition" );
-		glEnableVertexAttribArray( vPosition );
-		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
-
-		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
-		Image_4U heightmapImage( "./src/projects/Vertexture/textures/rock_height.png" );
-		glGenTextures( 1, &heightmap );
-		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
-		glBindTexture( GL_TEXTURE_2D, heightmap );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, heightmapImage.Width(), heightmapImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		resources.VAOs[ "Ground" ] = vao;
-		resources.VBOs[ "Ground" ] = vbo;
-		resources.textures[ "Heightmap" ] = heightmap;
-
-		rng gen( 0.0f, 1.0f ); // this can probably be tuned better
-		config.groundColor = palette::paletteRef( gen() + 0.5f, palette::type::paletteIndexed_interpolated );
-	}
-
-	// skirts
-		// shader, vao / vbo
-	{
-		std::vector< vec3 > world;
-		std::vector< vec3 > basePoints;
-
-		{
-			basePoints.resize( 4 );
-			basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
-			basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
-			basePoints[ 2 ] = vec3(  1.0, -1.0,  0.2f );
-			basePoints[ 3 ] = vec3(  1.0, -1.0, -0.5f );
-
-			// triangle 1 ABC
-			world.push_back( basePoints[ 0 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 2 ] );
-			// triangle 2 BCD
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 3 ] );
-
-			basePoints[ 0 ] = vec3( -1.0, -1.0,  0.2f );
-			basePoints[ 1 ] = vec3( -1.0, -1.0, -0.5f );
-			basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
-			basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
-
-			world.push_back( basePoints[ 0 ] );
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 3 ] );
-
-			basePoints[ 0 ] = vec3(  1.0, -1.0,  0.2f );
-			basePoints[ 1 ] = vec3(  1.0, -1.0, -0.5f );
-			basePoints[ 2 ] = vec3(  1.0,  1.0,  0.2f );
-			basePoints[ 3 ] = vec3(  1.0,  1.0, -0.5f );
-
-			world.push_back( basePoints[ 0 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 3 ] );
-
-			basePoints[ 0 ] = vec3(  1.0,  1.0,  0.2f );
-			basePoints[ 1 ] = vec3(  1.0,  1.0, -0.5f );
-			basePoints[ 2 ] = vec3( -1.0,  1.0,  0.2f );
-			basePoints[ 3 ] = vec3( -1.0,  1.0, -0.5f );
-
-			world.push_back( basePoints[ 0 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 2 ] );
-			world.push_back( basePoints[ 1 ] );
-			world.push_back( basePoints[ 3 ] );
-		}
-
-		GLuint vao, vbo;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
-		glGenBuffers( 1, &vbo );
-		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		resources.numPointsSkirts = world.size();
-		size_t numBytesPoints = sizeof( vec3 ) * resources.numPointsSkirts;
-		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
-
-		resources.VAOs[ "Skirts" ] = vao;
-		resources.VBOs[ "Skirts" ] = vbo;
-
-		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Skirts" ], "vPosition" );
-		glEnableVertexAttribArray( vPosition );
-		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
-	}
 
 	// spheres
 		// sphere heightmap texture
@@ -618,92 +484,14 @@ void APIGeometryContainer::Initialize () {
 		resources.VBOs[ "Sphere" ] = vbo;
 	}
 
-	// water
-		// shader, vao / vbo
-		// 3x textures
-	{
-		std::vector< vec3 > world;
-		std::vector< vec3 > basePoints;
-
-		basePoints.resize( 4 );
-		basePoints[ 0 ] = vec3( -1.0f, -1.0f, 0.01f );
-		basePoints[ 1 ] = vec3( -1.0f,  1.0f, 0.01f );
-		basePoints[ 2 ] = vec3(  1.0f, -1.0f, 0.01f );
-		basePoints[ 3 ] = vec3(  1.0f,  1.0f, 0.01f );
-		subdivide( world, basePoints );
-
-		GLuint vao, vbo;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
-		glGenBuffers( 1, &vbo );
-		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		resources.numPointsWater = world.size();
-		size_t numBytesPoints = sizeof( vec3 ) * resources.numPointsWater;
-		glBufferData( GL_ARRAY_BUFFER, numBytesPoints, NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &world[ 0 ] );
-
-		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Water" ], "vPosition" );
-		glEnableVertexAttribArray( vPosition );
-		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
-
-		Image_4U color( "./src/projects/Vertexture/textures/water_color.png" );
-		Image_4U normal( "./src/projects/Vertexture/textures/water_norm.png" );
-		Image_4U height( "./src/projects/Vertexture/textures/water_height.png" );
-
-		GLuint waterColorTexture;
-		GLuint waterNormalTexture;
-		GLuint waterHeightTexture;
-
-		glGenTextures( 1, &waterColorTexture );
-		glActiveTexture( GL_TEXTURE11 );
-		glBindTexture( GL_TEXTURE_2D, waterColorTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, color.Width(), color.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, color.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterNormalTexture );
-		glActiveTexture( GL_TEXTURE12 );
-		glBindTexture( GL_TEXTURE_2D, waterNormalTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, normal.Width(), normal.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, normal.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterHeightTexture );
-		glActiveTexture( GL_TEXTURE13 );
-		glBindTexture( GL_TEXTURE_2D, waterHeightTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, height.Width(), height.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, height.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		resources.textures[ "Water Color" ] = waterColorTexture;
-		resources.textures[ "Water Normal" ] = waterNormalTexture;
-		resources.textures[ "Water Height" ] = waterHeightTexture;
-		resources.VAOs[ "Water" ] = vao;
-		resources.VBOs[ "Water" ] = vbo;
-	}
-
-	// todo: deferred pass resources
-
 }
 
 void APIGeometryContainer::InitReport () {
 	// tell the stats for the current run of the program
 	cout << "\nVertexture2 Init Complete:\n";
 	cout << "Point Totals:\n";
-	cout << "\tGround:\t\t\t" << resources.numPointsGround << newline;
-	cout << "\tSkirts:\t\t\t" << resources.numPointsSkirts << newline;
 	cout << "\tSpheres:\t\t" << resources.numPointsSpheres << newline;
 	cout << "\tMoving Spheres:\t\t" << resources.numPointsMovingSpheres << newline;
-	cout << "\tWater:\t\t\t" << resources.numPointsWater << newline << newline;
 }
 
 void APIGeometryContainer::Terminate () {
@@ -806,20 +594,6 @@ void APIGeometryContainer::Render () {
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	// ground
-	glBindVertexArray( resources.VAOs[ "Ground" ] );
-	glUseProgram( resources.shaders[ "Ground" ] );
-	glEnable( GL_DEPTH_TEST );
-	glUniform3f( glGetUniformLocation( resources.shaders[ "Ground" ], "groundColor" ), config.groundColor.x, config.groundColor.y, config.groundColor.z );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "time" ), config.timeVal / 10000.0f );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "heightScale" ), config.heightScale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "lightCount" ), config.Lights );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "AR" ), config.screenAR );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "heightmap" ), 9 );
-	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Ground" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsGround );
-
 	// spheres
 	glBindVertexArray( resources.VAOs[ "Sphere" ] );
 	glUseProgram( resources.shaders[ "Sphere" ] );
@@ -856,36 +630,6 @@ void APIGeometryContainer::Render () {
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsMovingSpheres );
 
-	// water
-	glBindVertexArray( resources.VAOs[ "Water" ] );
-	glUseProgram( resources.shaders[ "Water" ] );
-	glEnable( GL_DEPTH_TEST );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "time" ), config.timeVal / 10000.0f );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "lightCount" ), numLights );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "heightScale" ), config.heightScale );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "AR" ), config.screenAR );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "colorMap" ), 11 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "normalMap" ), 12 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "heightMap" ), 13 );
-	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Water" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsWater );
-
-	// skirts
-	glBindVertexArray( resources.VAOs[ "Skirts" ] );
-	glUseProgram( resources.shaders[ "Skirts" ] );
-	glEnable( GL_DEPTH_TEST );
-	glUniform3f( glGetUniformLocation( resources.shaders[ "Skirts" ], "groundColor" ), config.groundColor.x, config.groundColor.y, config.groundColor.z );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "lightCount" ), numLights );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "heightScale" ), config.heightScale );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "time" ), config.timeVal / 10000.0f );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "AR" ), config.screenAR );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "waterHeight" ), 13 );
-	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Skirts" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsSkirts );
-
 	// revert to default framebuffer
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 }
@@ -894,15 +638,15 @@ void APIGeometryContainer::Update () {
 
 	config.timeVal += 0.1f;
 
-	// run the stuff to update the moving point locations
-	glUseProgram( resources.shaders[ "Sphere Map Update" ] );
-	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), rngs.shaderWangSeed() );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
-	glUniform3fv( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "obstacles" ), config.obstacles.size(), glm::value_ptr( config.obstacles[ 0 ] ) );
-	glDispatchCompute( 512 / 16, 512 / 16, 1 );
+	// // run the stuff to update the moving point locations
+	// glUseProgram( resources.shaders[ "Sphere Map Update" ] );
+	// glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	// glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), rngs.shaderWangSeed() );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
+	// glUniform3fv( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "obstacles" ), config.obstacles.size(), glm::value_ptr( config.obstacles[ 0 ] ) );
+	// glDispatchCompute( 512 / 16, 512 / 16, 1 );
 
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	glUseProgram( resources.shaders[ "Sphere Movement" ] );

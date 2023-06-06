@@ -24,7 +24,6 @@ in vec3 color;
 in vec3 worldPosition;
 flat in int index;
 
-
 // random utilites
 uint seed = 0;
 uint wangHash () {
