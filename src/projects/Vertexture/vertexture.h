@@ -380,8 +380,6 @@ void APIGeometryContainer::Initialize () {
 
 			// for ( int i = 0; i < config.Trees; i++ ) { // trees
 
-			vec2 basePt = vec2( 0.0f );
-
 			// 	float constrict = 1.618f;
 			// 	float scalar = treeHeightGen();
 
@@ -414,15 +412,17 @@ void APIGeometryContainer::Initialize () {
 
 			vec4 lineColor = vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() );
 
-			rng divisorsGen( 16.0f, 36.0f );
-			vec3 divisors = vec3( divisorsGen(), divisorsGen(), divisorsGen() );
-			for ( float t = 0.0f; t < 800.0f; t += 0.01f ) {
+			// rng divisorsGen( 33.0f, 39.0f );
+			// vec4 divisors = vec4( divisorsGen(), divisorsGen(), divisorsGen(), divisorsGen() );
+			rng divisorsGen( 0.1f, 0.3f );
+			vec4 divisors = vec4( 32.0f + divisorsGen(), 31.0f + divisorsGen(), 31.0f + divisorsGen(), 3.0f + divisorsGen() );
+			for ( float t = 0.0f; t < 20000.0f; t += 0.02f ) {
 				vec3 pointLoc =
-					vec3(
+					sin( t / divisors.w ) * vec3(
 						sin( t / divisors.x ),
 						cos( t / divisors.y ),
-						0.2f * sin( t / divisors.z )
-					) +  vec3( 0.0f, 0.0f, 0.2f );
+						0.8f * sin( t / divisors.z )
+					) +  vec3( 0.0f, 0.0f, 0.0f );
 
 				points.push_back( vec4( pointLoc, 5.0f ) );
 				colors.push_back( lineColor );
