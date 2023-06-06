@@ -9,9 +9,6 @@ struct vertextureConfig {
 
 	// scaling the size of the GPU resources
 	int Guys;
-	int Trees;
-	int Rocks;
-	int GroundCover;
 	int Lights;
 
 	// timekeeping since last reset
@@ -172,10 +169,7 @@ void APIGeometryContainer::LoadConfig () {
 
 	// this informs the behavior of Initialize()
 	config.Guys			= j[ "app" ][ "Vertexture" ][ "Guys" ];
-	config.Trees		= j[ "app" ][ "Vertexture" ][ "Trees" ];
-	config.Rocks		= j[ "app" ][ "Vertexture" ][ "Rocks" ];
 	config.Lights		= j[ "app" ][ "Vertexture" ][ "Lights" ];
-	config.GroundCover	= j[ "app" ][ "Vertexture" ][ "GroundCover" ];
 	config.showLightDebugLocations = j[ "app" ][ "Vertexture" ][ "ShowLightDebugLocations" ];
 
 		// todo: write out the rest of the parameterization ( point sizes, counts, other distributions... )
@@ -359,106 +353,55 @@ void APIGeometryContainer::Initialize () {
 			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 				// the texture for the height, and then they displace vertically in the shader
 
-			rng heightGen( -0.15f, 0.25f );
-			rng phaseGen( 1.85f, 5.7f );
-			rng randomWorldXYGen( -1.0f, 1.0f );
-			rngN trunkJitter( 0.0f, 0.006f );
-			rng trunkSizes( 1.5f, 4.76f );
-			rng treeHeightGen( 0.185f, 0.74f );
-			rng basePtPlace( -0.75f, 0.75f );
-			rng leafSizes( 1.27f, 12.6f );
-			rngN foliagePlace( 0.0f, 0.618f );
+			rng colorGen( 0.0f, 0.65f );
 			rng roughnessGen( 0.1f, 40.0f );
-			rngN rockGen( 0.0f, 0.037f );
-			rngN rockHGen( 0.06f, 0.037f );
-			rngN rockSize( 3.86f, 6.0f );
-
-			// for ( int i = 0; i < config.GroundCover; i++ ) { // randomly placed, uniformly distributed ground cover
-			// 	points.push_back( vec4( randomWorldXYGen(), randomWorldXYGen(), heightGen(), phaseGen() ) );
-			// 	colors.push_back( vec4( palette::paletteRef( heightGen() * 3.0f, palette::type::paletteIndexed_interpolated ), 1.0f ) );
-			// }
-
-			// for ( int i = 0; i < config.Trees; i++ ) { // trees
-
-			// 	float constrict = 1.618f;
-			// 	float scalar = treeHeightGen();
-
-			// 	// add a new obstacle at the tree location
-			// 	config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.06f ) );
-
-			// 	// create the points for the trunk
-			// 	for ( float t = 0; t < scalar; t += 0.002f ) {
-			// 		basePt.x += trunkJitter() * 0.5f;
-			// 		basePt.y += trunkJitter() * 0.5f;
-			// 		constrict *= 0.999f;
-			// 		points.push_back( vec4( constrict * trunkJitter() + basePt.x, constrict * trunkJitter() + basePt.y, t, constrict * trunkSizes() ) );
-			// 		colors.push_back( vec4( palette::paletteRef( heightGen(), palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
-			// 	}
-
-			// 	// create the points for the canopy
-			// 	// for ( int j = 0; j < 1000; j++ ) {
-
-			// rngN foliageHeightGen( 0.25, 0.15f );
-			// 	for ( int j = 0; j < 10000; j++ ) {
-			// 		vec3 place = vec3( basePt.x + foliagePlace(), basePt.y + foliagePlace(), foliageHeightGen() );
-			// 		if ( de( place * 5.0f ) < 0.0f ) {
-			// 			j--;
-			// 			continue;
-			// 		}
-			// 		points.push_back( vec4( place.xyz(), leafSizes() ) );
-			// 		colors.push_back( vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
-			// 	}
-
-
-			vec4 lineColor = vec4( palette::paletteRef( heightGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() );
-
-			// rng divisorsGen( 33.0f, 39.0f );
-			// vec4 divisors = vec4( divisorsGen(), divisorsGen(), divisorsGen(), divisorsGen() );
-			rng divisorsGen( 0.1f, 0.3f );
-			vec4 divisors = vec4( 32.0f + divisorsGen(), 31.0f + divisorsGen(), 31.0f + divisorsGen(), 3.0f + divisorsGen() );
-			for ( float t = 0.0f; t < 20000.0f; t += 0.02f ) {
-				vec3 pointLoc =
-					sin( t / divisors.w ) * vec3(
-						sin( t / divisors.x ),
-						cos( t / divisors.y ),
-						0.8f * sin( t / divisors.z )
-					) +  vec3( 0.0f, 0.0f, 0.0f );
-
-				points.push_back( vec4( pointLoc, 5.0f ) );
-				colors.push_back( lineColor );
-			}
-			// }
-
-			// for ( int i = 0; i < config.Rocks; i++ ) {
-			// 	vec2 basePt = vec2( basePtPlace(), basePtPlace() );
-			// 	config.obstacles.push_back( vec3( basePt.x, basePt.y, 0.13f ) );
-			// 	for ( int l = 0; l < 1000; l++ ) {
-			// 		points.push_back( vec4( basePt.x + rockGen(), basePt.y + rockGen(), rockHGen(), rockSize() ) );
-			// 		colors.push_back( vec4( palette::paletteRef( heightGen() + 0.2f, palette::type::paletteIndexed_interpolated ), roughnessGen() ) );
-			// 	}
-			// }
-
-			// debug spheres for the lights - want to do this another way
-			// if ( config.showLightDebugLocations == true ) {
-			// 	for ( unsigned int i = 0; i < lightData.size() / 8; i++ ) {
-			// 		const size_t basePt = 8 * i;
-
-			// 		vec4 position = vec4( lightData[ basePt ], lightData[ basePt + 1 ], lightData[ basePt + 2 ], 10.0f );
-			// 		// vec4 color = vec4( 1.0f, 1.0f, 1.0f, 11.0f );
-			// 		vec4 color = vec4( 1.0f, 0.0f, 0.0f, 1.0f );
-
-			// 		points.push_back( position );
-			// 		colors.push_back( color );
-			// 	}
-			// }
-
-			int dynamicPointCount = 0;
+			rng segmentLengthGen( 0.05f, 0.2f );
+			rng di( 2.5f, 6.5f );
 			rng size( 0.5f, 4.5f );
 			rng phase( 0.0f, pi * 6.0f );
+			rng dirPick( -1.0f, 1.0f );
+
+			const float spread = 0.5f;
+			const int numSteps = 100;
+
+			for ( float x = -spread; x < spread; x += ( 2.0f * spread / numSteps ) ) {
+				for ( float y = -spread; y < spread; y += ( 2.0f * spread / numSteps ) ) {
+
+					// grid of starting points
+						// then do the roving logic
+
+					const vec3 startingPoint = vec3( x, 0.0f, y );
+					vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() );
+					float diameter = di();
+
+					// initially traveling in a uniform direction, they move in short segments and then change to another
+						// when that change is made, color, diameter change
+
+					vec3 currentPoint = startingPoint;
+					const int numSegments = 10;
+					const float stepSize = 0.001f;
+
+					for ( int i = 0; i < numSegments; i++ ) {
+						const float segmentLength = segmentLengthGen();
+
+						// instead of fully random, probably move to just small rotation about a random vector
+						const vec3 heading = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
+
+						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+							currentPoint += stepSize * heading;
+							points.push_back( vec4( currentPoint, diameter ) );
+							colors.push_back( currentColor );
+						}
+					}
+				}
+			}
+
+
+			int dynamicPointCount = 0;
 			for ( int x = 0; x < config.Guys; x++ ) {
 				for ( int y = 0; y < config.Guys; y++ ) {
-					ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * heightGen(), size() ) );
-					ssboPoints.push_back( vec4( palette::paletteRef( heightGen() + 0.5f, palette::type::paletteIndexed_interpolated ), phase() ) );
+					ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * colorGen(), size() ) );
+					ssboPoints.push_back( vec4( palette::paletteRef( colorGen(), palette::type::paletteIndexed_interpolated ), phase() ) );
 					dynamicPointCount++;
 				}
 			}

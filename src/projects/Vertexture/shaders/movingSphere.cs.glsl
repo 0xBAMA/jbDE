@@ -60,7 +60,7 @@ void main () {
 	}
 
 	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.001f );
-	data[ index ].position.z = 0.5f * sin( time * 10.0f + data[ index ].color.a );
+	data[ index ].position.z = 0.125f * sin( time * 10.0f + data[ index ].color.a );
 
 	// wrap
 	if ( data[ index ].position.x > 1.0f ) data[ index ].position.x -= 2.0f;
