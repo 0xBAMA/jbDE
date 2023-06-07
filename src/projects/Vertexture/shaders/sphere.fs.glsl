@@ -8,7 +8,7 @@ uniform float AR;
 uniform mat3 trident;
 uniform float frameHeight;
 
-// moving lights state
+// moving lights state - bring this back? I would like to have the current state of the point lights shown visually
 uniform int lightCount;
 
 struct light_t {
@@ -64,13 +64,22 @@ layout( location = 2 ) out vec4 positionResult;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
-	vec2 sampleLocation = gl_PointCoord.xy +
-		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
-		vec2( ( 1.5f / frameHeight ), ( 1.5f / frameHeight ) * AR );
+	vec2 sampleLocation = gl_PointCoord.xy;
+	int numFailed = 0;
+	const int numSamples = 4;
+	for ( int i = 0; i < numSamples; i++ ) {
+		if ( distance( sampleLocation + ( vec2( normalizedRandomFloat(), normalizedRandomFloat() ) / radius ), vec2( 0.5f ) ) > 0.5f ) {
+			numFailed++;
+		}
+	}
+
+	if ( ( float( numFailed + normalizedRandomFloat() ) / float( numSamples ) ) >= 0.5f ) discard;
 
 	vec4 tRead = texture( sphere, sampleLocation );
-	if ( tRead.x < 0.05f ) discard;
-	if ( tRead.x < 0.35f ) if ( normalizedRandomFloat() < 0.5f ) discard;
+	// if ( tRead.x < 0.05f ) discard;
+
+
+
 
 	const mat3 inverseTrident = inverse( trident );
 

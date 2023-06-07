@@ -359,13 +359,13 @@ void APIGeometryContainer::Initialize () {
 			rng colorGen( 0.0f, 0.65f );
 			rng roughnessGen( 0.01f, 1.0f );
 			rng segmentLengthGen( 0.05f, 0.2f );
-			rng di( 2.5f, 6.5f );
+			rng di( 4.5f, 16.5f );
 			rng size( 0.5f, 4.5f );
 			rng phase( 0.0f, pi * 6.0f );
 			rng dirPick( -1.0f, 1.0f );
 
-			const float spread = 0.5f;
-			const int numSteps = 100;
+			const float spread = 0.618f;
+			const int numSteps = 80;
 
 			for ( float x = -spread; x < spread; x += ( 2.0f * spread / numSteps ) ) {
 				for ( float y = -spread; y < spread; y += ( 2.0f * spread / numSteps ) ) {
@@ -380,7 +380,7 @@ void APIGeometryContainer::Initialize () {
 						// when that change is made, color, diameter change
 
 					vec3 currentPoint = startingPoint;
-					const int numSegments = 20;
+					const int numSegments = 5;
 					const float stepSize = 0.002f;
 
 					vec3 heading = vec3( 0.0f, 0.0f, 1.0f );
