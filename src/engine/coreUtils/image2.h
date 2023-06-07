@@ -646,6 +646,65 @@ public:
 		}
 	}
 
+	void BrownConradyLensDistortMSBlurredChromaticSmooth ( const int iterations, const float k1, const float k2, const float t1 ) {
+		BrownConradyLensDistortMSBlurredChromaticSmooth( iterations, -k1, k1, -k2, k2, -t1, t1 );
+	}
+
+	void BrownConradyLensDistortMSBlurredChromaticSmooth ( const int iterations,
+		const float k1min, const float k1max,
+		const float k2min, const float k2max,
+		const float t1min, const float t1max ) {
+		// create an identical copy of the data, since we will be overwriting the entire image
+		const Image2< imageType, numChannels > cachedCopy( width, height, GetImageDataBasePtr() );
+
+		// iterate over every pixel in the image - calculate distorted UV's and sample the cached version
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+
+				color weight;
+				color weightAccum;
+				color accumulated;
+
+				for ( int i = 0; i < iterations; i++ ) {
+
+					const float iterationK1 = RangeRemapValue( i, 0.0f, iterations, k1min, k1max );
+					const float iterationK2 = RangeRemapValue( i, 0.0f, iterations, k2min, k2max );
+					const float iterationT1 = RangeRemapValue( i, 0.0f, iterations, t1min, t1max );
+
+					// pixel coordinate in UV space
+					const vec2 normalizedPosition = vec2( ( float ) x / ( float ) width, ( float ) y / ( float ) height );
+
+					vec2 remapped = ( normalizedPosition * 2.0f ) - vec2( 1.0f );
+					const float r2 = remapped.x * remapped.x + remapped.y * remapped.y;
+
+					remapped *= 1.0f + ( iterationK1 * r2 ) * ( iterationK2 * r2 * r2 );
+					// remapped *= 1.0f + ( iterationK1 * r2 ) + ( iterationK2 * r2 * r2 ); // interesting
+
+					if ( iterationT1 != 0.0f ) { // tangential distortion
+						const float angle = r2 * iterationT1;
+						remapped = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * remapped;
+					}
+
+					remapped = remapped * 0.5f + vec2( 0.5f ); // restore back to the normalized space
+
+					float interp = RangeRemapValue( i + 0.5f, 0.0f, iterations, 0.0f, 1.0f );
+					weight[ red ] = sin( interp );
+					weight[ green ] = sin( interp * 2.0f );
+					weight[ blue ] = cos( interp );
+					weight[ alpha ] = 1.0f;
+
+					// get the sample of the cached copy
+					accumulated = accumulated + ( cachedCopy.Sample( remapped, samplerType_t::LINEAR_FILTER ) * weight );
+					weightAccum = weightAccum + weight;
+				}
+
+				// normalize wrt the accumulated weights
+				accumulated = accumulated / weightAccum;
+				SetAtXY( x, y, accumulated );
+			}
+		}
+	}
+
 	void BrownConradyLensDistortMSBlurredChromaticNormalized ( const int iterations, const float k1, const float k2, const float t1 ) {
 		BrownConradyLensDistortMSBlurredChromaticNormalized( iterations, -k1, k1, -k2, k2, -t1, t1 );
 	}
