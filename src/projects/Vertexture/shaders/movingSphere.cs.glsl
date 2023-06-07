@@ -18,6 +18,9 @@ uniform int dimension;
 uniform int inSeed;
 uniform float time;
 
+uniform float layerDepth;
+uniform float layerOffset;
+
 // random utilites
 uint seed = 0;
 uint wangHash () {
@@ -60,7 +63,7 @@ void main () {
 	}
 
 	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.001f );
-	data[ index ].position.z = 0.125f * sin( time * 10.0f + data[ index ].color.a );
+	data[ index ].position.z = layerDepth * sin( time * 10.0f + data[ index ].color.a ) + layerOffset;
 
 	// wrap
 	if ( data[ index ].position.x > 1.0f ) data[ index ].position.x -= 2.0f;

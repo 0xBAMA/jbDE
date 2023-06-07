@@ -36,6 +36,9 @@ struct vertextureConfig {
 	uint32_t height;
 	float screenAR;
 
+	float layerOffset = 0.0f;
+	float layerDepth = 0.4f;
+
 };
 
 struct rnGenerators {
@@ -354,7 +357,7 @@ void APIGeometryContainer::Initialize () {
 				// the texture for the height, and then they displace vertically in the shader
 
 			rng colorGen( 0.0f, 0.65f );
-			rng roughnessGen( 0.1f, 40.0f );
+			rng roughnessGen( 0.01f, 1.0f );
 			rng segmentLengthGen( 0.05f, 0.2f );
 			rng di( 2.5f, 6.5f );
 			rng size( 0.5f, 4.5f );
@@ -370,27 +373,34 @@ void APIGeometryContainer::Initialize () {
 					// grid of starting points
 						// then do the roving logic
 
-					const vec3 startingPoint = vec3( x, 0.0f, y );
-					vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() );
+					const vec3 startingPoint = vec3( x, y, -0.4f );
 					float diameter = di();
 
 					// initially traveling in a uniform direction, they move in short segments and then change to another
 						// when that change is made, color, diameter change
 
 					vec3 currentPoint = startingPoint;
-					const int numSegments = 10;
-					const float stepSize = 0.001f;
+					const int numSegments = 20;
+					const float stepSize = 0.002f;
 
-					for ( int i = 0; i < numSegments; i++ ) {
+					vec3 heading = vec3( 0.0f, 0.0f, 1.0f );
+
+					for ( int i = 1; i <= numSegments; i++ ) {
+						rng segmentLengthGen( 0.05f, 0.4f / i );
+						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.3f, palette::type::paletteIndexed_interpolated ), roughnessGen() );
 						const float segmentLength = segmentLengthGen();
-
-						// instead of fully random, probably move to just small rotation about a random vector
-						const vec3 heading = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
-
 						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
 							currentPoint += stepSize * heading;
 							points.push_back( vec4( currentPoint, diameter ) );
 							colors.push_back( currentColor );
+						}
+
+						rngi axisPick( 0, 2 );
+						switch ( axisPick() ) {
+						case 0: heading = glm::rotate( heading, float( pi / 6.0f ) * ( axisPick() - 1 ), glm::vec3( 1.0f, 0.0f, 0.0f ) ); break;
+						case 1: heading = glm::rotate( heading, float( pi / 6.0f ) * ( axisPick() - 1 ), glm::vec3( 0.0f, 1.0f, 0.0f ) ); break;
+						case 2: heading = glm::rotate( heading, float( pi / 6.0f ) * ( axisPick() - 1 ), glm::vec3( 0.0f, 0.0f, 1.0f ) ); break;
+						default: break;
 						}
 					}
 				}
@@ -622,6 +632,8 @@ void APIGeometryContainer::Update () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "layerDepth"), config.layerDepth );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "layerOffset"), config.layerOffset );
 	glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
 
 	// run the stuff to update the light positions - this needs more work
@@ -638,6 +650,9 @@ void APIGeometryContainer::ControlWindow () {
 
 	ImGui::Checkbox( "Show Timing", &config.showTiming );
 	ImGui::Checkbox( "Show Trident", &config.showTrident );
+
+	ImGui::SliderFloat( "Layer Depth", &config.layerDepth, 0.0f, 1.5f, "%.3f" );
+	ImGui::SliderFloat( "Layer Offset", &config.layerOffset, 0.0f, 1.5f, "%.3f" );
 
 	// etc
 

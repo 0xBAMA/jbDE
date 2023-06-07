@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1024,
-	"screenHeight":576,
+	"screenWidth":1920,
+	"screenHeight":1080,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -14,7 +14,7 @@
 	"OpenGLVersionMinor":3,
 	"reportPlatformInfo":true,
 	"depthTesting":true,
-	"SRGBFramebuffer":false,
+	"SRGBFramebuffer":true,
 	"pointSize":3.0,
 	"SDL_WINDOW_FULLSCREEN":true,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
@@ -40,8 +40,8 @@
 		"Vertexture":{
 			"showTrident":false,
 			"showTiming":false,
-			"Lights":512,
-			"Guys":0,
+			"Lights":128,
+			"Guys":512,
 			"GroundCover":100000,
 			"InitialScale":0.65,
 			"InitialHeightScale":0.2,

@@ -39,8 +39,6 @@ void main () {
 
 		// lighting
 		const mat3 inverseTrident = inverse( trident );
-		// const float maxDistFactor = 100.0f;
-		const float maxDistFactor = 100000000.0f;
 		const vec3 eyePosition = vec3( 0.0f, 0.0f, -5.0f );
 		const vec3 viewVector = inverseTrident * normalize( eyePosition - position.xyz );
 		vec3 lightContribution = vec3( 0.0f );
@@ -58,7 +56,7 @@ void main () {
 			const float lightDot = dot( normal.xyz, lightVector );
 			const float dLight = distance( position.xyz, lightLocation );
 
-			const float distanceFactor = min( 1.0f / ( pow( dLight, 2.0f ) ), maxDistFactor );
+			const float distanceFactor = 1.0f / pow( dLight, 2.0f );
 			const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
 			const float specularContribution = distanceFactor * pow( max( dot( -reflectedVector, viewVector ), 0.0f ), roughness );
 
