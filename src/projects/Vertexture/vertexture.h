@@ -367,7 +367,7 @@ void APIGeometryContainer::Initialize () {
 			rngi cornerPick( 0, 3 );
 
 			const float spread = 6.18f;
-			const int numSteps = 500;
+			const int numSteps = 800;
 
 			for ( float x = -spread; x < spread; x += ( 2.0f * spread / numSteps ) ) {
 				for ( float y = -spread / 40.0f; y < spread / 40.0f; y += ( 2.0f * spread / numSteps ) ) {

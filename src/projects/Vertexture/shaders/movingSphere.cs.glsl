@@ -52,22 +52,16 @@ vec2 randomInUnitDisk () {
 
 void main () {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
-	const ivec2 loc = ivec2( ( ( data[ index ].position.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
-	const vec4 steepnessRead = imageLoad( steepnessTex, loc );
-	const vec4 distDirRead = imageLoad( distanceDirTex, loc );
-
 	seed = index + uint( inSeed );
-
-	if ( distDirRead.z <= 0.0f ) {
-		data[ index ].position.xy += distDirRead.xy * 0.02f;
-	}
 
 	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.001f );
 	data[ index ].position.z = layerDepth * sin( time * 10.0f + data[ index ].color.a ) + layerOffset;
 
 	// wrap
-	if ( data[ index ].position.x > 1.0f ) data[ index ].position.x -= 2.0f;
-	if ( data[ index ].position.x < -1.0f ) data[ index ].position.x += 2.0f;
-	if ( data[ index ].position.y > 1.0f ) data[ index ].position.y -= 2.0f;
-	if ( data[ index ].position.y < -1.0f ) data[ index ].position.y += 2.0f;
+	const float worldX = 10.0f;
+	const float worldY = 10.0f;
+	if ( data[ index ].position.x > worldX / 2.0f ) data[ index ].position.x -= worldX;
+	if ( data[ index ].position.x < -worldX / 2.0f ) data[ index ].position.x += worldX;
+	if ( data[ index ].position.y > worldY / 2.0f ) data[ index ].position.y -= worldY;
+	if ( data[ index ].position.y < -worldY / 2.0f ) data[ index ].position.y += worldY;
 }
