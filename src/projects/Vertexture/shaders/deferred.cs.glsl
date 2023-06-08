@@ -92,7 +92,9 @@ void main () {
 		imageStore( accumulatorTexture, writeLoc, vec4( outputValue, 1.0f ) );
 
 	} else {
-		imageStore( accumulatorTexture, writeLoc, vec4( vec3( 0.0f ), 1.0f ) );
+
+		vec4 previous = imageLoad( accumulatorTexture, writeLoc );
+		imageStore( accumulatorTexture, writeLoc, vec4( mix( previous.xyz, vec3( 0.0f ), 0.01f ), 1.0f ) );
 
 		// streaks in the negative space, interesting
 		// vec4 previous = imageLoad( accumulatorTexture, writeLoc - ivec2( 1, 2 ) );
