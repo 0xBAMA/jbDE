@@ -366,13 +366,13 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spread = 0.318f;
-			const int numSteps = 64;
+			const float spread = 6.18f;
+			const int numSteps = 500;
 
 			for ( float x = -spread; x < spread; x += ( 2.0f * spread / numSteps ) ) {
-				for ( float y = -spread / 3.0f; y < spread / 1.0f; y += ( 2.0f * spread / numSteps ) ) {
+				for ( float y = -spread / 40.0f; y < spread / 40.0f; y += ( 2.0f * spread / numSteps ) ) {
 					{
-						const vec3 startingPoint = vec3( x, y, 0.75f );
+						const vec3 startingPoint = vec3( x, y, 0.5f );
 						float diameter = di();
 
 						// initially traveling in a uniform direction, they move in short segments and then change to another
@@ -387,17 +387,17 @@ void APIGeometryContainer::Initialize () {
 						vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
 						const vec3 axeezNuts = glm::cross( axis, axis2 );
 
-						// vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						const float segmentLength = 1.5f;
+						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+						const float segmentLength = 1.7f;
 
 						float decayState = 1.0f;
-						const float decayFactor = 0.996f;
+						const float decayFactor = 0.997f;
 
 						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
 							currentPoint += stepSize * heading;
 							points.push_back( vec4( currentPoint, diameter * decayState ) );
-							// colors.push_back( currentColor );
-							colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
+							colors.push_back( currentColor );
+							// colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
 
 							decayState *= decayFactor;
 							switch ( axisPick() ) {
@@ -410,7 +410,7 @@ void APIGeometryContainer::Initialize () {
 					}
 
 					{
-						const vec3 startingPoint = vec3( x, y, -0.75f );
+						const vec3 startingPoint = vec3( x, y, -0.5f );
 						float diameter = di();
 
 						// initially traveling in a uniform direction, they move in short segments and then change to another
@@ -425,17 +425,17 @@ void APIGeometryContainer::Initialize () {
 						vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
 						const vec3 axeezNuts = glm::cross( axis, axis2 );
 
-						// vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						const float segmentLength = 1.5f;
+						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+						const float segmentLength = 1.7f;
 
 						float decayState = 1.0f;
-						const float decayFactor = 0.996f;
+						const float decayFactor = 0.997f;
 
 						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
 							currentPoint += stepSize * heading;
 							points.push_back( vec4( currentPoint, diameter * decayState ) );
-							// colors.push_back( currentColor );
-							colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
+							colors.push_back( currentColor );
+							// colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
 
 							decayState *= decayFactor;
 							switch ( axisPick() ) {
@@ -447,22 +447,22 @@ void APIGeometryContainer::Initialize () {
 						}
 					}
 
-					{
-						const float diameter = di() / 2.0f;
-						for ( float z = -0.6f; z < 0.6f; z += 0.28f ) {
-							const vec3 startingPoint = vec3( x, y, z );
-							const vec3 endingPoint = vec3( x, y, z + 0.45f );
-							const vec3 offset = endingPoint - startingPoint;
-							const float stepSize = 0.003f;
-							const float d = length( offset );
-							rngN scatter( 0.0f, 0.0015f );
+					// {
+					// 	const float diameter = di() / 2.0f;
+					// 	for ( float z = -0.6f; z < 0.6f; z += 0.25f ) {
+					// 		const vec3 startingPoint = vec3( x, y, z );
+					// 		const vec3 endingPoint = vec3( x, y, z + 0.45f );
+					// 		const vec3 offset = endingPoint - startingPoint;
+					// 		const float stepSize = 0.003f;
+					// 		const float d = length( offset );
+					// 		rngN scatter( 0.0f, 0.0015f );
 
-							for ( float t = 0; t < d; t+= stepSize ) {
-								points.push_back( vec4( startingPoint + t * offset + vec3( scatter(), scatter(), 0.0f ), diameter ) );
-								colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
-							}
-						}
-					}
+					// 		for ( float t = 0; t < d; t += stepSize ) {
+					// 			points.push_back( vec4( startingPoint + t * offset + vec3( scatter(), scatter(), 0.0f ), diameter ) );
+					// 			colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
+					// 		}
+					// 	}
+					// }
 
 
 				}
