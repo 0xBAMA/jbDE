@@ -366,23 +366,23 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 1.618f;
+			const float spreadX = 0.618f;
 			const float spreadY = 0.1f;
-			const int numSteps = 240;
+			const int numSteps = 140;
+			const float stepSize = 0.003f;
+			const int detents = 6;
+			const float distanceFromCenter = 0.918f;
 
-			for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
-				for ( float y = -spreadY; y < spreadY; y += ( 2.0f * spreadX / numSteps ) ) {
-					{
-						const vec3 startingPoint = vec3( x, y, 0.5f );
+			for ( int i = 0; i < detents; i++ ) {
+				for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
+					for ( float y = -spreadY; y < spreadY; y += ( 2.0f * spreadX / numSteps ) ) {
+
+						const vec3 startingPoint = glm::rotate( vec3( x, y, distanceFromCenter ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
+						vec3 heading = glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
 						float diameter = di();
 
-						// initially traveling in a uniform direction, they move in short segments and then change to another
-							// when that change is made, color, diameter change
-
 						vec3 currentPoint = startingPoint;
-						const float stepSize = 0.003f;
 
-						vec3 heading = vec3( 0.0f, 0.0f, 1.0f );
 						float magnitude = sin( 1.0f - glm::length( currentPoint.xy() ) * 56.5f );
 						vec3 axis = glm::normalize( heading * vec3( dirPick() + offset(), 1.0f + offset(), -magnitude * dirPick() ) );
 						vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
@@ -409,233 +409,70 @@ void APIGeometryContainer::Initialize () {
 							}
 						}
 					}
-
-					{
-						const vec3 startingPoint = vec3( x, y, -0.5f );
-						float diameter = di();
-
-						// initially traveling in a uniform direction, they move in short segments and then change to another
-							// when that change is made, color, diameter change
-
-						vec3 currentPoint = startingPoint;
-						const float stepSize = 0.003f;
-
-						vec3 heading = vec3( 0.0f, 0.0f, -1.0f );
-						float magnitude = sin( 1.0f - glm::length( currentPoint.xy() ) * 56.5f );
-						vec3 axis = glm::normalize( heading * vec3( dirPick() + offset(), 1.0f + offset(), -magnitude * dirPick() ) );
-						vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
-						const vec3 axeezNuts = glm::cross( axis, axis2 );
-
-						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						const float segmentLength = 1.7f;
-
-						float decayState = 1.0f;
-						const float decayFactor = 0.997f;
-
-						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-							currentPoint += stepSize * heading;
-							points.push_back( vec4( currentPoint, diameter * decayState ) );
-							colors.push_back( currentColor );
-							// colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
-
-							decayState *= decayFactor;
-							switch ( axisPick() ) {
-							case 0: heading = glm::rotate( heading, offset(), axis ); break;
-							case 1: heading = glm::rotate( heading, offset(), axis2 ); break;
-							case 2: heading = glm::rotate( heading, offset(), axeezNuts ); break;
-							default: break;
-							}
-						}
+				}
+				const float rimSize = 18.0f;
+				const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
+				const float frameBoost = 1.1f;
+				const float distanceOffset = 0.9f;
+				const vec3 endpoints[ 4 ] = {
+					glm::rotate(
+						vec3( -spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+						vec3( 0.0f, 1.0f, 0.0f ) ),
+					glm::rotate(
+						vec3( -spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+						vec3( 0.0f, 1.0f, 0.0f ) ),
+					glm::rotate(
+						vec3(  spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+						vec3( 0.0f, 1.0f, 0.0f ) ),
+					glm::rotate(
+						vec3(  spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+						vec3( 0.0f, 1.0f, 0.0f ) ),
+				};
+				{
+					const vec3 endpoint0 = endpoints[ 0 ];
+					const vec3 endpoint1 = endpoints[ 1 ];
+					const float segmentLength = glm::distance( endpoint0, endpoint1 );
+					const vec3 heading = normalize( endpoint0 - endpoint1 );
+					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+						colors.push_back( darkGrey );
 					}
-
-					// {
-					// 	const float diameter = di() / 2.0f;
-					// 	for ( float z = -0.6f; z < 0.6f; z += 0.25f ) {
-					// 		const vec3 startingPoint = vec3( x, y, z );
-					// 		const vec3 endingPoint = vec3( x, y, z + 0.45f );
-					// 		const vec3 offset = endingPoint - startingPoint;
-					// 		const float stepSize = 0.003f;
-					// 		const float d = length( offset );
-					// 		rngN scatter( 0.0f, 0.0015f );
-
-					// 		for ( float t = 0; t < d; t += stepSize ) {
-					// 			points.push_back( vec4( startingPoint + t * offset + vec3( scatter(), scatter(), 0.0f ), diameter ) );
-					// 			colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
-					// 		}
-					// 	}
-					// }
-
-
+				}
+				{
+					const vec3 endpoint0 = endpoints[ 1 ];
+					const vec3 endpoint1 = endpoints[ 3 ];
+					const float segmentLength = glm::distance( endpoint0, endpoint1 );
+					const vec3 heading = normalize( endpoint0 - endpoint1 );
+					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+						colors.push_back( darkGrey );
+					}
+				}
+				{
+					const vec3 endpoint0 = endpoints[ 2 ];
+					const vec3 endpoint1 = endpoints[ 3 ];
+					const float segmentLength = glm::distance( endpoint0, endpoint1 );
+					const vec3 heading = normalize( endpoint0 - endpoint1 );
+					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+						colors.push_back( darkGrey );
+					}
+				}
+				{
+					const vec3 endpoint0 = endpoints[ 0 ];
+					const vec3 endpoint1 = endpoints[ 2 ];
+					const float segmentLength = glm::distance( endpoint0, endpoint1 );
+					const vec3 heading = normalize( endpoint0 - endpoint1 );
+					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+						colors.push_back( darkGrey );
+					}
 				}
 			}
-
-			const float stepSize = 0.005f;
-			const float rimSize = 24.0f;
-			const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
-			const float frameBoost = 1.01f;
-			{
-				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
-				const vec3 endpoint1 = vec3( -spreadX * frameBoost,  spreadY * frameBoost, 0.48f );
-								const float segmentLength = glm::distance( endpoint0, endpoint1 );
-
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
-				const vec3 endpoint1 = vec3( -spreadX * frameBoost,  spreadY * frameBoost, -0.48f );
-								const float segmentLength = glm::distance( endpoint0, endpoint1 );
-
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( -spreadX * frameBoost, spreadY * frameBoost, 0.48f );
-				const vec3 endpoint1 = vec3(  spreadX * frameBoost, spreadY * frameBoost, 0.48f );
-				const float segmentLength = glm::distance( endpoint0, endpoint1 );
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( -spreadX * frameBoost, spreadY * frameBoost, -0.48f );
-				const vec3 endpoint1 = vec3(  spreadX * frameBoost, spreadY * frameBoost, -0.48f );
-				const float segmentLength = glm::distance( endpoint0, endpoint1 );
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
-				const vec3 endpoint1 = vec3( spreadX * frameBoost,  spreadY * frameBoost, 0.48f );
-				const float segmentLength = glm::distance( endpoint0, endpoint1 );
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
-				const vec3 endpoint1 = vec3( spreadX * frameBoost,  spreadY * frameBoost, -0.48f );
-				const float segmentLength = glm::distance( endpoint0, endpoint1 );
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
-				const vec3 endpoint1 = vec3(  spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
-				const float segmentLength = glm::distance( endpoint0, endpoint1 );
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			{
-				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
-				const vec3 endpoint1 = vec3(  spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
-				const float segmentLength = glm::distance( endpoint0, endpoint1 );
-				const vec3 heading = normalize( endpoint0 - endpoint1 );
-				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
-					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-					colors.push_back( darkGrey );
-				}
-			}
-
-			// palette::PickRandomPalette();
-
-			// const float boxSize = 0.85f;
-			// const float stepSize = 0.003f;
-			// rngN scatter( 0.0f, 0.05f );
-
-			// // placing the 
-			// for ( int i = 0; i < 1800; i++ ) {
-			// 	vec3 endPoints[ 2 ];
-			// 	vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.35f ), roughnessGen() );
-
-			// 	vec3 basisX;
-			// 	vec3 basisY;
-			// 	vec3 basisZ;
-
-			// 	// get the basis for the thing
-			// 	switch ( axisPick() ) {
-			// 	case 0:
-			// 		basisX = vec3( 1.0f, 0.0f, 0.0f );
-			// 		basisY = vec3( 0.0f, 1.0f, 0.0f );
-			// 		basisZ = vec3( 0.0f, 0.0f, 1.0f );
-			// 		break;
-			// 	case 1:
-			// 		basisX = vec3( 0.0f, 1.0f, 0.0f );
-			// 		basisY = vec3( 0.0f, 0.0f, 1.0f );
-			// 		basisZ = vec3( 1.0f, 0.0f, 0.0f );
-			// 		break;
-			// 	case 2:
-			// 		basisX = vec3( 0.0f, 0.0f, 1.0f );
-			// 		basisY = vec3( 1.0f, 0.0f, 0.0f );
-			// 		basisZ = vec3( 0.0f, 1.0f, 0.0f );
-			// 		break;
-			// 	default: break;
-			// 	}
-
-			// 	// using dimension-agnostic logic, use the local basis to place points
-			// 	vec3 startingPoint = vec3( 0.0f );
-			// 	switch ( cornerPick() ) {
-			// 	case 0: // +, +
-			// 		startingPoint += ( ( boxSize + scatter() ) / 2.0f ) * basisX;
-			// 		startingPoint += ( ( boxSize + scatter() ) / 2.0f ) * basisY;
-			// 		break;
-
-			// 	case 1: // -, +
-			// 		startingPoint -= ( ( boxSize + scatter() ) / 2.0f ) * basisX;
-			// 		startingPoint += ( ( boxSize + scatter() ) / 2.0f ) * basisY;
-			// 		break;
-
-			// 	case 2: // +, -
-			// 		startingPoint += ( ( boxSize + scatter() ) / 2.0f ) * basisX;
-			// 		startingPoint -= ( ( boxSize + scatter() ) / 2.0f ) * basisY;
-			// 		break;
-
-			// 	case 3: // -, -
-			// 		startingPoint -= ( ( boxSize + scatter() ) / 2.0f ) * basisX;
-			// 		startingPoint -= ( ( boxSize + scatter() ) / 2.0f ) * basisY;
-			// 		break;
-
-			// 	default: break;
-			// 	}
-
-			// 	endPoints[ 0 ] = startingPoint - ( boxSize + scatter() ) * basisZ;
-			// 	endPoints[ 1 ] = startingPoint + ( boxSize + scatter() ) * basisZ;
-
-			// 	const float d = glm::distance( endPoints[ 0 ], endPoints[ 1 ] );
-			// 	const vec3 offset = glm::normalize( endPoints[ 1 ] - endPoints[ 0 ] );
-			// 	const float diameter = di();
-			// 	for ( float t = 0.0f; t < d; t += stepSize ) {
-			// 		points.push_back( vec4( endPoints[ 0 ] + t * offset, diameter ) );
-			// 		colors.push_back( currentColor );
-			// 	}
-
-			// }
 
 			int dynamicPointCount = 0;
 			rng pGen( -20.0f, 20.0f );
