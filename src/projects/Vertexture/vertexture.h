@@ -180,7 +180,7 @@ void APIGeometryContainer::LoadConfig () {
 	// other program state
 	config.showTrident	= j[ "app" ][ "Vertexture" ][ "showTrident" ];
 	config.showTiming	= j[ "app" ][ "Vertexture" ][ "showTiming" ];
-	config.scale		= j[ "app" ][ "Vertexture" ][ "InitialScale" ];
+	// config.scale		= j[ "app" ][ "Vertexture" ][ "InitialScale" ];
 	config.heightScale	= j[ "app" ][ "Vertexture" ][ "InitialHeightScale" ];
 	config.basisX		= vec3( j[ "app" ][ "Vertexture" ][ "basisX" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "z" ] );
 	config.basisY		= vec3( j[ "app" ][ "Vertexture" ][ "basisY" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "z" ] );
