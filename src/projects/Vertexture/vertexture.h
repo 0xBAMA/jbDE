@@ -366,11 +366,12 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spread = 6.18f;
-			const int numSteps = 800;
+			const float spreadX = 1.618f;
+			const float spreadY = 0.1f;
+			const int numSteps = 240;
 
-			for ( float x = -spread; x < spread; x += ( 2.0f * spread / numSteps ) ) {
-				for ( float y = -spread / 40.0f; y < spread / 40.0f; y += ( 2.0f * spread / numSteps ) ) {
+			for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
+				for ( float y = -spreadY; y < spreadY; y += ( 2.0f * spreadX / numSteps ) ) {
 					{
 						const vec3 startingPoint = vec3( x, y, 0.5f );
 						float diameter = di();
@@ -465,6 +466,100 @@ void APIGeometryContainer::Initialize () {
 					// }
 
 
+				}
+			}
+
+			const float stepSize = 0.005f;
+			const float rimSize = 24.0f;
+			const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
+			const float frameBoost = 1.01f;
+			{
+				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
+				const vec3 endpoint1 = vec3( -spreadX * frameBoost,  spreadY * frameBoost, 0.48f );
+								const float segmentLength = glm::distance( endpoint0, endpoint1 );
+
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
+				const vec3 endpoint1 = vec3( -spreadX * frameBoost,  spreadY * frameBoost, -0.48f );
+								const float segmentLength = glm::distance( endpoint0, endpoint1 );
+
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( -spreadX * frameBoost, spreadY * frameBoost, 0.48f );
+				const vec3 endpoint1 = vec3(  spreadX * frameBoost, spreadY * frameBoost, 0.48f );
+				const float segmentLength = glm::distance( endpoint0, endpoint1 );
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( -spreadX * frameBoost, spreadY * frameBoost, -0.48f );
+				const vec3 endpoint1 = vec3(  spreadX * frameBoost, spreadY * frameBoost, -0.48f );
+				const float segmentLength = glm::distance( endpoint0, endpoint1 );
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
+				const vec3 endpoint1 = vec3( spreadX * frameBoost,  spreadY * frameBoost, 0.48f );
+				const float segmentLength = glm::distance( endpoint0, endpoint1 );
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
+				const vec3 endpoint1 = vec3( spreadX * frameBoost,  spreadY * frameBoost, -0.48f );
+				const float segmentLength = glm::distance( endpoint0, endpoint1 );
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
+				const vec3 endpoint1 = vec3(  spreadX * frameBoost, -spreadY * frameBoost, 0.48f );
+				const float segmentLength = glm::distance( endpoint0, endpoint1 );
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
+				}
+			}
+
+			{
+				const vec3 endpoint0 = vec3( -spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
+				const vec3 endpoint1 = vec3(  spreadX * frameBoost, -spreadY * frameBoost, -0.48f );
+				const float segmentLength = glm::distance( endpoint0, endpoint1 );
+				const vec3 heading = normalize( endpoint0 - endpoint1 );
+				for ( float t = 0.0f; t < segmentLength; t+= stepSize ) {
+					points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+					colors.push_back( darkGrey );
 				}
 			}
 

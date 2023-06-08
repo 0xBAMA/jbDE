@@ -64,8 +64,8 @@ void main () {
 	// lightData[ index ].position.z = 0.2f * sin( time + lightData[ index ].color.a ) + 0.21f;
 
 	// wrap
-	const float wrapAmount = 1.5f;
-	const float wrapLength = 3.0f;
+	const float wrapAmount = 1.0f;
+	const float wrapLength = 1.5f;
 	if ( lightData[ index ].position.x > wrapLength ) lightData[ index ].position.x -= 2.0f * wrapLength;
 	if ( lightData[ index ].position.x < -wrapLength ) lightData[ index ].position.x += 2.0f * wrapLength;
 	if ( lightData[ index ].position.y > wrapAmount ) lightData[ index ].position.y -= 2.0f * wrapAmount;
