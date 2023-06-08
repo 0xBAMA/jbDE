@@ -60,16 +60,19 @@ void main () {
 	// }
 
 	// lightData[ index ].position.xy = lightData[ index ].position.xy + vec2( 0.001f ) + randomInUnitDisk() * 0.001f;
-	lightData[ index ].position.x = lightData[ index ].position.x + 0.001f;
+
+	lightData[ index ].position.xyz = lightData[ index ].position.xyz + randomUnitVector() * 0.01f;
+
+	// lightData[ index ].position.x = lightData[ index ].position.x + 0.001f;
 	// lightData[ index ].position.z = 0.2f * sin( time + lightData[ index ].color.a ) + 0.21f;
 
 	// wrap
-	const float wrapAmount = 1.0f;
-	const float wrapLength = 1.5f;
-	if ( lightData[ index ].position.x > wrapLength ) lightData[ index ].position.x -= 2.0f * wrapLength;
-	if ( lightData[ index ].position.x < -wrapLength ) lightData[ index ].position.x += 2.0f * wrapLength;
-	if ( lightData[ index ].position.y > wrapAmount ) lightData[ index ].position.y -= 2.0f * wrapAmount;
-	if ( lightData[ index ].position.y < -wrapAmount ) lightData[ index ].position.y += 2.0f * wrapAmount;
-	if ( lightData[ index ].position.z > wrapAmount ) lightData[ index ].position.z -= 2.0f * wrapAmount;
-	if ( lightData[ index ].position.z < -wrapAmount ) lightData[ index ].position.z += 2.0f * wrapAmount;
+	const float worldX = 1.2f;
+	const float worldY = 3.8f;
+	if ( lightData[ index ].position.x > worldY / 2.0f ) lightData[ index ].position.x -= worldY;
+	if ( lightData[ index ].position.x < -worldY / 2.0f ) lightData[ index ].position.x += worldY;
+	if ( lightData[ index ].position.y > worldX / 2.0f ) lightData[ index ].position.y -= worldX;
+	if ( lightData[ index ].position.y < -worldX / 2.0f ) lightData[ index ].position.y += worldX;
+	if ( lightData[ index ].position.z > worldY / 2.0f ) lightData[ index ].position.z -= worldY;
+	if ( lightData[ index ].position.z < -worldY / 2.0f ) lightData[ index ].position.z += worldY;
 }

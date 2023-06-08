@@ -5,10 +5,7 @@ uniform sampler2D heightmap;
 uniform float time;
 uniform mat3 trident;
 uniform float scale;
-uniform float heightScale;
-
-layout( binding = 1, rgba32f ) uniform image2D steepnessTex;    // steepness texture for scaling movement speed
-layout( binding = 2, rgba32f ) uniform image2D distanceDirTex; // distance + direction to nearest obstacle
+uniform float frameWidth;
 
 // moving point state
 struct point_t {
@@ -32,23 +29,17 @@ void main () {
 	vec4 positionRead = data[ index ].position;
 	vec4 colorRead = data[ index ].color;
 
-	ivec2 loc = ivec2( ( ( positionRead.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
-	vec4 steepnessRead = imageLoad( steepnessTex, loc );
-
-	vec4 tRead = texture( heightmap, positionRead.xy / 2.0f );
-	height = ( tRead.r * heightScale ) - heightScale;
-	radius = gl_PointSize = scale * positionRead.a * AR;
+	// radius = gl_PointSize = scale * positionRead.a * AR;
 
 	color = colorRead.rgb;
-	roughness = colorRead.a;
 
 	rot = trident;
 
-	worldPosition = positionRead.xyz + vec3( 0.0f, 0.0f, height );
+	worldPosition = positionRead.xyz;
 
 	vec3 position = scale * trident * ( worldPosition );
-	position.z += radius / 1024.0f; // precompensate for depth offset in fragment shader
-	// gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ), 1.0f );
-	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ), position.z + 1.0f );
+	radius = gl_PointSize = ( scale * positionRead.a * AR ) / max( position.z + 1.0f, 0.01f );
+	position.z += radius / frameWidth; // precompensate for depth offset in fragment shader
+	gl_Position = vec4( position * vec3( 1.0f, AR, 1.0f ), max( position.z + 1.0f, 0.01f ) );
 
 }

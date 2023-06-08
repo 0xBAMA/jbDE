@@ -55,14 +55,16 @@ void main () {
 	seed = index + uint( inSeed );
 
 	// data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.001f );
-	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.02f;
-	data[ index ].position.z = layerDepth * sin( time * 10.0f + data[ index ].color.a ) + layerOffset;
+	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.01f;
+	data[ index ].position.z = data[ index ].position.z + normalizedRandomFloat() * 0.01f;
 
 	// wrap
-	const float worldX = 12.0f;
-	const float worldY = 4.0f;
-	if ( data[ index ].position.x > worldX / 2.0f ) data[ index ].position.x -= worldX;
-	if ( data[ index ].position.x < -worldX / 2.0f ) data[ index ].position.x += worldX;
-	if ( data[ index ].position.y > worldY / 2.0f ) data[ index ].position.y -= worldY;
-	if ( data[ index ].position.y < -worldY / 2.0f ) data[ index ].position.y += worldY;
+	const float worldX = 1.2f;
+	const float worldY = 3.8f;
+	if ( data[ index ].position.x > worldY / 2.0f ) data[ index ].position.x -= worldY;
+	if ( data[ index ].position.x < -worldY / 2.0f ) data[ index ].position.x += worldY;
+	if ( data[ index ].position.y > worldX / 2.0f ) data[ index ].position.y -= worldX;
+	if ( data[ index ].position.y < -worldX / 2.0f ) data[ index ].position.y += worldX;
+	if ( data[ index ].position.z > worldY / 2.0f ) data[ index ].position.z -= worldY;
+	if ( data[ index ].position.z < -worldY / 2.0f ) data[ index ].position.z += worldY;
 }

@@ -302,9 +302,8 @@ void APIGeometryContainer::Initialize () {
 	{
 		GLuint ssbo;
 		rng xDistrib( -10.0f, 10.0f );
-		rng yzDistrib( -1.0f, 1.0f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.0005f, 0.0045f );
+		rng brightness( 0.005f, 0.009f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -313,8 +312,8 @@ void APIGeometryContainer::Initialize () {
 
 			// distribute initial light points
 			lightData.push_back( xDistrib() );
-			lightData.push_back( yzDistrib() );
-			lightData.push_back( yzDistrib() );
+			lightData.push_back( xDistrib() );
+			lightData.push_back( xDistrib() );
 			lightData.push_back( 0.0f );
 
 			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated ) * brightness();
@@ -363,15 +362,16 @@ void APIGeometryContainer::Initialize () {
 			rng phase( 0.0f, pi * 6.0f );
 			rng dirPick( -1.0f, 1.0f );
 			rng offset( -0.1618f, 0.1618f );
+			rngN anglePick( 0.0f, 0.06f );
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 0.618f;
+			const float spreadX = 0.6f;
 			const float spreadY = 0.1f;
-			const int numSteps = 140;
+			const int numSteps = 150;
 			const float stepSize = 0.003f;
-			const int detents = 6;
-			const float distanceFromCenter = 0.918f;
+			const int detents = 3;
+			const float distanceFromCenter = 0.618f;
 
 			for ( int i = 0; i < detents; i++ ) {
 				for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
@@ -389,10 +389,11 @@ void APIGeometryContainer::Initialize () {
 						const vec3 axeezNuts = glm::cross( axis, axis2 );
 
 						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						const float segmentLength = 1.7f;
+						const float segmentLength = 2.7f;
 
 						float decayState = 1.0f;
-						const float decayFactor = 0.997f;
+						// const float decayFactor = 0.997f;
+						const float decayFactor = 0.998f;
 
 						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
 							currentPoint += stepSize * heading;
@@ -402,9 +403,9 @@ void APIGeometryContainer::Initialize () {
 
 							decayState *= decayFactor;
 							switch ( axisPick() ) {
-							case 0: heading = glm::rotate( heading, offset(), axis ); break;
-							case 1: heading = glm::rotate( heading, offset(), axis2 ); break;
-							case 2: heading = glm::rotate( heading, offset(), axeezNuts ); break;
+							case 0: heading = glm::rotate( heading, anglePick(), axis ); break;
+							case 1: heading = glm::rotate( heading, anglePick(), axis2 ); break;
+							case 2: heading = glm::rotate( heading, anglePick(), axeezNuts ); break;
 							default: break;
 							}
 						}
@@ -412,8 +413,8 @@ void APIGeometryContainer::Initialize () {
 				}
 				const float rimSize = 18.0f;
 				const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
-				const float frameBoost = 1.1f;
-				const float distanceOffset = 0.9f;
+				const float frameBoost = 1.02f;
+				const float distanceOffset = 0.96f;
 				const vec3 endpoints[ 4 ] = {
 					glm::rotate(
 						vec3( -spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
@@ -649,10 +650,9 @@ void APIGeometryContainer::Render () {
 	// static points
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightScale" ), config.heightScale );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "AR" ), config.screenAR );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "frameHeight" ), config.height );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "frameWidth" ), config.width );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "sphere" ), 10 );
@@ -663,12 +663,11 @@ void APIGeometryContainer::Render () {
 	glUseProgram( resources.shaders[ "Moving Sphere" ] );
 	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightScale" ), config.heightScale );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "AR" ), config.screenAR );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameHeight" ), config.height );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameWidth" ), config.width );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "scale" ), config.scale );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "sphere" ), 10 );

@@ -6,7 +6,7 @@ uniform float time;
 uniform float scale;
 uniform float AR;
 uniform mat3 trident;
-uniform float frameHeight;
+uniform float frameWidth;
 
 // moving lights state - bring this back? I would like to have the current state of the point lights shown visually
 uniform int lightCount;
@@ -94,9 +94,9 @@ void main () {
 
 	const mat3 inverseTrident = inverse( trident );
 	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -height );
-	vec3 worldPosition_adjusted = worldPosition - normal * ( radius / frameHeight );
+	vec3 worldPosition_adjusted = worldPosition - normal * ( radius / frameWidth );
 
-	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameHeight ) * ( 1.0f - height ) );
+	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - height ) );
 	glFragColor = vec4( color, 1.0f );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );

@@ -6,7 +6,7 @@ uniform int inSeed;
 uniform float AR;
 uniform float time;
 uniform float scale;
-uniform float frameHeight;
+uniform float frameWidth;
 
 // moving lights state
 uniform int lightCount;
@@ -64,7 +64,7 @@ void main () {
 
 	vec2 sampleLocation = gl_PointCoord.xy +
 		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
-		vec2( ( 1.5f / frameHeight ), ( 1.5f / frameHeight ) * AR );
+		vec2( ( 1.5f / frameWidth ), ( 1.5f / frameWidth ) * AR );
 
 	vec4 tRead = texture( sphere, sampleLocation );
 	if ( tRead.x < 0.05f ) discard;
@@ -73,9 +73,9 @@ void main () {
 	const mat3 inverseTrident = inverse( trident );
 
 	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -tRead.x );
-	vec3 worldPosition_adjusted = worldPosition + normal * ( radius / frameHeight );
+	vec3 worldPosition_adjusted = worldPosition + normal * ( radius / frameWidth );
 
-	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameHeight ) * ( 1.0f - tRead.x ) );
+	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - tRead.x ) );
 	glFragColor = vec4( color, 1.0f );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );
