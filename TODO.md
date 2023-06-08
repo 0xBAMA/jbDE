@@ -468,6 +468,8 @@ This is a planning document for work on this project and in general, about the t
 		- [Tizian Tonemapper](https://github.com/tizian/tonemapper)
 		- [Notorious Six Writeup](https://chrisbrejon.com/articles/ocio-display-transforms-and-misconceptions/)
 		- [Kajiya Tonemapper](https://github.com/EmbarkStudios/kajiya/blob/79b7a74d2a6194029781ad17c809fd3ccc16b0e4/assets/shaders/inc/tonemap.hlsl), [also](https://github.com/EmbarkStudios/kajiya/commit/cb10c9ff9e894f0f0bf7cc8c9c540f0fc09ed371#diff-6c20208767044bc82bec72ba08288f6cb3cce3ec5d99d903172e6da054ed72b4)
+		- [generalized tonemapper](https://www.shadertoy.com/view/XljBRK)
+		- [AgX](https://www.shadertoy.com/view/dtSGD1)
 	- General Color
 		- [Color FAQ](http://poynton.ca/notes/colour_and_gamma/ColorFAQ.html)
 		- [Another potential tonemapping setup](https://www.shadertoy.com/view/7dsczS)
