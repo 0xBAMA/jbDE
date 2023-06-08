@@ -272,7 +272,7 @@ namespace palette {
 	// for linear gradient between two colors
 	inline vec3 GradientEndpoints[ 2 ] = { vec3( 0.0f ) };
 
-	inline vec3 paletteRef ( float input, type inputType ) {
+	inline vec3 paletteRef ( float input, type inputType = type::paletteIndexed_interpolated ) {
 
 		vec3 value = vec3( 0.0f );
 		switch ( inputType ) {
