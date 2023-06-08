@@ -15,7 +15,7 @@ struct vertextureConfig {
 	float timeVal;
 
 	// visualization parameters
-	float scale;
+	float scale = 0.3f;
 	float heightScale;
 	bool showLightDebugLocations;
 	vec3 groundColor;
