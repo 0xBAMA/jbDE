@@ -59,13 +59,17 @@ void main () {
 		// lightData[ index ].position.xy += distDirRead.xy * 0.02f;
 	// }
 
-	lightData[ index ].position.xy = lightData[ index ].position.xy + vec2( 0.001f ) + randomInUnitDisk() * 0.001f;
+	// lightData[ index ].position.xy = lightData[ index ].position.xy + vec2( 0.001f ) + randomInUnitDisk() * 0.001f;
+	lightData[ index ].position.x = lightData[ index ].position.x + 0.001f;
 	// lightData[ index ].position.z = 0.2f * sin( time + lightData[ index ].color.a ) + 0.21f;
 
 	// wrap
-	const float wrapAmount = 1.115f;
-	if ( lightData[ index ].position.x > wrapAmount ) lightData[ index ].position.x -= 2.0f * wrapAmount;
-	if ( lightData[ index ].position.x < -wrapAmount ) lightData[ index ].position.x += 2.0f * wrapAmount;
+	const float wrapAmount = 1.5f;
+	const float wrapLength = 3.0f;
+	if ( lightData[ index ].position.x > wrapLength ) lightData[ index ].position.x -= 2.0f * wrapLength;
+	if ( lightData[ index ].position.x < -wrapLength ) lightData[ index ].position.x += 2.0f * wrapLength;
 	if ( lightData[ index ].position.y > wrapAmount ) lightData[ index ].position.y -= 2.0f * wrapAmount;
 	if ( lightData[ index ].position.y < -wrapAmount ) lightData[ index ].position.y += 2.0f * wrapAmount;
+	if ( lightData[ index ].position.z > wrapAmount ) lightData[ index ].position.z -= 2.0f * wrapAmount;
+	if ( lightData[ index ].position.z < -wrapAmount ) lightData[ index ].position.z += 2.0f * wrapAmount;
 }

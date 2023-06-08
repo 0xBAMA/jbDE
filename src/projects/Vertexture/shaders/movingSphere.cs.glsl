@@ -54,12 +54,13 @@ void main () {
 	const uint index = gl_GlobalInvocationID.x + dimension * gl_GlobalInvocationID.y;
 	seed = index + uint( inSeed );
 
-	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.001f );
+	// data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.002f + vec2( 0.001f );
+	data[ index ].position.xy = data[ index ].position.xy + randomInUnitDisk() * 0.02f;
 	data[ index ].position.z = layerDepth * sin( time * 10.0f + data[ index ].color.a ) + layerOffset;
 
 	// wrap
-	const float worldX = 10.0f;
-	const float worldY = 10.0f;
+	const float worldX = 12.0f;
+	const float worldY = 4.0f;
 	if ( data[ index ].position.x > worldX / 2.0f ) data[ index ].position.x -= worldX;
 	if ( data[ index ].position.x < -worldX / 2.0f ) data[ index ].position.x += worldX;
 	if ( data[ index ].position.y > worldY / 2.0f ) data[ index ].position.y -= worldY;

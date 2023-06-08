@@ -37,7 +37,7 @@ struct vertextureConfig {
 	float screenAR;
 
 	float layerOffset = 0.0f;
-	float layerDepth = 2.2f;
+	float layerDepth = 2.0f;
 
 };
 
@@ -301,10 +301,10 @@ void APIGeometryContainer::Initialize () {
 	std::vector< GLfloat > lightData;
 	{
 		GLuint ssbo;
-		rng location( -1.115f, 1.115f );
-		rng zDistrib( -0.85f, 0.85f );
+		rng xDistrib( -10.0f, 10.0f );
+		rng yzDistrib( -1.0f, 1.0f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.0005f, 0.0035f );
+		rng brightness( 0.0005f, 0.0045f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -312,9 +312,9 @@ void APIGeometryContainer::Initialize () {
 			// color ( vec3 + some extra value, again we'll find some kind of use for it )
 
 			// distribute initial light points
-			lightData.push_back( location() );
-			lightData.push_back( location() );
-			lightData.push_back( zDistrib() );
+			lightData.push_back( xDistrib() );
+			lightData.push_back( yzDistrib() );
+			lightData.push_back( yzDistrib() );
 			lightData.push_back( 0.0f );
 
 			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated ) * brightness();
@@ -543,9 +543,10 @@ void APIGeometryContainer::Initialize () {
 			// }
 
 			int dynamicPointCount = 0;
+			rng pGen( -20.0f, 20.0f );
 			for ( int x = 0; x < config.Guys; x++ ) {
 				for ( int y = 0; y < config.Guys; y++ ) {
-					ssboPoints.push_back( vec4( 2.0f * ( ( x / float( config.Guys ) ) - 0.5f ), 2.0f * ( ( y / float( config.Guys ) ) - 0.5f ), 0.6f * colorGen(), size() ) );
+					ssboPoints.push_back( vec4( pGen(), pGen(), pGen(), size() ) );
 					ssboPoints.push_back( vec4( palette::paletteRef( colorGen() ), phase() ) );
 					dynamicPointCount++;
 				}
