@@ -64,18 +64,22 @@ void main () {
 
 	vec2 sampleLocation = gl_PointCoord.xy +
 		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
-		vec2( ( 1.5f / frameWidth ), ( 1.5f / frameWidth ) * AR );
+		vec2( ( 1.0f / frameWidth ), ( 1.0f / frameWidth ) / AR );
 
-	vec4 tRead = texture( sphere, sampleLocation );
-	if ( tRead.x < 0.05f ) discard;
-	if ( tRead.x < 0.35f ) if ( normalizedRandomFloat() < 0.5f ) discard;
+	// read from texture
+	// float tRead = texture( sphere, sampleLocation ).r;
+
+	// analytic solution via pythagoras
+	vec2 centered = sampleLocation * 2.0f - vec2( 1.0f );
+	float radiusSquared = dot( centered, centered );
+	if ( radiusSquared > 1.0f ) discard;
+	float tRead = sqrt( 1.0f - radiusSquared );
 
 	const mat3 inverseTrident = inverse( trident );
-
-	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -tRead.x );
+	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -tRead );
 	vec3 worldPosition_adjusted = worldPosition + normal * ( radius / frameWidth );
 
-	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - tRead.x ) );
+	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - tRead ) );
 	glFragColor = vec4( color, 1.0f );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );

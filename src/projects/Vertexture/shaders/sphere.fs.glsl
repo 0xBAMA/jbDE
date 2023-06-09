@@ -64,39 +64,21 @@ layout( location = 2 ) out vec4 positionResult;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
-	vec2 sampleLocation = gl_PointCoord.xy;
+	vec2 sampleLocation = gl_PointCoord.xy; // +
+		// vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
+		// vec2( ( 1.0f / frameWidth ), ( 1.0f / frameWidth ) / AR );
 
-	const int numSamples = 4;
-	vec2 sampleLocations[ numSamples ];
-	bool results[ numSamples ];
-	int numFailed = 0;
-
-	for ( int i = 0; i < numSamples; i++ ) {
-		sampleLocations[ i ] = sampleLocation + ( vec2( normalizedRandomFloat(), normalizedRandomFloat() ) / radius );
-		results[ i ] = true;
-		if ( distance( sampleLocations[ i ], vec2( 0.5f ) ) >= 0.5f ) {
-			results[ i ] = false;
-			numFailed++;
-		}
-	}
-
-	if ( ( float( numFailed ) / float( numSamples ) ) >= 0.5f ) discard;
-
-	// vec4 tRead = texture( sphere, sampleLocation );
-	// if ( tRead.x < 0.05f ) discard;
-
-	float height = 0.0f;
-	for ( int i = 0; i < numSamples; i++ ) {
-		if ( results[ i ] ) {
-			// height += 
-		}
-	}
+	// analytic solution via pythagoras
+	vec2 centered = sampleLocation * 2.0f - vec2( 1.0f );
+	float radiusSquared = dot( centered, centered );
+	if ( radiusSquared > 1.0f ) discard;
+	float tRead = sqrt( 1.0f - radiusSquared );
 
 	const mat3 inverseTrident = inverse( trident );
-	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -height );
+	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -tRead );
 	vec3 worldPosition_adjusted = worldPosition - normal * ( radius / frameWidth );
 
-	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - height ) );
+	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - tRead ) );
 	glFragColor = vec4( color, 1.0f );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );

@@ -54,7 +54,7 @@ vec2 randomInUnitDisk () {
 }
 
 // SSAO Constants / Support Functions
-#define SAMPLES			64
+#define SAMPLES			16
 #define INTENSITY		3.0f
 #define SCALE			1.0f
 #define BIAS			0.05f
