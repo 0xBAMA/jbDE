@@ -39,6 +39,12 @@ struct vertextureConfig {
 	float layerOffset = 0.0f;
 	float layerDepth = 2.0f;
 
+	int AONumSamples = 16;
+	float AOIntensity = 3.0f;
+	float AOScale = 1.0f;
+	float AOBias = 0.05f;
+	float AOSampleRadius = 0.02f;
+	float AOMaxDistance = 0.07f;
 };
 
 struct rnGenerators {
@@ -351,6 +357,8 @@ void APIGeometryContainer::Initialize () {
 		std::vector< vec4 > ssboPoints;
 		std::vector< vec4 > colors;
 
+		PerlinNoise p;
+
 		{
 			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 				// the texture for the height, and then they displace vertically in the shader
@@ -358,7 +366,7 @@ void APIGeometryContainer::Initialize () {
 			rng colorGen( 0.0f, 0.65f );
 			rng roughnessGen( 0.01f, 1.0f );
 			rng di( 3.5f, 16.5f );
-			rng size( 0.5f, 4.5f );
+			rng size( 1.0f, 2.5f );
 			rng phase( 0.0f, pi * 6.0f );
 			rng dirPick( -1.0f, 1.0f );
 			rng offset( -0.1618f, 0.1618f );
@@ -367,12 +375,12 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 0.4f;
+			const float spreadX = 0.3f;
 			const float spreadY = 0.0618f;
 			const int numSteps = 75;
 			const float stepSize = 0.003f;
-			const int detents = 6;
-			const float distanceFromCenter = 0.618f;
+			const int detents = 8;
+			const float distanceFromCenter = 0.918f;
 
 			for ( int i = 0; i < detents; i++ ) {
 				for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
@@ -397,9 +405,17 @@ void APIGeometryContainer::Initialize () {
 
 						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
 							currentPoint += stepSize * heading;
-							points.push_back( vec4( currentPoint, diameter * decayState ) );
-							colors.push_back( currentColor );
-							// colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
+
+							// const vec3 nReadLoc = 4.0f * currentPoint;
+							// if (
+							// 	0.5f * p.noise( 0.5f * nReadLoc.x, 0.5f * nReadLoc.y, 0.5f * nReadLoc.z ) +
+							// 	0.25f * p.noise( 2.0f * nReadLoc.x, 2.0f * nReadLoc.y, 2.0f * nReadLoc.z ) +
+							// 	0.125f * p.noise( 8.0f * nReadLoc.x, 8.0f * nReadLoc.y, 8.0f * nReadLoc.z )
+							// < 0.5f ) {
+								points.push_back( vec4( currentPoint, diameter * decayState ) );
+								colors.push_back( currentColor );
+								// colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
+							// }
 
 							decayState *= decayFactor;
 							switch ( axisPick() ) {
@@ -473,6 +489,7 @@ void APIGeometryContainer::Initialize () {
 						colors.push_back( darkGrey );
 					}
 				}
+				palette::PickRandomPalette();
 			}
 
 			int dynamicPointCount = 0;
@@ -535,9 +552,10 @@ void APIGeometryContainer::Initialize () {
 void APIGeometryContainer::InitReport () {
 	// tell the stats for the current run of the program
 	cout << "\nVertexture2 Init Complete:\n";
+	cout << "Lights: .... " << config.Lights << newline;
 	cout << "Point Totals:\n";
-	cout << "\tSpheres:\t\t" << resources.numPointsSpheres << newline;
-	cout << "\tMoving Spheres:\t\t" << resources.numPointsMovingSpheres << newline;
+	cout << "\tSpheres:\t\t" << resources.numPointsSpheres << " ( " << ( resources.numPointsSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
+	cout << "\tMoving Spheres:\t\t" << resources.numPointsMovingSpheres << " ( " << ( resources.numPointsMovingSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
 }
 
 void APIGeometryContainer::Terminate () {
@@ -625,10 +643,19 @@ void APIGeometryContainer::DeferredPass () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
 
+	// SSAO config
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "AONumSamples" ), config.AONumSamples );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOIntensity" ), config.AOIntensity );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOScale" ), config.AOScale );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOBias" ), config.AOBias );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOSampleRadius" ), config.AOSampleRadius );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOMaxDistance" ), config.AOMaxDistance );
+
+	// Lights, rng, resolution
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "lightCount" ), config.Lights );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "inSeed" ), rngs.shaderWangSeed() );
-
 	glUniform2f( glGetUniformLocation( resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
+
 	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
@@ -637,6 +664,7 @@ void APIGeometryContainer::Render () {
 
 	// then the regular view of the geometry
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
+	const mat4 perspectiveMatrix = glm::perspective( 45.0f, ( GLfloat ) config.width / ( GLfloat ) config.height, 0.1f, 2.0f );
 
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -658,6 +686,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "sphere" ), 10 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsSpheres );
 
 	// dynamic points
@@ -673,6 +702,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "sphere" ), 10 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsMovingSpheres );
 
 	// revert to default framebuffer
@@ -722,7 +752,13 @@ void APIGeometryContainer::ControlWindow () {
 	ImGui::SliderFloat( "Layer Depth", &config.layerDepth, 0.0f, 1.5f, "%.3f" );
 	ImGui::SliderFloat( "Layer Offset", &config.layerOffset, 0.0f, 1.5f, "%.3f" );
 
-	// etc
+	ImGui::Text( "AO" );
+	ImGui::SliderInt( "AO Samples", &config.AONumSamples, 0, 64 );
+	ImGui::SliderFloat( "AO Intensity", &config.AOIntensity, 0.0f, 10.0f, "%.3f");
+	ImGui::SliderFloat( "AO Scale", &config.AOScale, 0.0f, 10.0f, "%.3f");
+	ImGui::SliderFloat( "AO Bias", &config.AOBias, 0.0f, 0.1f, "%.3f");
+	ImGui::SliderFloat( "AO Sample Radius", &config.AOSampleRadius, 0.0f, 0.05f, "%.3f");
+	ImGui::SliderFloat( "AO Max Distance", &config.AOMaxDistance, 0.0f, 0.14f, "%.3f");
 
 	ImGui::End();
 }

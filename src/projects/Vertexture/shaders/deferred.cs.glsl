@@ -54,20 +54,20 @@ vec2 randomInUnitDisk () {
 }
 
 // SSAO Constants / Support Functions
-#define SAMPLES			16
-#define INTENSITY		3.0f
-#define SCALE			1.0f
-#define BIAS			0.05f
-#define SAMPLE_RAD		0.02f
-#define MAX_DISTANCE	0.07f
+uniform int AONumSamples;
+uniform float AOIntensity;
+uniform float AOScale;
+uniform float AOBias;
+uniform float AOSampleRadius;
+uniform float AOMaxDistance;
 
 float DoAO ( const vec2 texCoord, const vec2 uv, const vec3 p, const vec3 cNormal ) {
 	vec3 diff = texture( positionTexture, texCoord + uv ).xyz - p;
 	const float l = length( diff );
 	const vec3 v = diff / l;
-	const float d = l * SCALE;
-	float AO = max( 0.0f, dot( cNormal, v ) - BIAS ) * ( 1.0f / ( 1.0f + d ) );
-	AO *= smoothstep( MAX_DISTANCE, MAX_DISTANCE * 0.5f, l );
+	const float d = l * AOScale;
+	float AO = max( 0.0f, dot( cNormal, v ) - AOBias ) * ( 1.0f / ( 1.0f + d ) );
+	AO *= smoothstep( AOMaxDistance, AOMaxDistance * 0.5f, l );
 	return AO;
 }
 
@@ -75,14 +75,14 @@ float DoAO ( const vec2 texCoord, const vec2 uv, const vec3 p, const vec3 cNorma
 float SpiralAO ( vec2 uv, vec3 p, vec3 n, float rad ) {
 	float goldenAngle = 2.4f;
 	float ao = 0.0f;
-	float inv = 1.0f / float( SAMPLES );
+	float inv = 1.0f / float( AONumSamples );
 	float radius = 0.0f;
 
 	float rotatePhase = normalizedRandomFloat() * 6.28f;
 	float rStep = inv * rad;
 	vec2 spiralUV = vec2( 0.0f );
 
-	for (int i = 0; i < SAMPLES; i++) {
+	for ( int i = 0; i < AONumSamples; i++ ) {
 		spiralUV.x = sin( rotatePhase );
 		spiralUV.y = cos( rotatePhase );
 		radius += rStep;
@@ -119,6 +119,7 @@ void main () {
 		const float roughness = 1.0f;
 
 		for ( int i = 0; i < lightCount; i++ ) {
+
 			// phong setup
 			const vec3 lightLocation = lightData[ i ].position.xyz;
 			const vec3 lightVector = normalize( lightLocation - position.xyz );
@@ -136,9 +137,11 @@ void main () {
 		}
 
 		// calculate SSAO
-		const float aoScalar = 1.0f - SpiralAO( sampleLocation, position.xyz, normalize( normal.xyz ), SAMPLE_RAD / position.z ) * INTENSITY;
+		const float aoScalar = 1.0f - SpiralAO( sampleLocation, position.xyz, normalize( normal.xyz ), AOSampleRadius / depth.r ) * AOIntensity;
 
 		vec3 outputValue = lightContribution * aoScalar * color.rgb;
+		// vec3 outputValue = vec3( depth.r );
+		// vec3 outputValue = vec3( aoScalar );
 
 		// switch ( writeLoc.x % 5 ) {
 		// case 0: outputValue = lightContribution; 					break;
