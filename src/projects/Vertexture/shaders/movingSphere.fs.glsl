@@ -62,9 +62,13 @@ layout( location = 2 ) out vec4 positionResult;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
+#if 0
+	vec2 sampleLocation = gl_PointCoord.xy;
+#else
 	vec2 sampleLocation = gl_PointCoord.xy +
 		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
-		vec2( ( 1.0f / frameWidth ), ( 1.0f / frameWidth ) / AR );
+		vec2( 1.0f / ( radius - 1.0f ) );
+#endif
 
 	// read from texture
 	// float tRead = texture( sphere, sampleLocation ).r;
