@@ -366,7 +366,7 @@ void APIGeometryContainer::Initialize () {
 			rng colorGen( 0.0f, 0.65f );
 			rng roughnessGen( 0.01f, 1.0f );
 			rng di( 3.5f, 16.5f );
-			rng size( 1.0f, 2.5f );
+			rng size( 2.0f, 4.5f );
 			rng phase( 0.0f, pi * 6.0f );
 			rng dirPick( -1.0f, 1.0f );
 			rng offset( -0.1618f, 0.1618f );
@@ -375,12 +375,12 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 0.3f;
-			const float spreadY = 0.0618f;
-			const int numSteps = 75;
-			const float stepSize = 0.003f;
-			const int detents = 8;
-			const float distanceFromCenter = 0.918f;
+			const float spreadX = 0.1f;
+			const float spreadY = 0.3f;
+			const int numSteps = 20;
+			const float stepSize = 0.004f;
+			const int detents = 5;
+			const float distanceFromCenter = 0.718f;
 
 			for ( int i = 0; i < detents; i++ ) {
 				for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {

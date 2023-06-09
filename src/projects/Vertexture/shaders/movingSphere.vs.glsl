@@ -6,6 +6,7 @@ uniform float time;
 uniform mat3 trident;
 uniform float scale;
 uniform float frameWidth;
+uniform mat4 perspectiveMatrix;
 
 // moving point state
 struct point_t {

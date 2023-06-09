@@ -64,15 +64,12 @@ layout( location = 2 ) out vec4 positionResult;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
-#if 0
-	vec2 sampleLocation = gl_PointCoord.xy;
-#else
 	vec2 sampleLocation = gl_PointCoord.xy +
 		( vec2( normalizedRandomFloat(), normalizedRandomFloat() ) - vec2( 0.5f ) ) *
 		vec2( 1.0f / ( radius - 1.0f ) );
-#endif
 
 	// analytic solution via pythagoras
+	// vec2 centered = sampleLocation * 2.0f - vec2( 1.0f );
 	vec2 centered = sampleLocation * 2.0f - vec2( 1.0f );
 	float radiusSquared = dot( centered, centered );
 	if ( radiusSquared > 1.0f ) discard;
