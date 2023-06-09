@@ -23,9 +23,81 @@ layout( binding = 4, std430 ) buffer lightDataBuffer {
 	light_t lightData[];
 };
 
+// random utilites
+uniform int inSeed;
+uint seed = 0;
+uint wangHash () {
+	seed = uint( seed ^ uint( 61 ) ) ^ uint( seed >> uint( 16 ) );
+	seed *= uint( 9 );
+	seed = seed ^ ( seed >> 4 );
+	seed *= uint( 0x27d4eb2d );
+	seed = seed ^ ( seed >> 15 );
+	return seed;
+}
+
+float normalizedRandomFloat () {
+	return float( wangHash() ) / 4294967296.0f;
+}
+
+const float pi = 3.14159265358979323846f;
+vec3 randomUnitVector () {
+	float z = normalizedRandomFloat() * 2.0f - 1.0f;
+	float a = normalizedRandomFloat() * 2.0f * pi;
+	float r = sqrt( 1.0f - z * z );
+	float x = r * cos( a );
+	float y = r * sin( a );
+	return vec3( x, y, z );
+}
+
+vec2 randomInUnitDisk () {
+	return randomUnitVector().xy;
+}
+
+// SSAO Constants / Support Functions
+#define SAMPLES			64
+#define INTENSITY		3.0f
+#define SCALE			1.0f
+#define BIAS			0.05f
+#define SAMPLE_RAD		0.02f
+#define MAX_DISTANCE	0.07f
+
+float DoAO ( const vec2 texCoord, const vec2 uv, const vec3 p, const vec3 cNormal ) {
+	vec3 diff = texture( positionTexture, texCoord + uv ).xyz - p;
+	const float l = length( diff );
+	const vec3 v = diff / l;
+	const float d = l * SCALE;
+	float AO = max( 0.0f, dot( cNormal, v ) - BIAS ) * ( 1.0f / ( 1.0f + d ) );
+	AO *= smoothstep( MAX_DISTANCE, MAX_DISTANCE * 0.5f, l );
+	return AO;
+}
+
+// adapted from https://www.shadertoy.com/view/Ms33WB by Reinder Nijhoff 2016
+float SpiralAO ( vec2 uv, vec3 p, vec3 n, float rad ) {
+	float goldenAngle = 2.4f;
+	float ao = 0.0f;
+	float inv = 1.0f / float( SAMPLES );
+	float radius = 0.0f;
+
+	float rotatePhase = normalizedRandomFloat() * 6.28f;
+	float rStep = inv * rad;
+	vec2 spiralUV = vec2( 0.0f );
+
+	for (int i = 0; i < SAMPLES; i++) {
+		spiralUV.x = sin( rotatePhase );
+		spiralUV.y = cos( rotatePhase );
+		radius += rStep;
+		ao += DoAO( uv, spiralUV * radius, p, n );
+		rotatePhase += goldenAngle;
+	}
+	ao *= inv;
+	return ao;
+}
+
 void main () {
+
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 	uvec3 blueNoise = uvec3( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).r * 0.0618f );
+	seed = inSeed + 10612 * writeLoc.x + 385609 * writeLoc.y;
 
 	vec2 sampleLocation = ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution;
 	sampleLocation.y = 1.0f - sampleLocation.y;
@@ -63,12 +135,10 @@ void main () {
 			lightContribution += lightData[ i ].color.rgb * ( diffuseContribution + ( ( lightDot > 0.0f ) ? specularContribution : 0.0f ) );
 		}
 
-		// vec3 outputValue = ( 1.0f - depth.r ) * color.rgb;
-		// vec3 outputValue *= normal.xyz;
-		// vec3 outputValue = abs( position.rgb );
-		// vec3 outputValue = 0.5f * ( normal.rgb + vec3( 1.0f ) );
+		// calculate SSAO
+		const float aoScalar = 1.0f - SpiralAO( sampleLocation, position.xyz, normalize( normal.xyz ), SAMPLE_RAD / position.z ) * INTENSITY;
 
-		vec3 outputValue = lightContribution * color.rgb;
+		vec3 outputValue = lightContribution * aoScalar * color.rgb;
 
 		// switch ( writeLoc.x % 5 ) {
 		// case 0: outputValue = lightContribution; 					break;
@@ -94,7 +164,7 @@ void main () {
 	} else {
 
 		vec4 previous = imageLoad( accumulatorTexture, writeLoc );
-		imageStore( accumulatorTexture, writeLoc, vec4( mix( previous.xyz, vec3( 0.0f ), 0.01f ), 1.0f ) );
+		imageStore( accumulatorTexture, writeLoc, vec4( mix( previous.xyz, vec3( 0.0f ), 0.1f ), 1.0f ) );
 
 		// streaks in the negative space, interesting
 		// vec4 previous = imageLoad( accumulatorTexture, writeLoc - ivec2( 1, 2 ) );

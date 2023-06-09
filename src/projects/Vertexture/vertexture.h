@@ -626,6 +626,7 @@ void APIGeometryContainer::DeferredPass () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
 
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "lightCount" ), config.Lights );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "inSeed" ), rngs.shaderWangSeed() );
 
 	glUniform2f( glGetUniformLocation( resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
 	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
