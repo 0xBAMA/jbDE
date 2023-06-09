@@ -362,15 +362,16 @@ void APIGeometryContainer::Initialize () {
 			rng phase( 0.0f, pi * 6.0f );
 			rng dirPick( -1.0f, 1.0f );
 			rng offset( -0.1618f, 0.1618f );
-			rngN anglePick( 0.0f, 0.06f );
+			// rngN anglePick( 0.0f, 0.051616f );
+			rng anglePick( -0.1618f, 0.1618f );
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 0.6f;
-			const float spreadY = 0.1f;
-			const int numSteps = 150;
+			const float spreadX = 0.4f;
+			const float spreadY = 0.2f;
+			const int numSteps = 75;
 			const float stepSize = 0.003f;
-			const int detents = 3;
+			const int detents = 6;
 			const float distanceFromCenter = 0.618f;
 
 			for ( int i = 0; i < detents; i++ ) {
@@ -389,11 +390,10 @@ void APIGeometryContainer::Initialize () {
 						const vec3 axeezNuts = glm::cross( axis, axis2 );
 
 						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						const float segmentLength = 2.7f;
+						const float segmentLength = 1.4f;
 
 						float decayState = 1.0f;
-						// const float decayFactor = 0.997f;
-						const float decayFactor = 0.998f;
+						const float decayFactor = 0.996f;
 
 						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
 							currentPoint += stepSize * heading;
