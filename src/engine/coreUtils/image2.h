@@ -940,6 +940,11 @@ public:
 
 			// lanzcos?
 
+			// iq remapping linear filtering
+			// https://iquilezles.org/articles/texture/
+			// https://www.shadertoy.com/view/XsfGDn
+				// mentions raised-cosine filter https://en.wikipedia.org/wiki/Raised-cosine_filter
+
 		// lagrange / hermite demofox impl from https://www.shadertoy.com/view/MllSzX
 		case CUBIC_LAGRANGE_FILTER:
 		{
