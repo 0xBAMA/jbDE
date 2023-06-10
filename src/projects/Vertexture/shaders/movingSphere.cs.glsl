@@ -58,12 +58,12 @@ void main () {
 	data[ index ].position.z = data[ index ].position.z + normalizedRandomFloat() * 0.01f;
 
 	// wrap
-	const float worldX = 1.8f;
-	const float worldY = 3.8f;
-	if ( data[ index ].position.x > worldY / 2.0f ) data[ index ].position.x -= worldY;
+	const float worldX = 2.6f;
+	const float worldY = 1.2f;
+	if ( data[ index ].position.x >  worldY / 2.0f ) data[ index ].position.x -= worldY;
 	if ( data[ index ].position.x < -worldY / 2.0f ) data[ index ].position.x += worldY;
-	if ( data[ index ].position.y > worldX / 2.0f ) data[ index ].position.y -= worldX;
+	if ( data[ index ].position.y >  worldX / 2.0f ) data[ index ].position.y -= worldX;
 	if ( data[ index ].position.y < -worldX / 2.0f ) data[ index ].position.y += worldX;
-	if ( data[ index ].position.z > worldY / 2.0f ) data[ index ].position.z -= worldY;
+	if ( data[ index ].position.z >  worldY / 2.0f ) data[ index ].position.z -= worldY;
 	if ( data[ index ].position.z < -worldY / 2.0f ) data[ index ].position.z += worldY;
 }

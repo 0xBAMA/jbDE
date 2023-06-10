@@ -201,6 +201,30 @@ void APIGeometryContainer::LoadConfig () {
 	config.timeVal = 0.0f;
 }
 
+// Tentacle support rng
+rng n( 0.0f, 1.0f );
+rng anglePick( -0.1618f, 0.1618f );
+rngi axisPick( 0, 2 );
+
+void RecursiveDecayingTentacle ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
+	float step, float decayState, float decayRate, float radius, float end, // scaling the points from large at start to small at the end
+	float branchChance, vec3 position, vec3 heading, vec3 color, vec3 bases[ 3 ] ) {
+
+	if ( radius * decayState >= end ) {
+		float newDecayState = decayState * decayRate;
+		vec3 newPosition = step * heading + position;
+		vec3 newHeading = glm::rotate( heading, anglePick(), bases[ axisPick() ] );
+		points.push_back( vec4( newPosition, newDecayState * radius ) );
+		colors.push_back( vec4( color, 1.0f ) );
+		if ( n() < branchChance ) {
+			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius * newDecayState, end, branchChance, newPosition, newHeading, color, bases );
+			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius * newDecayState, end, branchChance, newPosition, newHeading, color, bases );
+		} else {
+			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius * newDecayState, end, branchChance, newPosition, newHeading, color, bases );
+		}
+	}
+}
+
 void APIGeometryContainer::Initialize () {
 
 	// if this is the first time that this has run
@@ -357,8 +381,6 @@ void APIGeometryContainer::Initialize () {
 		std::vector< vec4 > ssboPoints;
 		std::vector< vec4 > colors;
 
-		PerlinNoise p;
-
 		{
 			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 				// the texture for the height, and then they displace vertically in the shader
@@ -375,12 +397,12 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 0.1f;
-			const float spreadY = 0.3f;
-			const int numSteps = 20;
-			const float stepSize = 0.004f;
-			const int detents = 5;
-			const float distanceFromCenter = 0.718f;
+			const float spreadX = 0.2f;
+			const float spreadY = 1.0f;
+			const int numSteps = 30;
+			const float stepSize = 0.002f;
+			const int detents = 1;
+			const float distanceFromCenter = 0.0f;
 
 			for ( int i = 0; i < detents; i++ ) {
 				for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
@@ -400,31 +422,27 @@ void APIGeometryContainer::Initialize () {
 						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
 						const float segmentLength = 1.4f;
 
-						float decayState = 1.0f;
-						const float decayFactor = 0.996f;
+						// RecursiveDecayingTentacle ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
+						// 	float step, float decayState, float decayRate, float radius, float terminate,
+						// 	float branchChance, vec3 position, vec3 heading, vec3 color, vec3 &bases[ 3 ] )
 
-						for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-							currentPoint += stepSize * heading;
+						vec3 bases[ 3 ] = { axis, axis2, axeezNuts };
+						RecursiveDecayingTentacle( points, colors, stepSize / 2, 1.0f, 0.999f, diameter, 0.5f, 0.04f, currentPoint, heading, currentColor, bases );
 
-							// const vec3 nReadLoc = 4.0f * currentPoint;
-							// if (
-							// 	0.5f * p.noise( 0.5f * nReadLoc.x, 0.5f * nReadLoc.y, 0.5f * nReadLoc.z ) +
-							// 	0.25f * p.noise( 2.0f * nReadLoc.x, 2.0f * nReadLoc.y, 2.0f * nReadLoc.z ) +
-							// 	0.125f * p.noise( 8.0f * nReadLoc.x, 8.0f * nReadLoc.y, 8.0f * nReadLoc.z )
-							// < 0.5f ) {
-								points.push_back( vec4( currentPoint, diameter * decayState ) );
-								colors.push_back( currentColor );
-								// colors.push_back( vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f ) );
+						// for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+							// currentPoint += stepSize * heading;
+
+							// points.push_back( vec4( currentPoint, diameter * decayState ) );
+							// colors.push_back( currentColor );
+
+							// decayState *= decayFactor;
+							// switch ( axisPick() ) {
+							// case 0: heading = glm::rotate( heading, anglePick(), axis ); break;
+							// case 1: heading = glm::rotate( heading, anglePick(), axis2 ); break;
+							// case 2: heading = glm::rotate( heading, anglePick(), axeezNuts ); break;
+							// default: break;
 							// }
-
-							decayState *= decayFactor;
-							switch ( axisPick() ) {
-							case 0: heading = glm::rotate( heading, anglePick(), axis ); break;
-							case 1: heading = glm::rotate( heading, anglePick(), axis2 ); break;
-							case 2: heading = glm::rotate( heading, anglePick(), axeezNuts ); break;
-							default: break;
-							}
-						}
+						// }
 					}
 				}
 				const float rimSize = 18.0f;
@@ -489,7 +507,7 @@ void APIGeometryContainer::Initialize () {
 						colors.push_back( darkGrey );
 					}
 				}
-				palette::PickRandomPalette();
+				// palette::PickRandomPalette();
 			}
 
 			int dynamicPointCount = 0;

@@ -62,7 +62,7 @@ layout( location = 2 ) out vec4 positionResult;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
-#if 0
+#if 1
 	vec2 sampleLocation = gl_PointCoord.xy;
 #else
 	vec2 sampleLocation = gl_PointCoord.xy +

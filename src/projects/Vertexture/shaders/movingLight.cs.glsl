@@ -50,15 +50,15 @@ void main () {
 	const ivec2 loc = ivec2( ( ( lightData[ index ].position.xy + 1.0f ) / 2.0f ) * vec2( 512.0f ) );
 	seed = index + uint( inSeed ); // initialize the rng state to use the std::random uniformly generated value passed in
 
-	// lightData[ index ].position.xyz = lightData[ index ].position.xyz + randomUnitVector() * 0.01f + vec3( 0.0f, 0.001f, 0.0f );
+	// lightData[ index ].position.xyz = lightData[ index ].position.xyz + randomUnitVector() * 0.01f + vec3( 0.0f, 0.0f, 0.001f );
 
 	// wrap
-	const float worldX = 1.2f;
-	const float worldY = 3.8f;
-	if ( lightData[ index ].position.x > worldY / 2.0f ) lightData[ index ].position.x -= worldY;
+	const float worldX = 2.6f;
+	const float worldY = 1.2f;
+	if ( lightData[ index ].position.x >  worldY / 2.0f ) lightData[ index ].position.x -= worldY;
 	if ( lightData[ index ].position.x < -worldY / 2.0f ) lightData[ index ].position.x += worldY;
-	if ( lightData[ index ].position.y > worldX / 2.0f ) lightData[ index ].position.y -= worldX;
+	if ( lightData[ index ].position.y >  worldX / 2.0f ) lightData[ index ].position.y -= worldX;
 	if ( lightData[ index ].position.y < -worldX / 2.0f ) lightData[ index ].position.y += worldX;
-	if ( lightData[ index ].position.z > worldY / 2.0f ) lightData[ index ].position.z -= worldY;
+	if ( lightData[ index ].position.z >  worldY / 2.0f ) lightData[ index ].position.z -= worldY;
 	if ( lightData[ index ].position.z < -worldY / 2.0f ) lightData[ index ].position.z += worldY;
 }
