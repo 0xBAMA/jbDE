@@ -60,7 +60,6 @@ layout( depth_greater ) out float gl_FragDepth;
 layout( location = 0 ) out vec4 glFragColor;
 layout( location = 1 ) out vec4 normalResult;
 layout( location = 2 ) out vec4 positionResult;
-// layout( location = 3 ) out uint materialID;
 layout( location = 3 ) out uvec4 materialID;
 
 void main () {

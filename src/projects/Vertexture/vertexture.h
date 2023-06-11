@@ -329,9 +329,8 @@ void APIGeometryContainer::Initialize () {
 	glGenTextures( 1, &fbMatID );
 	glActiveTexture( GL_TEXTURE20 );
 	glBindTexture( GL_TEXTURE_2D, fbMatID );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32UI, config.width, config.height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, NULL ); // much more than I actually need
-	// glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
-	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
+	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32UI, config.width, config.height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, NULL ); // much more than I actually need, I think
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
