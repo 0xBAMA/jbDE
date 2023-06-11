@@ -42,8 +42,6 @@
 			"showTiming":false,
 			"Lights":256,
 			"Guys":1024,
-			"InitialScale":0.65,
-			"InitialHeightScale":0.0,
 			"ShowLightDebugLocations":false,
 			"basisX":{
 				"x":0.610246,

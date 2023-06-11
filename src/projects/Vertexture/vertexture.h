@@ -16,7 +16,6 @@ struct vertextureConfig {
 
 	// visualization parameters
 	float scale = 0.3f;
-	float heightScale;
 	bool showLightDebugLocations;
 	vec3 groundColor;
 
@@ -186,8 +185,6 @@ void APIGeometryContainer::LoadConfig () {
 	// other program state
 	config.showTrident	= j[ "app" ][ "Vertexture" ][ "showTrident" ];
 	config.showTiming	= j[ "app" ][ "Vertexture" ][ "showTiming" ];
-	// config.scale		= j[ "app" ][ "Vertexture" ][ "InitialScale" ];
-	config.heightScale	= j[ "app" ][ "Vertexture" ][ "InitialHeightScale" ];
 	config.basisX		= vec3( j[ "app" ][ "Vertexture" ][ "basisX" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "z" ] );
 	config.basisY		= vec3( j[ "app" ][ "Vertexture" ][ "basisY" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "z" ] );
 	config.basisZ		= vec3( j[ "app" ][ "Vertexture" ][ "basisZ" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "z" ] );
@@ -578,6 +575,7 @@ void APIGeometryContainer::Initialize () {
 		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
 		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
 
+		// todo : replace with a second SSBO - unify sphere/moving sphere shaders, just bind second SSBO to change
 		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Sphere" ], "vPosition" );
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
@@ -745,24 +743,18 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "frameWidth" ), config.width );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "sphere" ), 10 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsSpheres );
 
 	// dynamic points
 	glUseProgram( resources.shaders[ "Moving Sphere" ] );
-	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameWidth" ), config.width );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "sphere" ), 10 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsMovingSpheres );
