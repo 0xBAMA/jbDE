@@ -76,8 +76,8 @@ struct openGLResources {
 	std::unordered_map< string, GLuint > shaders;
 
 	// static / dynamic point counts, updated and reported during init
-	int numPointsSpheres = 0;
-	int numPointsMovingSpheres = 0;
+	int numPointsStaticSpheres = 0;
+	int numPointsDynamicSpheres = 0;
 
 	// separate tridents for each shadowmap
 	// textures for each shadowmap
@@ -371,8 +371,8 @@ void APIGeometryContainer::Initialize () {
 			// optionally include the debug spheres for the light positions
 		// shader + ssbo buffer of the dynamic points
 	{
-		std::vector< vec4 > points;
-		std::vector< vec4 > ssboPoints;
+		std::vector< vec4 > staticPoints;
+		std::vector< vec4 > dynamicPoints;
 		std::vector< vec4 > colors;
 
 		{
@@ -417,14 +417,18 @@ void APIGeometryContainer::Initialize () {
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		resources.numPointsSpheres = points.size();
-		size_t numBytesPoints = sizeof( vec4 ) * resources.numPointsSpheres;
-		size_t numBytesColors = sizeof( vec4 ) * resources.numPointsSpheres;
+		resources.numPointsStaticSpheres = staticPoints.size();
+		size_t numBytesPoints = sizeof( vec4 ) * resources.numPointsStaticSpheres;
+		size_t numBytesColors = sizeof( vec4 ) * resources.numPointsStaticSpheres;
 		glBufferData( GL_ARRAY_BUFFER, numBytesPoints + numBytesColors, NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &points[ 0 ] );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &staticPoints[ 0 ] );
 		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
 
-		// todo : replace with a second SSBO - unify sphere/moving sphere shaders, just bind second SSBO to change
+		// todo : refactor this, replace VBO with a second SSBO - unify sphere/moving sphere shaders, just bind different SSBO to change set
+
+		// I also want to experiment with instancing these things - writing the same normals + worldspace position etc will work fine for the deferred pass
+			// it doesn't care - it just uses those numbers from the buffer as input + the lighting SSBO in order to do the shading
+
 		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Sphere" ], "vPosition" );
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
@@ -435,7 +439,7 @@ void APIGeometryContainer::Initialize () {
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * resources.numPointsMovingSpheres, ( GLvoid * ) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * resources.numPointsDynamicSpheres, ( GLvoid * ) &dynamicPoints[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
 		GLuint sphereImage;
@@ -463,8 +467,8 @@ void APIGeometryContainer::InitReport () {
 	cout << "\nVertexture2 Init Complete:\n";
 	cout << "Lights: .... " << config.Lights << newline;
 	cout << "Point Totals:\n";
-	cout << "\tSpheres:\t\t" << resources.numPointsSpheres << " ( " << ( resources.numPointsSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
-	cout << "\tMoving Spheres:\t\t" << resources.numPointsMovingSpheres << " ( " << ( resources.numPointsMovingSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
+	cout << "\tSpheres:\t\t" << resources.numPointsStaticSpheres << " ( " << ( resources.numPointsStaticSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
+	cout << "\tMoving Spheres:\t\t" << resources.numPointsDynamicSpheres << " ( " << ( resources.numPointsDynamicSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
 }
 
 void APIGeometryContainer::Terminate () {
@@ -594,7 +598,7 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
-	glDrawArrays( GL_POINTS, 0, resources.numPointsSpheres );
+	glDrawArrays( GL_POINTS, 0, resources.numPointsStaticSpheres );
 
 	// dynamic points
 	glUseProgram( resources.shaders[ "Moving Sphere" ] );
@@ -606,7 +610,7 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "scale" ), config.scale );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
-	glDrawArrays( GL_POINTS, 0, resources.numPointsMovingSpheres );
+	glDrawArrays( GL_POINTS, 0, resources.numPointsDynamicSpheres );
 
 	// revert to default framebuffer
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
