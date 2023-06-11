@@ -7,6 +7,7 @@ uniform sampler2D depthTexture;
 uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D positionTexture;
+uniform sampler2D idTexture;
 
 // todo:
 	// accumulate normals

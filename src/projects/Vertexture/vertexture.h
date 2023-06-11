@@ -555,6 +555,7 @@ void APIGeometryContainer::DeferredPass () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "colorTexture" ), 17 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexture" ), 20 );
 
 	// SSAO config
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "AONumSamples" ), config.AONumSamples );
@@ -577,6 +578,8 @@ void APIGeometryContainer::Render () {
 
 	// then the regular view of the geometry
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
+
+	// todo: I would like to use this - but it will require a little more work than just the trident ( need view matrix )
 	const mat4 perspectiveMatrix = glm::perspective( 45.0f, ( GLfloat ) config.width / ( GLfloat ) config.height, 0.1f, 2.0f );
 
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
