@@ -1,7 +1,6 @@
 #version 430
 
 uniform float AR;
-uniform sampler2D heightmap;
 uniform float scale;
 uniform float time;
 uniform mat3 trident;
@@ -21,10 +20,8 @@ flat out int index;
 void main () {
 	index = gl_VertexID;
 
-	// radius = gl_PointSize = scale * vPosition.a * AR;
 	color = vColor.xyz;
 	roughness = vColor.a;
-
 	worldPosition = vPosition.xyz;
 
 	vec3 position = scale * trident * worldPosition;

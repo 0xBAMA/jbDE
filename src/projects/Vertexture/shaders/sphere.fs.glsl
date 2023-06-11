@@ -1,6 +1,5 @@
 #version 430
 
-uniform sampler2D sphere;
 uniform int inSeed;
 uniform float time;
 uniform float scale;

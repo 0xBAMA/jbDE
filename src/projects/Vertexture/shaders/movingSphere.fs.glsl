@@ -1,6 +1,5 @@
 #version 430
 
-uniform sampler2D sphere;
 uniform mat3 trident;
 uniform int inSeed;
 uniform float AR;
@@ -70,9 +69,6 @@ void main () {
 		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
 		vec2( 1.0f / ( radius - 1.0f ) );
 #endif
-
-	// read from texture
-	// float tRead = texture( sphere, sampleLocation ).r;
 
 	// analytic solution via pythagoras
 	vec2 centered = sampleLocation * 2.0f - vec2( 1.0f );

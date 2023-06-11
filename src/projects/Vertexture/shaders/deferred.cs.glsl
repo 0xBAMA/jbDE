@@ -8,6 +8,14 @@ uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D positionTexture;
 
+// todo:
+	// accumulate normals
+	// accumulate position
+	// accumulate depth
+	// sample rejection
+	// use uint id value from render target to replace color buffer + distinguishing between moving and static points
+		// move the static point data to an SSBO and expose it here
+
 uniform vec2 resolution;
 uniform mat3 trident;
 
