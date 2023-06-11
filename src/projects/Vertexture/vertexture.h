@@ -19,6 +19,9 @@ struct vertextureConfig {
 	bool showLightDebugLocations;
 	vec3 groundColor;
 
+	float lightsMinBrightness;
+	float lightsMaxBrightness;
+
 	// output settings
 	bool showTiming;
 	bool showTrident;
@@ -188,6 +191,8 @@ void APIGeometryContainer::LoadConfig () {
 	config.basisX		= vec3( j[ "app" ][ "Vertexture" ][ "basisX" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "z" ] );
 	config.basisY		= vec3( j[ "app" ][ "Vertexture" ][ "basisY" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "z" ] );
 	config.basisZ		= vec3( j[ "app" ][ "Vertexture" ][ "basisZ" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "z" ] );
+	config.lightsMinBrightness = j[ "app" ][ "Vertexture" ][ "Lights Min Brightness" ];
+	config.lightsMaxBrightness = j[ "app" ][ "Vertexture" ][ "Lights Max Brightness" ];
 
 	// update AR with current value of screen dims
 	config.width = j[ "screenWidth" ];
@@ -327,7 +332,7 @@ void APIGeometryContainer::Initialize () {
 		GLuint ssbo;
 		rng xDistrib( -10.0f, 10.0f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.001f, 0.003f );
+		rng brightness( config.lightsMinBrightness, config.lightsMaxBrightness );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
