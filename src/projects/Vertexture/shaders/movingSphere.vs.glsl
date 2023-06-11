@@ -23,7 +23,7 @@ out vec3 color;
 out vec3 worldPosition;
 out float height;
 out mat3 rot;
-flat out int index;
+flat out uint index;
 
 void main () {
 	index = gl_VertexID;

@@ -206,22 +206,40 @@ rng n( 0.0f, 1.0f );
 rng anglePick( -0.1618f, 0.1618f );
 rngi axisPick( 0, 2 );
 
-void RecursiveDecayingTentacle ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
-	float step, float decayState, float decayRate, float radius, float end, // scaling the points from large at start to small at the end
-	float branchChance, vec3 position, vec3 heading, vec3 color, vec3 bases[ 3 ] ) {
+// void RecursiveDecayingTentacle ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
+// 	float step, float decayState, float decayRate, float radius, float end, // scaling the points from large at start to small at the end
+// 	float branchChance, vec3 position, vec3 heading, vec3 color, vec3 bases[ 3 ] ) {
 
-	if ( radius * decayState >= end ) {
-		float newDecayState = decayState * decayRate;
-		vec3 newPosition = step * heading + position;
-		vec3 newHeading = glm::rotate( heading, anglePick(), bases[ axisPick() ] );
-		points.push_back( vec4( newPosition, newDecayState * radius ) );
-		colors.push_back( vec4( color, 1.0f ) );
+// 	if ( decayState > end ) {
+// 		points.push_back( vec4( position, decayState * radius ) );
+// 		colors.push_back( vec4( color, 1.0f ) );
+// 		float newDecayState = decayState * decayRate;
+// 		// vec3 newPosition = step * heading + position;
+// 		vec3 newHeading = glm::normalize( glm::rotate( heading, anglePick(), bases[ axisPick() ] ) );
+// 		vec3 newPosition = step * newHeading + position;
+// 		if ( n() < branchChance ) {
+// 			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius, end, branchChance, newPosition, newHeading, color, bases );
+// 			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius, end, branchChance, newPosition, newHeading, color, bases );
+// 		} else {
+// 			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius, end, branchChance, newPosition, newHeading, color, bases );
+// 		}
+// 	}
+// }
+
+void TentacleOld ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
+	float stepSize, float decayState, float decayRate, float radius, float branchChance, vec4 currentColor,
+	vec3 currentPoint, vec3 heading, float segmentLength, vec3 bases[ 3 ] ) {
+	for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+		currentPoint += stepSize * heading;
+		points.push_back( vec4( currentPoint, radius * decayState ) );
+		colors.push_back( currentColor );
+
 		if ( n() < branchChance ) {
-			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius * newDecayState, end, branchChance, newPosition, newHeading, color, bases );
-			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius * newDecayState, end, branchChance, newPosition, newHeading, color, bases );
-		} else {
-			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius * newDecayState, end, branchChance, newPosition, newHeading, color, bases );
+			TentacleOld( points, colors, stepSize, decayState, decayRate, radius, branchChance, currentColor, currentPoint, heading, segmentLength - t, bases );
 		}
+
+		decayState *= decayRate;
+		heading = glm::rotate( heading, anglePick(), bases[ axisPick() ] );
 	}
 }
 
@@ -263,7 +281,7 @@ void APIGeometryContainer::Initialize () {
 	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
 
 	// create the textures and fill out the framebuffer information
-	GLuint fbDepth, fbColor, fbNormal, fbPosition;
+	GLuint fbDepth, fbColor, fbNormal, fbPosition, fbMatID;
 
 	// do the depth texture
 	glGenTextures( 1, &fbDepth );
@@ -307,14 +325,28 @@ void APIGeometryContainer::Initialize () {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbPosition, 0 );
 
-	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers( 3, bufs );
+	// material ID values
+	glGenTextures( 1, &fbMatID );
+	glActiveTexture( GL_TEXTURE20 );
+	glBindTexture( GL_TEXTURE_2D, fbMatID );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32UI, config.width, config.height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, NULL ); // much more than I actually need
+	// glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, fbMatID, 0 );
+
+	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers( 4, bufs );
 
 	// make sure they're accessible from above
 	resources.textures[ "fbDepth" ] = fbDepth;
 	resources.textures[ "fbColor" ] = fbColor;
 	resources.textures[ "fbNormal" ] = fbNormal;
 	resources.textures[ "fbPosition" ] = fbPosition;
+	resources.textures[ "fbMatID" ] = fbMatID;
 
 	resources.FBOs[ "Primary" ] = primaryFramebuffer;
 	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
@@ -333,7 +365,7 @@ void APIGeometryContainer::Initialize () {
 		GLuint ssbo;
 		rng xDistrib( -10.0f, 10.0f );
 		rng colorPick( 0.6f, 0.8f );
-		rng brightness( 0.005f, 0.009f );
+		rng brightness( 0.001f, 0.003f );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -397,118 +429,131 @@ void APIGeometryContainer::Initialize () {
 			rngi axisPick( 0, 2 );
 			rngi cornerPick( 0, 3 );
 
-			const float spreadX = 0.2f;
-			const float spreadY = 1.0f;
-			const int numSteps = 30;
+			// const float spreadX = 0.2f;
+			// const float spreadY = 1.0f;
+			// const int numSteps = 30;
 			const float stepSize = 0.002f;
-			const int detents = 1;
-			const float distanceFromCenter = 0.0f;
+			// const int detents = 1;
+			const float distanceFromCenter = 0.4f;
 
-			for ( int i = 0; i < detents; i++ ) {
-				for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
-					for ( float y = -spreadY; y < spreadY; y += ( 2.0f * spreadX / numSteps ) ) {
+			// for ( int i = 0; i < detents; i++ ) {
+				// for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
+				// 	for ( float y = -spreadY; y < spreadY; y += ( 2.0f * spreadX / numSteps ) ) {
 
-						const vec3 startingPoint = glm::rotate( vec3( x, y, distanceFromCenter ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
-						vec3 heading = glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
-						float diameter = di();
+						// const vec3 startingPoint = glm::rotate( vec3( x, y, distanceFromCenter ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
+						// vec3 heading = glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
+						// float diameter = di();
 
-						vec3 currentPoint = startingPoint;
+						// vec3 currentPoint = startingPoint;
 
-						float magnitude = sin( 1.0f - glm::length( currentPoint.xy() ) * 56.5f );
-						vec3 axis = glm::normalize( heading * vec3( dirPick() + offset(), 1.0f + offset(), -magnitude * dirPick() ) );
-						vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
-						const vec3 axeezNuts = glm::cross( axis, axis2 );
+						// float magnitude = sin( 1.0f - glm::length( currentPoint.xy() ) * 56.5f );
+						// vec3 axis = glm::normalize( heading * vec3( dirPick() + offset(), 1.0f + offset(), -magnitude * dirPick() ) );
+						// vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
+						// const vec3 axeezNuts = glm::cross( axis, axis2 );
 
-						vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						const float segmentLength = 1.4f;
+						// vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+						// const float segmentLength = 1.4f;
 
-						// RecursiveDecayingTentacle ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
-						// 	float step, float decayState, float decayRate, float radius, float terminate,
-						// 	float branchChance, vec3 position, vec3 heading, vec3 color, vec3 &bases[ 3 ] )
+						// vec3 bases[ 3 ] = { axis, axis2, axeezNuts };
+						// TentacleOld( points, colors, stepSize, 1.0f, 0.997f, diameter, currentColor, currentPoint, heading, segmentLength, bases );
 
-						vec3 bases[ 3 ] = { axis, axis2, axeezNuts };
-						RecursiveDecayingTentacle( points, colors, stepSize / 2, 1.0f, 0.999f, diameter, 0.5f, 0.04f, currentPoint, heading, currentColor, bases );
+				for ( float t = -1.4f; t < 1.4f; t+= 0.001f ) {
+					const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
+					vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
+					float diameter = di();
 
-						// for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-							// currentPoint += stepSize * heading;
+					vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+					const float segmentLength = 1.4f;
 
-							// points.push_back( vec4( currentPoint, diameter * decayState ) );
-							// colors.push_back( currentColor );
-
-							// decayState *= decayFactor;
-							// switch ( axisPick() ) {
-							// case 0: heading = glm::rotate( heading, anglePick(), axis ); break;
-							// case 1: heading = glm::rotate( heading, anglePick(), axis2 ); break;
-							// case 2: heading = glm::rotate( heading, anglePick(), axeezNuts ); break;
-							// default: break;
-							// }
-						// }
-					}
+					vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
+					bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
+					TentacleOld( points, colors, stepSize, 1.0f, 0.997f, diameter, 0.005, currentColor, startingPoint, heading, segmentLength, bases );
 				}
-				const float rimSize = 18.0f;
-				const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
-				const float frameBoost = 1.02f;
-				const float distanceOffset = 0.96f;
-				const vec3 endpoints[ 4 ] = {
-					glm::rotate(
-						vec3( -spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-						vec3( 0.0f, 1.0f, 0.0f ) ),
-					glm::rotate(
-						vec3( -spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-						vec3( 0.0f, 1.0f, 0.0f ) ),
-					glm::rotate(
-						vec3(  spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-						vec3( 0.0f, 1.0f, 0.0f ) ),
-					glm::rotate(
-						vec3(  spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-						2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-						vec3( 0.0f, 1.0f, 0.0f ) ),
-				};
-				{
-					const vec3 endpoint0 = endpoints[ 0 ];
-					const vec3 endpoint1 = endpoints[ 1 ];
-					const float segmentLength = glm::distance( endpoint0, endpoint1 );
-					const vec3 heading = normalize( endpoint0 - endpoint1 );
-					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-						colors.push_back( darkGrey );
-					}
-				}
-				{
-					const vec3 endpoint0 = endpoints[ 1 ];
-					const vec3 endpoint1 = endpoints[ 3 ];
-					const float segmentLength = glm::distance( endpoint0, endpoint1 );
-					const vec3 heading = normalize( endpoint0 - endpoint1 );
-					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-						colors.push_back( darkGrey );
-					}
-				}
-				{
-					const vec3 endpoint0 = endpoints[ 2 ];
-					const vec3 endpoint1 = endpoints[ 3 ];
-					const float segmentLength = glm::distance( endpoint0, endpoint1 );
-					const vec3 heading = normalize( endpoint0 - endpoint1 );
-					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-						colors.push_back( darkGrey );
-					}
-				}
-				{
-					const vec3 endpoint0 = endpoints[ 0 ];
-					const vec3 endpoint1 = endpoints[ 2 ];
-					const float segmentLength = glm::distance( endpoint0, endpoint1 );
-					const vec3 heading = normalize( endpoint0 - endpoint1 );
-					for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-						points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-						colors.push_back( darkGrey );
-					}
-				}
+
 				// palette::PickRandomPalette();
-			}
+
+				// for ( float t = -1.4f; t < 1.4f; t+= 0.005f ) {
+				// 	const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, -distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
+				// 	vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, -1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
+				// 	float diameter = di();
+
+				// 	vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+				// 	const float segmentLength = 1.4f;
+
+				// 	vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
+				// 	bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
+				// 	TentacleOld( points, colors, stepSize, 1.0f, 0.997f, diameter, currentColor, startingPoint, heading, segmentLength, bases );
+				// 	// RecursiveDecayingTentacle( points, colors, stepSize, 2.5f, 0.9f, diameter, 1.5f, 0.05f, startingPoint, heading, currentColor, bases );
+				// }
+
+
+				// 	}
+				// }
+
+			// 	const float rimSize = 18.0f;
+			// 	const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
+			// 	const float frameBoost = 1.02f;
+			// 	const float distanceOffset = 0.96f;
+			// 	const vec3 endpoints[ 4 ] = {
+			// 		glm::rotate(
+			// 			vec3( -spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
+			// 		glm::rotate(
+			// 			vec3( -spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
+			// 		glm::rotate(
+			// 			vec3(  spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
+			// 		glm::rotate(
+			// 			vec3(  spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
+			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
+			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
+			// 	};
+			// 	{
+			// 		const vec3 endpoint0 = endpoints[ 0 ];
+			// 		const vec3 endpoint1 = endpoints[ 1 ];
+			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
+			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
+			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+			// 			colors.push_back( darkGrey );
+			// 		}
+			// 	}
+			// 	{
+			// 		const vec3 endpoint0 = endpoints[ 1 ];
+			// 		const vec3 endpoint1 = endpoints[ 3 ];
+			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
+			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
+			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+			// 			colors.push_back( darkGrey );
+			// 		}
+			// 	}
+			// 	{
+			// 		const vec3 endpoint0 = endpoints[ 2 ];
+			// 		const vec3 endpoint1 = endpoints[ 3 ];
+			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
+			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
+			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+			// 			colors.push_back( darkGrey );
+			// 		}
+			// 	}
+			// 	{
+			// 		const vec3 endpoint0 = endpoints[ 0 ];
+			// 		const vec3 endpoint1 = endpoints[ 2 ];
+			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
+			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
+			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
+			// 			colors.push_back( darkGrey );
+			// 		}
+			// 	}
+			// 	// palette::PickRandomPalette();
+			// }
 
 			int dynamicPointCount = 0;
 			rng pGen( -20.0f, 20.0f );

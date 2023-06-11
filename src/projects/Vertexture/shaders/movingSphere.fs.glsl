@@ -22,7 +22,7 @@ in float radius;
 in float roughness;
 in vec3 color;
 in vec3 worldPosition;
-flat in int index;
+flat in uint index;
 
 // random utilites
 uint seed = 0;
@@ -58,6 +58,8 @@ layout( depth_greater ) out float gl_FragDepth;
 layout( location = 0 ) out vec4 glFragColor;
 layout( location = 1 ) out vec4 normalResult;
 layout( location = 2 ) out vec4 positionResult;
+// layout( location = 3 ) out uint materialID;
+layout( location = 3 ) out uvec4 materialID;
 
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
@@ -87,4 +89,6 @@ void main () {
 	glFragColor = vec4( color, 1.0f );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );
+	// materialID = index;
+	materialID = uvec4( 0, index + 1, 0, 0 );
 }

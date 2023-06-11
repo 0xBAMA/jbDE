@@ -40,8 +40,8 @@
 		"Vertexture":{
 			"showTrident":false,
 			"showTiming":false,
-			"Lights":128,
-			"Guys":0,
+			"Lights":256,
+			"Guys":4096,
 			"InitialScale":0.65,
 			"InitialHeightScale":0.0,
 			"ShowLightDebugLocations":false,
