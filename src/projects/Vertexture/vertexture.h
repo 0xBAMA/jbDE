@@ -442,19 +442,6 @@ void APIGeometryContainer::Initialize () {
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * resources.numPointsDynamicSpheres, ( GLvoid * ) &dynamicPoints[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
-		GLuint sphereImage;
-		Image_4U sphereImageData( "./src/projects/Vertexture/textures/sphere.png" );
-		glGenTextures( 1, &sphereImage );
-		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
-		glBindTexture( GL_TEXTURE_2D, sphereImage );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, sphereImageData.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		resources.textures[ "Sphere Image" ] = sphereImage;
 		resources.SSBOs[ "Moving Sphere" ] = ssbo;
 		resources.VAOs[ "Sphere" ] = vao;
 		resources.VBOs[ "Sphere" ] = vbo;
