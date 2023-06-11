@@ -149,25 +149,12 @@ void main () {
 		const float aoScalar = 1.0f - SpiralAO( sampleLocation, position.xyz, normalize( normal.xyz ), AOSampleRadius / depth.r ) * AOIntensity;
 
 		vec3 outputValue = lightContribution * aoScalar * color.rgb;
-		// vec3 outputValue = vec3( depth.r );
-		// vec3 outputValue = vec3( aoScalar );
-
-		// switch ( writeLoc.x % 5 ) {
-		// case 0: outputValue = lightContribution; 					break;
-		// case 1: outputValue = 0.5f * ( normal.rgb + vec3( 1.0f ) );	break;
-		// case 2: outputValue = abs( position.rgb );					break;
-		// case 3: outputValue = vec3( 1.0f ) - depth.rrr;				break;
-		// case 4: outputValue = lightContribution;						break;
-		// default: break;
-		// }
 
 		// int fcxmod2 = int( writeLoc.x ) % 2;
 		// int fcymod3 = int( writeLoc.y ) % 3;
 		// if ( ( fcymod3 == 0 ) || ( fcxmod2 == 0 ) ) {
 		// 	outputValue = color.rgb;
 		// }
-
-		// imageStore( accumulatorTexture, writeLoc, vec4( outputValue + ( blueNoise / 511.0f ), 1.0f ) );
 
 		vec4 previous = imageLoad( accumulatorTexture, writeLoc );
 		outputValue = mix( previous.xyz, outputValue.xyz, 0.01f );

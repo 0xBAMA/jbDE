@@ -322,7 +322,7 @@ void APIGeometryContainer::Initialize () {
 
 	// generate all the geometry
 
-	// pick a first palette ( lights )
+	// pick a first palette ( for the lights )
 	palette::PickRandomPalette();
 
 	// randomly positioned + colored lights
@@ -388,6 +388,7 @@ void APIGeometryContainer::Initialize () {
 			rng roughnessGen( 0.01f, 1.0f );
 			rng di( 3.5f, 16.5f );
 			rng dirPick( -1.0f, 1.0f );
+			rng size( 2.0, 4.5 );
 
 			const float stepSize = 0.002f;
 			const float distanceFromCenter = 0.4f;
@@ -410,7 +411,7 @@ void APIGeometryContainer::Initialize () {
 			for ( int x = 0; x < config.Guys; x++ ) {
 				for ( int y = 0; y < config.Guys; y++ ) {
 					dynamicPoints.push_back( vec4( pGen(), pGen(), pGen(), size() ) );
-					dynamicPoints.push_back( vec4( palette::paletteRef( colorGen() ), phase() ) );
+					dynamicPoints.push_back( vec4( palette::paletteRef( colorGen() ), 0.0f ) );
 					dynamicPointCount++;
 				}
 			}
@@ -430,6 +431,7 @@ void APIGeometryContainer::Initialize () {
 		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
 
 		// todo : refactor this, replace VBO with a second SSBO - unify sphere/moving sphere shaders, just bind different SSBO to change set
+			// if I make it the same data layout as the lights, I can do the debug spheres for the lights easy as shit, then it's just the same thing 3 times
 
 		// I also want to experiment with instancing these things - writing the same normals + worldspace position etc will work fine for the deferred pass
 			// it doesn't care - it just uses those numbers from the buffer as input + the lighting SSBO in order to do the shading
@@ -466,6 +468,10 @@ void APIGeometryContainer::InitReport () {
 void APIGeometryContainer::Terminate () {
 
 	// TODO: destroy the graphics api resources
+
+	// textures
+	// ssbos
+	// ...
 
 	glDeleteFramebuffers( 1, &resources.FBOs[ "Primary" ] );
 
