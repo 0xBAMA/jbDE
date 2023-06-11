@@ -203,26 +203,6 @@ rng n( 0.0f, 1.0f );
 rng anglePick( -0.1618f, 0.1618f );
 rngi axisPick( 0, 2 );
 
-// void RecursiveDecayingTentacle ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
-// 	float step, float decayState, float decayRate, float radius, float end, // scaling the points from large at start to small at the end
-// 	float branchChance, vec3 position, vec3 heading, vec3 color, vec3 bases[ 3 ] ) {
-
-// 	if ( decayState > end ) {
-// 		points.push_back( vec4( position, decayState * radius ) );
-// 		colors.push_back( vec4( color, 1.0f ) );
-// 		float newDecayState = decayState * decayRate;
-// 		// vec3 newPosition = step * heading + position;
-// 		vec3 newHeading = glm::normalize( glm::rotate( heading, anglePick(), bases[ axisPick() ] ) );
-// 		vec3 newPosition = step * newHeading + position;
-// 		if ( n() < branchChance ) {
-// 			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius, end, branchChance, newPosition, newHeading, color, bases );
-// 			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius, end, branchChance, newPosition, newHeading, color, bases );
-// 		} else {
-// 			RecursiveDecayingTentacle( points, colors, step, newDecayState, decayRate, radius, end, branchChance, newPosition, newHeading, color, bases );
-// 		}
-// 	}
-// }
-
 void TentacleOld ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
 	float stepSize, float decayState, float decayRate, float radius, float branchChance, vec4 currentColor,
 	vec3 currentPoint, vec3 heading, float segmentLength, vec3 bases[ 3 ] ) {
@@ -257,22 +237,7 @@ void APIGeometryContainer::Initialize () {
 	resources.shaders[ "Sphere" ]				= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
 	resources.shaders[ "Moving Sphere" ]		= regularShader( basePath + "movingSphere.vs.glsl", basePath + "movingSphere.fs.glsl" ).shaderHandle;
 
-	// GLuint steepness, distanceDirection;
-	// Image_4U steepnessTex( 512, 512 );
-
-	// glGenTextures( 1, &steepness );
-	// glActiveTexture( GL_TEXTURE14 );
-	// glBindTexture( GL_TEXTURE_2D, steepness );
-	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-	// resources.textures[ "Steepness Map" ] = steepness;
-
-	// glGenTextures( 1, &distanceDirection );
-	// glActiveTexture( GL_TEXTURE15 );
-	// glBindTexture( GL_TEXTURE_2D, distanceDirection );
-	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-	// resources.textures[ "Distance/Direction Map" ] = distanceDirection;
-
-	// setup the buffers for the rendering process - need depth, worldspace position - maybe?, normals, color
+	// setup the buffers for the rendering process
 	GLuint primaryFramebuffer;
 	glGenFramebuffers( 1, &primaryFramebuffer );
 	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
@@ -289,7 +254,7 @@ void APIGeometryContainer::Initialize () {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth, 0 );
 
-	// do the color texture
+	// do the color texture - this is replaced by the ID value buffer - just read this + material properties from the SSBO
 	glGenTextures( 1, &fbColor );
 	glActiveTexture( GL_TEXTURE17 );
 	glBindTexture( GL_TEXTURE_2D, fbColor );
@@ -416,151 +381,34 @@ void APIGeometryContainer::Initialize () {
 			rng colorGen( 0.0f, 0.65f );
 			rng roughnessGen( 0.01f, 1.0f );
 			rng di( 3.5f, 16.5f );
-			rng size( 2.0f, 4.5f );
-			rng phase( 0.0f, pi * 6.0f );
 			rng dirPick( -1.0f, 1.0f );
-			rng offset( -0.1618f, 0.1618f );
-			// rngN anglePick( 0.0f, 0.051616f );
-			rng anglePick( -0.1618f, 0.1618f );
-			rngi axisPick( 0, 2 );
-			rngi cornerPick( 0, 3 );
 
-			// const float spreadX = 0.2f;
-			// const float spreadY = 1.0f;
-			// const int numSteps = 30;
 			const float stepSize = 0.002f;
-			// const int detents = 1;
 			const float distanceFromCenter = 0.4f;
 
-			// for ( int i = 0; i < detents; i++ ) {
-				// for ( float x = -spreadX; x < spreadX; x += ( 2.0f * spreadX / numSteps ) ) {
-				// 	for ( float y = -spreadY; y < spreadY; y += ( 2.0f * spreadX / numSteps ) ) {
+			for ( float t = -1.4f; t < 1.4f; t+= 0.001f ) {
+				const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
+				vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
+				float diameter = di();
 
-						// const vec3 startingPoint = glm::rotate( vec3( x, y, distanceFromCenter ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
-						// vec3 heading = glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * ( ( float ) i / ( float ) detents ), vec3( 0.0f, 1.0f, 0.0f ) );
-						// float diameter = di();
+				vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+				const float segmentLength = 1.4f;
 
-						// vec3 currentPoint = startingPoint;
-
-						// float magnitude = sin( 1.0f - glm::length( currentPoint.xy() ) * 56.5f );
-						// vec3 axis = glm::normalize( heading * vec3( dirPick() + offset(), 1.0f + offset(), -magnitude * dirPick() ) );
-						// vec3 axis2 = glm::normalize( vec3( dirPick(), dirPick(), dirPick() ) );
-						// const vec3 axeezNuts = glm::cross( axis, axis2 );
-
-						// vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-						// const float segmentLength = 1.4f;
-
-						// vec3 bases[ 3 ] = { axis, axis2, axeezNuts };
-						// TentacleOld( points, colors, stepSize, 1.0f, 0.997f, diameter, currentColor, currentPoint, heading, segmentLength, bases );
-
-				for ( float t = -1.4f; t < 1.4f; t+= 0.001f ) {
-					const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
-					vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
-					float diameter = di();
-
-					vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-					const float segmentLength = 1.4f;
-
-					vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
-					bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
-					TentacleOld( points, colors, stepSize, 1.0f, 0.997f, diameter, 0.005, currentColor, startingPoint, heading, segmentLength, bases );
-				}
-
-				// palette::PickRandomPalette();
-
-				// for ( float t = -1.4f; t < 1.4f; t+= 0.005f ) {
-				// 	const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, -distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
-				// 	vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, -1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
-				// 	float diameter = di();
-
-				// 	vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-				// 	const float segmentLength = 1.4f;
-
-				// 	vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
-				// 	bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
-				// 	TentacleOld( points, colors, stepSize, 1.0f, 0.997f, diameter, currentColor, startingPoint, heading, segmentLength, bases );
-				// 	// RecursiveDecayingTentacle( points, colors, stepSize, 2.5f, 0.9f, diameter, 1.5f, 0.05f, startingPoint, heading, currentColor, bases );
-				// }
-
-
-				// 	}
-				// }
-
-			// 	const float rimSize = 18.0f;
-			// 	const vec4 darkGrey = vec4( 0.1618f, 0.1618f, 0.1618f, 1.0f );
-			// 	const float frameBoost = 1.02f;
-			// 	const float distanceOffset = 0.96f;
-			// 	const vec3 endpoints[ 4 ] = {
-			// 		glm::rotate(
-			// 			vec3( -spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
-			// 		glm::rotate(
-			// 			vec3( -spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
-			// 		glm::rotate(
-			// 			vec3(  spreadX * frameBoost, -spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
-			// 		glm::rotate(
-			// 			vec3(  spreadX * frameBoost,  spreadY * frameBoost, distanceFromCenter * distanceOffset ),
-			// 			2.0f * float( pi ) * ( ( float ) i / ( float ) detents ),
-			// 			vec3( 0.0f, 1.0f, 0.0f ) ),
-			// 	};
-			// 	{
-			// 		const vec3 endpoint0 = endpoints[ 0 ];
-			// 		const vec3 endpoint1 = endpoints[ 1 ];
-			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
-			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
-			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-			// 			colors.push_back( darkGrey );
-			// 		}
-			// 	}
-			// 	{
-			// 		const vec3 endpoint0 = endpoints[ 1 ];
-			// 		const vec3 endpoint1 = endpoints[ 3 ];
-			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
-			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
-			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-			// 			colors.push_back( darkGrey );
-			// 		}
-			// 	}
-			// 	{
-			// 		const vec3 endpoint0 = endpoints[ 2 ];
-			// 		const vec3 endpoint1 = endpoints[ 3 ];
-			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
-			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
-			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-			// 			colors.push_back( darkGrey );
-			// 		}
-			// 	}
-			// 	{
-			// 		const vec3 endpoint0 = endpoints[ 0 ];
-			// 		const vec3 endpoint1 = endpoints[ 2 ];
-			// 		const float segmentLength = glm::distance( endpoint0, endpoint1 );
-			// 		const vec3 heading = normalize( endpoint0 - endpoint1 );
-			// 		for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-			// 			points.push_back( vec4( endpoint1 + t * heading, rimSize ) );
-			// 			colors.push_back( darkGrey );
-			// 		}
-			// 	}
-			// 	// palette::PickRandomPalette();
-			// }
+				vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
+				bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
+				TentacleOld( staticPoints, colors, stepSize, 1.0f, 0.997f, diameter, 0.005, currentColor, startingPoint, heading, segmentLength, bases );
+			}
 
 			int dynamicPointCount = 0;
 			rng pGen( -20.0f, 20.0f );
 			for ( int x = 0; x < config.Guys; x++ ) {
 				for ( int y = 0; y < config.Guys; y++ ) {
-					ssboPoints.push_back( vec4( pGen(), pGen(), pGen(), size() ) );
-					ssboPoints.push_back( vec4( palette::paletteRef( colorGen() ), phase() ) );
+					dynamicPoints.push_back( vec4( pGen(), pGen(), pGen(), size() ) );
+					dynamicPoints.push_back( vec4( palette::paletteRef( colorGen() ), phase() ) );
 					dynamicPointCount++;
 				}
 			}
-			resources.numPointsMovingSpheres = dynamicPointCount;
+			resources.numPointsDynamicSpheres = dynamicPointCount;
 		}
 
 		GLuint vao, vbo;
@@ -766,16 +614,6 @@ void APIGeometryContainer::Render () {
 void APIGeometryContainer::Update () {
 
 	config.timeVal += 0.1f;
-
-	// // run the stuff to update the moving point locations
-	// glUseProgram( resources.shaders[ "Sphere Map Update" ] );
-	// glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	// glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), rngs.shaderWangSeed() );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
-	// glUniform3fv( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "obstacles" ), config.obstacles.size(), glm::value_ptr( config.obstacles[ 0 ] ) );
-	// glDispatchCompute( 512 / 16, 512 / 16, 1 );
 
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	glUseProgram( resources.shaders[ "Sphere Movement" ] );
