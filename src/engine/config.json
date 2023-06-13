@@ -41,8 +41,8 @@
 			"showTrident":false,
 			"showTiming":false,
 			"Lights":256,
-			"Lights Min Brightness":0.001,
-			"Lights Max Brightness":0.003,
+			"Lights Min Brightness":0.0005,
+			"Lights Max Brightness":0.0020,
 			"Guys":1024,
 			"ShowLightDebugLocations":false,
 			"basisX":{
