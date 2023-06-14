@@ -553,8 +553,8 @@ void APIGeometryContainer::Render () {
 	// then the regular view of the geometry
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 
-	// todo: I would like to use this - but it will require a little more work than just the trident ( need view matrix )
-	const mat4 perspectiveMatrix = glm::perspective( 45.0f, ( GLfloat ) config.width / ( GLfloat ) config.height, 0.1f, 2.0f );
+	const mat4 perspectiveMatrix = glm::perspective( 45.0f, ( GLfloat ) config.width / ( GLfloat ) config.height, 0.1f, 5.0f );
+	const mat4 lookatMatrix = glm::lookAt( vec3( 2.0f, 0.0f, 0.0f ), vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -573,6 +573,7 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
+	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "lookatMatrix" ), 1, GL_FALSE, glm::value_ptr( lookatMatrix ) );
 
 	// gl_VertexID is informed by these values, and is continuous - first call starts at zero, second call starts at resources.numPointsStaticSpheres
 	int start, number;

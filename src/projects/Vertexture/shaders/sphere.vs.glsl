@@ -6,6 +6,7 @@ uniform mat3 trident;
 uniform float scale;
 uniform float frameWidth;
 uniform mat4 perspectiveMatrix;
+uniform mat4 lookatMatrix;
 
 // points SSBO
 struct point_t {
