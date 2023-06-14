@@ -423,7 +423,7 @@ void APIGeometryContainer::Initialize () {
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * ( resources.numPointsDynamicSpheres + resources.numPointsStaticSpheres ), ( GLvoid * ) &points[ 0 ], GL_STATIC_READ );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * ( resources.numPointsDynamicSpheres + resources.numPointsStaticSpheres ), ( GLvoid * ) &points[ 0 ], GL_DYNAMIC_COPY );
 
 		resources.SSBOs[ "Spheres" ] = ssbo;
 	}
@@ -431,7 +431,6 @@ void APIGeometryContainer::Initialize () {
 	// bind in known locations
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, resources.SSBOs[ "Lights" ] );
-
 }
 
 void APIGeometryContainer::InitReport () {
@@ -575,17 +574,16 @@ void APIGeometryContainer::Render () {
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
 
-	// bind the big SSBO
-		// it is important to keep it in the same buffer, until I figure out how I'm going to handle offsets + counts for multiple sets in different SSBOs in the same deferred pass
+	// gl_VertexID is informed by these values, and is continuous - first call starts at zero, second call starts at resources.numPointsStaticSpheres
+	int start, number;
 
+	start = 0;
+	number = resources.numPointsStaticSpheres;
+	glDrawArrays( GL_POINTS, start, number ); // draw start to numstatic
 
-	// pass initial index for the first set of points
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
-	glDrawArrays( GL_POINTS, 0, resources.numPointsStaticSpheres );
-
-	// pass initial index for the second set of points
-
-	glDrawArrays( GL_POINTS, resources.numPointsStaticSpheres, resources.numPointsDynamicSpheres );
+	start = resources.numPointsStaticSpheres;
+	number = resources.numPointsDynamicSpheres;
+	glDrawArrays( GL_POINTS, start, number ); // draw numstatic to end
 
 	// revert to default framebuffer
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );

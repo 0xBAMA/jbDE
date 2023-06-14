@@ -1,5 +1,6 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
+
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
@@ -9,12 +10,9 @@ uniform sampler2D positionTexture;
 uniform usampler2D idTexture;
 
 // todo:
-	// accumulate normals
-	// accumulate position
-	// accumulate depth
 	// sample rejection
-	// use uint id value from render target to replace color buffer + distinguishing between moving and static points
-		// move the static point data to an SSBO and expose it here
+		// reuse previous frame's data - accumulated normals/depth don't really make sense
+	// using bitfields in the ID value to change behavior ( static/dynamic points )
 
 uniform vec2 resolution;
 uniform mat3 trident;

@@ -12,9 +12,8 @@ public:
 	// buffer locations are static, hardcoded so that we don't have to manage as much shit in the classes:
 
 		// location 0 is the blue noise texture
-		// location 1 is the steepness texture
-		// location 2 is the distance/direction map
-		// location 3 is the ssbo for the points
+
+		// location 3 is the ssbo for the points // are these in a separate address space? I think the binding points are distinct
 		// location 4 is the ssbo for the lights
 
 		// and the rest with the samplers and shit is going to be passed as uniforms

@@ -21,10 +21,11 @@ public:
 			// cout << "loaded " << badWords.size() << " bad words" << newline;
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-			// Image_4F test( "test.png" );
-			// test.BrownConradyLensDistortMSBlurredChromatic( 100, 0.25f, 0.125f, 0.1618f );
+			// Image_4F test( "testAltered.png" );
+			// test.BrownConradyLensDistortMSBlurredChromatic( 1000, 0.125f, 0.0125f, 0.01618f );
+			// test.BrownConradyLensDistortMSBlurredChromaticSmooth( 1000, 0.125f, 0.0125f, 0.01618f );
 			// test.SaturateAlpha();
-			// test.Save( "distorted.png" );
+			// test.Save( "distorted2.png" );
 
 			// very interesting - can call stuff from the command line
 				// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
