@@ -4,10 +4,9 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 uniform sampler2D depthTexture;
-// uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D positionTexture;
-uniform sampler2D idTexture;
+uniform usampler2D idTexture;
 
 // todo:
 	// accumulate normals
@@ -20,7 +19,17 @@ uniform sampler2D idTexture;
 uniform vec2 resolution;
 uniform mat3 trident;
 
-// from the old shaders
+// Points SSBO
+struct point_t {
+	vec4 position;
+	vec4 color;
+};
+
+layout( binding = 3, std430 ) buffer pointDataBuffer {
+	point_t pointData[];
+};
+
+// Lights SSBO
 uniform int lightCount;
 
 struct light_t {
@@ -110,10 +119,13 @@ void main () {
 
 	vec2 sampleLocation = ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution;
 	sampleLocation.y = 1.0f - sampleLocation.y;
-	vec4 color = texture( normalTexture, sampleLocation ); // placeholder, needs to read from SSBO
+
 	vec4 depth = texture( depthTexture, sampleLocation );
 	vec4 normal = texture( normalTexture, sampleLocation );
 	vec4 position = texture( positionTexture, sampleLocation );
+	uvec4 id = texture( idTexture, sampleLocation );
+
+	vec4 color = pointData[ id.r ].color;
 
 	// geo has been written this frame
 	if ( depth.r != 1.0f ) {
@@ -125,7 +137,7 @@ void main () {
 		vec3 lightContribution = vec3( 0.0f );
 
 		// pack into one of the remaining fields ( or add additional rendered target with material properties )
-		const float roughness = 1.0f;
+		const float roughness = color.a;
 
 		for ( int i = 0; i < lightCount; i++ ) {
 

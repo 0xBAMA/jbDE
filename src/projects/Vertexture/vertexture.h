@@ -140,6 +140,19 @@ inline void subdivide (
 Consolidating the resources for the API geometry
 ========================================================================================================================== */
 
+// points consist of 8 floats... as it is said, so it shall be done
+	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/floatBitsToInt.xhtml -> can potentially pass int/uint values in
+		// ( free up a value by replacing color with 1d palette offset + uint palette index + pass a 1d texture array with those palettes ( 1 float+index -> 3 floats ) )
+
+// but for now they are used like this:
+	// { pos.x, pos.y, pos.z,  diameter }
+	// {   red, green,  blue, roughness }
+
+struct point_t {
+	vec4 position;
+	vec4 color;
+};
+
 struct APIGeometryContainer {
 
 	APIGeometryContainer () {}
@@ -171,6 +184,11 @@ struct APIGeometryContainer {
 	vertextureConfig config;
 	openGLResources resources;
 	rnGenerators rngs;
+
+	// point generator functions
+	void TentacleOld ( std::vector< point_t > &points, float stepSize, float decayState,
+		float decayRate, float radius, float branchChance, vec4 currentColor,
+		vec3 currentPoint, vec3 heading, float segmentLength, vec3 bases[ 3 ] );
 
 };
 
@@ -208,16 +226,23 @@ rng n( 0.0f, 1.0f );
 rng anglePick( -0.1618f, 0.1618f );
 rngi axisPick( 0, 2 );
 
-void TentacleOld ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
-	float stepSize, float decayState, float decayRate, float radius, float branchChance, vec4 currentColor,
+void APIGeometryContainer::TentacleOld ( std::vector< point_t > &points, float stepSize, float decayState,
+	float decayRate, float radius, float branchChance, vec4 currentColor,
 	vec3 currentPoint, vec3 heading, float segmentLength, vec3 bases[ 3 ] ) {
 	for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
+
 		currentPoint += stepSize * heading;
-		points.push_back( vec4( currentPoint, radius * decayState ) );
-		colors.push_back( currentColor );
+
+		point_t current;
+
+		current.color = currentColor;
+		current.position = vec4( currentPoint, radius * decayState );
+
+		points.push_back( current );
+		resources.numPointsStaticSpheres++;
 
 		if ( n() < branchChance ) {
-			TentacleOld( points, colors, stepSize, decayState, decayRate, radius, branchChance, currentColor, currentPoint, heading, segmentLength - t, bases );
+			TentacleOld( points, stepSize, decayState, decayRate, radius, branchChance, currentColor, currentPoint, heading, segmentLength - t, bases );
 		}
 
 		decayState *= decayRate;
@@ -226,9 +251,7 @@ void TentacleOld ( std::vector< vec4 > &points, std::vector< vec4 > &colors,
 }
 
 void APIGeometryContainer::Initialize () {
-
-	// if this is the first time that this has run
-		// probably something we can do if we check for this behavior, something - tbd
+	std::vector< point_t > points;
 
 	// clear existing list of obstacles
 	config.obstacles.resize( 0 );
@@ -291,7 +314,7 @@ void APIGeometryContainer::Initialize () {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, fbMatID, 0 );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbMatID, 0 );
 
 	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers( 3, bufs );
@@ -348,7 +371,6 @@ void APIGeometryContainer::Initialize () {
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * config.Lights, ( GLvoid * ) &lightData[ 0 ], GL_DYNAMIC_COPY );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, ssbo );
 
 		resources.SSBOs[ "Lights" ] = ssbo;
 	}
@@ -357,67 +379,58 @@ void APIGeometryContainer::Initialize () {
 	palette::PickRandomPalette();
 
 	// spheres
-		// sphere heightmap texture
-			// try the math version, see if that's faster? from the nvidia paper
-		// shader + vertex buffer of the static points
-			// optionally include the debug spheres for the light positions
-		// shader + ssbo buffer of the dynamic points
 	{
-		std::vector< vec4 > staticPoints;
-		std::vector< vec4 > dynamicPoints;
-		std::vector< vec4 > colors;
-
 		{
 			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
 				// the texture for the height, and then they displace vertically in the shader
 
 			rng colorGen( 0.0f, 0.65f );
-			rng roughnessGen( 0.01f, 1.0f );
+			rng roughnessGen( 0.01f, 100.0f );
 			rng di( 3.5f, 16.5f );
 			rng dirPick( -1.0f, 1.0f );
-			rng size( 2.0, 4.5 );
+			rng size( 2.0f, 4.5f );
 
 			const float stepSize = 0.002f;
 			const float distanceFromCenter = 0.4f;
 
-			for ( float t = -1.4f; t < 1.4f; t+= 0.001f ) {
-				const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
-				vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
-				float diameter = di();
-
-				vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-				const float segmentLength = 1.4f;
-
-				vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
-				bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
-				TentacleOld( staticPoints, colors, stepSize, 1.0f, 0.997f, diameter, 0.005f, currentColor, startingPoint, heading, segmentLength, bases );
-			}
-
-			int dynamicPointCount = 0;
+			resources.numPointsDynamicSpheres = 0;
 			rng pGen( -20.0f, 20.0f );
 			for ( int x = 0; x < config.Guys; x++ ) {
 				for ( int y = 0; y < config.Guys; y++ ) {
-					dynamicPoints.push_back( vec4( pGen(), pGen(), pGen(), size() ) );
-					dynamicPoints.push_back( vec4( palette::paletteRef( colorGen() ), 0.0f ) );
-					dynamicPointCount++;
+					point_t p;
+					p.position = vec4( pGen(), pGen(), pGen(), size() );
+					p.color = vec4( palette::paletteRef( colorGen() ), 0.0f );
+					points.push_back( p );
+					resources.numPointsDynamicSpheres++;
 				}
 			}
-			resources.numPointsDynamicSpheres = dynamicPointCount;
+
+			resources.numPointsStaticSpheres = 0;
+			for ( float t = -1.4f; t < 1.4f; t+= 0.004f ) {
+				const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
+				vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
+				const float diameter = di();
+				vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
+				vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
+				bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
+				const float segmentLength = 1.4f;
+				TentacleOld( points, stepSize, 1.0f, 0.997f, diameter, 0.005f, currentColor, startingPoint, heading, segmentLength, bases );
+			}
 		}
 
-		// also: this SSBO is required for the deferred usage - since I'm moving to what is essentially a visibility buffer
-
-		// I also want to experiment with instancing these things - writing the same normals + worldspace position etc will work fine for the deferred pass
-			// it doesn't care - it just uses those numbers from the buffer as input + the lighting SSBO in order to do the shading
+		// also: this SSBO is required for the deferred usage, since I'm doing now is essentially a visibility buffer
 
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * resources.numPointsDynamicSpheres, ( GLvoid * ) &dynamicPoints[ 0 ], GL_DYNAMIC_COPY );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * ( resources.numPointsDynamicSpheres + resources.numPointsStaticSpheres ), ( GLvoid * ) &points[ 0 ], GL_STATIC_READ );
 
-		resources.SSBOs[ "Moving Sphere" ] = ssbo;
+		resources.SSBOs[ "Spheres" ] = ssbo;
 	}
+
+	// bind in known locations
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, resources.SSBOs[ "Lights" ] );
 
 }
 
@@ -567,12 +580,12 @@ void APIGeometryContainer::Render () {
 
 
 	// pass initial index for the first set of points
-
-	// glDrawArrays( GL_POINTS, 0, resources.numPointsStaticSpheres );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
+	glDrawArrays( GL_POINTS, 0, resources.numPointsStaticSpheres );
 
 	// pass initial index for the second set of points
 
-	glDrawArrays( GL_POINTS, 0, resources.numPointsDynamicSpheres );
+	glDrawArrays( GL_POINTS, resources.numPointsStaticSpheres, resources.numPointsDynamicSpheres );
 
 	// revert to default framebuffer
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
@@ -584,8 +597,6 @@ void APIGeometryContainer::Update () {
 
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	glUseProgram( resources.shaders[ "Sphere Movement" ] );
-	glBindBuffer( GL_SHADER_STORAGE_BUFFER, resources.SSBOs[ "Moving Sphere" ] );
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Moving Sphere" ] );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );

@@ -50,7 +50,7 @@ layout( location = 2 ) out uvec4 materialID;
 void main () {
 	seed = uint( gl_FragCoord.x * 65901 ) + uint( gl_FragCoord.y * 10244 ) + uint( inSeed );
 
-#if 1
+#if 0
 	vec2 sampleLocation = gl_PointCoord.xy;
 #else
 	vec2 sampleLocation = gl_PointCoord.xy +
@@ -71,5 +71,5 @@ void main () {
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - tRead ) );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );
-	materialID = uvec4( ( ~0 ) - index, 0, 0, 0 ); // use top bits for id
+	materialID = uvec4( index, 0, 0, 0 );
 }
