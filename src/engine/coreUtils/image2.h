@@ -623,14 +623,14 @@ public:
 					remapped = remapped * 0.5f + vec2( 0.5f ); // restore back to the normalized space
 
 					if ( i < midPoint ) { // red to green if less than midpoint, green to blue if greater
-						weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
-						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
-						weight[ blue ]	= 0.0f;
+						weight[ blue ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
+						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ red ]	= 0.0f;
 						weight[ alpha ]	= 1.0f;
 					} else {
-						weight[ red ]	= 0.0f;
-						weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
-						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ red ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
+						weight[ blue ]	= 0.0f;
+						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
 						weight[ alpha ]	= 1.0f;
 					}
 
@@ -755,14 +755,14 @@ public:
 					remapped = remapped * normalizeFactor - ( normalizeFactor * 0.5f ) + vec2( 0.5f );
 
 					if ( i < midPoint ) { // red to green if less than midpoint, green to blue if greater
-						weight[ red ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
-						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
-						weight[ blue ]	= 0.0f;
+						weight[ blue ]	= RangeRemapValue( i, 0.0f, midPoint, 1.0f, 0.0f );
+						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ red ]	= 0.0f;
 						weight[ alpha ]	= 1.0f;
 					} else {
-						weight[ red ]	= 0.0f;
-						weight[ blue ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
-						weight[ green ]	= ( 1.0f - weight[ blue ] ) / 2.0f;
+						weight[ red ]	= RangeRemapValue( i, midPoint, iterations, 0.0f, 1.0f );
+						weight[ blue ]	= 0.0f;
+						weight[ green ]	= ( 1.0f - weight[ red ] ) / 2.0f;
 						weight[ alpha ]	= 1.0f;
 					}
 
