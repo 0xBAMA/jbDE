@@ -15,6 +15,8 @@ layout( binding = 4, std430 ) buffer movingLightState {
 
 uniform int inSeed;
 uniform float time;
+uniform float worldX;
+uniform float worldY;
 
 // random utilites
 uint seed = 0;
@@ -53,8 +55,6 @@ void main () {
 	lightData[ index ].position.xyz = lightData[ index ].position.xyz + randomUnitVector() * 0.01f + vec3( 0.0f, 0.0f, 0.001f );
 
 	// wrap
-	const float worldX = 1.6f;
-	const float worldY = 3.2f;
 	if ( lightData[ index ].position.x >  worldY / 2.0f ) lightData[ index ].position.x -= worldY;
 	if ( lightData[ index ].position.x < -worldY / 2.0f ) lightData[ index ].position.x += worldY;
 	if ( lightData[ index ].position.y >  worldX / 2.0f ) lightData[ index ].position.y -= worldX;

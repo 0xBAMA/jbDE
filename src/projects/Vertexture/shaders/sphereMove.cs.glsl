@@ -17,9 +17,8 @@ layout( binding = 3, std430 ) buffer pointData {
 uniform int dimension;
 uniform int inSeed;
 uniform float time;
-
-uniform float layerDepth;
-uniform float layerOffset;
+uniform float worldX;
+uniform float worldY;
 
 // random utilites
 uint seed = 0;
@@ -58,8 +57,6 @@ void main () {
 	data[ index ].position.z = data[ index ].position.z + normalizedRandomFloat() * 0.01f;
 
 	// wrap
-	const float worldX = 1.6f;
-	const float worldY = 3.2f;
 	if ( data[ index ].position.x >  worldY / 2.0f ) data[ index ].position.x -= worldY;
 	if ( data[ index ].position.x < -worldY / 2.0f ) data[ index ].position.x += worldY;
 	if ( data[ index ].position.y >  worldX / 2.0f ) data[ index ].position.y -= worldX;

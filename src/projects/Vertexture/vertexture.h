@@ -33,13 +33,14 @@ struct vertextureConfig {
 	vec3 basisY;
 	vec3 basisZ;
 
+	// dynamic points bounds
+	float worldX;
+	float worldY;
+
 	// for computing screen AR, from config.json
 	uint32_t width;
 	uint32_t height;
 	float screenAR;
-
-	float layerOffset = 0.0f;
-	float layerDepth = 2.0f;
 
 	int AONumSamples = 16;
 	float AOIntensity = 3.0f;
@@ -206,11 +207,10 @@ void APIGeometryContainer::LoadConfig () {
 	// other program state
 	config.showTrident	= j[ "app" ][ "Vertexture" ][ "showTrident" ];
 	config.showTiming	= j[ "app" ][ "Vertexture" ][ "showTiming" ];
-	config.basisX		= vec3( j[ "app" ][ "Vertexture" ][ "basisX" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisX" ][ "z" ] );
-	config.basisY		= vec3( j[ "app" ][ "Vertexture" ][ "basisY" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisY" ][ "z" ] );
-	config.basisZ		= vec3( j[ "app" ][ "Vertexture" ][ "basisZ" ][ "x" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "y" ], j[ "app" ][ "Vertexture" ][ "basisZ" ][ "z" ] );
 	config.lightsMinBrightness = j[ "app" ][ "Vertexture" ][ "Lights Min Brightness" ];
 	config.lightsMaxBrightness = j[ "app" ][ "Vertexture" ][ "Lights Max Brightness" ];
+	config.worldX		= j[ "app" ][ "Vertexture" ][ "worldX" ];
+	config.worldY		= j[ "app" ][ "Vertexture" ][ "worldY" ];
 
 	// update AR with current value of screen dims
 	config.width = j[ "screenWidth" ];
@@ -598,8 +598,8 @@ void APIGeometryContainer::Update () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "layerDepth"), config.layerDepth );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "layerOffset"), config.layerOffset );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldX"), config.worldX );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldY"), config.worldY );
 	glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
 
 	// run the stuff to update the light positions - this needs more work
@@ -607,6 +607,8 @@ void APIGeometryContainer::Update () {
 	glUseProgram( resources.shaders[ "Light Movement" ] );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Light Movement" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Light Movement" ], "inSeed" ), rngs.shaderWangSeed() );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Light Movement" ], "worldX"), config.worldX );
+	glUniform1f( glGetUniformLocation( resources.shaders[ "Light Movement" ], "worldY"), config.worldY );
 	glDispatchCompute( config.Lights / 16, 1, 1 ); // dispatch the compute shader to update ssbo
 
 }
@@ -617,8 +619,8 @@ void APIGeometryContainer::ControlWindow () {
 	ImGui::Checkbox( "Show Timing", &config.showTiming );
 	ImGui::Checkbox( "Show Trident", &config.showTrident );
 
-	ImGui::SliderFloat( "Layer Depth", &config.layerDepth, 0.0f, 1.5f, "%.3f" );
-	ImGui::SliderFloat( "Layer Offset", &config.layerOffset, 0.0f, 1.5f, "%.3f" );
+	ImGui::SliderFloat( "worldY", &config.worldX, 0.0f, 4.5f, "%.3f" );
+	ImGui::SliderFloat( "worldX", &config.worldY, 0.0f, 4.5f, "%.3f" );
 
 	ImGui::Text( "AO" );
 	ImGui::SliderInt( "AO Samples", &config.AONumSamples, 0, 64 );
