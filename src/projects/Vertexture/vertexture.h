@@ -237,10 +237,9 @@ void APIGeometryContainer::Initialize () {
 	const string basePath( "./src/projects/Vertexture/shaders/" );
 	resources.shaders[ "Background" ]			= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Deferred" ]				= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
-	resources.shaders[ "Light Movement" ]		= computeShader( basePath + "movingLight.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "sphereMove.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Light Movement" ]		= computeShader( basePath + "lightMove.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere" ]				= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
-	resources.shaders[ "Moving Sphere" ]		= regularShader( basePath + "movingSphere.vs.glsl", basePath + "movingSphere.fs.glsl" ).shaderHandle;
 
 	// setup the buffers for the rendering process
 	GLuint primaryFramebuffer;
@@ -248,7 +247,7 @@ void APIGeometryContainer::Initialize () {
 	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
 
 	// create the textures and fill out the framebuffer information
-	GLuint fbDepth, fbColor, fbNormal, fbPosition, fbMatID;
+	GLuint fbDepth, fbNormal, fbPosition, fbMatID;
 
 	// do the depth texture
 	glGenTextures( 1, &fbDepth );
@@ -259,58 +258,46 @@ void APIGeometryContainer::Initialize () {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth, 0 );
 
-	// do the color texture - this is replaced by the ID value buffer - just read this + material properties from the SSBO
-	glGenTextures( 1, &fbColor );
-	glActiveTexture( GL_TEXTURE17 );
-	glBindTexture( GL_TEXTURE_2D, fbColor );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbColor, 0 ); // last argument is mip, interesting
-
 	// do the normal texture
 	glGenTextures( 1, &fbNormal );
-	glActiveTexture( GL_TEXTURE18 );
+	glActiveTexture( GL_TEXTURE17 );
 	glBindTexture( GL_TEXTURE_2D, fbNormal );
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, fbNormal, 0 );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbNormal, 0 );
 
 	// do the position texture
 	glGenTextures( 1, &fbPosition );
-	glActiveTexture( GL_TEXTURE19 );
+	glActiveTexture( GL_TEXTURE18 );
 	glBindTexture( GL_TEXTURE_2D, fbPosition );
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbPosition, 0 );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, fbPosition, 0 );
 
 	// material ID values
 	glGenTextures( 1, &fbMatID );
-	glActiveTexture( GL_TEXTURE20 );
+	glActiveTexture( GL_TEXTURE19 );
 	glBindTexture( GL_TEXTURE_2D, fbMatID );
 	// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32UI, config.width, config.height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, NULL ); // much more than I actually need, I think
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
-	// cannot use linear filtering - the values lose all meaningfulness
+	// cannot use linear filtering - interpolated values do not mean anything
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, fbMatID, 0 );
 
-	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-	glDrawBuffers( 4, bufs );
+	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers( 3, bufs );
 
 	// make sure they're accessible from above
 	resources.textures[ "fbDepth" ] = fbDepth;
-	resources.textures[ "fbColor" ] = fbColor;
 	resources.textures[ "fbNormal" ] = fbNormal;
 	resources.textures[ "fbPosition" ] = fbPosition;
 	resources.textures[ "fbMatID" ] = fbMatID;
@@ -403,7 +390,7 @@ void APIGeometryContainer::Initialize () {
 
 				vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
 				bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
-				TentacleOld( staticPoints, colors, stepSize, 1.0f, 0.997f, diameter, 0.005, currentColor, startingPoint, heading, segmentLength, bases );
+				TentacleOld( staticPoints, colors, stepSize, 1.0f, 0.997f, diameter, 0.005f, currentColor, startingPoint, heading, segmentLength, bases );
 			}
 
 			int dynamicPointCount = 0;
@@ -418,30 +405,10 @@ void APIGeometryContainer::Initialize () {
 			resources.numPointsDynamicSpheres = dynamicPointCount;
 		}
 
-		GLuint vao, vbo;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
-		glGenBuffers( 1, &vbo );
-		glBindBuffer( GL_ARRAY_BUFFER, vbo );
-		resources.numPointsStaticSpheres = staticPoints.size();
-		size_t numBytesPoints = sizeof( vec4 ) * resources.numPointsStaticSpheres;
-		size_t numBytesColors = sizeof( vec4 ) * resources.numPointsStaticSpheres;
-		glBufferData( GL_ARRAY_BUFFER, numBytesPoints + numBytesColors, NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, 0, numBytesPoints, &staticPoints[ 0 ] );
-		glBufferSubData( GL_ARRAY_BUFFER, numBytesPoints, numBytesColors, &colors[ 0 ] );
-
-		// todo : refactor this, replace VBO with a second SSBO - unify sphere/moving sphere shaders, just bind different SSBO to change set
-			// if I make it the same data layout as the lights, I can do the debug spheres for the lights easy as shit, then it's just the same thing 3 times
+		// also: this SSBO is required for the deferred usage - since I'm moving to what is essentially a visibility buffer
 
 		// I also want to experiment with instancing these things - writing the same normals + worldspace position etc will work fine for the deferred pass
 			// it doesn't care - it just uses those numbers from the buffer as input + the lighting SSBO in order to do the shading
-
-		GLuint vPosition = glGetAttribLocation( resources.shaders[ "Sphere" ], "vPosition" );
-		glEnableVertexAttribArray( vPosition );
-		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
-		GLuint vColor = glGetAttribLocation( resources.shaders[ "Sphere" ], "vColor" );
-		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( numBytesPoints ) ) );
 
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
@@ -450,8 +417,6 @@ void APIGeometryContainer::Initialize () {
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
 		resources.SSBOs[ "Moving Sphere" ] = ssbo;
-		resources.VAOs[ "Sphere" ] = vao;
-		resources.VBOs[ "Sphere" ] = vbo;
 	}
 
 }
@@ -550,10 +515,9 @@ void APIGeometryContainer::DeferredPass () {
 
 	// from glActiveTexture... this sucks, not sure what the correct way is
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexture" ), 16 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "colorTexture" ), 17 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexture" ), 20 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), 17 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 18 );
+	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexture" ), 19 );
 
 	// SSAO config
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "AONumSamples" ), config.AONumSamples );
@@ -583,34 +547,31 @@ void APIGeometryContainer::Render () {
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Primary" ] );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	// spheres
-	glBindVertexArray( resources.VAOs[ "Sphere" ] );
-	glUseProgram( resources.shaders[ "Sphere" ] );
+	// unified spheres
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_PROGRAM_POINT_SIZE );
 	glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT );
 
 	// static points
+	glUseProgram( resources.shaders[ "Sphere" ] );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "frameWidth" ), config.width );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
-	glDrawArrays( GL_POINTS, 0, resources.numPointsStaticSpheres );
 
-	// dynamic points
-	glUseProgram( resources.shaders[ "Moving Sphere" ] );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "time" ), config.timeVal / 10000.0f );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "lightCount" ), config.Lights );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "AR" ), config.screenAR );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameWidth" ), config.width );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "scale" ), config.scale );
-	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
-	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "perspectiveMatrix" ), 1, GL_FALSE, glm::value_ptr( perspectiveMatrix ) );
+	// bind the big SSBO
+		// it is important to keep it in the same buffer, until I figure out how I'm going to handle offsets + counts for multiple sets in different SSBOs in the same deferred pass
+
+
+	// pass initial index for the first set of points
+
+	// glDrawArrays( GL_POINTS, 0, resources.numPointsStaticSpheres );
+
+	// pass initial index for the second set of points
+
 	glDrawArrays( GL_POINTS, 0, resources.numPointsDynamicSpheres );
 
 	// revert to default framebuffer

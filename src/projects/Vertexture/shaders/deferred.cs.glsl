@@ -4,7 +4,7 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 uniform sampler2D depthTexture;
-uniform sampler2D colorTexture;
+// uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D positionTexture;
 uniform sampler2D idTexture;
@@ -110,7 +110,7 @@ void main () {
 
 	vec2 sampleLocation = ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution;
 	sampleLocation.y = 1.0f - sampleLocation.y;
-	vec4 color = texture( colorTexture, sampleLocation );
+	vec4 color = texture( normalTexture, sampleLocation ); // placeholder, needs to read from SSBO
 	vec4 depth = texture( depthTexture, sampleLocation );
 	vec4 normal = texture( normalTexture, sampleLocation );
 	vec4 position = texture( positionTexture, sampleLocation );

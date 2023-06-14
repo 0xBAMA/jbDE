@@ -74,6 +74,7 @@ This is a planning document for work on this project and in general, about the t
 			- SDF Validation Tool might be the new name, need to think on that one
 		- PointDrop
 		- Sponza viewer? tbd
+		- redo boids [but with some kind of acceleration structure](https://observablehq.com/@rreusser/gpgpu-boids?collection=@rreusser/writeups)
 
 	- One of the big things I want to focus on is being able to render high-quality animations offline
 		- Maybe get into some Julius Horsthuis-style fractal animation stuff
