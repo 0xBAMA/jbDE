@@ -335,7 +335,7 @@ void APIGeometryContainer::Initialize () {
 
 	glActiveTexture( GL_TEXTURE22 );
 	glBindTexture( GL_TEXTURE_2D, fbMatID[ 0 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); // cannot use linear filtering - interpolated values do not mean anything
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -343,7 +343,7 @@ void APIGeometryContainer::Initialize () {
 
 	glActiveTexture( GL_TEXTURE23 );
 	glBindTexture( GL_TEXTURE_2D, fbMatID[ 1 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); // cannot use linear filtering - interpolated values do not mean anything
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
