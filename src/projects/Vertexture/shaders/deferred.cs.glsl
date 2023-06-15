@@ -132,6 +132,11 @@ void main () {
 	vec4 position = texture( positionTexture, sampleLocation );
 	uvec4 id = texture( idTexture, sampleLocation );
 
+	vec4 depthPrevious = texture( depthTexturePrevious, sampleLocation );
+	vec4 normalPrevious = texture( normalTexturePrevious, sampleLocation );
+	vec4 positionPrevious = texture( positionTexturePrevious, sampleLocation );
+	uvec4 idPrevious = texture( idTexturePrevious, sampleLocation );
+
 	vec4 color = pointData[ id.r ].color;
 
 	// geo has been written this frame
@@ -176,8 +181,17 @@ void main () {
 		// }
 
 		vec4 previous = imageLoad( accumulatorTexture, writeLoc );
-		outputValue = mix( previous.xyz, outputValue.xyz, 0.01f );
-		imageStore( accumulatorTexture, writeLoc, vec4( outputValue, 1.0f ) );
+		// outputValue = mix( previous.xyz, outputValue.xyz, 0.01f );
+		// imageStore( accumulatorTexture, writeLoc, vec4( outputValue, 1.0f ) );
+
+		// show depth diff
+		imageStore( accumulatorTexture, writeLoc, vec4( vec3( depth.r - depthPrevious.r ), 1.0f ) );
+
+		// show normal diff
+		// imageStore( accumulatorTexture, writeLoc, vec4( vec3( normal.xyz - normalPrevious.xyz ), 1.0f ) );
+
+		// position diff is pretty small, small enough not to show
+		// imageStore( accumulatorTexture, writeLoc, vec4( vec3( position.xyz - positionPrevious.xyz ), 1.0f ) );
 
 	} else {
 
