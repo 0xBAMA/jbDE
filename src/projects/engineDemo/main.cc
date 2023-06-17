@@ -52,7 +52,8 @@ public:
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
+		if ( showDemoWindow )
+			ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void DrawAPIGeometry () {
