@@ -153,157 +153,103 @@ void engineBase::SetupTextureData () {
 	{	Block Start( "Setting Up Textures" );
 
 		textureManager.Init();
-		textureOptions_t opts;
 
-	// =======================================================================
-		// holds renderer state at high bit depth
-		opts.width = config.width;
-		opts.height = config.height;
-		opts.dataType = GL_RGBA16F;
-		opts.textureType = GL_TEXTURE_2D;
-
-		textureManager.Add( "Accumulator", opts );
-	// =======================================================================
-
-	// =======================================================================
-		// LDR tonemapped texture, ready for display
-		opts.dataType = GL_RGBA8;
-		opts.minFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
-		opts.magFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
-
-		textureManager.Add( "Display Texture", opts );
-	// =======================================================================
-
-	// =======================================================================
-		// blue noise texture, used for various purposes
-		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
-		opts.width = blueNoiseImage.Width();
-		opts.height = blueNoiseImage.Height();
-		opts.dataType = GL_RGBA8;
-		opts.minFilter = GL_NEAREST;
-		opts.magFilter = GL_NEAREST;
-		opts.initialData_4U = blueNoiseImage.GetImageDataBasePtr();
-
-		textureManager.Add( "Blue Noise", opts );
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-
-
-
-
-		// GLuint accumulatorTexture;
-		// GLuint displayTexture;
-		// GLuint blueNoiseTexture;
-		// GLuint tridentImage;
-		// GLuint bayer2, bayer4, bayer8;
-
-
+		GLuint accumulatorTexture;
+		GLuint displayTexture;
+		GLuint blueNoiseTexture;
+		GLuint tridentImage;
+		GLuint bayer2, bayer4, bayer8;
 
 		// create the image textures
-		// Image_4U initial( config.width, config.height );
-		// glGenTextures( 1, &accumulatorTexture );
-		// glActiveTexture( GL_TEXTURE3 );
-		// glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
-		// textures[ "Accumulator" ] = accumulatorTexture;
+		Image_4U initial( config.width, config.height );
+		glGenTextures( 1, &accumulatorTexture );
+		glActiveTexture( GL_TEXTURE3 );
+		glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
+		textures[ "Accumulator" ] = accumulatorTexture;
 
-		// glGenTextures( 1, &displayTexture );
-		// glActiveTexture( GL_TEXTURE0 );
-		// glBindTexture( GL_TEXTURE_2D, displayTexture );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
-		// textures[ "Display Texture" ] = displayTexture;
+		glGenTextures( 1, &displayTexture );
+		glActiveTexture( GL_TEXTURE0 );
+		glBindTexture( GL_TEXTURE_2D, displayTexture );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
+		textures[ "Display Texture" ] = displayTexture;
 
 		// blue noise image on the GPU
-		// Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
-		// glGenTextures( 1, &blueNoiseTexture );
-		// glActiveTexture( GL_TEXTURE4 );
-		// glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, blueNoiseImage.Width(), blueNoiseImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, blueNoiseImage.GetImageDataBasePtr() );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// textures[ "Blue Noise" ] = blueNoiseTexture;
+		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
+		glGenTextures( 1, &blueNoiseTexture );
+		glActiveTexture( GL_TEXTURE4 );
+		glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, blueNoiseImage.Width(), blueNoiseImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, blueNoiseImage.GetImageDataBasePtr() );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		textures[ "Blue Noise" ] = blueNoiseTexture;
 
 		// create the image for the trident
-		// Image_4U initialT( trident.blockDimensions.x * 8, trident.blockDimensions.y * 16 );
-		// glGenTextures( 1, &tridentImage );
-		// glActiveTexture( GL_TEXTURE5 );
-		// glBindTexture( GL_TEXTURE_2D, tridentImage );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, initialT.Width(), initialT.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, initialT.GetImageDataBasePtr() );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// trident.PassInImage( tridentImage );
-		// textures[ "Trident" ] = tridentImage;
+		Image_4U initialT( trident.blockDimensions.x * 8, trident.blockDimensions.y * 16 );
+		glGenTextures( 1, &tridentImage );
+		glActiveTexture( GL_TEXTURE5 );
+		glBindTexture( GL_TEXTURE_2D, tridentImage );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, initialT.Width(), initialT.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, initialT.GetImageDataBasePtr() );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		trident.PassInImage( tridentImage );
+		textures[ "Trident" ] = tridentImage;
 
 		// bayer patterns
-		// glActiveTexture( GL_TEXTURE6 );
-		// glGenTextures( 1, &bayer2 );
-		// glBindTexture( GL_TEXTURE_2D, bayer2 );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 2 ) )[ 0 ] );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// textures[ "Bayer2" ] = bayer2;
+		glActiveTexture( GL_TEXTURE6 );
+		glGenTextures( 1, &bayer2 );
+		glBindTexture( GL_TEXTURE_2D, bayer2 );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 2 ) )[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		textures[ "Bayer2" ] = bayer2;
 
-		// glActiveTexture( GL_TEXTURE7 );
-		// glGenTextures( 1, &bayer4 );
-		// glBindTexture( GL_TEXTURE_2D, bayer4 );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 4 ) )[ 0 ] );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// textures[ "Bayer4" ] = bayer4;
+		glActiveTexture( GL_TEXTURE7 );
+		glGenTextures( 1, &bayer4 );
+		glBindTexture( GL_TEXTURE_2D, bayer4 );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 4 ) )[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		textures[ "Bayer4" ] = bayer4;
 
-		// glActiveTexture( GL_TEXTURE8 );
-		// glGenTextures( 1, &bayer8 );
-		// glBindTexture( GL_TEXTURE_2D, bayer8 );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 8 ) )[ 0 ] );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// textures[ "Bayer8" ] = bayer8;
+		glActiveTexture( GL_TEXTURE8 );
+		glGenTextures( 1, &bayer8 );
+		glBindTexture( GL_TEXTURE_2D, bayer8 );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, &Make4Channel( BayerData( 8 ) )[ 0 ] );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		textures[ "Bayer8" ] = bayer8;
 
 	}
 
 	{	Block Start( "Setting Up Bindsets" );
 
 		bindSets[ "Drawing" ] = bindSet( {
-			binding( 0, textureManager.Get( "Blue Noise" ), GL_RGBA8UI ),
-			binding( 1, textureManager.Get( "Accumulator" ), GL_RGBA16F )
+			binding( 0, textures[ "Blue Noise" ], GL_RGBA8UI ),
+			binding( 1, textures[ "Accumulator" ], GL_RGBA16F )
 		} );
 
 		bindSets[ "Postprocessing" ] = bindSet( {
-			binding( 0, textureManager.Get( "Accumulator" ), GL_RGBA16F ),
-			binding( 1, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
+			binding( 0, textures[ "Accumulator" ], GL_RGBA16F ),
+			binding( 1, textures[ "Display Texture" ], GL_RGBA8UI )
 		} );
 
 		bindSets[ "Display" ] = bindSet( {
-			binding( 0, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
+			binding( 0, textures[ "Display Texture" ], GL_RGBA8UI )
 		} );
 	}
 }
@@ -443,10 +389,8 @@ void engineBase::ReportStartupStats () {
 
 	cout << endl << T_CYAN << "  " <<
 		shaders.size() << " shader programs, " <<
+		textures.size() << " textures, " <<
 		bindSets.size() << " bindsets" << endl;
-
-	const size_t bytes = textureManager.TotalSize();
-	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << bytes << " bytes )," << endl;
 
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
 }

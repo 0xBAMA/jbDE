@@ -1210,9 +1210,6 @@ private:
 };
 
 //===== Common Usage Aliases ==========================================================================================
-
-// todo: specialization for 32 bit uints / single channel uint textures
-
 // standard 8bpc color + alpha
 typedef Image2< uint8_t, 4 > Image_4U;
 typedef Image2< uint8_t, 4 >::color color_4U;
