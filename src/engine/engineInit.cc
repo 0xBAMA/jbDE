@@ -182,11 +182,10 @@ void engineBase::SetupTextureData () {
 		opts.dataType = GL_RGBA8;
 		opts.minFilter = GL_NEAREST;
 		opts.magFilter = GL_NEAREST;
-		opts.initialData = ( void * ) blueNoiseImage.GetImageDataBasePtr();
+		opts.initialData_4U = blueNoiseImage.GetImageDataBasePtr();
 
 		textureManager.Add( "Blue Noise", opts );
 	// =======================================================================
-
 
 	// =======================================================================
 	// =======================================================================
@@ -447,7 +446,7 @@ void engineBase::ReportStartupStats () {
 		bindSets.size() << " bindsets" << endl;
 
 	const size_t bytes = textureManager.TotalSize();
-	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << bytes << " bytes )" << endl;
+	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << bytes << " bytes )," << endl;
 
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
 }

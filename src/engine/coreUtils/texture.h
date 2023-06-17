@@ -57,8 +57,17 @@ struct textureOptions_t {
 // wrap mode - they let you specifiy it different for different axes, but I don't ever use that
 	GLint wrap = GL_CLAMP_TO_EDGE;
 
-	// initial image data, for loading images
-	void * initialData = nullptr;
+	// initial data - this is a bit yucky
+	// Image_1U * initialData_1U = nullptr;
+	Image_4U * initialData_4U = nullptr;
+	Image_1F * initialData_1F = nullptr;
+	Image_4F * initialData_4F = nullptr;
+	bool hasInitialData () {
+		return !(
+			initialData_1F == nullptr &&
+			initialData_4U == nullptr &&
+			initialData_4F == nullptr );
+	}
 
 };
 
