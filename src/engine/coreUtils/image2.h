@@ -386,7 +386,6 @@ public:
 		}
 	}
 
-
 	// remapping the data in the image ( particularly useful for floating point types, heightmap kind of stuff )
 	enum remapOperation_t {
 		// no op

@@ -34,8 +34,7 @@ struct texture_t {
 
 //===== Texture Manager ===============================================================================================
 class textureManager_t {
-
-
+public:
 	void Init () {
 
 		// report some platform detials:
@@ -43,13 +42,29 @@ class textureManager_t {
 			// maximum dimensions of texture
 			// ...
 
+		GLint val;
+		glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
+		cout << endl << "max texture size reports: " << val << endl;
+
+		glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
+		cout << "max 3dtexture size reports: " << val << endl;
+
+		glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
+		cout << "max compute texture image units reports: " << val << endl;
+
+		glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
+		cout << "max draw buffers: " << val << endl;
+
+		glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
+		cout << "max combined texture image units: " << val << endl << endl;
+
 	}
 
 	void Add ( string label, textureOptions_t &texOptsIn ) {
 
 		// increment count on add, so we can use this for glActiveTexture( GL_TEXTURE0 + count )
 		static int count = 0;
-
+		count++;
 
 	}
 

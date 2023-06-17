@@ -17,40 +17,42 @@ void engineBase::LoadConfig () {
 		// load the config json, populate config struct - this will probably have more data, eventually
 		ifstream i( "src/engine/config.json" );
 		i >> j; i.close();
-		config.windowTitle = j[ "windowTitle" ];
-		config.width = j[ "screenWidth" ];
-		config.height = j[ "screenHeight" ];
-		config.linearFilter = j[ "linearFilterDisplayTex" ];
-		config.windowOffset.x = j[ "windowOffset" ][ "x" ];
-		config.windowOffset.y = j[ "windowOffset" ][ "y" ];
-		config.startOnScreen = j[ "startOnScreen" ];
-		config.numMsDelayAfterCallback = j[ "numMsDelayAfterCallback" ];
-		config.windowFlags |= ( j[ "SDL_WINDOW_FULLSCREEN" ] ? SDL_WINDOW_FULLSCREEN : 0 );
-		config.windowFlags |= ( j[ "SDL_WINDOW_FULLSCREEN_DESKTOP" ] ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0 );
-		config.windowFlags |= ( j[ "SDL_WINDOW_BORDERLESS" ] ? SDL_WINDOW_BORDERLESS : 0 );
-		config.windowFlags |= ( j[ "SDL_WINDOW_RESIZABLE" ] ? SDL_WINDOW_RESIZABLE : 0 );
-		config.windowFlags |= ( j[ "SDL_WINDOW_INPUT_GRABBED" ] ? SDL_WINDOW_INPUT_GRABBED : 0 );
-		config.vSyncEnable = j[ "vSyncEnable" ];
-		config.MSAACount = j[ "MSAACount" ];
-		config.OpenGLVersionMajor = j[ "OpenGLVersionMajor" ];
-		config.OpenGLVersionMinor = j[ "OpenGLVersionMinor" ];
-		config.reportPlatformInfo = j[ "reportPlatformInfo" ];
-		config.enableDepthTesting = j[ "depthTesting" ];
-		config.pointSize = j[ "pointSize" ];
-		config.SRGBFramebuffer = j[ "SRGBFramebuffer" ];
-		config.clearColor.r = j[ "clearColor" ][ "r" ];
-		config.clearColor.g = j[ "clearColor" ][ "g" ];
-		config.clearColor.b = j[ "clearColor" ][ "b" ];
-		config.clearColor.a = j[ "clearColor" ][ "a" ];
+		config.windowTitle				= j[ "windowTitle" ];
+		config.width					= j[ "screenWidth" ];
+		config.height					= j[ "screenHeight" ];
+		config.linearFilter				= j[ "linearFilterDisplayTex" ];
+		config.windowOffset.x			= j[ "windowOffset" ][ "x" ];
+		config.windowOffset.y			= j[ "windowOffset" ][ "y" ];
+		config.startOnScreen			= j[ "startOnScreen" ];
+		config.numMsDelayAfterCallback	= j[ "numMsDelayAfterCallback" ];
+		config.windowFlags				|= ( j[ "SDL_WINDOW_FULLSCREEN" ] ? SDL_WINDOW_FULLSCREEN : 0 );
+		config.windowFlags				|= ( j[ "SDL_WINDOW_FULLSCREEN_DESKTOP" ] ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0 );
+		config.windowFlags				|= ( j[ "SDL_WINDOW_BORDERLESS" ] ? SDL_WINDOW_BORDERLESS : 0 );
+		config.windowFlags				|= ( j[ "SDL_WINDOW_RESIZABLE" ] ? SDL_WINDOW_RESIZABLE : 0 );
+		config.windowFlags				|= ( j[ "SDL_WINDOW_INPUT_GRABBED" ] ? SDL_WINDOW_INPUT_GRABBED : 0 );
+		config.vSyncEnable				= j[ "vSyncEnable" ];
+		config.MSAACount				= j[ "MSAACount" ];
+		config.OpenGLVersionMajor		= j[ "OpenGLVersionMajor" ];
+		config.OpenGLVersionMinor		= j[ "OpenGLVersionMinor" ];
+		config.OpenGLVerboseInit		= j[ "OpenGLVerboseInit" ];
+		config.SDLDisplayModeDump		= j[ "SDLDisplayModeDump" ];
+		config.reportPlatformInfo		= j[ "reportPlatformInfo" ];
+		config.enableDepthTesting		= j[ "depthTesting" ];
+		config.pointSize				= j[ "pointSize" ];
+		config.SRGBFramebuffer			= j[ "SRGBFramebuffer" ];
+		config.clearColor.r				= j[ "clearColor" ][ "r" ];
+		config.clearColor.g				= j[ "clearColor" ][ "g" ];
+		config.clearColor.b				= j[ "clearColor" ][ "b" ];
+		config.clearColor.a				= j[ "clearColor" ][ "a" ];
 
-		config.oneShot = j[ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
-		showDemoWindow = j[ "showImGUIDemoWindow" ];
-		showProfiler = j[ "showProfiler" ];
+		config.oneShot					= j[ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
+		showDemoWindow					= j[ "showImGUIDemoWindow" ];
+		showProfiler					= j[ "showProfiler" ];
 
 		// color grading stuff
-		tonemap.tonemapMode = j[ "colorGrade" ][ "tonemapMode" ];
-		tonemap.gamma = j[ "colorGrade" ][ "gamma" ];
-		tonemap.colorTemp = j[ "colorGrade" ][ "colorTemp" ];
+		tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
+		tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
+		tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];
 	}
 }
 
@@ -85,6 +87,46 @@ void engineBase::DisplaySetup () {
 		cout << T_RED << "      OpenGL Version Supported : " << T_CYAN << version << RESET << newline;
 		cout << T_RED << "      GLSL Version Supported : " << T_CYAN << glslVersion << RESET << newline << newline;
 	}
+
+	if ( config.OpenGLVerboseInit ) {
+		// report all gl extensions - useful on different platforms
+		GLint n;
+		glGetIntegerv( GL_NUM_EXTENSIONS, &n );
+		cout << "starting dump of " << n << " extensions" << endl;
+		for ( int i = 0; i < n; i++ )
+		cout << "\t" << i << " : " << glGetStringi( GL_EXTENSIONS, i ) << endl;
+		cout << endl;
+	}
+
+	if ( config.SDLDisplayModeDump ) {
+		static int display_in_use = 0; /* Only using first display */
+
+		int i, display_mode_count;
+		SDL_DisplayMode mode;
+		Uint32 f;
+
+		SDL_Log("SDL_GetNumVideoDisplays(): %i", SDL_GetNumVideoDisplays());
+
+		display_mode_count = SDL_GetNumDisplayModes(display_in_use);
+		if (display_mode_count < 1) {
+			SDL_Log("SDL_GetNumDisplayModes failed: %s", SDL_GetError());
+			// return 1;
+		}
+		SDL_Log("SDL_GetNumDisplayModes: %i", display_mode_count);
+
+		for (i = 0; i < display_mode_count; ++i) {
+			if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0) {
+			SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+			// return 1;
+		}
+		f = mode.format;
+
+		SDL_Log("Mode %i\tbpp %i\t%s\t%i x %i",
+			i, SDL_BITSPERPIXEL(f),
+			SDL_GetPixelFormatName(f),
+			mode.w, mode.h);
+		}
+	}
 }
 
 void engineBase::SetupVertexData () {
@@ -109,6 +151,8 @@ void engineBase::SetupTextureData () {
 	ZoneScoped;
 
 	{	Block Start( "Setting Up Textures" );
+
+		textureManager.Init();
 
 		GLuint accumulatorTexture;
 		GLuint displayTexture;
@@ -189,6 +233,7 @@ void engineBase::SetupTextureData () {
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 		textures[ "Bayer8" ] = bayer8;
+
 	}
 
 	{	Block Start( "Setting Up Bindsets" );

@@ -13,9 +13,14 @@ struct configData {
 	int numMsDelayAfterCallback = 10;
 	uint8_t OpenGLVersionMajor = 4;
 	uint8_t OpenGLVersionMinor = 3;
+	bool OpenGLVerboseInit = false;
+	bool SDLDisplayModeDump = false;
+
 	bool reportPlatformInfo = true;
+
 	bool enableDepthTesting = false;
 	bool SRGBFramebuffer = false;
+
 
 	float pointSize = 1.0f;
 

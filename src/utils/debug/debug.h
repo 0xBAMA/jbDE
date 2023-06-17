@@ -47,31 +47,6 @@ void GLDebugEnable () {
 	//DEBUG ENABLE
 	glEnable( GL_DEBUG_OUTPUT );
 	glDebugMessageCallback( MessageCallback, 0 );
-
-	//report all gl extensions - useful on different platforms
-	// GLint n;
-	// glGetIntegerv( GL_NUM_EXTENSIONS, &n );
-	// cout << "starting dump of " << n << " extensions" << endl;
-	// for ( int i = 0; i < n; i++ )
-	//   cout << i << ": " << glGetStringi( GL_EXTENSIONS, i ) << endl;
-	// cout << endl;
-
-	//gl info re:texture size, texture units
-	// GLint val;
-	// glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
-	// cout << "max texture size reports: " << val << endl << endl;
-	// glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
-	// cout << "max 3dtexture size reports: " << val << " on all 3 edges" << endl << endl;
-	// glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
-	// cout << "max compute texture image units reports: " << val << endl << endl;
-
-	GLint val;
-	glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
-	cout << "max draw buffers: " << val << endl;
-
-	glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
-	cout << "max combined texture image units: " << val << endl;
-
 }
 
 #endif

@@ -12,6 +12,8 @@
 	"numMsDelayAfterCallback":30,
 	"OpenGLVersionMajor":4,
 	"OpenGLVersionMinor":3,
+	"OpenGLVerboseInit":false,
+	"SDLDisplayModeDump":false,
 	"reportPlatformInfo":true,
 	"depthTesting":true,
 	"SRGBFramebuffer":true,
@@ -29,7 +31,7 @@
 	},
 	"showImGUIDemoWindow":false,
 	"showProfiler":true,
-	"oneShot":false,
+	"oneShot":true,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,
