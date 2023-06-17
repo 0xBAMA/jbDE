@@ -5,6 +5,8 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 #define UINT_ALL_ONES (~0u)
+#define UINT_STATIC_BIT (1u)
+#define UINT_DYNAMIC_BIT (2u)
 
 // this frame
 uniform sampler2D depthTexture;
@@ -172,26 +174,24 @@ void main () {
 		// calculate SSAO
 		const float aoScalar = 1.0f - SpiralAO( sampleLocation, position.xyz, normalize( normal.xyz ), AOSampleRadius / depth.r ) * AOIntensity;
 
+		// figure out the final pixel color, before blending
 		vec3 outputValue = lightContribution * aoScalar * color.rgb;
 
-		// int fcxmod2 = int( writeLoc.x ) % 2;
-		// int fcymod3 = int( writeLoc.y ) % 3;
-		// if ( ( fcymod3 == 0 ) || ( fcxmod2 == 0 ) ) {
-		// 	outputValue = color.rgb;
+		// sample rejection not really working correctly
+			// some resources:
+				// https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/
+				// http://behindthepixels.io/assets/files/TemporalAA.pdf
+				// https://alextardif.com/TAA.html
+
+		// const float depthDiff = depth.r - depthPrevious.r;
+		// const float normalDiff = dot( normal.xyz, normalPrevious.xyz );
+
+		// if ( depthDiff < 0.01f && abs( normalDiff ) < 0.01f ) {
+			vec4 previous = imageLoad( accumulatorTexture, writeLoc );
+			outputValue = mix( previous.xyz, outputValue.xyz, 0.01f );
 		// }
 
-		vec4 previous = imageLoad( accumulatorTexture, writeLoc );
-		// outputValue = mix( previous.xyz, outputValue.xyz, 0.01f );
-		// imageStore( accumulatorTexture, writeLoc, vec4( outputValue, 1.0f ) );
-
-		// show depth diff
-		imageStore( accumulatorTexture, writeLoc, vec4( vec3( depth.r - depthPrevious.r ), 1.0f ) );
-
-		// show normal diff
-		// imageStore( accumulatorTexture, writeLoc, vec4( vec3( normal.xyz - normalPrevious.xyz ), 1.0f ) );
-
-		// position diff is pretty small, small enough not to show
-		// imageStore( accumulatorTexture, writeLoc, vec4( vec3( position.xyz - positionPrevious.xyz ), 1.0f ) );
+		imageStore( accumulatorTexture, writeLoc, vec4( outputValue, 1.0f ) );
 
 	} else {
 

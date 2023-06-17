@@ -34,7 +34,7 @@
 	"colorGrade":{
 		"tonemapMode":6,
 		"gamma":1.337,
-		"colorTemp":6640.0
+		"colorTemp":6500.0
 	},
 	"app":{
 		"Vertexture":{

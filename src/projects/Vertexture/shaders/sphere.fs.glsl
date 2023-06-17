@@ -13,6 +13,10 @@ in vec3 color;
 in vec3 worldPosition;
 flat in uint index;
 
+#define UINT_ALL_ONES (~0u)
+#define UINT_STATIC_BIT (1u)
+#define UINT_DYNAMIC_BIT (2u)
+
 // random utilites
 uint seed = 0;
 uint wangHash () {
@@ -68,12 +72,9 @@ void main () {
 	vec3 normal = inverseTrident * vec3( 2.0f * ( sampleLocation - vec2( 0.5f ) ), -sphereHeightSample );
 	vec3 worldPosition_adjusted = worldPosition + normal * ( radius / frameWidth );
 
-
 	// write framebuffer results
 	gl_FragDepth = gl_FragCoord.z + ( ( radius / frameWidth ) * ( 1.0f - sphereHeightSample ) );
 	normalResult = vec4( normal, 1.0f );
 	positionResult = vec4( worldPosition_adjusted, 1.0f );
-
-	// todo: need to pass static / dynamic flag, etc in top bits - tbd
 	materialID = uvec4( index, 0, 0, 0 );
 }

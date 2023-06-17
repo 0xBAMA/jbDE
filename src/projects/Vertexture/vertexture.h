@@ -465,7 +465,7 @@ void APIGeometryContainer::Initialize () {
 			}
 
 			resources.numPointsStaticSpheres = 0;
-			for ( float t = -1.4f; t < 1.4f; t+= 0.008f ) {
+			for ( float t = -1.4f; t < 1.4f; t+= 0.002f ) {
 				const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
 				vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
 				const float diameter = di();
