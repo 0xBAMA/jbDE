@@ -89,13 +89,13 @@ public:
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
-			textRenderer.Draw( textures[ "Display Texture" ] );
+			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{ // show trident with current orientation
 			scopedTimer Start( "Trident" );
-			trident.Update( textures[ "Display Texture" ] );
+			trident.Update( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
