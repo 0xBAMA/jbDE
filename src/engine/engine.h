@@ -5,10 +5,11 @@
 class engineBase {
 protected:
 //====== Application Handles and Basic Data ===================================
-	windowHandler window;		// OpenGL context and SDL2 window
-	configData config;			// loaded from config.json
-	layerManager textRenderer;	// text renderer framework
-	orientTrident trident;		// orientation gizmo from Voraldo13
+	windowHandler window;				// OpenGL context and SDL2 window
+	configData config;					// loaded from config.json
+	layerManager textRenderer;			// text renderer framework
+	orientTrident trident;				// orientation gizmo from Voraldo13
+	textureManager_t textureManager;	// simplified texture interface
 
 //====== OpenGL ===============================================================
 	GLuint displayVAO;
