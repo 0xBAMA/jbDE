@@ -114,7 +114,7 @@ public:
 			scopedTimer Start( "Text Rendering" );
 			if ( data.config.showTiming ) {
 				textRenderer.Update( ImGui::GetIO().DeltaTime );
-				textRenderer.Draw( textureManager.Get( "Display Texture" ) );
+				textRenderer.Draw( textures[ "Display Texture" ] );
 				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 			}
 		}
@@ -122,7 +122,7 @@ public:
 		{ // show trident with current orientation
 			scopedTimer Start( "Trident" );
 			if ( data.config.showTrident ) {
-				trident.Update( textureManager.Get( "Display Texture" ) );
+				trident.Update( textures[ "Display Texture" ] );
 				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 			}
 		}

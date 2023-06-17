@@ -270,9 +270,6 @@ void APIGeometryContainer::Initialize () {
 	GLuint primaryFramebuffer[ 2 ];
 	glGenFramebuffers( 2, &primaryFramebuffer[ 0 ] );
 
-	// was looking for this before, but couldn't find it
-	// glDepthRange( 0.0, 1.0 ); // does this do anything I want? tbd
-
 	// create the textures and fill out the framebuffer information
 	GLuint fbDepth[ 2 ], fbNormal[ 2 ], fbPosition[ 2 ], fbMatID[ 2 ];
 
