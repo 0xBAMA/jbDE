@@ -8,23 +8,10 @@
 inline size_t bytesPerPixel ( GLint type ) {
 	// over time we'll accumulate all the ones that I use, these are the current set
 	switch ( type ) {
-
-	case GL_DEPTH_COMPONENT32:
-		return 1 * 4;
-		break;
-
-	case GL_RG32UI:
-		return 2 * 4;
-		break;
-
-	case GL_RGBA8:
-		return 4 * 1;
-		break;
-
-	case GL_RGBA16F:
-		return 4 * 2;
-		break;
-
+	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
+	case GL_RG32UI:				return 2 * 4; break;
+	case GL_RGBA8:				return 4 * 1; break;
+	case GL_RGBA16F:			return 4 * 2; break;
 	default:
 		cout << "unknown type texture created" << endl;
 		return 0;
@@ -32,11 +19,13 @@ inline size_t bytesPerPixel ( GLint type ) {
 	}
 }
 
+inline GLenum getFormat( GLint internalFormat ) {
+
+}
+
 //===== Texture Options ===============================================================================================
 // what do you need to know to create the texture?
 struct textureOptions_t {
-
-// type
 	// data type
 	GLint dataType;
 
@@ -60,6 +49,8 @@ struct textureOptions_t {
 	// initial image data, for loading images
 	void * initialData = nullptr;
 
+	// data passed type, if relevant
+	GLenum pixelDataType = GL_UNSIGNED_BYTE;
 };
 
 //===== Texture Record ================================================================================================
@@ -112,13 +103,25 @@ public:
 	void Add ( string label, textureOptions_t &texOptsIn ) {
 		texture_t tex;
 		tex.creationOptions = texOptsIn;
-
+		tex.textureUnit = GL_TEXTURE0 + count;
 		tex.textureSize = texOptsIn.width * texOptsIn.height * texOptsIn.depth * texOptsIn.layers * bytesPerPixel( texOptsIn.dataType );
 
 		// create the texture
 		glGenTextures( 1, &tex.textureHandle );
 		glActiveTexture( GL_TEXTURE0 + count );
 		glBindTexture( texOptsIn.textureType, tex.textureHandle );
+		switch ( texOptsIn.textureType ) {
+		case GL_TEXTURE_2D:
+		glTexImage2D( GL_TEXTURE_2D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
+		break;
+
+		// todo
+			// array textures
+			// 3d textures
+
+		default:
+		break;
+		}
 
 
 		// add it to the list
@@ -128,15 +131,19 @@ public:
 		count++;
 	}
 
-
 	GLuint Get ( string label ) { // if the map contains the key, return it, else some nonsense value
 		return ( textures.find( label ) != textures.end() ) ?
 			textures[ label ].textureHandle : std::numeric_limits< GLuint >::max();
 	}
 
+	GLuint GetUnit ( string label ) {
+		return ( textures.find( label ) != textures.end() ) ?
+			textures[ label ].textureUnit : std::numeric_limits< GLuint >::max();
+	}
+
 	void EnumerateUnitUsage () {
 		// give me a report for all the active textures like:
-			// 0 : "Accumulator" ( unit : label )
+			// 0 : "Accumulator" ( unit : label ... type/dimensions information? )
 	}
 
 	// total size in bytes
@@ -149,7 +156,7 @@ public:
 
 	// TODO
 	void Remove ( string label ) {
-		// todo, delete texture
+		// delete texture
 	}
 
 	// TODO

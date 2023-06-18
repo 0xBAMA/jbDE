@@ -156,11 +156,22 @@ void engineBase::SetupTextureData () {
 		textureOptions_t opts;
 
 	// =======================================================================
+		// blue noise texture, used for various purposes
+		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
+		opts.width = blueNoiseImage.Width();
+		opts.height = blueNoiseImage.Height();
+		opts.dataType = GL_RGBA8;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.initialData = ( void * ) blueNoiseImage.GetImageDataBasePtr();
+
+		textureManager.Add( "Blue Noise", opts );
+	// =======================================================================
+
+	// =======================================================================
 		// holds renderer state at high bit depth
 		opts.width = config.width;
 		opts.height = config.height;
 		opts.dataType = GL_RGBA16F;
-		opts.textureType = GL_TEXTURE_2D;
 
 		textureManager.Add( "Accumulator", opts );
 	// =======================================================================
@@ -174,37 +185,21 @@ void engineBase::SetupTextureData () {
 		textureManager.Add( "Display Texture", opts );
 	// =======================================================================
 
+
 	// =======================================================================
-		// blue noise texture, used for various purposes
-		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
-		opts.width = blueNoiseImage.Width();
-		opts.height = blueNoiseImage.Height();
-		opts.dataType = GL_RGBA8;
+		// image buffer for the trident orientation indicator
+		opts.width = trident.blockDimensions.x * 8;
+		opts.height = trident.blockDimensions.y * 16;
 		opts.minFilter = GL_NEAREST;
 		opts.magFilter = GL_NEAREST;
-		opts.initialData = ( void * ) blueNoiseImage.GetImageDataBasePtr();
 
-		textureManager.Add( "Blue Noise", opts );
-	// =======================================================================
-
-
-	// =======================================================================
+		textureManager.Add( "Trident", opts );
+		trident.PassInImage( textureManager.Get( "Trident" ) );
 	// =======================================================================
 
 	// =======================================================================
+		// bayer patterns todo - how important is it that they're loaded at startup?
 	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-	// =======================================================================
-	// =======================================================================
-
-
-
 
 
 		// GLuint accumulatorTexture;
@@ -212,8 +207,6 @@ void engineBase::SetupTextureData () {
 		// GLuint blueNoiseTexture;
 		// GLuint tridentImage;
 		// GLuint bayer2, bayer4, bayer8;
-
-
 
 		// create the image textures
 		// Image_4U initial( config.width, config.height );
