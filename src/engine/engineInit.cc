@@ -172,6 +172,7 @@ void engineBase::SetupTextureData () {
 		opts.width = config.width;
 		opts.height = config.height;
 		opts.dataType = GL_RGBA16F;
+		opts.initialData = nullptr;
 
 		textureManager.Add( "Accumulator", opts );
 	// =======================================================================
@@ -184,7 +185,6 @@ void engineBase::SetupTextureData () {
 
 		textureManager.Add( "Display Texture", opts );
 	// =======================================================================
-
 
 	// =======================================================================
 		// image buffer for the trident orientation indicator
