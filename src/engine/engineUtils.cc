@@ -42,6 +42,7 @@ void engineBase::BlitToScreen () {
 	glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires 4.5
 	glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
 
+
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
