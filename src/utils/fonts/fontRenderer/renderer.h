@@ -274,7 +274,7 @@ public:
 	// Initialize Layers
 		// timestamp
 		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Background" ) );
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Foreground" ) );
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp ForeGround" ) );
 
 		// hexxDump ... eventually get this working again
 		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
