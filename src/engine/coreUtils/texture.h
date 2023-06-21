@@ -4,6 +4,102 @@
 
 #include "../includes.h"
 
+//===== Helper Functions ==============================================================================================
+inline size_t bytesPerPixel ( GLint type ) {
+	// over time we'll accumulate all the ones that I use, these are the current set
+	switch ( type ) {
+	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
+	case GL_RG32UI:				return 2 * 4; break;
+	case GL_RGBA8:				return 4 * 1; break;
+	case GL_RGBA8UI:			return 4 * 1; break;
+	case GL_RGBA16F:			return 4 * 2; break;
+	default:
+		cout << "unknown type texture created" << endl;
+		return 0;
+		break;
+	}
+}
+
+inline GLenum getFormat( GLint internalFormat ) {
+	switch ( internalFormat ) { // hitting the commonly used formats
+	case GL_R8:
+	case GL_R16:
+	case GL_R16F:
+	case GL_R32F:
+		return GL_RED;
+		break;
+
+	case GL_R8I:
+	case GL_R8UI:
+	case GL_R16I:
+	case GL_R16UI:
+	case GL_R32I:
+	case GL_R32UI:
+		return GL_RED_INTEGER;
+		break;
+
+	case GL_RG8:
+	case GL_RG16:
+	case GL_RG16F:
+	case GL_RG32F:
+		return GL_RG;
+		break;
+
+	case GL_RG8I:
+	case GL_RG8UI:
+	case GL_RG16I:
+	case GL_RG16UI:
+	case GL_RG32I:
+	case GL_RG32UI:
+		return GL_RG_INTEGER;
+		break;
+
+	case GL_RGB4:
+	case GL_RGB5:
+	case GL_RGB8:
+	case GL_RGB12:
+	case GL_RGBA2:
+	case GL_RGBA4:
+	case GL_SRGB8:
+	case GL_RGB16F:
+	case GL_RGB32F:
+	case GL_R11F_G11F_B10F:
+	case GL_RGB9_E5:
+		return GL_RGB;
+		break;
+
+	case GL_RGB8I:
+	case GL_RGB8UI:
+	case GL_RGB16I:
+	case GL_RGB16UI:
+	case GL_RGB32I:
+	case GL_RGB32UI:
+		return GL_RGB_INTEGER;
+		break;
+
+	case GL_RGBA8:
+	case GL_RGBA12:
+	case GL_RGBA16:
+	case GL_RGBA16F:
+	case GL_RGBA32F:
+		return GL_RGBA;
+		break;
+
+	case GL_RGBA8I:
+	case GL_RGBA8UI:
+	case GL_RGBA16I:
+	case GL_RGBA16UI:
+	case GL_RGBA32I:
+	case GL_RGBA32UI:
+		return GL_RGBA_INTEGER;
+		break;
+
+	default:
+		return 0;
+		break;
+	}
+}
+
 //===== Texture Options ===============================================================================================
 struct textureOptions_t {
 
