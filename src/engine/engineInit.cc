@@ -156,15 +156,17 @@ void engineBase::SetupTextureData () {
 		textureOptions_t opts;
 
 	// =======================================================================
-		// blue noise texture, used for various purposes
-		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
-		opts.width = blueNoiseImage.Width();
-		opts.height = blueNoiseImage.Height();
-		opts.dataType = GL_RGBA8;
+		// LDR tonemapped texture, ready for display
+		opts.width = config.width;
+		opts.height = config.height;
+		opts.dataType = GL_RGBA8UI;
+		opts.minFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
+		opts.magFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
 		opts.textureType = GL_TEXTURE_2D;
-		opts.initialData = ( void * ) blueNoiseImage.GetImageDataBasePtr();
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.initialData = nullptr;
 
-		textureManager.Add( "Blue Noise", opts );
+		textureManager.Add( "Display Texture", opts );
 	// =======================================================================
 
 	// =======================================================================
@@ -172,18 +174,28 @@ void engineBase::SetupTextureData () {
 		opts.width = config.width;
 		opts.height = config.height;
 		opts.dataType = GL_RGBA16F;
+		opts.minFilter = GL_NEAREST;
+		opts.magFilter = GL_NEAREST;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
 		opts.initialData = nullptr;
 
 		textureManager.Add( "Accumulator", opts );
 	// =======================================================================
 
 	// =======================================================================
-		// LDR tonemapped texture, ready for display
-		opts.dataType = GL_RGBA8;
-		opts.minFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
-		opts.magFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
+		// blue noise texture, used for various purposes
+		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
+		opts.width = blueNoiseImage.Width();
+		opts.height = blueNoiseImage.Height();
+		opts.dataType = GL_RGBA8UI;
+		opts.minFilter = GL_NEAREST;
+		opts.magFilter = GL_NEAREST;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.initialData = ( void * ) blueNoiseImage.GetImageDataBasePtr();
 
-		textureManager.Add( "Display Texture", opts );
+		textureManager.Add( "Blue Noise", opts );
 	// =======================================================================
 
 	// =======================================================================
@@ -193,8 +205,8 @@ void engineBase::SetupTextureData () {
 		opts.minFilter = GL_NEAREST;
 		opts.magFilter = GL_NEAREST;
 
-		textureManager.Add( "Trident", opts );
-		trident.PassInImage( textureManager.Get( "Trident" ) );
+		textureManager.Add( "Trident Storage", opts );
+		trident.PassInImage( textureManager.Get( "Trident Storage" ) );
 	// =======================================================================
 
 	// =======================================================================
@@ -207,7 +219,7 @@ void engineBase::SetupTextureData () {
 		fontAtlas.FlipVertical();
 		opts.width = fontAtlas.Width();
 		opts.height = fontAtlas.Height();
-		opts.dataType = GL_RGBA8;
+		opts.dataType = GL_RGBA8UI;
 		opts.pixelDataType = GL_UNSIGNED_BYTE;
 		opts.initialData = ( void * ) fontAtlas.GetImageDataBasePtr();
 
@@ -218,7 +230,6 @@ void engineBase::SetupTextureData () {
 	// =======================================================================
 		// bayer patterns todo - how important is it that they're loaded at startup?
 	// =======================================================================
-
 
 		// GLuint accumulatorTexture;
 		// GLuint displayTexture;
@@ -311,11 +322,11 @@ void engineBase::SetupTextureData () {
 
 		bindSets[ "Postprocessing" ] = bindSet( {
 			binding( 0, textureManager.Get( "Accumulator" ), GL_RGBA16F ),
-			binding( 1, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
+			binding( 1, textureManager.Get( "Display Texture" ), GL_RGBA8 )
 		} );
 
 		bindSets[ "Display" ] = bindSet( {
-			binding( 0, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
+			binding( 0, textureManager.Get( "Display Texture" ), GL_RGBA8 )
 		} );
 	}
 }
@@ -460,4 +471,7 @@ void engineBase::ReportStartupStats () {
 	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << bytes << " bytes )" << endl;
 
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
+
+	// texture report
+	textureManager.EnumerateUnitUsage();
 }

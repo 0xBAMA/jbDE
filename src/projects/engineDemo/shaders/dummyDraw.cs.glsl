@@ -15,4 +15,5 @@ void main () {
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, uvec4( result, 255 ) );
+	// imageStore( accumulatorTexture, writeLoc, uvec4( uvec2( ( vec2( writeLoc ) / vec2( imageSize( accumulatorTexture ) ) ) * 255 ), 0 , 255 ) );
 }

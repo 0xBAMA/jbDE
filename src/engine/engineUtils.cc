@@ -40,6 +40,10 @@ void engineBase::BlitToScreen () {
 	const GLuint shader = shaders[ "Display" ];
 	glUseProgram( shader );
 	glBindVertexArray( displayVAO );
+
+	// glActiveTexture( GL_TEXTURE0 + textureManager.GetUnit( "Display Texture" ) );
+	// glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
+
 	glUniform1i( glGetUniformLocation( shader, "current" ), textureManager.GetUnit( "Display Texture" ) );
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
