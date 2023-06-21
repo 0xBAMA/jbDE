@@ -158,14 +158,12 @@ void engineBase::SetupTextureData () {
 		GLuint displayTexture;
 		GLuint blueNoiseTexture;
 		GLuint tridentImage;
-		GLuint bayer2, bayer4, bayer8;
 
 		// create the image textures
-		Image_4U initial( config.width, config.height );
 		glGenTextures( 1, &accumulatorTexture );
 		glActiveTexture( GL_TEXTURE3 );
 		glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
 		textures[ "Accumulator" ] = accumulatorTexture;
 
 		glGenTextures( 1, &displayTexture );
@@ -175,7 +173,7 @@ void engineBase::SetupTextureData () {
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, initial.GetImageDataBasePtr() );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
 		textures[ "Display Texture" ] = displayTexture;
 
 		// blue noise image on the GPU
@@ -191,11 +189,10 @@ void engineBase::SetupTextureData () {
 		textures[ "Blue Noise" ] = blueNoiseTexture;
 
 		// create the image for the trident
-		Image_4U initialT( trident.blockDimensions.x * 8, trident.blockDimensions.y * 16 );
 		glGenTextures( 1, &tridentImage );
 		glActiveTexture( GL_TEXTURE5 );
 		glBindTexture( GL_TEXTURE_2D, tridentImage );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, initialT.Width(), initialT.Height(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, initialT.GetImageDataBasePtr() );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, trident.blockDimensions.x * 8, trident.blockDimensions.y * 16, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
