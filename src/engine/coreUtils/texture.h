@@ -208,6 +208,7 @@ public:
 
 	// I think this is the way we're going to use this now...
 	void BindTexForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
+		// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindTextureUnit.xhtml this can be simplified further
 		glActiveTexture( GL_TEXTURE0 + location );
 		glBindTexture( GL_TEXTURE_2D, Get( label ) );
 		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
