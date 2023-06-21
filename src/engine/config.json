@@ -31,7 +31,7 @@
 	},
 	"showImGUIDemoWindow":false,
 	"showProfiler":true,
-	"oneShot":true,
+	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"tonemapMode":6,

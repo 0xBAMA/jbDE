@@ -68,7 +68,7 @@ public:
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
@@ -77,7 +77,7 @@ public:
 			glUseProgram( shaders[ "Tonemap" ] );
 			SendTonemappingParameters();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
 
 		// shader to apply dithering
@@ -90,13 +90,13 @@ public:
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textures[ "Display Texture" ] );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
 
 		{ // show trident with current orientation
 			scopedTimer Start( "Trident" );
 			trident.Update( textures[ "Display Texture" ] );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
 	}
 
