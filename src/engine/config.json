@@ -11,7 +11,7 @@
 	"linearFilterDisplayTex":true,
 	"numMsDelayAfterCallback":30,
 	"OpenGLVersionMajor":4,
-	"OpenGLVersionMinor":3,
+	"OpenGLVersionMinor":5,
 	"OpenGLVerboseInit":false,
 	"SDLDisplayModeDump":false,
 	"reportPlatformInfo":true,

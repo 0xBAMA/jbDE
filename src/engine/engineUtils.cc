@@ -43,9 +43,12 @@ void engineBase::BlitToScreen () {
 		// glBindTexture with the known type ( GL_TEXTURE_2D ) + handle
 		// glUniform1i to send the known value X to the shader
 
-	glActiveTexture( GL_TEXTURE0 );
-	glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+	// glActiveTexture( GL_TEXTURE0 );
+	// glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+
+	glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires 4.5
 	glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
+
 
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
