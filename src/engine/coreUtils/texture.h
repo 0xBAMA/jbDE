@@ -130,7 +130,7 @@ struct texture_t {
 	textureOptions_t creationOptions;
 
 	GLuint textureHandle;
-	GLenum textureUnit; // GL_TEXTURE0 + N
+	// GLenum textureUnit; // GL_TEXTURE0 + N ... this is not how to do it
 	size_t textureSize;
 
 	string label;
@@ -175,7 +175,7 @@ public:
 
 		texture_t tex;
 		tex.creationOptions = texOptsIn;
-		tex.textureUnit = count;
+		// tex.textureUnit = count;
 
 		// blah blah create the texture
 
@@ -197,14 +197,14 @@ public:
 		return std::numeric_limits< GLuint >::max();
 	}
 
-	GLuint GetUnit ( string label ) {
-		for ( auto& tex : textures ) {
-			if ( tex.label == label ) {
-				return tex.textureUnit;
-			}
-		}
-		return std::numeric_limits< GLuint >::max();
-	}
+	// GLuint GetUnit ( string label ) {
+	// 	for ( auto& tex : textures ) {
+	// 		if ( tex.label == label ) {
+	// 			return tex.textureUnit;
+	// 		}
+	// 	}
+	// 	return std::numeric_limits< GLuint >::max();
+	// }
 
 	void Update ( string label /*, ... */ ) {
 		// pass in new data for the texture
@@ -214,10 +214,10 @@ public:
 		// give me a report for all the active textures like:
 			// 0 : "Accumulator" ( unit : label ... type/dimensions information? )
 
-		cout << "Texture Unit Usage:" << endl;
-		for ( auto& tex : textures ) {
-			cout << "  " << tex.textureUnit << " : " << tex.label << endl;
-		}
+		// cout << "Texture Unit Usage:" << endl;
+		// for ( auto& tex : textures ) {
+		// 	cout << "  " << tex.textureUnit << " : " << tex.label << endl;
+		// }
 	}
 
 	// total size in bytes

@@ -34,10 +34,6 @@ void engineBase::SendTonemappingParameters () {
 
 void engineBase::BlitToScreen () {
 	ZoneScoped; scopedTimer Start( "Blit to Screen" );
-
-	// display current state of the display texture - there are more efficient ways to do this, look into it
-	// bindSets[ "Display" ].apply();
-
 	const GLuint shader = shaders[ "Display" ];
 	glUseProgram( shader );
 	glBindVertexArray( displayVAO );
@@ -66,15 +62,15 @@ void engineBase::HandleTridentEvents () {
 		const bool shift = SDL_GetModState() & KMOD_SHIFT;
 
 		// can handle multiple simultaneous inputs like this
-		const uint8_t *state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// update block orientation
-		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] ) {	trident.RotateY( shift ? bigStep : lilStep );	}
+		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] ) {	trident.RotateY( shift ?  bigStep :  lilStep );	}
 		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] ) {	trident.RotateY( shift ? -bigStep : -lilStep );	}
-		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {	trident.RotateX( shift ? bigStep : lilStep );	}
+		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {	trident.RotateX( shift ?  bigStep :  lilStep );	}
 		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {	trident.RotateX( shift ? -bigStep : -lilStep );	}
 		if ( state[ SDL_SCANCODE_PAGEUP ] ) {							trident.RotateZ( shift ? -bigStep : -lilStep );	}
-		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {							trident.RotateZ( shift ? bigStep : lilStep );	}
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {							trident.RotateZ( shift ?  bigStep :  lilStep );	}
 
 		// snap to cardinal directions
 		if ( state[ SDL_SCANCODE_1 ] ) { trident.SetViewFront();}
