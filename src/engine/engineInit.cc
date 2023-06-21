@@ -280,7 +280,7 @@ void engineBase::ImguiSetup () {
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplSDL2_InitForOpenGL( window.window, window.GLcontext );
-		const char *glsl_version = "#version 430";
+		const char *glsl_version = "#version 450";
 		ImGui_ImplOpenGL3_Init( glsl_version );
 
 		// setting custom font, if desired

@@ -206,14 +206,16 @@ public:
 		return std::numeric_limits< GLint >::max();
 	}
 
-	// I think this is the way we're going to use this now...
+// I think this is the way we're going to use this now...
+	// additionally, we can drop the glUniform1i if using layout qualifiers in the shader cod
+
+	// so an example call is textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	void BindTexForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
-		// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindTextureUnit.xhtml this can be simplified further
-		glActiveTexture( GL_TEXTURE0 + location );
-		glBindTexture( GL_TEXTURE_2D, Get( label ) );
+		glBindTextureUnit( location, Get( label ) );
 		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
 	}
 
+	// so an example call is textureManager.BindImageForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	void BindImageForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
 		glBindImageTexture( location, Get( label ), 0, GL_TRUE, 0, GL_READ_WRITE, GetType( label ) );
 		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
