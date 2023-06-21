@@ -188,7 +188,7 @@ public:
 
 	// todo: update the below ( Get/GetUnit ) from the unordered map version to the vector version
 
-	GLuint Get ( string label ) { // if the map contains the key, return it, else some nonsense value
+	GLuint Get ( const string label ) { // if the map contains the key, return it, else some nonsense value
 		for ( auto& tex : textures ) {
 			if ( tex.label == label ) {
 				return tex.textureHandle;
@@ -197,27 +197,39 @@ public:
 		return std::numeric_limits< GLuint >::max();
 	}
 
-	// GLuint GetUnit ( string label ) {
-	// 	for ( auto& tex : textures ) {
-	// 		if ( tex.label == label ) {
-	// 			return tex.textureUnit;
-	// 		}
-	// 	}
-	// 	return std::numeric_limits< GLuint >::max();
-	// }
+	GLint GetType ( const string label ) {
+		for ( auto& tex : textures ) {
+			if ( tex.label == label ) {
+				// return tex.creationOptions.internalformat; // this is the move
+			}
+		}
+		return std::numeric_limits< GLint >::max();
+	}
+
+	// I think this is the way we're going to use this now...
+	void BindTexForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
+		glActiveTexture( GL_TEXTURE0 + location );
+		glBindTexture( GL_TEXTURE_2D, Get( label ) );
+		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
+	}
+
+	void BindImageForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
+		glBindImageTexture( location, Get( label ), 0, GL_TRUE, 0, GL_READ_WRITE, GetType( label ) );
+		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
+	}
 
 	void Update ( string label /*, ... */ ) {
 		// pass in new data for the texture
 	}
 
-	void EnumerateUnitUsage () {
+	void EnumerateTextures () {
 		// give me a report for all the active textures like:
 			// 0 : "Accumulator" ( unit : label ... type/dimensions information? )
 
-		// cout << "Texture Unit Usage:" << endl;
-		// for ( auto& tex : textures ) {
-		// 	cout << "  " << tex.textureUnit << " : " << tex.label << endl;
-		// }
+		cout << "Textures :" << endl;
+		for ( auto& tex : textures ) {
+			cout << "  " << tex.textureHandle << " : " << tex.label << " ( " << tex.textureSize << " )" << endl;
+		}
 	}
 
 	// total size in bytes

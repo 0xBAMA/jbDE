@@ -362,5 +362,5 @@ void engineBase::ReportStartupStats () {
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
 
 	// texture report
-	textureManager.EnumerateUnitUsage();
+	textureManager.EnumerateTextures();
 }
