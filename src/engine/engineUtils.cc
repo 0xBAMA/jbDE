@@ -36,12 +36,19 @@ void engineBase::BlitToScreen () {
 	ZoneScoped; scopedTimer Start( "Blit to Screen" );
 
 	// display current state of the display texture - there are more efficient ways to do this, look into it
-	bindSets[ "Display" ].apply();
+	// bindSets[ "Display" ].apply();
+
 	const GLuint shader = shaders[ "Display" ];
 	glUseProgram( shader );
 	glBindVertexArray( displayVAO );
+
 	// ImGuiIO &io = ImGui::GetIO();
 	// glUniform2f( glGetUniformLocation( shader, "resolution" ), io.DisplaySize.x, io.DisplaySize.y );
+
+	// god damn it, is it really this simple?
+	glActiveTexture( GL_TEXTURE0 );
+	glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+	glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
