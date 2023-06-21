@@ -198,24 +198,6 @@ void engineBase::SetupTextureData () {
 	// =======================================================================
 
 	// =======================================================================
-		// add textures for the text renderer + access to the manager
-		textRenderer.textureManager_local = &textureManager;
-		textRenderer.Init( config.width, config.height, shaders[ "Font Renderer" ] );
-
-		// font atlas texture
-		Image_4U fontAtlas( "./src/utils/fonts/fontRenderer/whiteOnClear.png" );
-		fontAtlas.FlipVertical();
-		opts.width = fontAtlas.Width();
-		opts.height = fontAtlas.Height();
-		opts.dataType = GL_RGBA8;
-		opts.pixelDataType = GL_UNSIGNED_BYTE;
-		opts.initialData = ( void * ) fontAtlas.GetImageDataBasePtr();
-
-		// font renderer data textures created internal to each layer via textureManager_local
-		textureManager.Add( "Font Atlas", opts );
-	// =======================================================================
-
-	// =======================================================================
 		// bayer patterns todo - how important is it that they're loaded at startup?
 	// =======================================================================
 
@@ -353,8 +335,9 @@ void engineBase::ShaderCompile () {
 		// create the shader for the triangles to cover the screen
 		shaders[ "Display" ] = regularShader( base + "blit.vs.glsl", base + "blit.fs.glsl" ).shaderHandle;
 
-		// font renderer shader
+		// initialize the text renderer
 		shaders[ "Font Renderer" ] = computeShader( "src/utils/fonts/fontRenderer/font.cs.glsl" ).shaderHandle;
+		textRenderer.Init( config.width, config.height, shaders[ "Font Renderer" ] );
 
 		// trident shaders
 		shaders[ "Trident Raymarch" ] = computeShader( "./src/utils/trident/tridentGenerate.cs.glsl" ).shaderHandle;
