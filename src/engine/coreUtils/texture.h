@@ -140,6 +140,9 @@ struct texture_t {
 //===== Texture Manager ===============================================================================================
 class textureManager_t {
 public:
+	// prevent the use of 4.5 features
+	const bool compatibilityMode = false;
+
 	void Init () {
 
 		// add config toggle for this eventually
@@ -175,14 +178,16 @@ public:
 
 		texture_t tex;
 		tex.creationOptions = texOptsIn;
-		// tex.textureUnit = count;
 
 		// blah blah create the texture
+
+		// figure out the memory footprint
+		// tex.textureSize = ...
 
 		// store for later
 		textures.push_back( tex );
 
-		// increment count on add, so we can use this for glActiveTexture( GL_TEXTURE0 + count )
+		// increment count on add
 		count++;
 	}
 
@@ -211,7 +216,13 @@ public:
 
 	// so an example call is textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	void BindTexForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
-		glBindTextureUnit( location, Get( label ) );
+		// if 4.5 feature set is not supported
+		if ( compatibilityMode == true ) {
+			glActiveTexture( GL_TEXTURE0 + location );
+			glBindTexture( GL_TEXTURE_2D, Get( label ) );
+		} else {
+			glBindTextureUnit( location, Get( label ) );
+		}
 		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
 	}
 

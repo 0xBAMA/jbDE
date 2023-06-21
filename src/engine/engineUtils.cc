@@ -39,9 +39,8 @@ void engineBase::BlitToScreen () {
 	glBindVertexArray( displayVAO );
 
 	// so this is the procedure:
-	glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires 4.5
+	glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires OpenGL 4.5, shouldn't be an issue - but in the wrapper, will support both modes
 	glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
-
 
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
