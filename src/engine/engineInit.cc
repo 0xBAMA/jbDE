@@ -235,8 +235,7 @@ void engineBase::LoadData () {
 	{ Block Start( "Load Wordlists" );
 		LoadBadWords( badWords );
 		LoadColorWords( colorWords );
-
-		/* plantWords? tbd */
+		/* plantWords, animalWords, etc? tbd */
 	}
 }
 
@@ -355,8 +354,13 @@ void engineBase::ReportStartupStats () {
 
 	cout << endl << T_CYAN << "  " <<
 		shaders.size() << " shader programs, " <<
-		textures.size() << " textures, " <<
 		bindSets.size() << " bindsets" << endl;
 
+	const size_t bytes = textureManager.TotalSize();
+	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << bytes << " bytes )" << endl;
+
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
+
+	// texture report
+	textureManager.EnumerateUnitUsage();
 }

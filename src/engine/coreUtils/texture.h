@@ -106,8 +106,17 @@ struct textureOptions_t {
 	// simplify this so that it's just handling the case of 2d textures - build from there
 
 	// this will need to be simplified - just straight fill it out to match glTexImage2D()
+		// enum target
+		// int level
+		// int internalformat
+		// size_t width
+		// size_t height
+		// int border
+		// enum format
+		// enum type ( of the passed data )
+		// void pointer to data
 
-		// need to also include filtering
+		// need to also include filtering ( min + mag )
 		// need to also include wrap modes
 		// ...
 
@@ -180,13 +189,21 @@ public:
 	// todo: update the below ( Get/GetUnit ) from the unordered map version to the vector version
 
 	GLuint Get ( string label ) { // if the map contains the key, return it, else some nonsense value
-		// return ( textures.find( label ) != textures.end() ) ?
-		// 	textures[ label ].textureHandle : std::numeric_limits< GLuint >::max();
+		for ( auto& tex : textures ) {
+			if ( tex.label == label ) {
+				return tex.textureHandle;
+			}
+		}
+		return std::numeric_limits< GLuint >::max();
 	}
 
 	GLuint GetUnit ( string label ) {
-		// return ( textures.find( label ) != textures.end() ) ?
-		// 	textures[ label ].textureUnit : std::numeric_limits< GLuint >::max();
+		for ( auto& tex : textures ) {
+			if ( tex.label == label ) {
+				return tex.textureUnit;
+			}
+		}
+		return std::numeric_limits< GLuint >::max();
 	}
 
 	void Update ( string label /*, ... */ ) {
