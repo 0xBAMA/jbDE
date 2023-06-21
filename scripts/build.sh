@@ -15,7 +15,7 @@ time make -j17 engineDemo
 # time make -j17 Physarum
 # time make -j17 Siren
 # time make -j17 SoftBodies
-time make -j17 Vertexture
+# time make -j17 Vertexture
 # time make -j17 Voraldo14
 # time make -j17 VoxelSpace
 

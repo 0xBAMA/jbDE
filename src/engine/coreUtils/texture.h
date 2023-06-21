@@ -11,6 +11,7 @@ inline size_t bytesPerPixel ( GLint type ) {
 	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
 	case GL_RG32UI:				return 2 * 4; break;
 	case GL_RGBA8:				return 4 * 1; break;
+	case GL_RGBA8UI:			return 4 * 1; break;
 	case GL_RGBA16F:			return 4 * 2; break;
 	default:
 		cout << "unknown type texture created" << endl;
@@ -162,13 +163,14 @@ public:
 	void Add ( string label, textureOptions_t &texOptsIn ) {
 		texture_t tex;
 		tex.creationOptions = texOptsIn;
-		tex.textureUnit = GL_TEXTURE0 + count;
+		tex.textureUnit = count;
 		tex.textureSize = texOptsIn.width * texOptsIn.height * texOptsIn.depth * texOptsIn.layers * bytesPerPixel( texOptsIn.dataType );
 
 		// create the texture
 		glGenTextures( 1, &tex.textureHandle );
 		glActiveTexture( GL_TEXTURE0 + count );
 		glBindTexture( texOptsIn.textureType, tex.textureHandle );
+
 		switch ( texOptsIn.textureType ) {
 		case GL_TEXTURE_2D:
 		glTexImage2D( GL_TEXTURE_2D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
@@ -219,7 +221,7 @@ public:
 	}
 
 	// TODO
-	void Shutdown ()  {
+	void Shutdown () {
 		// delete all textures
 	}
 
