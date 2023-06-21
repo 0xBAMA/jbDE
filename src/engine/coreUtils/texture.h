@@ -10,7 +10,7 @@ inline size_t bytesPerPixel ( GLint type ) {
 	switch ( type ) {
 	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
 	case GL_RG32UI:				return 2 * 4; break;
-	case GL_RGBA8:				return 4 * 1; break;
+	case GL_RGBA8:
 	case GL_RGBA8UI:			return 4 * 1; break;
 	case GL_RGBA16F:			return 4 * 2; break;
 	default:
@@ -164,9 +164,17 @@ public:
 	int count = 0;
 	void Add ( string label, textureOptions_t &texOptsIn ) {
 
+		texture_t tex;
+		tex.creationOptions = texOptsIn;
+		tex.textureUnit = count;
+
+		// blah blah create the texture
+
+		// store for later
+		textures.push_back( tex );
+
 		// increment count on add, so we can use this for glActiveTexture( GL_TEXTURE0 + count )
 		count++;
-
 	}
 
 	// todo: update the below ( Get/GetUnit ) from the unordered map version to the vector version
