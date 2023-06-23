@@ -232,52 +232,6 @@ void engineBase::SetupTextureData () {
 		// bayer patterns todo - how important is it that they're loaded at startup?
 	// =======================================================================
 
-		// GLuint accumulatorTexture;
-		// GLuint displayTexture;
-		// GLuint blueNoiseTexture;
-		// GLuint tridentImage;
-
-		// // create the image textures
-		// glGenTextures( 1, &accumulatorTexture );
-		// glActiveTexture( GL_TEXTURE3 );
-		// glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
-		// textures[ "Accumulator" ] = accumulatorTexture;
-
-		// glGenTextures( 1, &displayTexture );
-		// glActiveTexture( GL_TEXTURE0 );
-		// glBindTexture( GL_TEXTURE_2D, displayTexture );
-		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
-		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
-		// textures[ "Display Texture" ] = displayTexture;
-
-		// // blue noise image on the GPU
-		// Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
-		// glGenTextures( 1, &blueNoiseTexture );
-		// glActiveTexture( GL_TEXTURE4 );
-		// glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, blueNoiseImage.Width(), blueNoiseImage.Height(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, blueNoiseImage.GetImageDataBasePtr() );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// textures[ "Blue Noise" ] = blueNoiseTexture;
-
-		// // create the image for the trident
-		// glGenTextures( 1, &tridentImage );
-		// glActiveTexture( GL_TEXTURE5 );
-		// glBindTexture( GL_TEXTURE_2D, tridentImage );
-		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, trident.blockDimensions.x * 8, trident.blockDimensions.y * 16, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		// trident.PassInImage( tridentImage );
-		// textures[ "Trident" ] = tridentImage;
-
 	}
 
 	{	Block Start( "Setting Up Bindsets" );
