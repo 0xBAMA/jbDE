@@ -196,6 +196,10 @@ public:
 		glBindTexture( texOptsIn.textureType, tex.textureHandle );
 		switch ( texOptsIn.textureType ) {
 		case GL_TEXTURE_2D:
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
 			glTexImage2D( GL_TEXTURE_2D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
 			break;
 

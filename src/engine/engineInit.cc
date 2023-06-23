@@ -159,7 +159,7 @@ void engineBase::SetupTextureData () {
 		// LDR tonemapped texture, ready for display
 		opts.width = config.width;
 		opts.height = config.height;
-		opts.dataType = GL_RGBA8UI;
+		opts.dataType = GL_RGBA8;
 		opts.minFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
 		opts.magFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
 		opts.textureType = GL_TEXTURE_2D;
