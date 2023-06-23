@@ -153,69 +153,148 @@ void engineBase::SetupTextureData () {
 	{	Block Start( "Setting Up Textures" );
 
 		textureManager.Init();
+		textureOptions_t opts;
 
-		GLuint accumulatorTexture;
-		GLuint displayTexture;
-		GLuint blueNoiseTexture;
-		GLuint tridentImage;
+	// =======================================================================
+		// LDR tonemapped texture, ready for display
+		opts.width = config.width;
+		opts.height = config.height;
+		opts.dataType = GL_RGBA8UI;
+		opts.minFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
+		opts.magFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.initialData = nullptr;
 
-		// create the image textures
-		glGenTextures( 1, &accumulatorTexture );
-		glActiveTexture( GL_TEXTURE3 );
-		glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
-		textures[ "Accumulator" ] = accumulatorTexture;
+		textureManager.Add( "Display Texture", opts );
+	// =======================================================================
 
-		glGenTextures( 1, &displayTexture );
-		glActiveTexture( GL_TEXTURE0 );
-		glBindTexture( GL_TEXTURE_2D, displayTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
-		textures[ "Display Texture" ] = displayTexture;
+	// =======================================================================
+		// holds renderer state at high bit depth
+		opts.width = config.width;
+		opts.height = config.height;
+		opts.dataType = GL_RGBA16F;
+		opts.minFilter = GL_NEAREST;
+		opts.magFilter = GL_NEAREST;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.initialData = nullptr;
 
-		// blue noise image on the GPU
+		textureManager.Add( "Accumulator", opts );
+	// =======================================================================
+
+	// =======================================================================
+		// blue noise texture, used for various purposes
 		Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
-		glGenTextures( 1, &blueNoiseTexture );
-		glActiveTexture( GL_TEXTURE4 );
-		glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, blueNoiseImage.Width(), blueNoiseImage.Height(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, blueNoiseImage.GetImageDataBasePtr() );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		textures[ "Blue Noise" ] = blueNoiseTexture;
+		opts.width = blueNoiseImage.Width();
+		opts.height = blueNoiseImage.Height();
+		opts.dataType = GL_RGBA8UI;
+		opts.minFilter = GL_NEAREST;
+		opts.magFilter = GL_NEAREST;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.initialData = ( void * ) blueNoiseImage.GetImageDataBasePtr();
 
-		// create the image for the trident
-		glGenTextures( 1, &tridentImage );
-		glActiveTexture( GL_TEXTURE5 );
-		glBindTexture( GL_TEXTURE_2D, tridentImage );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, trident.blockDimensions.x * 8, trident.blockDimensions.y * 16, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		trident.PassInImage( tridentImage );
-		textures[ "Trident" ] = tridentImage;
+		textureManager.Add( "Blue Noise", opts );
+	// =======================================================================
+
+	// =======================================================================
+		// image buffer for the trident orientation indicator
+		opts.width = trident.blockDimensions.x * 8;
+		opts.height = trident.blockDimensions.y * 16;
+		opts.minFilter = GL_NEAREST;
+		opts.magFilter = GL_NEAREST;
+
+		textureManager.Add( "Trident Storage", opts );
+		trident.PassInImage( textureManager.Get( "Trident Storage" ) );
+	// =======================================================================
+
+	// =======================================================================
+		// add textures for the text renderer + access to the manager
+		textRenderer.textureManager_local = &textureManager;
+		textRenderer.Init( config.width, config.height, shaders[ "Font Renderer" ] );
+
+		// font atlas texture
+		Image_4U fontAtlas( "./src/utils/fonts/fontRenderer/whiteOnClear.png" );
+		fontAtlas.FlipVertical();
+		opts.width = fontAtlas.Width();
+		opts.height = fontAtlas.Height();
+		opts.dataType = GL_RGBA8UI;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.initialData = ( void * ) fontAtlas.GetImageDataBasePtr();
+
+		// font renderer data textures created internal to each layer via textureManager_local
+		textureManager.Add( "Font Atlas", opts );
+	// =======================================================================
+
+	// =======================================================================
+		// bayer patterns todo - how important is it that they're loaded at startup?
+	// =======================================================================
+
+		// GLuint accumulatorTexture;
+		// GLuint displayTexture;
+		// GLuint blueNoiseTexture;
+		// GLuint tridentImage;
+
+		// // create the image textures
+		// glGenTextures( 1, &accumulatorTexture );
+		// glActiveTexture( GL_TEXTURE3 );
+		// glBindTexture( GL_TEXTURE_2D, accumulatorTexture );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+		// textures[ "Accumulator" ] = accumulatorTexture;
+
+		// glGenTextures( 1, &displayTexture );
+		// glActiveTexture( GL_TEXTURE0 );
+		// glBindTexture( GL_TEXTURE_2D, displayTexture );
+		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
+		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.linearFilter ? GL_LINEAR : GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, config.width, config.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+		// textures[ "Display Texture" ] = displayTexture;
+
+		// // blue noise image on the GPU
+		// Image_4U blueNoiseImage{ "src/utils/noise/blueNoise.png" };
+		// glGenTextures( 1, &blueNoiseTexture );
+		// glActiveTexture( GL_TEXTURE4 );
+		// glBindTexture( GL_TEXTURE_2D, blueNoiseTexture );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, blueNoiseImage.Width(), blueNoiseImage.Height(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, blueNoiseImage.GetImageDataBasePtr() );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		// textures[ "Blue Noise" ] = blueNoiseTexture;
+
+		// // create the image for the trident
+		// glGenTextures( 1, &tridentImage );
+		// glActiveTexture( GL_TEXTURE5 );
+		// glBindTexture( GL_TEXTURE_2D, tridentImage );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, trident.blockDimensions.x * 8, trident.blockDimensions.y * 16, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		// trident.PassInImage( tridentImage );
+		// textures[ "Trident" ] = tridentImage;
 
 	}
 
 	{	Block Start( "Setting Up Bindsets" );
 
+		// this will need some work
+
 		bindSets[ "Drawing" ] = bindSet( {
-			binding( 0, textures[ "Blue Noise" ], GL_RGBA8UI ),
-			binding( 1, textures[ "Accumulator" ], GL_RGBA16F )
+			binding( 0, textureManager.Get( "Blue Noise" ), GL_RGBA8UI ),
+			binding( 1, textureManager.Get( "Accumulator" ), GL_RGBA16F )
 		} );
 
 		bindSets[ "Postprocessing" ] = bindSet( {
-			binding( 0, textures[ "Accumulator" ], GL_RGBA16F ),
-			binding( 1, textures[ "Display Texture" ], GL_RGBA8UI )
+			binding( 0, textureManager.Get( "Accumulator" ), GL_RGBA16F ),
+			binding( 1, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
 		} );
 
 		bindSets[ "Display" ] = bindSet( {
-			binding( 0, textures[ "Display Texture" ], GL_RGBA8UI )
+			binding( 0, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
 		} );
 	}
 }
@@ -254,7 +333,6 @@ void engineBase::ShaderCompile () {
 
 		// initialize the text renderer
 		shaders[ "Font Renderer" ] = computeShader( "src/utils/fonts/fontRenderer/font.cs.glsl" ).shaderHandle;
-		textRenderer.Init( config.width, config.height, shaders[ "Font Renderer" ] );
 
 		// trident shaders
 		shaders[ "Trident Raymarch" ] = computeShader( "./src/utils/trident/tridentGenerate.cs.glsl" ).shaderHandle;
@@ -357,10 +435,11 @@ void engineBase::ReportStartupStats () {
 		bindSets.size() << " bindsets" << endl;
 
 	const size_t bytes = textureManager.TotalSize();
+
 	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << bytes << " bytes )" << endl;
 
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << "ms )" << RESET << endl << endl;
 
-	// texture report
+	// texture setup report
 	textureManager.EnumerateTextures();
 }

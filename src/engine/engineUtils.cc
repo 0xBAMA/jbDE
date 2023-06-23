@@ -39,9 +39,10 @@ void engineBase::BlitToScreen () {
 	glBindVertexArray( displayVAO );
 
 	// so this is the procedure:
-	glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires OpenGL 4.5, shouldn't be an issue - but in the wrapper, will support both modes
-	glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
+	// glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires OpenGL 4.5, shouldn't be an issue - but in the wrapper, will support both modes
+	// glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
 
+	textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
@@ -60,12 +61,12 @@ void engineBase::HandleTridentEvents () {
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// update block orientation
-		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] ) {	trident.RotateY( shift ?  bigStep :  lilStep );	}
-		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] ) {	trident.RotateY( shift ? -bigStep : -lilStep );	}
-		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {	trident.RotateX( shift ?  bigStep :  lilStep );	}
-		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {	trident.RotateX( shift ? -bigStep : -lilStep );	}
-		if ( state[ SDL_SCANCODE_PAGEUP ] ) {							trident.RotateZ( shift ? -bigStep : -lilStep );	}
-		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {							trident.RotateZ( shift ?  bigStep :  lilStep );	}
+		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {	trident.RotateX( shift ?  bigStep :  lilStep ); }
+		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {	trident.RotateX( shift ? -bigStep : -lilStep ); }
+		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] ) {	trident.RotateY( shift ?  bigStep :  lilStep ); }
+		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] ) {	trident.RotateY( shift ? -bigStep : -lilStep ); }
+		if ( state[ SDL_SCANCODE_PAGEUP ] ) {							trident.RotateZ( shift ? -bigStep : -lilStep ); }
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {							trident.RotateZ( shift ?  bigStep :  lilStep ); }
 
 		// snap to cardinal directions
 		if ( state[ SDL_SCANCODE_1 ] ) { trident.SetViewFront();}

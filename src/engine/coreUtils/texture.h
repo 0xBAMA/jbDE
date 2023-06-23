@@ -101,75 +101,85 @@ inline GLenum getFormat( GLint internalFormat ) {
 }
 
 //===== Texture Options ===============================================================================================
+// data required to create a texture
 struct textureOptions_t {
+	// data type
+	GLint dataType;
 
-	// simplify this so that it's just handling the case of 2d textures - build from there
+	// texture type
+	GLenum textureType;
 
-	// this will need to be simplified - just straight fill it out to match glTexImage2D()
-		// enum target
-		// int level
-		// int internalformat
-		// size_t width
-		// size_t height
-		// int border
-		// enum format
-		// enum type ( of the passed data )
-		// void pointer to data
+// dimensions
+	// x, y, z, layers
+	GLsizei width = 0;
+	GLsizei height = 0;
+	GLsizei depth = 1;
+	GLsizei layers = 1;
 
-		// need to also include filtering ( min + mag )
-		// need to also include wrap modes
-		// ...
+// filtering
+	GLint minFilter = GL_NEAREST;
+	GLint magFilter = GL_NEAREST;
 
+// wrap mode - they let you specifiy it different for different axes, but I don't ever use that
+	GLint wrap = GL_CLAMP_TO_EDGE;
+
+	// initial image data, for loading images
+	void * initialData = nullptr;
+
+	// data passed type, if relevant
+	GLenum pixelDataType = GL_UNSIGNED_BYTE;
 };
 
 
 //===== Texture Record ================================================================================================
 struct texture_t {
+	string label;			// identifier for the texture
 
 	// keep the information used to create the texture
 	textureOptions_t creationOptions;
 
-	GLuint textureHandle;
-	// GLenum textureUnit; // GL_TEXTURE0 + N ... this is not how to do it
-	size_t textureSize;
-
-	string label;
-
+	GLuint textureHandle;	// from glGenTextures()
+	size_t textureSize;		// number of bytes on disk
 };
 
 //===== Texture Manager ===============================================================================================
 class textureManager_t {
 public:
 	// prevent the use of 4.5 features
-	const bool compatibilityMode = false;
+	const bool compatibilityMode = true;
+	const bool statsReport = false;
 
 	void Init () {
 
-		// add config toggle for this eventually
+		if ( statsReport ) {
 
-		// report some platform detials:
-			// number of available texture units
-			// maximum dimensions of texture
-			// ...
+			// report some platform detials:
+				// number of available texture units
+				// maximum dimensions of texture
+				// ...
 
-		// GLint val;
-		// glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
-		// cout << endl << endl << "\t\tMax Texture Size Reports: " << val << endl;
+			// GLint val;
+			// glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
+			// cout << endl << endl << "\t\tMax Texture Size Reports: " << val << endl;
 
-		// glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
-		// cout << "\t\tMax 3D Texture Size Reports: " << val << endl;
+			// glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
+			// cout << "\t\tMax 3D Texture Size Reports: " << val << endl;
 
-		// glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
-		// cout << "\t\tMax Draw Buffers: " << val << endl;
+			// glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
+			// cout << "\t\tMax Draw Buffers: " << val << endl;
 
-		// glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
-		// cout << "\t\tMax Compute Texture Image Units Reports: " << val << endl;
+			// glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
+			// cout << "\t\tMax Compute Texture Image Units Reports: " << val << endl;
 
-		// glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
-		// cout << "\t\tMax Combined Texture Image Units: " << val << endl << endl;
+			// glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
+			// cout << "\t\tMax Combined Texture Image Units: " << val << endl << endl;
 
-		// // make up for the spacing issues
-		// cout << "\t............................................................. ";
+			// // make up for the spacing issues
+			// cout << "\t............................................................. ";
+
+		}
+
+		// any additional init? not sure
 
 	}
 
@@ -177,42 +187,54 @@ public:
 	void Add ( string label, textureOptions_t &texOptsIn ) {
 
 		texture_t tex;
+		tex.label = label;
 		tex.creationOptions = texOptsIn;
+		tex.textureSize = texOptsIn.width * texOptsIn.height * texOptsIn.depth * texOptsIn.layers * bytesPerPixel( texOptsIn.dataType );
 
-		// blah blah create the texture
+		glGenTextures( 1, &tex.textureHandle );
+		glActiveTexture( GL_TEXTURE0 ); // doesn't matter, really, where it's bound right now
+		glBindTexture( texOptsIn.textureType, tex.textureHandle );
+		switch ( texOptsIn.textureType ) {
+		case GL_TEXTURE_2D:
+			glTexImage2D( GL_TEXTURE_2D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
+			break;
 
-		// figure out the memory footprint
-		// tex.textureSize = ...
+		// todo
+			// array textures
+			// 3d textures
+
+		default:
+		break;
+		}
 
 		// store for later
 		textures.push_back( tex );
 
-		// increment count on add
-		count++;
+		// increment count on add - we'll keep it for the time being
+		count++; // kind of redundant with textures.size(), tbd
 	}
 
-	// todo: update the below ( Get/GetUnit ) from the unordered map version to the vector version
-
-	GLuint Get ( const string label ) { // if the map contains the key, return it, else some nonsense value
+	GLuint Get ( const string label ) { // if the array contains the key, return it, else some nonsense value
 		for ( auto& tex : textures ) {
 			if ( tex.label == label ) {
 				return tex.textureHandle;
 			}
 		}
+		cout << "Texture Missing" << endl;
 		return std::numeric_limits< GLuint >::max();
 	}
 
 	GLint GetType ( const string label ) {
 		for ( auto& tex : textures ) {
 			if ( tex.label == label ) {
-				// return tex.creationOptions.internalformat; // this is the move
+				return tex.creationOptions.dataType; // this is the move
 			}
 		}
 		return std::numeric_limits< GLint >::max();
 	}
 
 // I think this is the way we're going to use this now...
-	// additionally, we can drop the glUniform1i if using layout qualifiers in the shader cod
+	// additionally, we can drop the glUniform1i if using layout qualifiers in the shader code
 
 	// so an example call is textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	void BindTexForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
@@ -242,8 +264,9 @@ public:
 
 		cout << "Textures :" << endl;
 		for ( auto& tex : textures ) {
-			cout << "  " << tex.textureHandle << " : " << tex.label << " ( " << tex.textureSize << " )" << endl;
+			cout << "  " << tex.textureHandle << " : " << tex.label << " ( " << tex.textureSize << " bytes )" << endl;
 		}
+		cout << endl;
 	}
 
 	// total size in bytes
@@ -252,6 +275,13 @@ public:
 		for ( auto& tex : textures )
 			total += tex.textureSize;
 		return total;
+	}
+
+	// return the size_t as a string with commas
+	string TotalSizeWithCommas () {
+		stringstream temp;
+		// todo: https://stackoverflow.com/questions/7276826/format-number-with-commas-in-c
+		return temp.str();
 	}
 
 	// TODO
@@ -266,5 +296,8 @@ public:
 
 	std::vector< texture_t > textures; // keep as an ordered set
 };
+
+// move bindsets to here
+	// bindsets get a new field to tell texture/image bind type
 
 #endif // TEXTURE_H

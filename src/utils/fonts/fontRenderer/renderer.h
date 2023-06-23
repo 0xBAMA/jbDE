@@ -60,10 +60,19 @@ extern std::vector< paletteEntry > paletteList;
 
 class Layer {
 public:
-	Layer ( int w, int h ) : width( w ), height( h ) {
+	Layer ( int w, int h, textureManager_t * tml, string label ) : width( w ), height( h ), textureManager_local( tml ), layerLabel( label ) {
 		Resize( w, h );
-		glGenTextures( 1, &textureHandle );
+
+		// add a texture with the given label
+		textureOptions_t opts;
+		opts.width = w;
+		opts.height = h;
+		opts.dataType = GL_RGBA8;
+		opts.pixelDataType = GL_UNSIGNED_BYTE;
+		opts.textureType = GL_TEXTURE_2D;
+		textureManager_local->Add( label, opts );
 	}
+
 
 	void Resize ( int w, int h ) {
 		if ( bufferBase != nullptr ) { free( bufferBase ); }
@@ -72,8 +81,9 @@ public:
 	}
 
 	void Resend () {
+		// this will also need some massaging, with the new texture manager 
 		glActiveTexture( GL_TEXTURE2 );
-		glBindTexture( GL_TEXTURE_2D, textureHandle );
+		glBindTexture( GL_TEXTURE_2D, textureManager_local->Get( layerLabel ) );
 		if ( bufferDirty ) {
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bufferBase );
 			bufferDirty = false;
@@ -85,8 +95,8 @@ public:
 			Resend();
 		}
 
-		// bind the data texture to slot 1
-		glBindImageTexture( 1, textureHandle, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
+		// bind the data texture to slot 1 - this will need massaging eventually to use the new bindsets
+		glBindImageTexture( 1, textureManager_local->Get( layerLabel ), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
 
 		// this is actually very sexy - workgroup is 8x16, same as a glyph's dimensions
 		glDispatchCompute( width, height, 1 );
@@ -245,13 +255,15 @@ public:
 	}
 
 	unsigned int width, height;
-	GLuint textureHandle;
+	textureManager_t * textureManager_local = nullptr;
 	bool bufferDirty;
+	string layerLabel;
 	cChar * bufferBase = nullptr;
 };
 
 class layerManager {
 public:
+	textureManager_t * textureManager_local = nullptr;
 	layerManager () {}
 	void Init ( int w, int h, GLuint shader ) {
 		width = w;
@@ -263,8 +275,8 @@ public:
 
 	// Initialize Layers
 		// timestamp
-		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // timestamp background
-		layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // timestamp foreground
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Background" ) );
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Foreground" ) );
 
 		// hexxDump
 		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
@@ -275,16 +287,6 @@ public:
 
 		// get the compiled shader
 		fontWriteShader = shader;
-
-		// generate the altas texture - only ever needed in the context of layerManager
-		Image_4U fontAtlas( "./src/utils/fonts/fontRenderer/whiteOnClear.png" );
-		fontAtlas.FlipVertical(); // for some reason loading upside down
-
-		// font atlas GPU setup
-		glGenTextures( 1, &atlasTexture );
-		glActiveTexture( GL_TEXTURE1 );
-		glBindTexture( GL_TEXTURE_2D, atlasTexture );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, fontAtlas.Width(), fontAtlas.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, fontAtlas.GetImageDataBasePtr() );
 	}
 
 	void Update ( float seconds ) {
@@ -318,7 +320,8 @@ public:
 	void Draw ( GLuint writeTarget ) {
 		glUseProgram( fontWriteShader );
 		// bind the appropriate textures ( atlas( 0 ) + write target( 2 ) )
-		glBindImageTexture( 0, atlasTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
+		glBindImageTexture( 0, textureManager_local->Get( "Font Atlas" ), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
+		// this will also need to be massaged a little bit, tbd
 		glBindImageTexture( 2, writeTarget, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
 		for ( auto layer : layers ) {
 			layer.Draw(); // data texture( 1 ) is bound internal to this function, since it is unique to each layer
@@ -332,7 +335,6 @@ public:
 	glm::ivec2 basePt;
 
 	GLuint fontWriteShader;
-	GLuint atlasTexture;
 
 	// allocation of the textures happens in Layer()
 	std::vector< Layer > layers;
