@@ -542,6 +542,7 @@ This is a planning document for work on this project and in general, about the t
 - [TU Wien Vulkan](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE0UsR2E_84-twxX6G7ynZNq)
 - [TU Wien Algorithms for Real-Time Rendering Course](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE1-jb7DF313E6MvLcpTLqgH)
 - [TU Wien Rendering](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3e8SQowQ-DjD1eZkBA_Xb9)
+- [CIS 565 GPU Programming and Architecture Fall 2021 University of Pennsylvania](https://cis565-fall-2021.github.io/) / [Videos](https://cis565-fall-2022.github.io/syllabus/)
 
 --------------------------------------------------------------------------------------------------
 
