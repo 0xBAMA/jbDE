@@ -199,17 +199,6 @@ void engineBase::SetupTextureData () {
 	// =======================================================================
 
 	// =======================================================================
-		// image buffer for the trident orientation indicator
-		opts.width = trident.blockDimensions.x * 8;
-		opts.height = trident.blockDimensions.y * 16;
-		opts.minFilter = GL_NEAREST;
-		opts.magFilter = GL_NEAREST;
-
-		textureManager.Add( "Trident Storage", opts );
-		trident.PassInImage( textureManager.Get( "Trident Storage" ) );
-	// =======================================================================
-
-	// =======================================================================
 		// add textures for the text renderer + access to the manager
 		textRenderer.textureManager_local = &textureManager;
 		textRenderer.Init( config.width, config.height, shaders[ "Font Renderer" ] );
@@ -225,6 +214,18 @@ void engineBase::SetupTextureData () {
 
 		// font renderer data textures created internal to each layer via textureManager_local
 		textureManager.Add( "Font Atlas", opts );
+	// =======================================================================
+
+	// =======================================================================
+		// image buffer for the trident orientation indicator
+		opts.width = trident.blockDimensions.x * 8;
+		opts.height = trident.blockDimensions.y * 16;
+		opts.minFilter = GL_NEAREST;
+		opts.magFilter = GL_NEAREST;
+
+		textureManager.Add( "Trident Storage", opts );
+		trident.PassInImage( textureManager.Get( "Trident Storage" ) );
+		trident.basePt = textRenderer.basePt; // location to draw at
 	// =======================================================================
 
 	// =======================================================================
@@ -337,7 +338,6 @@ void engineBase::ShaderCompile () {
 		// trident shaders
 		shaders[ "Trident Raymarch" ] = computeShader( "./src/utils/trident/tridentGenerate.cs.glsl" ).shaderHandle;
 		shaders[ "Trident Blit" ] = computeShader( "./src/utils/trident/tridentCopy.cs.glsl" ).shaderHandle;
-		trident.basePt = textRenderer.basePt; // location to draw at
 		trident.PassInShaders( shaders[ "Trident Raymarch" ], shaders[ "Trident Blit" ] );
 	}
 }
