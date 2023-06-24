@@ -113,10 +113,10 @@ struct textureOptions_t {
 	// x, y, z, layers
 	GLsizei width = 0;
 	GLsizei height = 0;
-	GLsizei depth = 1;
-	GLsizei layers = 1;
+	GLsizei depth = 1;	// will become relevant with 3d textures
+	GLsizei layers = 1;	// not technically correctly handled right now, ignores value
 
-// filtering
+// filtering - default to nearest filtering
 	GLint minFilter = GL_NEAREST;
 	GLint magFilter = GL_NEAREST;
 
@@ -153,7 +153,7 @@ public:
 
 		if ( statsReport ) {
 
-			//report some platform detials:
+			//report some platform details:
 			//	number of available texture units
 			//	maximum dimensions of texture
 			//	...
