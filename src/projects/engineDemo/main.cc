@@ -31,8 +31,6 @@ public:
 				// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
 			// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
 
-			GetWithThousandsSeparator();
-
 		}
 	}
 

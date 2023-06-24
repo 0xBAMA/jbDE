@@ -3,29 +3,17 @@
 #ifndef THOUSANDS_SEPARATOR_H
 #define THOUSANDS_SEPARATOR_H
 
-#include <locale>
-#include <iostream>
-#include <iomanip>
 #include <string>
-#include <sstream>
 
-class comma_numpunct : public std::numpunct< char > {
-protected:
-	virtual char do_thousands_sep () const {
-		return ',';
+inline std::string GetWithThousandsSeparator ( size_t value ) {
+	std::string s = std::to_string( value );
+	int n = s.length() - 3;
+	int end = ( value >= 0 ) ? 0 : 1; // Support for negative numbers
+	while ( n > end ) {
+		s.insert( n, "," );
+		n -= 3;
 	}
-
-	virtual std::string do_grouping () const {
-		return "\03";
-	}
-};
-
-std::string GetWithThousandsSeparator () {
-	std::stringstream out;
-	std::locale commaLocale( std::locale, new comma_numpunct() );
-	out.imbue( commaLocale );
-	out << std::setprecision( 2 ) << std::fixed << 100000000.0f;
-	return out.str();
+	return s;
 }
 
 #endif

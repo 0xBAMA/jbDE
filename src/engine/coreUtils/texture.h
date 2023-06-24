@@ -281,7 +281,7 @@ public:
 
 		cout << "Textures :" << endl;
 		for ( auto& tex : textures ) {
-			cout << "  " << tex.textureHandle << " : " << tex.label << " ( " << tex.textureSize << " bytes )" << endl;
+			cout << "  " << tex.textureHandle << " : " << tex.label << " ( " << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
 		}
 		cout << endl;
 	}
@@ -292,13 +292,6 @@ public:
 		for ( auto& tex : textures )
 			total += tex.textureSize;
 		return total;
-	}
-
-	// return the size_t as a string with commas
-	string TotalSizeWithCommas () {
-		stringstream temp;
-		// todo: https://stackoverflow.com/questions/7276826/format-number-with-commas-in-c
-		return temp.str();
 	}
 
 	// TODO
