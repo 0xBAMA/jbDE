@@ -528,25 +528,14 @@ void APIGeometryContainer::DeferredPass () {
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 	glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 
-	if ( swapp ) {
-		textureManager_local->BindTexForShader( "Framebuffer Depth 1", "depthTexture", shader, 0 );
-		textureManager_local->BindTexForShader( "Framebuffer Depth 0", "depthTexturePrevious", shader, 1 );
-		textureManager_local->BindTexForShader( "Framebuffer Normal 1", "normalTexture", shader, 2 );
-		textureManager_local->BindTexForShader( "Framebuffer Normal 0", "normalTexturePrevious", shader, 3 );
-		textureManager_local->BindTexForShader( "Framebuffer Position 1", "positionTexture", shader, 4 );
-		textureManager_local->BindTexForShader( "Framebuffer Position 0", "positionTexturePrevious", shader, 5 );
-		textureManager_local->BindTexForShader( "Framebuffer Material ID 1", "idTexture", shader, 6 );
-		textureManager_local->BindTexForShader( "Framebuffer Material ID 0", "idTexturePrevious", shader, 7 );
-	} else {
-		textureManager_local->BindTexForShader( "Framebuffer Depth 0", "depthTexture", shader, 0 );
-		textureManager_local->BindTexForShader( "Framebuffer Depth 1", "depthTexturePrevious", shader, 1 );
-		textureManager_local->BindTexForShader( "Framebuffer Normal 0", "normalTexture", shader, 2 );
-		textureManager_local->BindTexForShader( "Framebuffer Normal 1", "normalTexturePrevious", shader, 3 );
-		textureManager_local->BindTexForShader( "Framebuffer Position 0", "positionTexture", shader, 4 );
-		textureManager_local->BindTexForShader( "Framebuffer Position 1", "positionTexturePrevious", shader, 5 );
-		textureManager_local->BindTexForShader( "Framebuffer Material ID 0", "idTexture", shader, 6 );
-		textureManager_local->BindTexForShader( "Framebuffer Material ID 1", "idTexturePrevious", shader, 7 );
-	}
+	textureManager_local->BindTexForShader( string( "Framebuffer Depth " ) + string( swapp ? "1" : "0" ), "depthTexture", shader, 0 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Depth " ) + string( swapp ? "0" : "1" ), "depthTexturePrevious", shader, 1 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Normal " ) + string( swapp ? "1" : "0" ), "normalTexture", shader, 2 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Normal " ) + string( swapp ? "0" : "1" ), "normalTexturePrevious", shader, 3 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Position " ) + string( swapp ? "1" : "0" ), "positionTexture", shader, 4 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Position " ) + string( swapp ? "0" : "1" ), "positionTexturePrevious", shader, 5 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Material ID " ) + string( swapp ? "1" : "0" ), "idTexture", shader, 6 );
+	textureManager_local->BindTexForShader( string( "Framebuffer Material ID " ) + string( swapp ? "0" : "1" ), "idTexturePrevious", shader, 7 );
 
 	// SSAO config
 	glUniform1i( glGetUniformLocation( shader, "AONumSamples" ), config.AONumSamples );
