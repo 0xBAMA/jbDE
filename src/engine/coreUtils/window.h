@@ -60,7 +60,6 @@ public:
 		// basic OpenGL Config
 		// glEnable( GL_LINE_SMOOTH );
 
-		glPointSize( config->pointSize );
 		if ( config->enableDepthTesting ) { glEnable( GL_DEPTH_TEST ); }
 		if ( config->SRGBFramebuffer ) {
 			// seems to make things washed out - will need to readjust some stuff but I think this is better

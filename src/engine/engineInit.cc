@@ -38,7 +38,6 @@ void engineBase::LoadConfig () {
 		config.SDLDisplayModeDump		= j[ "SDLDisplayModeDump" ];
 		config.reportPlatformInfo		= j[ "reportPlatformInfo" ];
 		config.enableDepthTesting		= j[ "depthTesting" ];
-		config.pointSize				= j[ "pointSize" ];
 		config.SRGBFramebuffer			= j[ "SRGBFramebuffer" ];
 		config.clearColor.r				= j[ "clearColor" ][ "r" ];
 		config.clearColor.g				= j[ "clearColor" ][ "g" ];
