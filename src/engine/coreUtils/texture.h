@@ -13,6 +13,7 @@ inline size_t bytesPerPixel ( GLint type ) {
 	case GL_RGBA8:
 	case GL_RGBA8UI:			return 4 * 1; break;
 	case GL_RGBA16F:			return 4 * 2; break;
+	case GL_RGBA32F:			return 4 * 4; break;
 	default:
 		cout << "unknown type texture created" << endl;
 		return 0;
@@ -20,7 +21,7 @@ inline size_t bytesPerPixel ( GLint type ) {
 	}
 }
 
-inline GLenum getFormat( GLint internalFormat ) {
+inline GLenum getFormat ( GLint internalFormat ) {
 	switch ( internalFormat ) { // hitting the commonly used formats
 	case GL_R8:
 	case GL_R16:
@@ -281,7 +282,7 @@ public:
 
 		cout << "Textures :" << endl;
 		for ( auto& tex : textures ) {
-			cout << "  " << tex.textureHandle << " : " << tex.label << " ( " << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
+			cout << "  " << std::setw( 3 ) << std::setfill( '0' ) << tex.textureHandle << " : " << tex.label << " ( " << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
 		}
 		cout << endl;
 	}
