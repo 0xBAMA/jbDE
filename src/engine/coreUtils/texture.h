@@ -4,6 +4,8 @@
 
 #include "../includes.h"
 
+#include <algorithm>
+
 //===== Helper Functions ==============================================================================================
 inline size_t bytesPerPixel ( GLint type ) {
 	// over time we'll accumulate all the ones that I use, these are the current set
@@ -277,8 +279,11 @@ public:
 	}
 
 	void EnumerateTextures () {
-		// give me a report for all the active textures like:
-			// 0 : "Accumulator" ( unit : label ... type/dimensions information? )
+
+		int maxWidth = 0; // maximum width of the bytes value, across all textures
+		for ( auto& tex : textures ) {
+			maxWidth = std::max( maxWidth, int( log10( tex.textureSize ) + 1 ) );
+		}
 
 		const int reportWidth = 48;
 		cout << "  Textures :" << endl;
@@ -289,7 +294,7 @@ public:
 			for ( unsigned int i = 0; i < reportWidth - s.str().size(); i++ ) {
 				cout << ".";
 			}
-			cout << " ( " << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
+			cout << " ( " << std::setw( maxWidth ) << std::setfill( ' ' ) << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
 		}
 		cout << endl;
 	}
