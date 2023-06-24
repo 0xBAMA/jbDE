@@ -44,6 +44,7 @@ void engineBase::BlitToScreen () {
 
 	textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+	glViewport( 0, 0, config.width, config.height );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
 

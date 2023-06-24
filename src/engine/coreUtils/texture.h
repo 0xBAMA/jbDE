@@ -154,28 +154,31 @@ public:
 		if ( statsReport ) {
 
 			// report some platform detials:
-				// number of available texture units
-				// maximum dimensions of texture
-				// ...
+			// 	number of available texture units
+			// 	maximum dimensions of texture
+			// 	...
 
-			// GLint val;
-			// glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
-			// cout << endl << endl << "\t\tMax Texture Size Reports: " << val << endl;
+			GLint val;
+			glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
+			cout << endl << endl << "\t\tMax Texture Size Reports: " << val << endl;
 
-			// glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
-			// cout << "\t\tMax 3D Texture Size Reports: " << val << endl;
+			glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
+			cout << "\t\tMax 3D Texture Size Reports: " << val << endl;
 
-			// glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
-			// cout << "\t\tMax Draw Buffers: " << val << endl;
+			glGetIntegerv( GL_MAX_DRAW_BUFFERS, &val );
+			cout << "\t\tMax Draw Buffers: " << val << endl;
 
-			// glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
-			// cout << "\t\tMax Compute Texture Image Units Reports: " << val << endl;
+			glGetIntegerv( GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &val );
+			cout << "\t\tMax Compute Texture Image Units Reports: " << val << endl;
 
-			// glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
-			// cout << "\t\tMax Combined Texture Image Units: " << val << endl << endl;
+			glGetIntegerv( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val );
+			cout << "\t\tMax Combined Texture Image Units: " << val << endl;
 
-			// // make up for the spacing issues
-			// cout << "\t............................................................. ";
+			glGetIntegerv( GL_MAX_VIEWPORT_DIMS, &val );
+			cout << "\t\tMax Viewport Dims: " << val << endl << endl;
+
+			// make up for the spacing issues
+			cout << "\t............................................................. ";
 
 		}
 
