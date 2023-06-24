@@ -146,17 +146,17 @@ struct texture_t {
 class textureManager_t {
 public:
 	// prevent the use of 4.5 features
-	const bool compatibilityMode = true;
+	const bool compatibilityMode = false;
 	const bool statsReport = false;
 
 	void Init () {
 
 		if ( statsReport ) {
 
-			// report some platform detials:
-			// 	number of available texture units
-			// 	maximum dimensions of texture
-			// 	...
+			//report some platform detials:
+			//	number of available texture units
+			//	maximum dimensions of texture
+			//	...
 
 			GLint val;
 			glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
