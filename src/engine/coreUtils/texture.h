@@ -194,8 +194,16 @@ public:
 		tex.creationOptions = texOptsIn;
 		tex.textureSize = texOptsIn.width * texOptsIn.height * texOptsIn.depth * texOptsIn.layers * bytesPerPixel( texOptsIn.dataType );
 
+		const bool needsMipmap = ( // does this texture need to generate mipmaps
+			texOptsIn.minFilter == GL_NEAREST_MIPMAP_NEAREST ||
+			texOptsIn.minFilter == GL_LINEAR_MIPMAP_NEAREST ||
+			texOptsIn.minFilter == GL_NEAREST_MIPMAP_LINEAR ||
+			texOptsIn.minFilter == GL_LINEAR_MIPMAP_LINEAR
+		);
+
+		// generate the texture
+		glActiveTexture( GL_TEXTURE0 );
 		glGenTextures( 1, &tex.textureHandle );
-		glActiveTexture( GL_TEXTURE0 ); // doesn't matter, really, where it's bound right now
 		glBindTexture( texOptsIn.textureType, tex.textureHandle );
 		switch ( texOptsIn.textureType ) {
 		case GL_TEXTURE_2D:
@@ -204,6 +212,9 @@ public:
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
 			glTexImage2D( GL_TEXTURE_2D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
+			if ( needsMipmap == true ) {
+				glGenerateMipmap( GL_TEXTURE_2D );
+			}
 			break;
 
 		// todo
