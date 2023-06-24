@@ -9,7 +9,7 @@
 		"y":200
 	},
 	"linearFilterDisplayTex":true,
-	"numMsDelayAfterCallback":50,
+	"numMsDelayAfterCallback":30,
 	"OpenGLVersionMajor":4,
 	"OpenGLVersionMinor":5,
 	"OpenGLVerboseInit":false,
@@ -18,7 +18,7 @@
 	"depthTesting":true,
 	"SRGBFramebuffer":true,
 	"pointSize":3.0,
-	"SDL_WINDOW_FULLSCREEN":true,
+	"SDL_WINDOW_FULLSCREEN":false,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,
 	"SDL_WINDOW_RESIZABLE":true,

@@ -389,7 +389,6 @@ void engineBase::ReportStartupStats () {
 		bindSets.size() << " bindsets" << endl;
 
 	const size_t bytes = textureManager.TotalSize();
-
 	cout << "  " << textureManager.count << " textures " << float( bytes ) / float( 1u << 20 ) << "MB ( " << GetWithThousandsSeparator( bytes ) << " bytes )" << endl;
 	cout << T_YELLOW << "  Startup is complete ( total " << TotalTime() << " ms )" << RESET << endl << endl;
 
