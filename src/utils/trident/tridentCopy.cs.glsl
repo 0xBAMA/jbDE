@@ -14,7 +14,7 @@ uvec4 alphaBlend ( uvec4 a, uvec4 b ) {
 	aa.a /= 255.0f;
 
 	result.rgb = aa.rgb * aa.a + bb.rgb * ( 1.0f - aa.a );
-	result.a = 255.0f;
+	result.a = aa.a + bb.a * ( 1.0f - aa.a );
 
 	return uvec4( result );
 }
