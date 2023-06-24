@@ -282,7 +282,7 @@ public:
 
 		int maxWidth = 0; // maximum width of the bytes value, across all textures
 		for ( auto& tex : textures ) {
-			maxWidth = std::max( maxWidth, int( log10( tex.textureSize ) + 1 ) );
+			maxWidth = std::max( maxWidth, int( GetWithThousandsSeparator( tex.textureSize ).length() ) );
 		}
 
 		const int reportWidth = 48;
