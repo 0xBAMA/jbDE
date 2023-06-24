@@ -58,7 +58,7 @@ void main () {
 	vec2 sampleLocation = gl_PointCoord.xy;
 #else
 	vec2 sampleLocation = gl_PointCoord.xy +
-		vec2( normalizedRandomFloat(), normalizedRandomFloat() ) *
+		( vec2( normalizedRandomFloat(), normalizedRandomFloat() ) - vec2( 0.5f ) ) *
 		vec2( 1.0f / ( radius - 1.0f ) );
 #endif
 

@@ -21,8 +21,8 @@ struct binding {
 
 struct bindSet {
 	bindSet(){}
-	bindSet( std::vector<binding> bs ) : bindings( bs ) {}
-	std::vector<binding> bindings;
+	bindSet( std::vector< binding > bs ) : bindings( bs ) {}
+	std::vector< binding > bindings;
 	void apply () {
 		for ( auto b : bindings ) {
 			glBindImageTexture( b.bindPoint, b.texture, 0, GL_TRUE, 0, GL_READ_WRITE, b.type );

@@ -17,7 +17,7 @@
 	"reportPlatformInfo":true,
 	"depthTesting":true,
 	"SRGBFramebuffer":true,
-	"SDL_WINDOW_FULLSCREEN":false,
+	"SDL_WINDOW_FULLSCREEN":true,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,
 	"SDL_WINDOW_RESIZABLE":true,
@@ -44,7 +44,7 @@
 			"Lights":512,
 			"Lights Min Brightness":0.005,
 			"Lights Max Brightness":0.020,
-			"Guys":512,
+			"Guys":0,
 			"ShowLightDebugLocations":false,
 			"worldX":1.6,
 			"worldY":3.2
