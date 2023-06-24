@@ -280,9 +280,16 @@ public:
 		// give me a report for all the active textures like:
 			// 0 : "Accumulator" ( unit : label ... type/dimensions information? )
 
-		cout << "Textures :" << endl;
+		const int reportWidth = 48;
+		cout << "  Textures :" << endl;
 		for ( auto& tex : textures ) {
-			cout << "  " << std::setw( 3 ) << std::setfill( '0' ) << tex.textureHandle << " : " << tex.label << " ( " << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
+			std::stringstream s;
+			s << "    " << std::setw( 3 ) << std::setfill( '0' ) << tex.textureHandle << " : " << tex.label << " ";
+			cout << s.str();
+			for ( unsigned int i = 0; i < reportWidth - s.str().size(); i++ ) {
+				cout << ".";
+			}
+			cout << " ( " << GetWithThousandsSeparator( tex.textureSize ) << " bytes )" << endl;
 		}
 		cout << endl;
 	}
