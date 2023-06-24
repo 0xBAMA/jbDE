@@ -202,7 +202,6 @@ public:
 		);
 
 		// generate the texture
-		glActiveTexture( GL_TEXTURE0 );
 		glGenTextures( 1, &tex.textureHandle );
 		glBindTexture( texOptsIn.textureType, tex.textureHandle );
 		switch ( texOptsIn.textureType ) {
