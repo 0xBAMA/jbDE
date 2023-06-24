@@ -93,6 +93,8 @@ using json = nlohmann::json;
 using XMLDocument = tinyxml2::XMLDocument;
 
 //==== My Stuff ===============================================================
+#include "../utils/thousands.h"
+
 // my fork of Alexander Sannikov's LegitProfiler
 #include "../utils/ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"
 
