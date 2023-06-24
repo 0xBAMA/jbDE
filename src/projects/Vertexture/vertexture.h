@@ -159,6 +159,9 @@ struct APIGeometryContainer {
 	APIGeometryContainer () {}
 	~APIGeometryContainer () {}
 
+	// for keeping track of textures
+	textureManager_t * textureManager_local;
+
 	// init
 	void LoadConfig ();	// read the relevant section of config.json
 	void Initialize ();	// create the shaders, buffers and stuff, random init for points etc
@@ -266,128 +269,145 @@ void APIGeometryContainer::Initialize () {
 	resources.shaders[ "Light Movement" ]	= computeShader( basePath + "lightMove.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere" ]			= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
 
-	// setup the buffers for the rendering process
-	GLuint primaryFramebuffer[ 2 ];
-	glGenFramebuffers( 2, &primaryFramebuffer[ 0 ] );
+	static bool firstTime = true;
+	if ( firstTime ) {
 
-	// create the textures and fill out the framebuffer information
-	GLuint fbDepth[ 2 ], fbNormal[ 2 ], fbPosition[ 2 ], fbMatID[ 2 ];
+		textureOptions_t opts;
 
-	// ==== Depth ===================
-	glGenTextures( 2, &fbDepth[ 0 ] );
+		// ==== Depth ===================
+		opts.dataType = GL_DEPTH_COMPONENT32;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.width = config.width;
+		opts.height = config.height;
+		textureManager_local->Add( "Framebuffer Depth 0", opts );
+		textureManager_local->Add( "Framebuffer Depth 1", opts );
 
-	glActiveTexture( GL_TEXTURE16 );
-	glBindTexture( GL_TEXTURE_2D, fbDepth[ 0 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// ==== Normal ===================
+		opts.dataType = GL_RGBA16F;
+		textureManager_local->Add( "Framebuffer Normal 0", opts );
+		textureManager_local->Add( "Framebuffer Normal 1", opts );
 
-	glActiveTexture( GL_TEXTURE17 );
-	glBindTexture( GL_TEXTURE_2D, fbDepth[ 1 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// ==== Position ===================
+		textureManager_local->Add( "Framebuffer Position 0", opts );
+		textureManager_local->Add( "Framebuffer Position 1", opts );
 
-	// ==== Normal ===================
-	glGenTextures( 2, &fbNormal[ 0 ] );
+		// ==== Material ID ===================
+		opts.dataType = GL_RG32UI;
+		textureManager_local->Add( "Framebuffer Material ID 0", opts );
+		textureManager_local->Add( "Framebuffer Material ID 1", opts );
 
-	glActiveTexture( GL_TEXTURE18 );
-	glBindTexture( GL_TEXTURE_2D, fbNormal[ 0 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
-	glActiveTexture( GL_TEXTURE19 );
-	glBindTexture( GL_TEXTURE_2D, fbNormal[ 1 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// // create the textures and fill out the framebuffer information
+		// GLuint fbDepth[ 2 ], fbNormal[ 2 ], fbPosition[ 2 ], fbMatID[ 2 ];
 
-	// ==== Position ===================
-	glGenTextures( 2, &fbPosition[ 0 ] );
+		// // ==== Depth ===================
+		// glGenTextures( 2, &fbDepth[ 0 ] );
 
-	glActiveTexture( GL_TEXTURE20 );
-	glBindTexture( GL_TEXTURE_2D, fbPosition[ 0 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glActiveTexture( GL_TEXTURE16 );
+		// glBindTexture( GL_TEXTURE_2D, fbDepth[ 0 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
-	glActiveTexture( GL_TEXTURE21 );
-	glBindTexture( GL_TEXTURE_2D, fbPosition[ 1 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glActiveTexture( GL_TEXTURE17 );
+		// glBindTexture( GL_TEXTURE_2D, fbDepth[ 1 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
-	// ==== Material ID ===================
-	glGenTextures( 2, &fbMatID[ 0 ] );
+		// // ==== Normal ===================
+		// glGenTextures( 2, &fbNormal[ 0 ] );
 
-	glActiveTexture( GL_TEXTURE22 );
-	glBindTexture( GL_TEXTURE_2D, fbMatID[ 0 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); // cannot use linear filtering - interpolated values do not mean anything
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glActiveTexture( GL_TEXTURE18 );
+		// glBindTexture( GL_TEXTURE_2D, fbNormal[ 0 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
-	glActiveTexture( GL_TEXTURE23 );
-	glBindTexture( GL_TEXTURE_2D, fbMatID[ 1 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); // cannot use linear filtering - interpolated values do not mean anything
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glActiveTexture( GL_TEXTURE19 );
+		// glBindTexture( GL_TEXTURE_2D, fbNormal[ 1 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
-	// both framebuffers have depth + 3 color attachments
-	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		// // ==== Position ===================
+		// glGenTextures( 2, &fbPosition[ 0 ] );
 
-	// creating the actual framebuffers with their attachments
-	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 0 ] );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth[ 0 ], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbNormal[ 0 ], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbPosition[ 0 ], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, fbMatID[ 0 ], 0 );
-	glDrawBuffers( 3, bufs ); // how many active attachments, and their attachment locations
-	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-		cout << "front framebuffer creation successful" << endl;
+		// glActiveTexture( GL_TEXTURE20 );
+		// glBindTexture( GL_TEXTURE_2D, fbPosition[ 0 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+		// glActiveTexture( GL_TEXTURE21 );
+		// glBindTexture( GL_TEXTURE_2D, fbPosition[ 1 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+		// // ==== Material ID ===================
+		// glGenTextures( 2, &fbMatID[ 0 ] );
+
+		// glActiveTexture( GL_TEXTURE22 );
+		// glBindTexture( GL_TEXTURE_2D, fbMatID[ 0 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); // cannot use linear filtering - interpolated values do not mean anything
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+		// glActiveTexture( GL_TEXTURE23 );
+		// glBindTexture( GL_TEXTURE_2D, fbMatID[ 1 ] );
+		// glTexImage2D( GL_TEXTURE_2D, 0, GL_RG32UI, config.width, config.height, 0, GL_RG_INTEGER, GL_UNSIGNED_INT, NULL );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); // cannot use linear filtering - interpolated values do not mean anything
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+
+		// setup the buffers for the rendering process
+		GLuint primaryFramebuffer[ 2 ];
+		glGenFramebuffers( 2, &primaryFramebuffer[ 0 ] );
+
+		// both framebuffers have depth + 3 color attachments
+		const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
+		// creating the actual framebuffers with their attachments
+		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 0 ] );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Position 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Material ID 0" ), 0 );
+		glDrawBuffers( 3, bufs ); // how many active attachments, and their attachment locations
+		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+			cout << "front framebuffer creation successful" << endl;
+		}
+
+		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 1 ] );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Position 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Material ID 1" ), 0 );
+		glDrawBuffers( 3, bufs );
+		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+			cout << "back framebuffer creation successful" << endl;
+		}
+
+		resources.FBOs[ "Primary0" ] = primaryFramebuffer[ 0 ];
+		resources.FBOs[ "Primary1" ] = primaryFramebuffer[ 1 ];
 	}
-
-	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 1 ] );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth[ 1 ], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbNormal[ 1 ], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbPosition[ 1 ], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, fbMatID[ 1 ], 0 );
-	glDrawBuffers( 3, bufs );
-	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-		cout << "back framebuffer creation successful" << endl;
-	}
-
-	// make sure they're accessible from above
-	resources.textures[ "fbDepth0" ] = fbDepth[ 0 ];
-	resources.textures[ "fbDepth1" ] = fbDepth[ 1 ];
-
-	resources.textures[ "fbNormal0" ] = fbNormal[ 0 ];
-	resources.textures[ "fbNormal1" ] = fbNormal[ 1 ];
-
-	resources.textures[ "fbPosition0" ] = fbPosition[ 0 ];
-	resources.textures[ "fbPosition1" ] = fbPosition[ 1 ];
-
-	resources.textures[ "fbMatID1" ] = fbMatID[ 1 ];
-	resources.textures[ "fbMatID0" ] = fbMatID[ 0 ];
-
-	resources.FBOs[ "Primary0" ] = primaryFramebuffer[ 0 ];
-	resources.FBOs[ "Primary1" ] = primaryFramebuffer[ 1 ];
 
 // generating the geometry
 
@@ -579,35 +599,58 @@ void APIGeometryContainer::Shadow () {
 }
 
 void APIGeometryContainer::DeferredPass () {
-	glUseProgram( resources.shaders[ "Deferred" ] );
+	const GLuint shader = resources.shaders[ "Deferred" ];
+	glUseProgram( shader );
 
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
-	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Deferred" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
+	glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 
-	// from glActiveTexture... this sucks, not sure what the correct way is
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexture" ), swapp ? 17 : 16 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), swapp ? 19 : 18 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), swapp ? 21 : 20 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexture" ), swapp ? 23 : 22 );
+
+	// binding stuff will need to be rewritten
+
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexture" ), swapp ? 17 : 16 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), swapp ? 19 : 18 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), swapp ? 21 : 20 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexture" ), swapp ? 23 : 22 );
 
 	// the previous frame's information
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexturePrevious" ), swapp ? 16 : 17 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexturePrevious" ), swapp ? 18 : 19 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexturePrevious" ), swapp ? 20 : 21 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexturePrevious" ), swapp ? 22 : 23 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexturePrevious" ), swapp ? 16 : 17 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexturePrevious" ), swapp ? 18 : 19 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexturePrevious" ), swapp ? 20 : 21 );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "idTexturePrevious" ), swapp ? 22 : 23 );
+
+	if ( swapp ) {
+		textureManager_local->BindTexForShader( "Framebuffer Depth 1", "depthTexture", shader, 0 );
+		textureManager_local->BindTexForShader( "Framebuffer Depth 0", "depthTexturePrevious", shader, 1 );
+		textureManager_local->BindTexForShader( "Framebuffer Normal 1", "normalTexture", shader, 2 );
+		textureManager_local->BindTexForShader( "Framebuffer Normal 0", "normalTexturePrevious", shader, 3 );
+		textureManager_local->BindTexForShader( "Framebuffer Position 1", "positionTexture", shader, 4 );
+		textureManager_local->BindTexForShader( "Framebuffer Position 0", "positionTexturePrevious", shader, 5 );
+		textureManager_local->BindTexForShader( "Framebuffer Material ID 1", "idTexture", shader, 6 );
+		textureManager_local->BindTexForShader( "Framebuffer Material ID 0", "idTexturePrevious", shader, 7 );
+	} else {
+		textureManager_local->BindTexForShader( "Framebuffer Depth 0", "depthTexture", shader, 0 );
+		textureManager_local->BindTexForShader( "Framebuffer Depth 1", "depthTexturePrevious", shader, 1 );
+		textureManager_local->BindTexForShader( "Framebuffer Normal 0", "normalTexture", shader, 2 );
+		textureManager_local->BindTexForShader( "Framebuffer Normal 1", "normalTexturePrevious", shader, 3 );
+		textureManager_local->BindTexForShader( "Framebuffer Position 0", "positionTexture", shader, 4 );
+		textureManager_local->BindTexForShader( "Framebuffer Position 1", "positionTexturePrevious", shader, 5 );
+		textureManager_local->BindTexForShader( "Framebuffer Material ID 0", "idTexture", shader, 6 );
+		textureManager_local->BindTexForShader( "Framebuffer Material ID 1", "idTexturePrevious", shader, 7 );
+	}
 
 	// SSAO config
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "AONumSamples" ), config.AONumSamples );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOIntensity" ), config.AOIntensity );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOScale" ), config.AOScale );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOBias" ), config.AOBias );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOSampleRadius" ), config.AOSampleRadius );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Deferred" ], "AOMaxDistance" ), config.AOMaxDistance );
+	glUniform1i( glGetUniformLocation( shader, "AONumSamples" ), config.AONumSamples );
+	glUniform1f( glGetUniformLocation( shader, "AOIntensity" ), config.AOIntensity );
+	glUniform1f( glGetUniformLocation( shader, "AOScale" ), config.AOScale );
+	glUniform1f( glGetUniformLocation( shader, "AOBias" ), config.AOBias );
+	glUniform1f( glGetUniformLocation( shader, "AOSampleRadius" ), config.AOSampleRadius );
+	glUniform1f( glGetUniformLocation( shader, "AOMaxDistance" ), config.AOMaxDistance );
 
 	// Lights, rng, resolution
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "lightCount" ), config.Lights );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "inSeed" ), rngs.shaderWangSeed() );
-	glUniform2f( glGetUniformLocation( resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
+	glUniform1i( glGetUniformLocation( shader, "lightCount" ), config.Lights );
+	glUniform1i( glGetUniformLocation( shader, "inSeed" ), rngs.shaderWangSeed() );
+	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 
 	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

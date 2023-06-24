@@ -25,6 +25,13 @@ inline size_t bytesPerPixel ( GLint type ) {
 
 inline GLenum getFormat ( GLint internalFormat ) {
 	switch ( internalFormat ) { // hitting the commonly used formats
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_DEPTH_COMPONENT24:
+	case GL_DEPTH_COMPONENT32:
+		return GL_DEPTH_COMPONENT;
+		break;
+
 	case GL_R8:
 	case GL_R16:
 	case GL_R16F:
