@@ -82,21 +82,21 @@ void engineBase::DisplaySetup () {
 		// CPU information
 		cout << T_BLUE << "    CPU Info :" << RESET << newline;
 
-		{
-			// this kind of sucks, tbd
-			std::cout << '\n';
-			std::cout << T_RED << "      Vendor" << RESET << " : " << T_CYAN << CPUInfo.GetVendorID() << RESET << '\n';
-			std::cout << T_RED << "      Highest supported CPUID subfunction " << RESET << ": " << T_CYAN << CPUInfo.GetHighestFunction() << RESET << '\n';
+		// {
+		// 	// this kind of sucks, tbd
+		// 	std::cout << '\n';
+		// 	std::cout << T_RED << "      Vendor" << RESET << " : " << T_CYAN << CPUInfo.GetVendorID() << RESET << '\n';
+		// 	std::cout << T_RED << "      Highest supported CPUID subfunction " << RESET << ": " << T_CYAN << CPUInfo.GetHighestFunction() << RESET << '\n';
 
-			CPUInfo_t::X86CPUInfo CPUInfo_data;
-			CPUInfo.GetCPUInfo( CPUInfo_data );
-			std::cout << T_RED << "      Stepping" << RESET << " : " << T_CYAN << CPUInfo_data.Stepping << RESET << '\n';
-			std::cout << T_RED << "      Model" << RESET << " : " << T_CYAN << CPUInfo_data.Model << RESET << '\n';
-			std::cout << T_RED << "      Family" << RESET << " : " << T_CYAN << CPUInfo_data.Family << RESET << '\n';
-			std::cout << T_RED << "      Type" << RESET << " : " << T_CYAN << CPUInfo_data.Type << RESET << '\n';
-			std::cout << T_RED << "      Extended Model" << RESET << " : " << T_CYAN << CPUInfo_data.ExtendedModel << RESET << '\n';
-			std::cout << T_RED << "      Extended Family" << RESET << " : " << T_CYAN << CPUInfo_data.ExtendedFamily << RESET << "\n\n";
-		}
+		// 	CPUInfo_t::X86CPUInfo CPUInfo_data;
+		// 	CPUInfo.GetCPUInfo( CPUInfo_data );
+		// 	std::cout << T_RED << "      Stepping" << RESET << " : " << T_CYAN << CPUInfo_data.Stepping << RESET << '\n';
+		// 	std::cout << T_RED << "      Model" << RESET << " : " << T_CYAN << CPUInfo_data.Model << RESET << '\n';
+		// 	std::cout << T_RED << "      Family" << RESET << " : " << T_CYAN << CPUInfo_data.Family << RESET << '\n';
+		// 	std::cout << T_RED << "      Type" << RESET << " : " << T_CYAN << CPUInfo_data.Type << RESET << '\n';
+		// 	std::cout << T_RED << "      Extended Model" << RESET << " : " << T_CYAN << CPUInfo_data.ExtendedModel << RESET << '\n';
+		// 	std::cout << T_RED << "      Extended Family" << RESET << " : " << T_CYAN << CPUInfo_data.ExtendedFamily << RESET << "\n\n";
+		// }
 
 		cout << T_RED << "      Logical Cores : " << T_CYAN << SDL_GetCPUCount() << newline;
 		cout << T_RED << "      System RAM : " << T_CYAN << SDL_GetSystemRAM() << " MB" << newline;
