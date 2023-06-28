@@ -83,18 +83,19 @@ void engineBase::DisplaySetup () {
 		cout << T_BLUE << "    CPU Info :" << RESET << newline;
 
 		{
+			// this kind of sucks, tbd
 			std::cout << '\n';
-			std::cout << "Vendor.............................: " << CPUInfo.GetVendorID() << '\n';
-			std::cout << "Highest supported CPUID subfunction: " << CPUInfo.GetHighestFunction() << '\n';
+			std::cout << T_RED << "      Vendor" << RESET << " : " << T_CYAN << CPUInfo.GetVendorID() << RESET << '\n';
+			std::cout << T_RED << "      Highest supported CPUID subfunction " << RESET << ": " << T_CYAN << CPUInfo.GetHighestFunction() << RESET << '\n';
 
 			CPUInfo_t::X86CPUInfo CPUInfo_data;
 			CPUInfo.GetCPUInfo( CPUInfo_data );
-			std::cout << "Stepping...........................: " << CPUInfo_data.Stepping << '\n';
-			std::cout << "Model..............................: " << CPUInfo_data.Model << '\n';
-			std::cout << "Family.............................: " << CPUInfo_data.Family << '\n';
-			std::cout << "Type...............................: " << CPUInfo_data.Type << '\n';
-			std::cout << "Extended Model.....................: " << CPUInfo_data.ExtendedModel << '\n';
-			std::cout << "Extended Family....................: " << CPUInfo_data.ExtendedFamily << "\n\n";
+			std::cout << T_RED << "      Stepping" << RESET << " : " << T_CYAN << CPUInfo_data.Stepping << RESET << '\n';
+			std::cout << T_RED << "      Model" << RESET << " : " << T_CYAN << CPUInfo_data.Model << RESET << '\n';
+			std::cout << T_RED << "      Family" << RESET << " : " << T_CYAN << CPUInfo_data.Family << RESET << '\n';
+			std::cout << T_RED << "      Type" << RESET << " : " << T_CYAN << CPUInfo_data.Type << RESET << '\n';
+			std::cout << T_RED << "      Extended Model" << RESET << " : " << T_CYAN << CPUInfo_data.ExtendedModel << RESET << '\n';
+			std::cout << T_RED << "      Extended Family" << RESET << " : " << T_CYAN << CPUInfo_data.ExtendedFamily << RESET << "\n\n";
 		}
 
 		cout << T_RED << "      Logical Cores : " << T_CYAN << SDL_GetCPUCount() << newline;
