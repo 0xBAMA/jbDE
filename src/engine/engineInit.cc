@@ -76,15 +76,29 @@ void engineBase::DisplaySetup () {
 
 	// some info on your current platform
 	if ( config.reportPlatformInfo ) {
+		// report current platform
+		cout << T_BLUE << "    Platform : " << T_CYAN << SDL_GetPlatform() << RESET << newline << newline;
+
+		// CPU information
+		cout << T_BLUE << "    CPU Info :" << RESET << newline;
+
+		cout << T_RED << "      Logical Cores : " << T_CYAN << SDL_GetCPUCount() << newline;
+		cout << T_RED << "      System RAM : " << T_CYAN << SDL_GetSystemRAM() << " MB" << newline;
+		// cout << T_RED << "      Vendor : " << T_CYAN << vendor << RESET << newline;
+		cout << newline;
+
+		// GPU information from OpenGL
 		const GLubyte *vendor = glGetString( GL_VENDOR );
 		const GLubyte *renderer = glGetString( GL_RENDERER );
 		const GLubyte *version = glGetString( GL_VERSION );
 		const GLubyte *glslVersion = glGetString( GL_SHADING_LANGUAGE_VERSION );
-		cout << T_BLUE << "    Platform Info :" << RESET << newline;
+		cout << T_BLUE << "    GPU Info :" << RESET << newline;
 		cout << T_RED << "      Vendor : " << T_CYAN << vendor << RESET << newline;
 		cout << T_RED << "      Renderer : " << T_CYAN << renderer << RESET << newline;
 		cout << T_RED << "      OpenGL Version Supported : " << T_CYAN << version << RESET << newline;
 		cout << T_RED << "      GLSL Version Supported : " << T_CYAN << glslVersion << RESET << newline << newline;
+
+		// https://wiki.libsdl.org/SDL2/SDL_GetNumVideoDrivers
 	}
 
 	if ( config.OpenGLVerboseInit ) {
