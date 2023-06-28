@@ -114,6 +114,7 @@ void engineBase::DisplaySetup () {
 		cout << T_RED << "      GLSL Version Supported : " << T_CYAN << glslVersion << RESET << newline << newline;
 
 		// https://wiki.libsdl.org/SDL2/SDL_GetNumVideoDrivers
+		// https://wiki.libsdl.org/SDL2/SDL_GetCurrentVideoDriver
 	}
 
 	if ( config.OpenGLVerboseInit ) {
@@ -127,32 +128,29 @@ void engineBase::DisplaySetup () {
 	}
 
 	if ( config.SDLDisplayModeDump ) {
-		static int display_in_use = 0; /* Only using first display */
-
+		// https://wiki.libsdl.org/SDL2/SDL_GetDesktopDisplayMode
+		static int display_in_use = 0;
 		int i, display_mode_count;
 		SDL_DisplayMode mode;
 		Uint32 f;
 
-		SDL_Log("SDL_GetNumVideoDisplays(): %i", SDL_GetNumVideoDisplays());
+		SDL_Log( "SDL_GetNumVideoDisplays(): %i", SDL_GetNumVideoDisplays() );
 
-		display_mode_count = SDL_GetNumDisplayModes(display_in_use);
-		if (display_mode_count < 1) {
-			SDL_Log("SDL_GetNumDisplayModes failed: %s", SDL_GetError());
-			// return 1;
+		display_mode_count = SDL_GetNumDisplayModes( display_in_use );
+		if ( display_mode_count < 1 ) {
+			SDL_Log( "SDL_GetNumDisplayModes failed: %s", SDL_GetError() );
 		}
-		SDL_Log("SDL_GetNumDisplayModes: %i", display_mode_count);
+		SDL_Log( "SDL_GetNumDisplayModes: %i", display_mode_count );
 
-		for (i = 0; i < display_mode_count; ++i) {
-			if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0) {
-			SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
-			// return 1;
-		}
-		f = mode.format;
-
-		SDL_Log("Mode %i\tbpp %i\t%s\t%i x %i",
-			i, SDL_BITSPERPIXEL(f),
-			SDL_GetPixelFormatName(f),
-			mode.w, mode.h);
+		for ( i = 0; i < display_mode_count; ++i ) {
+			if ( SDL_GetDisplayMode( display_in_use, i, &mode ) != 0 ) {
+				SDL_Log( "SDL_GetDisplayMode failed: %s", SDL_GetError() );
+			}
+			f = mode.format;
+			SDL_Log( "Mode %i\tbpp %i\t%s\t%i x %i",
+				i, SDL_BITSPERPIXEL( f ),
+				SDL_GetPixelFormatName( f ),
+				mode.w, mode.h );
 		}
 	}
 }
