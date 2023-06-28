@@ -41,7 +41,7 @@
 		"Vertexture":{
 			"showTrident":false,
 			"showTiming":false,
-			"Lights":512,
+			"Lights":64,
 			"Lights Min Brightness":0.005,
 			"Lights Max Brightness":0.020,
 			"Guys":0,
