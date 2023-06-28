@@ -94,6 +94,7 @@ using XMLDocument = tinyxml2::XMLDocument;
 
 //==== My Stuff ===============================================================
 #include "../utils/thousands.h"
+#include "../utils/CPU_info.h"
 
 // my fork of Alexander Sannikov's LegitProfiler
 #include "../utils/ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"

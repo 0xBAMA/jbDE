@@ -83,27 +83,18 @@ void engineBase::DisplaySetup () {
 		cout << T_BLUE << "    CPU Info :" << RESET << newline;
 
 		{
-			// // from https://stackoverflow.com/questions/850774/how-to-determine-the-hardware-cpu-and-ram-on-a-machine
-			// #include <cpuid.h>
+			std::cout << '\n';
+			std::cout << "Vendor.............................: " << CPUInfo.GetVendorID() << '\n';
+			std::cout << "Highest supported CPUID subfunction: " << CPUInfo.GetHighestFunction() << '\n';
 
-			// char CPUBrandString[ 0x40 ];
-			// unsigned int CPUInfo[ 4 ] = { 0, 0, 0, 0 };
-
-			// __cpuid( 0x80000000, CPUInfo[ 0 ], CPUInfo[ 1 ], CPUInfo[ 2 ], CPUInfo[ 3 ] );
-
-			// unsigned int nExIds = CPUInfo[ 0 ];
-			// memset( CPUBrandString, 0, sizeof( CPUBrandString ) );
-			// for ( unsigned int i = 0x80000000; i <= nExIds; ++i ) {
-			// 	__cpuid( i, CPUInfo[ 0 ], CPUInfo[ 1 ], CPUInfo[ 2 ], CPUInfo[ 3 ] );
-
-			// 	if ( i == 0x80000002 )
-			// 		memcpy( CPUBrandString, CPUInfo, sizeof( CPUInfo ) );
-			// 	else if ( i == 0x80000003 )
-			// 		memcpy( CPUBrandString + 16, CPUInfo, sizeof( CPUInfo ) );
-			// 	else if ( i == 0x80000004 )
-			// 		memcpy( CPUBrandString + 32, CPUInfo, sizeof( CPUInfo ) );
-			// }
-			// cout << "CPU Type: " << CPUBrandString << endl;
+			CPUInfo_t::X86CPUInfo CPUInfo_data;
+			CPUInfo.GetCPUInfo( CPUInfo_data );
+			std::cout << "Stepping...........................: " << CPUInfo_data.Stepping << '\n';
+			std::cout << "Model..............................: " << CPUInfo_data.Model << '\n';
+			std::cout << "Family.............................: " << CPUInfo_data.Family << '\n';
+			std::cout << "Type...............................: " << CPUInfo_data.Type << '\n';
+			std::cout << "Extended Model.....................: " << CPUInfo_data.ExtendedModel << '\n';
+			std::cout << "Extended Family....................: " << CPUInfo_data.ExtendedFamily << "\n\n";
 		}
 
 		cout << T_RED << "      Logical Cores : " << T_CYAN << SDL_GetCPUCount() << newline;
