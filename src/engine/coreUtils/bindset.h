@@ -12,6 +12,12 @@ need to handle the binding of images to the binding points for each shader
 			to know that it's the same name shared both sides of the bus, or
 			something like that
 ==============================================================================*/
+inline GLuint GetCurrentProgram () {
+	GLint val;
+	glGetIntegerv( GL_CURRENT_PROGRAM, &val );
+	return val;
+}
+
 struct binding {
 	binding( int bp, GLuint te, GLenum ty ) : bindPoint( bp ), texture( te ), type( ty ) {}
 	int bindPoint;
