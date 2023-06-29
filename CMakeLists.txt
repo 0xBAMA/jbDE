@@ -209,6 +209,35 @@ target_link_libraries( Physarum
 )
 
 # =================================================================================================
+# ProjectedFramebuffers
+# =================================================================================================
+add_executable( ProjectedFramebuffers
+	src/projects/ProjectedFramebuffers/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( ProjectedFramebuffers
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
+
+# =================================================================================================
 # Siren
 # =================================================================================================
 add_executable( Siren

@@ -7,15 +7,16 @@ cd build
 
 # engine stuff
 # time make -j17 TracyClient
-time make -j17 engineDemo		# super basic demo
+# time make -j17 engineDemo				# super basic demo
 
 # child apps
 # time make -j17 AirplaneMode2
 # time make -j17 FontGame
 # time make -j17 Physarum
 # time make -j17 Siren
-# time make -j17 SoftBodies		# soft body simulation
-time make -j17 Vertexture		# point sprite sphere impostors
+# time make -j17 SoftBodies				# soft body simulation
+# time make -j17 Vertexture				# point sprite sphere impostors
+time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
 # time make -j17 Voraldo14
 # time make -j17 VoxelSpace
 
