@@ -171,7 +171,8 @@ void engineBase::DisplaySetup () {
 void engineBase::SetupVertexData () {
 	ZoneScoped;
 
-	{	Block Start( "Setting Up Vertex Data" );
+	{
+		Block Start( "Setting Up Vertex Data" );
 
 		// OpenGL core spec requires a VAO bound when calling glDrawArrays
 		glGenVertexArrays( 1, &displayVAO );
@@ -189,7 +190,8 @@ void engineBase::SetupVertexData () {
 void engineBase::SetupTextureData () {
 	ZoneScoped;
 
-	{	Block Start( "Setting Up Textures" );
+	{
+		Block Start( "Setting Up Textures" );
 
 		textureManager.Init();
 		textureOptions_t opts;
@@ -273,7 +275,8 @@ void engineBase::SetupTextureData () {
 
 	}
 
-	{	Block Start( "Setting Up Bindsets" );
+	{
+		Block Start( "Setting Up Bindsets" );
 
 		// this will need some work
 
