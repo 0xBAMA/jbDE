@@ -11,7 +11,8 @@ void engineBase::StartMessage () {
 void engineBase::LoadConfig () {
 	ZoneScoped;
 
-	{	Block Start( "Configuring Application" );
+	{
+		Block Start( "Configuring Application" );
 
 		json j;
 		// load the config json, populate config struct - this will probably have more data, eventually
@@ -60,9 +61,20 @@ void engineBase::CreateWindowAndContext () {
 
 	window.config = &config;
 
-	{ Block Start( "Initializing SDL2" ); window.PreInit(); }
-	{ Block Start( "Creating Window" ); window.Init(); }
-	{ Block Start( "Setting Up OpenGL Context" ); window.OpenGLSetup(); }
+	{
+		Block Start( "Initializing SDL2" );
+		window.PreInit();
+	}
+
+	{
+		Block Start( "Creating Window" );
+		window.Init();
+	}
+
+	{
+		Block Start( "Setting Up OpenGL Context" );
+		window.OpenGLSetup();
+	}
 
 	// setup OpenGL debug callback with configured delay
 	numMsDelayAfterCallback = config.numMsDelayAfterCallback;
@@ -284,16 +296,19 @@ void engineBase::SetupTextureData () {
 void engineBase::LoadData () {
 	ZoneScoped;
 
-	{ Block Start( "Loading Palettes" );
+	{
+		Block Start( "Loading Palettes" );
 		LoadPalettes( paletteList );
 		palette::PopulateLocalList( paletteList );
 	}
 
-	{ Block Start( "Loading Font Glyphs" );
+	{
+		Block Start( "Loading Font Glyphs" );
 		LoadGlyphs( glyphList );
 	}
 
-	{ Block Start( "Load Wordlists" );
+	{
+		Block Start( "Load Wordlists" );
 		LoadBadWords( badWords );
 		LoadColorWords( colorWords );
 		/* plantWords, animalWords, etc? tbd */
@@ -303,15 +318,16 @@ void engineBase::LoadData () {
 void engineBase::ShaderCompile () {
 	ZoneScoped;
 
-	{	Block Start( "Compiling Shaders" );
+	{
+		Block Start( "Compiling Shaders" );
 
-		const string base( "./src/engine/shaders/" );
+		const string basePath( "./src/engine/shaders/" );
 
 		// tonemapping shader - this will need some refinement as time goes on
-		shaders[ "Tonemap" ] = computeShader( base + "tonemap.cs.glsl" ).shaderHandle;
+		shaders[ "Tonemap" ] = computeShader( basePath + "tonemap.cs.glsl" ).shaderHandle;
 
 		// create the shader for the triangles to cover the screen
-		shaders[ "Display" ] = regularShader( base + "blit.vs.glsl", base + "blit.fs.glsl" ).shaderHandle;
+		shaders[ "Display" ] = regularShader( basePath + "blit.vs.glsl", basePath + "blit.fs.glsl" ).shaderHandle;
 
 		// initialize the text renderer
 		shaders[ "Font Renderer" ] = computeShader( "src/utils/fonts/fontRenderer/font.cs.glsl" ).shaderHandle;
@@ -326,7 +342,8 @@ void engineBase::ShaderCompile () {
 void engineBase::ImguiSetup () {
 	ZoneScoped;
 
-	{	Block Start( "Configuring dearImGUI" );
+	{
+		Block Start( "Configuring dearImGUI" );
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -400,8 +417,8 @@ void engineBase::ImguiSetup () {
 void engineBase::InitialClear () {
 	ZoneScoped;
 
-	{	Block Start( "Clear Buffer" );
-
+	{
+		Block Start( "Clear Buffer" );
 		glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		window.Swap();

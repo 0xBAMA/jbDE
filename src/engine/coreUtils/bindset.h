@@ -26,8 +26,8 @@ struct binding {
 };
 
 struct bindSet {
-	bindSet(){}
-	bindSet( std::vector< binding > bs ) : bindings( bs ) {}
+	bindSet () {}
+	bindSet ( std::vector< binding > bs ) : bindings( bs ) {}
 	std::vector< binding > bindings;
 	void apply () {
 		for ( auto b : bindings ) {
