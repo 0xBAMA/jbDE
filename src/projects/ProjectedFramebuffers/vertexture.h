@@ -281,30 +281,34 @@ void APIGeometryContainer::Initialize () {
 		opts.height = config.height;
 		textureManager_local->Add( "Framebuffer Depth 0", opts );
 		textureManager_local->Add( "Framebuffer Depth 1", opts );
+		textureManager_local->Add( "Framebuffer Depth 2", opts );
 		// ====================================
 
 		// ==== Normal =======================
 		opts.dataType = GL_RGBA16F;
 		textureManager_local->Add( "Framebuffer Normal 0", opts );
 		textureManager_local->Add( "Framebuffer Normal 1", opts );
+		textureManager_local->Add( "Framebuffer Normal 2", opts );
 		// ====================================
 
 		// ==== Position ======================
 		textureManager_local->Add( "Framebuffer Position 0", opts );
 		textureManager_local->Add( "Framebuffer Position 1", opts );
+		textureManager_local->Add( "Framebuffer Position 2", opts );
 		// ====================================
 
 		// ==== Material ID ===================
 		opts.dataType = GL_RG32UI;
 		textureManager_local->Add( "Framebuffer Material ID 0", opts );
 		textureManager_local->Add( "Framebuffer Material ID 1", opts );
+		textureManager_local->Add( "Framebuffer Material ID 2", opts );
 		// ====================================
 
 		// setup the buffers for the rendering process
-		GLuint primaryFramebuffer[ 2 ];
-		glGenFramebuffers( 2, &primaryFramebuffer[ 0 ] );
+		GLuint primaryFramebuffer[ 3 ];
+		glGenFramebuffers( 3, &primaryFramebuffer[ 0 ] );
 
-		// both framebuffers have depth + 3 color attachments
+		// all framebuffers have depth + 3 color attachments
 		const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 
 		// creating the actual framebuffers with their attachments
@@ -328,8 +332,19 @@ void APIGeometryContainer::Initialize () {
 			cout << "back framebuffer creation successful" << endl;
 		}
 
+		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 2 ] );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 2" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 2" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Position 2" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Material ID 2" ), 0 );
+		glDrawBuffers( 3, bufs );
+		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+			cout << "geometry framebuffer creation successful" << endl;
+		}
+
 		resources.FBOs[ "Primary0" ] = primaryFramebuffer[ 0 ];
 		resources.FBOs[ "Primary1" ] = primaryFramebuffer[ 1 ];
+		resources.FBOs[ "Primary2" ] = primaryFramebuffer[ 2 ];
 	}
 
 // generating the geometry
