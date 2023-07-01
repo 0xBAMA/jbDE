@@ -281,27 +281,31 @@ void APIGeometryContainer::Initialize () {
 		opts.height = config.height;
 		textureManager_local->Add( "Framebuffer Depth 0", opts );
 		textureManager_local->Add( "Framebuffer Depth 1", opts );
-		textureManager_local->Add( "Framebuffer Depth 2", opts );
+		textureManager_local->Add( "Geometry Framebuffer Depth", opts );
 		// ====================================
 
 		// ==== Normal =======================
 		opts.dataType = GL_RGBA16F;
 		textureManager_local->Add( "Framebuffer Normal 0", opts );
 		textureManager_local->Add( "Framebuffer Normal 1", opts );
-		textureManager_local->Add( "Framebuffer Normal 2", opts );
+		textureManager_local->Add( "Geometry Framebuffer Normal", opts );
 		// ====================================
 
 		// ==== Position ======================
 		textureManager_local->Add( "Framebuffer Position 0", opts );
 		textureManager_local->Add( "Framebuffer Position 1", opts );
-		textureManager_local->Add( "Framebuffer Position 2", opts );
+		textureManager_local->Add( "Geometry Framebuffer Position", opts );
 		// ====================================
 
 		// ==== Material ID ===================
 		opts.dataType = GL_RG32UI;
 		textureManager_local->Add( "Framebuffer Material ID 0", opts );
 		textureManager_local->Add( "Framebuffer Material ID 1", opts );
-		textureManager_local->Add( "Framebuffer Material ID 2", opts );
+		// ====================================
+
+		// ==== Albedo ========================
+		opts.dataType = GL_RGB8;
+		textureManager_local->Add( "Geometry Framebuffer Albedo", opts );
 		// ====================================
 
 		// setup the buffers for the rendering process
@@ -340,10 +344,10 @@ void APIGeometryContainer::Initialize () {
 		// also - maybe do this at a lower resolution - I think this makes sense, so that point density doesn't get too too high
 
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 2 ] );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 2" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 2" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Position 2" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Material ID 2" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Geometry Framebuffer Depth" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Geometry Framebuffer Normal" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Geometry Framebuffer Position" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Geometry Framebuffer Albedo" ), 0 );
 		glDrawBuffers( 3, bufs );
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 			cout << "geometry framebuffer creation successful" << endl;
