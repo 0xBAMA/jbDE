@@ -141,15 +141,12 @@ inline void subdivide (
 Consolidating the resources for the API geometry
 ========================================================================================================================== */
 
-// points consist of 8 floats... as it is said, so it shall be done
-	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/floatBitsToInt.xhtml -> can potentially pass int/uint values in
-		// ( free up a value by replacing color with 1d palette offset + uint palette index + pass a 1d texture array with those palettes ( 1 float+index -> 3 floats ) )
-
-// but for now they are used like this:
-	// { pos.x, pos.y, pos.z,  diameter }
-	// {   red, green,  blue, roughness }
-
 struct point_t {
+	// I think this should be extended:
+		// color
+		// position
+		// ...
+
 	vec4 position;
 	vec4 color;
 };
@@ -165,11 +162,9 @@ struct APIGeometryContainer {
 	// init
 	void LoadConfig ();	// read the relevant section of config.json
 	void Initialize ();	// create the shaders, buffers and stuff, random init for points etc
-	void InitReport ();	// tell how many points are being used, etc
 	void Reset () {
 		LoadConfig();
 		Initialize();
-		InitReport();
 	}
 
 	// shutdown
@@ -189,11 +184,7 @@ struct APIGeometryContainer {
 	openGLResources resources;
 	rnGenerators rngs;
 
-	// point generator functions
-	void TentacleOld ( std::vector< point_t > &points, float stepSize, float decayState,
-		float decayRate, float radius, float branchChance, vec4 currentColor,
-		vec3 currentPoint, vec3 heading, float segmentLength, vec3 bases[ 3 ] );
-
+	// toggles active framebuffer
 	bool swapp = false;
 
 };
@@ -203,11 +194,7 @@ void APIGeometryContainer::LoadConfig () {
 	json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 
 	// this informs the behavior of Initialize()
-	config.Guys			= j[ "app" ][ "Vertexture" ][ "Guys" ];
 	config.Lights		= j[ "app" ][ "Vertexture" ][ "Lights" ];
-	config.showLightDebugLocations = j[ "app" ][ "Vertexture" ][ "ShowLightDebugLocations" ];
-
-		// todo: write out the rest of the parameterization ( point sizes, counts, other distributions... )
 
 	// other program state
 	config.showTrident	= j[ "app" ][ "Vertexture" ][ "showTrident" ];
@@ -224,35 +211,6 @@ void APIGeometryContainer::LoadConfig () {
 
 	// reset amount of time since last reset
 	config.timeVal = 0.0f;
-}
-
-// Tentacle support rng
-rng n( 0.0f, 1.0f );
-rng anglePick( -0.1618f, 0.1618f );
-rngi axisPick( 0, 2 );
-
-void APIGeometryContainer::TentacleOld ( std::vector< point_t > &points, float stepSize, float decayState,
-	float decayRate, float radius, float branchChance, vec4 currentColor,
-	vec3 currentPoint, vec3 heading, float segmentLength, vec3 bases[ 3 ] ) {
-	for ( float t = 0.0f; t < segmentLength; t += stepSize ) {
-
-		currentPoint += stepSize * heading;
-
-		point_t current;
-
-		current.color = currentColor;
-		current.position = vec4( currentPoint, radius * decayState );
-
-		points.push_back( current );
-		resources.numPointsStaticSpheres++;
-
-		if ( n() < branchChance ) {
-			TentacleOld( points, stepSize, decayState, decayRate, radius, branchChance, currentColor, currentPoint, heading, segmentLength - t, bases );
-		}
-
-		decayState *= decayRate;
-		heading = glm::rotate( heading, anglePick(), bases[ axisPick() ] );
-	}
 }
 
 void APIGeometryContainer::Initialize () {
@@ -360,7 +318,7 @@ void APIGeometryContainer::Initialize () {
 
 // generating the geometry
 
-	// pick a first palette ( for the lights )
+	// pick a palette ( for the lights )
 	palette::PickRandomPalette();
 
 	// randomly positioned + colored lights
@@ -395,7 +353,6 @@ void APIGeometryContainer::Initialize () {
 			}
 		}
 
-		// create the SSBO and bind in slot 4
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * config.Lights, ( GLvoid * ) &lightData[ 0 ], GL_DYNAMIC_COPY );
@@ -403,55 +360,13 @@ void APIGeometryContainer::Initialize () {
 		resources.SSBOs[ "Lights" ] = ssbo;
 	}
 
-	// pick another palette ( spheres )
-	palette::PickRandomPalette();
-
-	// spheres
 	{
-		{
-			// some set of static points, loaded into the vbo - these won't change, they get generated once, they know where to read from
-				// the texture for the height, and then they displace vertically in the shader
-
-			rng colorGen( 0.0f, 0.65f );
-			rng roughnessGen( 0.01f, 100.0f );
-			rng di( 3.5f, 16.5f );
-			rng dirPick( -1.0f, 1.0f );
-			rng size( 2.0f, 4.5f );
-
-			const float stepSize = 0.002f;
-			const float distanceFromCenter = 0.4f;
-
-			resources.numPointsDynamicSpheres = 0;
-			rng pGen( -20.0f, 20.0f );
-			for ( int x = 0; x < config.Guys; x++ ) {
-				for ( int y = 0; y < config.Guys; y++ ) {
-					point_t p;
-					p.position = vec4( pGen(), pGen(), pGen(), size() );
-					p.color = vec4( palette::paletteRef( colorGen() ), 0.0f );
-					points.push_back( p );
-					resources.numPointsDynamicSpheres++;
-				}
-			}
-
-			resources.numPointsStaticSpheres = 0;
-			for ( float t = -1.4f; t < 1.4f; t+= 0.002f ) {
-				const vec3 startingPoint = glm::rotate( vec3( 0.0f, 0.0f, distanceFromCenter ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) );
-				vec3 heading = glm::normalize( glm::rotate( vec3( 0.0f, 0.0f, 1.0f ), 2.0f * float( pi ) * t, vec3( 0.0f, 1.0f, 0.0f ) ) );
-				const float diameter = di();
-				vec4 currentColor = vec4( palette::paletteRef( colorGen() + 0.1f ), roughnessGen() );
-				vec3 bases[ 3 ] = { vec3( dirPick(), dirPick(), dirPick() ), vec3( dirPick(), dirPick(), dirPick() ), vec3( 0.0f ) };
-				bases[ 2 ] = glm::cross( bases[ 0 ], bases[ 1 ] );
-				const float segmentLength = 1.4f;
-				TentacleOld( points, stepSize, 1.0f, 0.997f, diameter, 0.005f, currentColor, startingPoint, heading, segmentLength, bases );
-			}
-		}
-
-		// also: this SSBO is required for the deferred usage, since I'm doing now is essentially a visibility buffer
+		points.resize( 1000 );
 
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * ( resources.numPointsDynamicSpheres + resources.numPointsStaticSpheres ), ( GLvoid * ) &points[ 0 ], GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( point_t ) * ( points.size() ), ( GLvoid * ) &points[ 0 ], GL_DYNAMIC_COPY );
 
 		resources.SSBOs[ "Spheres" ] = ssbo;
 	}
@@ -459,15 +374,6 @@ void APIGeometryContainer::Initialize () {
 	// bind in known locations
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, resources.SSBOs[ "Lights" ] );
-}
-
-void APIGeometryContainer::InitReport () {
-	// tell the stats for the current run of the program
-	cout << "\nVertexture2 Init Complete:\n";
-	cout << "Lights: .... " << config.Lights << newline;
-	cout << "Point Totals:\n";
-	cout << "\tSpheres:\t\t" << resources.numPointsStaticSpheres << " ( " << ( resources.numPointsStaticSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
-	cout << "\tMoving Spheres:\t\t" << resources.numPointsDynamicSpheres << " ( " << ( resources.numPointsDynamicSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
 }
 
 void APIGeometryContainer::Terminate () {
@@ -614,6 +520,7 @@ void APIGeometryContainer::Render () {
 	// gl_VertexID is informed by these values, and is continuous - first call starts at zero, second call starts at resources.numPointsStaticSpheres
 	int start, number;
 
+	// this will need to be revisited
 	start = 0;
 	number = resources.numPointsStaticSpheres;
 	glDrawArrays( GL_POINTS, start, number ); // draw start to numstatic
@@ -627,17 +534,16 @@ void APIGeometryContainer::Render () {
 }
 
 void APIGeometryContainer::Update () {
-
 	config.timeVal += 0.1f;
 
-	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	glUseProgram( resources.shaders[ "Sphere Movement" ] );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldX"), config.worldX );
-	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldY"), config.worldY );
-	glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
+	// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	// glUseProgram( resources.shaders[ "Sphere Movement" ] );
+	// glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
+	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
+	// glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldX"), config.worldX );
+	// glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldY"), config.worldY );
+	// glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
 
 	// run the stuff to update the light positions - this needs more work
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -656,6 +562,7 @@ void APIGeometryContainer::ControlWindow () {
 	ImGui::Checkbox( "Show Timing", &config.showTiming );
 	ImGui::Checkbox( "Show Trident", &config.showTrident );
 
+	ImGui::Text( "Wrapping" );
 	ImGui::SliderFloat( "worldY", &config.worldX, 0.0f, 4.5f, "%.3f" );
 	ImGui::SliderFloat( "worldX", &config.worldY, 0.0f, 4.5f, "%.3f" );
 
