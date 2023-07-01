@@ -332,6 +332,13 @@ void APIGeometryContainer::Initialize () {
 			cout << "back framebuffer creation successful" << endl;
 		}
 
+		// geometry framebuffer needs:
+			// albedo -> texture reference, so material ID not useful
+			// normal
+			// position
+
+		// also - maybe do this at a lower resolution - I think this makes sense, so that point density doesn't get too too high
+
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 2 ] );
 		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 2" ), 0 );
 		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 2" ), 0 );
@@ -344,7 +351,7 @@ void APIGeometryContainer::Initialize () {
 
 		resources.FBOs[ "Primary0" ] = primaryFramebuffer[ 0 ];
 		resources.FBOs[ "Primary1" ] = primaryFramebuffer[ 1 ];
-		resources.FBOs[ "Primary2" ] = primaryFramebuffer[ 2 ];
+		resources.FBOs[ "Geometry" ] = primaryFramebuffer[ 2 ];
 	}
 
 // generating the geometry

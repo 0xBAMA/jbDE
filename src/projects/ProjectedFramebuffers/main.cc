@@ -1,5 +1,5 @@
 #include "../../engine/engine.h"
-#include "vertexture.h"
+#include "projectedFramebuffers.h"
 
 class ProjectedFramebuffer : public engineBase {
 public:
