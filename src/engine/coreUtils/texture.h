@@ -4,14 +4,17 @@
 
 #include "../includes.h"
 
-#include <algorithm>
-
 //===== Helper Functions ==============================================================================================
 inline size_t bytesPerPixel ( GLint type ) {
-	// over time we'll accumulate all the ones that I use, these are the current set
+	// over time we'll accumulate all the ones that I use, this currently is sufficient
 	switch ( type ) {
+	// depth formats
 	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
+	// two channel formats
 	case GL_RG32UI:				return 2 * 4; break;
+	// three channel formats
+	case GL_RGB8:				return 3 * 1; break;
+	// four channel formats
 	case GL_RGBA8:
 	case GL_RGBA8UI:			return 4 * 1; break;
 	case GL_RGBA16F:			return 4 * 2; break;
@@ -25,6 +28,8 @@ inline size_t bytesPerPixel ( GLint type ) {
 
 inline GLenum getFormat ( GLint internalFormat ) {
 	switch ( internalFormat ) { // hitting the commonly used formats
+
+	// depth formats
 	case GL_DEPTH_COMPONENT:
 	case GL_DEPTH_COMPONENT16:
 	case GL_DEPTH_COMPONENT24:
@@ -32,6 +37,7 @@ inline GLenum getFormat ( GLint internalFormat ) {
 		return GL_DEPTH_COMPONENT;
 		break;
 
+	// one-channel formats
 	case GL_R8:
 	case GL_R16:
 	case GL_R16F:
@@ -48,6 +54,7 @@ inline GLenum getFormat ( GLint internalFormat ) {
 		return GL_RED_INTEGER;
 		break;
 
+	// two-channel formats
 	case GL_RG8:
 	case GL_RG16:
 	case GL_RG16F:
@@ -64,12 +71,11 @@ inline GLenum getFormat ( GLint internalFormat ) {
 		return GL_RG_INTEGER;
 		break;
 
+	// three-channel formats
 	case GL_RGB4:
 	case GL_RGB5:
 	case GL_RGB8:
 	case GL_RGB12:
-	case GL_RGBA2:
-	case GL_RGBA4:
 	case GL_SRGB8:
 	case GL_RGB16F:
 	case GL_RGB32F:
@@ -87,6 +93,9 @@ inline GLenum getFormat ( GLint internalFormat ) {
 		return GL_RGB_INTEGER;
 		break;
 
+	// four-channel formats
+	case GL_RGBA2:
+	case GL_RGBA4:
 	case GL_RGBA8:
 	case GL_RGBA12:
 	case GL_RGBA16:
@@ -107,6 +116,7 @@ inline GLenum getFormat ( GLint internalFormat ) {
 	default:
 		return 0;
 		break;
+
 	}
 }
 
@@ -226,9 +236,13 @@ public:
 			}
 			break;
 
-		// todo
-			// array textures
-			// 3d textures
+		case GL_TEXTURE_2D_ARRAY:
+			// todo - required for ProjectedFramebuffers ( rendering sponza, again, but much cooler this time )
+			break;
+
+		case GL_TEXTURE_3D:
+			// todo - required for Voraldo
+			break;
 
 		default:
 		break;
