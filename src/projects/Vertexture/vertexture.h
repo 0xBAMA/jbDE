@@ -471,6 +471,7 @@ void APIGeometryContainer::Shadow () {
 	// create the shadowmap resources
 
 	/*
+
 	GLuint shadowmapFramebuffer = 0;
 	glGenFramebuffers( 1, &shadowmapFramebuffer );
 	glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
@@ -514,7 +515,6 @@ void APIGeometryContainer::Shadow () {
 		// revert to default framebuffer
 		// glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		// glClear( GL_DEPTH_BUFFER_BIT );
-
 
 	*/
 

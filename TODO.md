@@ -276,12 +276,18 @@ This is a planning document for work on this project and in general, about the t
 ### DEC plans
 
 - Operators section
+
 - 2D section
 
-### [Articles](https://jbaker.graphics/writings)
 
-- follow up on the lighting on vertexture
-	- probably wait till I have the deferred stuff in place
+
+### [Pending Articles](https://jbaker.graphics/writings)
+
+- Deferred setup for vertexture, what that project turned into
+
+- Post with a youtube embed, for the talk, like [what I did with Voraldo](https://jbaker.graphics/writings/voraldo_talk.html)
+
+
 
 #### Keeping up with projects as they happen, so they don't pile up again
 
