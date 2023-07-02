@@ -141,6 +141,9 @@ struct APIGeometryContainer {
 	APIGeometryContainer () {}
 	~APIGeometryContainer () {}
 
+	// for keeping track of textures
+	textureManager_t * textureManager_local;
+
 	// init
 	void LoadConfig ();	// read the relevant section of config.json
 	void Initialize ();	// create the shaders, buffers and stuff, random init for points etc
@@ -189,9 +192,15 @@ void APIGeometryContainer::LoadConfig () {
 	config.showTiming	= j[ "app" ][ "VertextureClassic" ][ "showTiming" ];
 	config.scale		= j[ "app" ][ "VertextureClassic" ][ "InitialScale" ];
 	config.heightScale	= j[ "app" ][ "VertextureClassic" ][ "InitialHeightScale" ];
-	config.basisX		= vec3( j[ "app" ][ "VertextureClassic" ][ "basisX" ][ "x" ], j[ "app" ][ "VertextureClassic" ][ "basisX" ][ "y" ], j[ "app" ][ "VertextureClassic" ][ "basisX" ][ "z" ] );
-	config.basisY		= vec3( j[ "app" ][ "VertextureClassic" ][ "basisY" ][ "x" ], j[ "app" ][ "VertextureClassic" ][ "basisY" ][ "y" ], j[ "app" ][ "VertextureClassic" ][ "basisY" ][ "z" ] );
-	config.basisZ		= vec3( j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "x" ], j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "y" ], j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "z" ] );
+	config.basisX		= vec3( j[ "app" ][ "VertextureClassic" ][ "basisX" ][ "x" ],
+								j[ "app" ][ "VertextureClassic" ][ "basisX" ][ "y" ],
+								j[ "app" ][ "VertextureClassic" ][ "basisX" ][ "z" ] );
+	config.basisY		= vec3( j[ "app" ][ "VertextureClassic" ][ "basisY" ][ "x" ],
+								j[ "app" ][ "VertextureClassic" ][ "basisY" ][ "y" ],
+								j[ "app" ][ "VertextureClassic" ][ "basisY" ][ "z" ] );
+	config.basisZ		= vec3( j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "x" ],
+								j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "y" ],
+								j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "z" ] );
 
 	// update AR with current value of screen dims
 	config.width = j[ "screenWidth" ];
@@ -238,69 +247,176 @@ void APIGeometryContainer::Initialize () {
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
 	resources.textures[ "Distance/Direction Map" ] = distanceDirection;
 
-	// setup the buffers for the rendering process - need depth, worldspace position - maybe?, normals, color
-	GLuint primaryFramebuffer;
-	glGenFramebuffers( 1, &primaryFramebuffer );
-	glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
 
-	// create the textures and fill out the framebuffer information
-	GLuint fbDepth, fbColor, fbNormal, fbPosition;
+	static bool firstTime = true;
+	if ( firstTime ) {
 
-	// do the depth texture
-	glGenTextures( 1, &fbDepth );
-	glActiveTexture( GL_TEXTURE16 );
-	glBindTexture( GL_TEXTURE_2D, fbDepth );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth, 0 );
+		textureOptions_t opts;
 
-	// do the color texture
-	glGenTextures( 1, &fbColor );
-	glActiveTexture( GL_TEXTURE17 );
-	glBindTexture( GL_TEXTURE_2D, fbColor );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbColor, 0 ); // last argument is mip, interesting
 
-	// do the normal texture
-	glGenTextures( 1, &fbNormal );
-	glActiveTexture( GL_TEXTURE18 );
-	glBindTexture( GL_TEXTURE_2D, fbNormal );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, fbNormal, 0 );
 
-	// do the position texture
-	glGenTextures( 1, &fbPosition );
-	glActiveTexture( GL_TEXTURE19 );
-	glBindTexture( GL_TEXTURE_2D, fbPosition );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbPosition, 0 );
+		// ====================================
+		// == Simulation Maps =================
+		// ==== Steepness =====================
+		// ==== Distance / Direction ==========
+		// ====================================
 
-	const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers( 3, bufs );
+		// ====================================
+		// == Framebuffer Textures ============
+		// ====================================
 
-	// make sure they're accessible from above
-	resources.textures[ "fbDepth" ] = fbDepth;
-	resources.textures[ "fbColor" ] = fbColor;
-	resources.textures[ "fbNormal" ] = fbNormal;
-	resources.textures[ "fbPosition" ] = fbPosition;
+		// ====================================
+		// == Display Textures ================
+		// ====================================
+		// 
 
-	resources.FBOs[ "Primary" ] = primaryFramebuffer;
-	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-		cout << "framebuffer creation successful" << endl;
+		// ====================================
+
+
+
+		// ====================================
+
+		// setup the buffers for the rendering process - need depth, worldspace position - maybe?, normals, color
+		GLuint primaryFramebuffer;
+		glGenFramebuffers( 1, &primaryFramebuffer );
+		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
+
+		// create the textures and fill out the framebuffer information
+		GLuint fbDepth, fbColor, fbNormal, fbPosition;
+
+		// do the depth texture
+		glGenTextures( 1, &fbDepth );
+		glActiveTexture( GL_TEXTURE16 );
+		glBindTexture( GL_TEXTURE_2D, fbDepth );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth, 0 );
+
+		// do the color texture
+		glGenTextures( 1, &fbColor );
+		glActiveTexture( GL_TEXTURE17 );
+		glBindTexture( GL_TEXTURE_2D, fbColor );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbColor, 0 ); // last argument is mip, interesting
+
+		// do the normal texture
+		glGenTextures( 1, &fbNormal );
+		glActiveTexture( GL_TEXTURE18 );
+		glBindTexture( GL_TEXTURE_2D, fbNormal );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, fbNormal, 0 );
+
+		// do the position texture
+		glGenTextures( 1, &fbPosition );
+		glActiveTexture( GL_TEXTURE19 );
+		glBindTexture( GL_TEXTURE_2D, fbPosition );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbPosition, 0 );
+
+		const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		glDrawBuffers( 3, bufs );
+
+		// make sure they're accessible from above
+		resources.textures[ "fbDepth" ] = fbDepth;
+		resources.textures[ "fbColor" ] = fbColor;
+		resources.textures[ "fbNormal" ] = fbNormal;
+		resources.textures[ "fbPosition" ] = fbPosition;
+
+		resources.FBOs[ "Primary" ] = primaryFramebuffer;
+		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+			cout << "framebuffer creation successful" << endl;
+		}
+
+		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
+		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
+		GLuint heightmap;
+		glGenTextures( 1, &heightmap );
+		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
+		glBindTexture( GL_TEXTURE_2D, heightmap );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, heightmapImage.Width(), heightmapImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+		resources.textures[ "Heightmap" ] = heightmap;
+
+		GLuint sphereImage;
+		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
+		glGenTextures( 1, &sphereImage );
+		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
+		glBindTexture( GL_TEXTURE_2D, sphereImage );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, sphereImageData.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+		resources.textures[ "Sphere Image" ] = sphereImage;
+
+		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
+		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
+		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
+
+		GLuint waterColorTexture;
+		GLuint waterNormalTexture;
+		GLuint waterHeightTexture;
+
+		glGenTextures( 1, &waterColorTexture );
+		glActiveTexture( GL_TEXTURE11 );
+		glBindTexture( GL_TEXTURE_2D, waterColorTexture );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, color.Width(), color.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, color.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+
+		glGenTextures( 1, &waterNormalTexture );
+		glActiveTexture( GL_TEXTURE12 );
+		glBindTexture( GL_TEXTURE_2D, waterNormalTexture );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, normal.Width(), normal.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, normal.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+
+		glGenTextures( 1, &waterHeightTexture );
+		glActiveTexture( GL_TEXTURE13 );
+		glBindTexture( GL_TEXTURE_2D, waterHeightTexture );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, height.Width(), height.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, height.GetImageDataBasePtr() );
+		glGenerateMipmap( GL_TEXTURE_2D );
+
+		resources.textures[ "Water Color" ] = waterColorTexture;
+		resources.textures[ "Water Normal" ] = waterNormalTexture;
+		resources.textures[ "Water Height" ] = waterHeightTexture;
+
 	}
+
+
+
+
+
+
+
 
 	// generate all the geometry
 
@@ -368,7 +484,7 @@ void APIGeometryContainer::Initialize () {
 			subdivide( world, basePoints );
 		}
 
-		GLuint vao, vbo, heightmap;
+		GLuint vao, vbo;
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
 		glGenBuffers( 1, &vbo );
@@ -382,21 +498,8 @@ void APIGeometryContainer::Initialize () {
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
-		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
-		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
-		glGenTextures( 1, &heightmap );
-		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
-		glBindTexture( GL_TEXTURE_2D, heightmap );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, heightmapImage.Width(), heightmapImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
 		resources.VAOs[ "Ground" ] = vao;
 		resources.VBOs[ "Ground" ] = vbo;
-		resources.textures[ "Heightmap" ] = heightmap;
 
 		rng gen( 0.0f, 1.0f ); // this can probably be tuned better
 		config.groundColor = palette::paletteRef( gen() + 0.5f, palette::type::paletteIndexed_interpolated );
@@ -601,19 +704,6 @@ void APIGeometryContainer::Initialize () {
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * resources.numPointsMovingSpheres, ( GLvoid * ) &ssboPoints[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
-		GLuint sphereImage;
-		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
-		glGenTextures( 1, &sphereImage );
-		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
-		glBindTexture( GL_TEXTURE_2D, sphereImage );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, sphereImageData.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		resources.textures[ "Sphere Image" ] = sphereImage;
 		resources.SSBOs[ "Moving Sphere" ] = ssbo;
 		resources.VAOs[ "Sphere" ] = vao;
 		resources.VBOs[ "Sphere" ] = vbo;
@@ -647,47 +737,6 @@ void APIGeometryContainer::Initialize () {
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
-		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
-		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
-		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
-
-		GLuint waterColorTexture;
-		GLuint waterNormalTexture;
-		GLuint waterHeightTexture;
-
-		glGenTextures( 1, &waterColorTexture );
-		glActiveTexture( GL_TEXTURE11 );
-		glBindTexture( GL_TEXTURE_2D, waterColorTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, color.Width(), color.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, color.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterNormalTexture );
-		glActiveTexture( GL_TEXTURE12 );
-		glBindTexture( GL_TEXTURE_2D, waterNormalTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, normal.Width(), normal.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, normal.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterHeightTexture );
-		glActiveTexture( GL_TEXTURE13 );
-		glBindTexture( GL_TEXTURE_2D, waterHeightTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, height.Width(), height.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, height.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		resources.textures[ "Water Color" ] = waterColorTexture;
-		resources.textures[ "Water Normal" ] = waterNormalTexture;
-		resources.textures[ "Water Height" ] = waterHeightTexture;
 		resources.VAOs[ "Water" ] = vao;
 		resources.VBOs[ "Water" ] = vbo;
 	}

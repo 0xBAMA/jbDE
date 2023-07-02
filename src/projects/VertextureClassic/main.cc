@@ -29,6 +29,7 @@ public:
 			trident.basisZ = vec3( -0.027008f,  0.830518f, -0.556314f );
 
 			// initialize the graphics api shit
+			data.textureManager_local = &textureManager;
 			data.Reset();
 
 		}
