@@ -259,10 +259,12 @@ namespace palette {
 		}
 	}
 
-	inline void PickRandomPalette () {
+	inline void PickRandomPalette ( bool reportName = false ) {
 		rngi pick( 0, paletteListLocal.size() - 1 );
 		PaletteIndex = pick();
-		cout << "picked random palette " << PaletteIndex << ": " << paletteListLocal[ PaletteIndex ].label << newline;
+		if ( reportName ) {
+			cout << "picked random palette " << PaletteIndex << ": " << paletteListLocal[ PaletteIndex ].label << newline;
+		}
 	}
 
 	inline string GetCurrentPaletteName () {
