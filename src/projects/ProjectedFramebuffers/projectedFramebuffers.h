@@ -56,7 +56,7 @@ struct rnGenerators {
 	rng colorPick		= rng( 0.6f, 0.8f );
 	rng brightness		= rng( 0.0f, 1.0f );
 	rng gen				= rng( -1.0f, 1.0f );
-	rng size			= rng( 4.0f, 25.0f );
+	rng size			= rng( 4.0f, 15.0f );
 	rng color			= rng( 0.0f, 0.65f );
 };
 
@@ -73,6 +73,7 @@ struct openGLResources {
 	// static / dynamic point counts, updated and reported during init
 	int numPointsStaticSpheres = 0;
 	int numPointsDynamicSpheres = 0;
+	int sponzaNumTriangles = 0;
 
 	// separate tridents for each shadowmap
 	// textures for each shadowmap
@@ -237,7 +238,7 @@ void APIGeometryContainer::Initialize () {
 		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Render Framebuffer Material ID 0" ), 0 );
 		glDrawBuffers( 3, bufs ); // how many active attachments, and their attachment locations
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-			cout << "front framebuffer creation successful" << endl;
+			cout << newline << "   front framebuffer creation successful" << endl;
 		}
 
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 1 ] );
@@ -247,7 +248,7 @@ void APIGeometryContainer::Initialize () {
 		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Render Framebuffer Material ID 1" ), 0 );
 		glDrawBuffers( 3, bufs );
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-			cout << "back framebuffer creation successful" << endl;
+			cout << "   back framebuffer creation successful" << endl;
 		}
 
 		// geometry framebuffer needs:
@@ -264,15 +265,146 @@ void APIGeometryContainer::Initialize () {
 		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Geometry Framebuffer Albedo" ), 0 );
 		glDrawBuffers( 3, bufs );
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-			cout << "geometry framebuffer creation successful" << endl;
+			cout << "   geometry framebuffer creation successful" << endl;
 		}
 
 		resources.FBOs[ "Primary0" ] = primaryFramebuffer[ 0 ];
 		resources.FBOs[ "Primary1" ] = primaryFramebuffer[ 1 ];
 		resources.FBOs[ "Geometry" ] = primaryFramebuffer[ 2 ];
+
+		// loading sponza
+		{
+			// the sponza geometry
+			SoftRast s;
+			// comes from https://github.com/0xBAMA/SponzaRepack - expect it in the same directory as jbDE
+			s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
+
+			// vertex data
+			std::vector<vec3> positions;
+			std::vector<vec3> texCoords;
+			std::vector<vec3> normals;
+			std::vector<vec3> tangents;
+			std::vector<vec3> bitangents;
+
+			for ( auto& triangle : s.triangles ) {
+				positions.push_back( triangle.p0 );
+				positions.push_back( triangle.p1 );
+				positions.push_back( triangle.p2 );
+
+				texCoords.push_back( triangle.t0 );
+				texCoords.push_back( triangle.t1 );
+				texCoords.push_back( triangle.t2 );
+
+				normals.push_back( triangle.n0 );
+				normals.push_back( triangle.n1 );
+				normals.push_back( triangle.n2 );
+
+				// basis for normal mapping
+				tangents.push_back( triangle.t );
+				tangents.push_back( triangle.t );
+				tangents.push_back( triangle.t );
+
+				bitangents.push_back( triangle.b );
+				bitangents.push_back( triangle.b );
+				bitangents.push_back( triangle.b );
+
+				resources.sponzaNumTriangles++;
+			}
+
+			// prep the patient
+			glUseProgram( resources.shaders[ "Sponza" ] );
+
+			// send the data, set up the vertex attributes
+			uintptr_t numBytesPositions = positions.size() * sizeof( glm::vec3 );
+			uintptr_t numBytesTexCoords = texCoords.size() * sizeof( glm::vec3 );
+			uintptr_t numBytesNormals = normals.size() * sizeof( glm::vec3 );
+			uintptr_t numBytesTangents = tangents.size() * sizeof( glm::vec3 );
+			uintptr_t numBytesBitangents = bitangents.size() * sizeof( glm::vec3 );
+			size_t totalBytes = numBytesPositions + numBytesTexCoords + numBytesNormals + numBytesTangents + numBytesBitangents;
+
+			cout << endl << "   total size of Sponza vertex data: " << float( totalBytes ) / float( 1u << 20 ) << "MB ( " << totalBytes << " bytes )" << endl << endl;
+
+		// send to the GPU
+			GLuint sponzaVAO, sponzaVBO;
+
+			// VAO
+			glGenVertexArrays( 1, &sponzaVAO );
+			glBindVertexArray( sponzaVAO );
+			resources.VAOs[ "Sponza" ] = sponzaVAO;
+
+			//BUFFER
+			glGenBuffers( 1, &sponzaVBO );
+			glBindBuffer( GL_ARRAY_BUFFER, sponzaVBO );
+			resources.VBOs[ "Sponza" ] = sponzaVBO;
+
+			glBufferData( GL_ARRAY_BUFFER, numBytesPositions + numBytesTexCoords + numBytesNormals + numBytesTangents + numBytesBitangents, NULL, GL_DYNAMIC_DRAW );
+			uint bufferBase = 0;
+			glBufferSubData( GL_ARRAY_BUFFER, bufferBase, numBytesPositions, &positions[ 0 ] );
+			bufferBase += numBytesPositions;
+			glBufferSubData( GL_ARRAY_BUFFER, bufferBase, numBytesTexCoords, &texCoords[ 0 ] );
+			bufferBase += numBytesTexCoords;
+			glBufferSubData( GL_ARRAY_BUFFER, bufferBase, numBytesNormals, &normals[ 0 ] );
+			bufferBase += numBytesNormals;
+			glBufferSubData( GL_ARRAY_BUFFER, bufferBase, numBytesTangents, &tangents[ 0 ] );
+			bufferBase += numBytesTangents;
+			glBufferSubData( GL_ARRAY_BUFFER, bufferBase, numBytesBitangents, &bitangents[ 0 ] );
+
+		// set up the pointers to the vertex data... layout qualifiers on sponza.vs.glsl seem to be the easiest way to get this to go through
+			{
+				const GLvoid * base = ( GLvoid * ) 0;
+				glEnableVertexAttribArray( 0 );
+				glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, base );
+			}
+			{
+				const GLvoid * base = ( GLvoid * ) numBytesPositions;
+				glEnableVertexAttribArray( 1 );
+				glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, base );
+			}
+			{
+				const GLvoid * base = ( GLvoid * ) ( numBytesPositions + numBytesTexCoords );
+				glEnableVertexAttribArray( 2 );
+				glVertexAttribPointer( 2, 3, GL_FLOAT, GL_FALSE, 0, base );
+			}
+			{
+				const GLvoid * base = ( GLvoid * ) ( numBytesPositions + numBytesTexCoords + numBytesNormals );
+				glEnableVertexAttribArray( 3 );
+				glVertexAttribPointer( 3, 3, GL_FLOAT, GL_FALSE, 0, base );
+			}
+			{
+				const GLvoid * base = ( GLvoid * ) ( numBytesPositions + numBytesTexCoords + numBytesNormals + numBytesTangents );
+				glEnableVertexAttribArray( 4 );
+				glVertexAttribPointer( 4, 3, GL_FLOAT, GL_FALSE, 0, base );
+			}
+
+		// the array texture
+
+			// linearize the data - all textures are 2048 by 2048
+			std::vector< uint8_t > arrayTextureData;
+			for ( uint32_t i = 0; i < s.texSet.size(); i++ ) {
+				for ( uint32_t o = 0; o < s.texSet[ i ].Height() * s.texSet[ i ].Width() * 4; o++ ) {
+					arrayTextureData.push_back( s.texSet[ i ].GetImageDataBasePtr()[ o ] );
+				}
+			}
+
+			// pass it as one big, fat array
+			textureOptions_t opts;
+			opts.width = s.texSet[ 0 ].Width();
+			opts.height = s.texSet[ 0 ].Height();
+			opts.depth = s.texSet.size();
+			opts.textureType = GL_TEXTURE_2D_ARRAY;
+			opts.wrap = GL_REPEAT;
+			opts.minFilter = GL_LINEAR_MIPMAP_LINEAR;
+			opts.magFilter = GL_LINEAR;
+			opts.dataType = GL_RGBA8;
+			opts.pixelDataType = GL_UNSIGNED_BYTE;
+			opts.initialData = ( void * ) &arrayTextureData[ 0 ];
+			textureManager_local->Add( "Sponza Array Texture", opts );
+		}
+
+		firstTime = false;
 	}
 
-// generating the geometry
+// generating point geometry buffers, lights
 
 	// pick a palette ( for the lights )
 	palette::PickRandomPalette();
@@ -316,8 +448,6 @@ void APIGeometryContainer::Initialize () {
 
 	{
 		// put in some placeholder shit, to show signs of life
-
-
 		const uint32_t numPixelsFramebuffer = config.framebufferX * config.framebufferY;
 		for ( uint32_t i = 0; i < numPixelsFramebuffer; i++ ) {
 			points.push_back( {
@@ -336,12 +466,6 @@ void APIGeometryContainer::Initialize () {
 		resources.numPointsStaticSpheres = points.size();
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
 
-	}
-
-	{
-		// the sponza geometry
-
-		// the array texture
 	}
 
 }
