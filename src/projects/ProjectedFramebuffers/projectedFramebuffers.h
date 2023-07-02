@@ -204,14 +204,13 @@ void APIGeometryContainer::LoadConfig () {
 	config.lightsMaxBrightness	= j[ "app" ][ "ProjectedFramebuffers" ][ "Lights Max Brightness" ];
 	config.worldX				= j[ "app" ][ "ProjectedFramebuffers" ][ "worldX" ];
 	config.worldY				= j[ "app" ][ "ProjectedFramebuffers" ][ "worldY" ];
+	config.framebufferX			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferX" ];
+	config.framebufferY			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferY" ];
 
 	// update AR with current value of screen dims
 	config.width				= j[ "screenWidth" ];
 	config.height				= j[ "screenHeight" ];
 	config.screenAR 			= ( float ) config.width / ( float ) config.height;
-
-	config.framebufferX			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferX" ];
-	config.framebufferY			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferY" ];
 
 	// reset amount of time since last reset
 	config.timeVal = 0.0f;
@@ -236,35 +235,38 @@ void APIGeometryContainer::Initialize () {
 
 		textureOptions_t opts;
 
+		// == Render Framebuffer ==============
 		// ==== Depth =========================
 		opts.dataType = GL_DEPTH_COMPONENT32;
 		opts.textureType = GL_TEXTURE_2D;
 		opts.width = config.width;
 		opts.height = config.height;
-		textureManager_local->Add( "Framebuffer Depth 0", opts );
-		textureManager_local->Add( "Framebuffer Depth 1", opts );
-		textureManager_local->Add( "Geometry Framebuffer Depth", opts );
-		// ====================================
-
+		textureManager_local->Add( "Render Framebuffer Depth 0", opts );
+		textureManager_local->Add( "Render Framebuffer Depth 1", opts );
 		// ==== Normal =======================
 		opts.dataType = GL_RGBA16F;
-		textureManager_local->Add( "Framebuffer Normal 0", opts );
-		textureManager_local->Add( "Framebuffer Normal 1", opts );
-		textureManager_local->Add( "Geometry Framebuffer Normal", opts );
-		// ====================================
-
+		textureManager_local->Add( "Render Framebuffer Normal 0", opts );
+		textureManager_local->Add( "Render Framebuffer Normal 1", opts );
 		// ==== Position ======================
-		textureManager_local->Add( "Framebuffer Position 0", opts );
-		textureManager_local->Add( "Framebuffer Position 1", opts );
-		textureManager_local->Add( "Geometry Framebuffer Position", opts );
-		// ====================================
-
+		textureManager_local->Add( "Render Framebuffer Position 0", opts );
+		textureManager_local->Add( "Render Framebuffer Position 1", opts );
 		// ==== Material ID ===================
 		opts.dataType = GL_RG32UI;
-		textureManager_local->Add( "Framebuffer Material ID 0", opts );
-		textureManager_local->Add( "Framebuffer Material ID 1", opts );
+		textureManager_local->Add( "Render Framebuffer Material ID 0", opts );
+		textureManager_local->Add( "Render Framebuffer Material ID 1", opts );
 		// ====================================
 
+		// == Geometry Framebuffer ============
+		// ==== Depth ========================
+		opts.dataType = GL_DEPTH_COMPONENT32;
+		opts.width = config.framebufferX;
+		opts.height = config.framebufferY;
+		textureManager_local->Add( "Geometry Framebuffer Depth", opts );
+		// ==== Normal =======================
+		opts.dataType = GL_RGBA16F;
+		textureManager_local->Add( "Geometry Framebuffer Normal", opts );
+		// ==== Position ======================
+		textureManager_local->Add( "Geometry Framebuffer Position", opts );
 		// ==== Albedo ========================
 		opts.dataType = GL_RGB8;
 		textureManager_local->Add( "Geometry Framebuffer Albedo", opts );
@@ -279,20 +281,20 @@ void APIGeometryContainer::Initialize () {
 
 		// creating the actual framebuffers with their attachments
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 0 ] );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 0" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 0" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Position 0" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Material ID 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Render Framebuffer Depth 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Render Framebuffer Normal 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Render Framebuffer Position 0" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Render Framebuffer Material ID 0" ), 0 );
 		glDrawBuffers( 3, bufs ); // how many active attachments, and their attachment locations
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 			cout << "front framebuffer creation successful" << endl;
 		}
 
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer[ 1 ] );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth 1" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Normal 1" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Position 1" ), 0 );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Material ID 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Render Framebuffer Depth 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Render Framebuffer Normal 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Render Framebuffer Position 1" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Render Framebuffer Material ID 1" ), 0 );
 		glDrawBuffers( 3, bufs );
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 			cout << "back framebuffer creation successful" << endl;
@@ -399,14 +401,14 @@ void APIGeometryContainer::DeferredPass () {
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 	glUniformMatrix3fv( glGetUniformLocation( shader, "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 
-	textureManager_local->BindTexForShader( string( "Framebuffer Depth " ) + string( swapp ? "1" : "0" ), "depthTexture", shader, 0 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Depth " ) + string( swapp ? "0" : "1" ), "depthTexturePrevious", shader, 1 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Normal " ) + string( swapp ? "1" : "0" ), "normalTexture", shader, 2 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Normal " ) + string( swapp ? "0" : "1" ), "normalTexturePrevious", shader, 3 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Position " ) + string( swapp ? "1" : "0" ), "positionTexture", shader, 4 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Position " ) + string( swapp ? "0" : "1" ), "positionTexturePrevious", shader, 5 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Material ID " ) + string( swapp ? "1" : "0" ), "idTexture", shader, 6 );
-	textureManager_local->BindTexForShader( string( "Framebuffer Material ID " ) + string( swapp ? "0" : "1" ), "idTexturePrevious", shader, 7 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Depth " ) + string( swapp ? "1" : "0" ), "depthTexture", shader, 0 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Depth " ) + string( swapp ? "0" : "1" ), "depthTexturePrevious", shader, 1 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Normal " ) + string( swapp ? "1" : "0" ), "normalTexture", shader, 2 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Normal " ) + string( swapp ? "0" : "1" ), "normalTexturePrevious", shader, 3 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Position " ) + string( swapp ? "1" : "0" ), "positionTexture", shader, 4 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Position " ) + string( swapp ? "0" : "1" ), "positionTexturePrevious", shader, 5 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Material ID " ) + string( swapp ? "1" : "0" ), "idTexture", shader, 6 );
+	textureManager_local->BindTexForShader( string( "Render Framebuffer Material ID " ) + string( swapp ? "0" : "1" ), "idTexturePrevious", shader, 7 );
 
 	// SSAO config
 	glUniform1i( glGetUniformLocation( shader, "AONumSamples" ), config.AONumSamples );
@@ -426,13 +428,17 @@ void APIGeometryContainer::DeferredPass () {
 
 	// swapt front and back buffers
 	swapp = !swapp;
+
 }
 
 void APIGeometryContainer::Render () {
 
-	// then the regular view of the geometry
-	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
+	// render the geometry into the geometry framebuffer
 
+	// populate the SSBO with the points
+
+	// then the render the points, out of the SSBO
+	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 	const mat4 perspectiveMatrix = glm::perspective( 45.0f, ( GLfloat ) config.width / ( GLfloat ) config.height, 0.1f, 5.0f );
 	const mat4 lookatMatrix = glm::lookAt( vec3( 2.0f, 0.0f, 0.0f ), vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 
