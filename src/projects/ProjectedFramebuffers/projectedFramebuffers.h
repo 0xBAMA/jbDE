@@ -174,7 +174,6 @@ struct APIGeometryContainer {
 
 	// main loop functions
 	void Update ();	// run the movement compute shaders
-	void Shadow ();	// update the shadowmap(s)
 	void Render ();	// update the Gbuffer
 	void DeferredPass (); // do the deferred lighting operations
 
@@ -393,71 +392,6 @@ void APIGeometryContainer::Terminate () {
 
 }
 
-void APIGeometryContainer::Shadow () {
-	// =================================================================================================
-
-	// shadowmapping resources -> will not be here
-	// orientTrident tridentDepth;
-	// GLuint shadowmapFramebuffer = 0;
-	// GLuint depthTexture;
-
-	// shadowmapping resources:
-	//	http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/#rendering-the-shadow-map
-	//	https://ogldev.org/www/tutorial23/tutorial23.html
-
-	// create the shadowmap resources
-
-	/*
-	GLuint shadowmapFramebuffer = 0;
-	glGenFramebuffers( 1, &shadowmapFramebuffer );
-	glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
-
-	// Depth texture - slower than a depth buffer, but you can sample it later in your shader
-	glGenTextures( 1, &depthTexture );
-	glBindTexture( GL_TEXTURE_2D, depthTexture );
-	glTexImage2D( GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0 );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0 );
-	glDrawBuffer( GL_NONE ); // No color buffer is drawn to.
-
-	if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) {
-		cout << "framebuffer creation failed" << endl; abort();
-	}
-
-	// revert to default framebuffer
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-
-		// I think eventually it's going to make more sense to just rewrite things to manage both
-		// color and depth targets, so that we have more explicit state management. I'm not sure
-		// what was causing the state leakage issue I was seeing but I have other things I want to
-		// mess with instead.
-
-		// And maybe that's something I'll want to carry forwards in the future - there is a number
-		// of cool aspects there, you know, you can access that color data and do whatever postprocessing
-		// that you want - also opens up deferred shading, which may be significant for this case
-		// where you are writing depth for these primitives - keeping normals and depth to reconstruct
-		// the world position, we can do whatever lighting on that flat target, and avoid having to
-		// potentially shade the occluded fragments.. I'm not clear on if the current impl will have to
-
-
-		// // prepare to render the shadowmap depth
-		// glBindFramebuffer( GL_FRAMEBUFFER, shadowmapFramebuffer );
-		// glClear( GL_DEPTH_BUFFER_BIT );
-
-		// revert to default framebuffer
-		// glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		// glClear( GL_DEPTH_BUFFER_BIT );
-
-
-	*/
-
-	// =================================================================================================
-}
-
 void APIGeometryContainer::DeferredPass () {
 	const GLuint shader = resources.shaders[ "Deferred" ];
 	glUseProgram( shader );
@@ -540,15 +474,6 @@ void APIGeometryContainer::Render () {
 
 void APIGeometryContainer::Update () {
 	config.timeVal += 0.1f;
-
-	// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	// glUseProgram( resources.shaders[ "Sphere Movement" ] );
-	// glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "time" ), config.timeVal / 10000.0f );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "inSeed" ), rngs.shaderWangSeed() );
-	// glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "dimension" ), config.Guys );
-	// glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldX"), config.worldX );
-	// glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere Movement" ], "worldY"), config.worldY );
-	// glDispatchCompute( config.Guys / 16, config.Guys / 16, 1 ); // dispatch the compute shader to update ssbo
 
 	// run the stuff to update the light positions - this needs more work
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
