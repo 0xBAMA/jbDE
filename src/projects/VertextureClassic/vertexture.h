@@ -249,6 +249,7 @@ void APIGeometryContainer::Initialize () {
 		textureManager_local->Add( "Distance / Direction Map", opts );
 		// ====================================
 
+
 		// ====================================
 		// == Framebuffer Textures ============
 		// ==== Depth =========================
@@ -265,38 +266,56 @@ void APIGeometryContainer::Initialize () {
 		textureManager_local->Add( "Framebuffer Position", opts );
 		// ====================================
 
+
 		// ====================================
-		// == Display Textures ================
+		// == Display / Data Textures =========
 		// ==== Sphere Heightmap ==============
 		// maybe port this to the analytic model, later - I might also want to keep it for legacy's sake
 		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
+		opts.dataType = GL_RGBA8;
+		opts.minFilter = GL_LINEAR_MIPMAP_LINEAR;
+		opts.magFilter = GL_LINEAR;
+		opts.wrap = GL_REPEAT;
+		opts.width = sphereImageData.Width();
+		opts.height = sphereImageData.Height();
+		opts.initialData = ( void * ) sphereImageData.GetImageDataBasePtr();
+		textureManager_local->Add( "Sphere Heightmap", opts );
 
 		// ==== Rock Heightmap ================
 		// consider swapping out for a generated heightmap? something with ~10s of erosion applied? tbd
 		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
+		opts.width = heightmapImage.Width();
+		opts.height = heightmapImage.Height();
+		opts.initialData = ( void * ) heightmapImage.GetImageDataBasePtr();
+		textureManager_local->Add( "Ground Heightmap", opts );
 
 		// ==== Water Heightmap ===============
 		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
+		opts.width = height.Width();
+		opts.height = height.Height();
+		opts.initialData = ( void * ) height.GetImageDataBasePtr();
+		textureManager_local->Add( "Water Heightmap", opts );
 
 		// ==== Water Normal ==================
 		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
+		opts.width = normal.Width();
+		opts.height = normal.Height();
+		opts.initialData = ( void * ) normal.GetImageDataBasePtr();
+		textureManager_local->Add( "Water Normal Map", opts );
 
 		// ==== Water Color ===================
 		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
+		opts.width = color.Width();
+		opts.height = color.Height();
+		opts.initialData = ( void * ) color.GetImageDataBasePtr();
+		textureManager_local->Add( "Water Color Map", opts );
 
 		// ====================================
 
-		// setup the buffers for the rendering process - need depth, worldspace position - maybe?, normals, color
+		// setup the buffers for the rendering process - need depth, worldspace position, normals, color
 		GLuint primaryFramebuffer;
 		glGenFramebuffers( 1, &primaryFramebuffer );
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
-
-		// create the textures and fill out the framebuffer information
-		GLuint heightmap;
-		GLuint sphereImage;
-		GLuint waterColorTexture;
-		GLuint waterNormalTexture;
-		GLuint waterHeightTexture;
 
 		// last argument is mip level, interesting
 		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth" ), 0 );
@@ -311,62 +330,6 @@ void APIGeometryContainer::Initialize () {
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 			cout << "framebuffer creation successful" << endl;
 		}
-
-		glGenTextures( 1, &heightmap );
-		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
-		glBindTexture( GL_TEXTURE_2D, heightmap );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, heightmapImage.Width(), heightmapImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &sphereImage );
-		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
-		glBindTexture( GL_TEXTURE_2D, sphereImage );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, sphereImageData.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterColorTexture );
-		glActiveTexture( GL_TEXTURE11 );
-		glBindTexture( GL_TEXTURE_2D, waterColorTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, color.Width(), color.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, color.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterNormalTexture );
-		glActiveTexture( GL_TEXTURE12 );
-		glBindTexture( GL_TEXTURE_2D, waterNormalTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, normal.Width(), normal.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, normal.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		glGenTextures( 1, &waterHeightTexture );
-		glActiveTexture( GL_TEXTURE13 );
-		glBindTexture( GL_TEXTURE_2D, waterHeightTexture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, height.Width(), height.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, height.GetImageDataBasePtr() );
-		glGenerateMipmap( GL_TEXTURE_2D );
-
-		resources.textures[ "Heightmap" ] = heightmap;
-		resources.textures[ "Sphere Image" ] = sphereImage;
-		resources.textures[ "Water Color" ] = waterColorTexture;
-		resources.textures[ "Water Normal" ] = waterNormalTexture;
-		resources.textures[ "Water Height" ] = waterHeightTexture;
 
 	}
 
@@ -814,7 +777,7 @@ void APIGeometryContainer::Render () {
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "lightCount" ), config.Lights );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Ground" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Ground" ], "heightmap" ), 9 );
+	textureManager_local->BindTexForShader( "Ground Heightmap", "heightmap", resources.shaders[ "Ground" ], 0 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Ground" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsGround );
 
@@ -833,8 +796,8 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "frameHeight" ), config.height );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Sphere" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere" ], "sphere" ), 10 );
+	textureManager_local->BindTexForShader( "Ground Heightmap", "heightmap", resources.shaders[ "Sphere" ], 0 );
+	textureManager_local->BindTexForShader( "Sphere Heightmap", "sphere", resources.shaders[ "Sphere" ], 1 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsSpheres );
 
@@ -849,8 +812,8 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "frameHeight" ), config.height );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "sphere" ), 10 );
+	textureManager_local->BindTexForShader( "Ground Heightmap", "heightmap", resources.shaders[ "Moving Sphere" ], 0 );
+	textureManager_local->BindTexForShader( "Sphere Heightmap", "sphere", resources.shaders[ "Moving Sphere" ], 1 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_POINTS, 0, resources.numPointsMovingSpheres );
 
@@ -863,9 +826,9 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "heightScale" ), config.heightScale );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Water" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "colorMap" ), 11 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "normalMap" ), 12 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Water" ], "heightMap" ), 13 );
+	textureManager_local->BindTexForShader( "Water Color Map", "colorMap", resources.shaders[ "Water" ], 0 );
+	textureManager_local->BindTexForShader( "Water Normal Map", "normalMap", resources.shaders[ "Water" ], 1 );
+	textureManager_local->BindTexForShader( "Water Heightmap", "heightMap", resources.shaders[ "Water" ], 2 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Water" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsWater );
 
@@ -879,8 +842,8 @@ void APIGeometryContainer::Render () {
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "AR" ), config.screenAR );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Skirts" ], "scale" ), config.scale );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "heightmap" ), 9 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Skirts" ], "waterHeight" ), 13 );
+	textureManager_local->BindTexForShader( "Ground Heightmap", "heightMap", resources.shaders[ "Skirts" ], 0 );
+	textureManager_local->BindTexForShader( "Water Heightmap", "waterHeight", resources.shaders[ "Skirts" ], 1 );
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Skirts" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 	glDrawArrays( GL_TRIANGLES, 0, resources.numPointsSkirts );
 
@@ -896,7 +859,7 @@ void APIGeometryContainer::Update () {
 	glUseProgram( resources.shaders[ "Sphere Map Update" ] );
 	glBindImageTexture( 1, textureManager_local->Get( "Steepness Map" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glBindImageTexture( 2, textureManager_local->Get( "Distance / Direction Map" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
+	textureManager_local->BindTexForShader( "Ground Heightmap", "heightmap", resources.shaders[ "Sphere Map Update" ], 0 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
 	glUniform3fv( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "obstacles" ), config.obstacles.size(), glm::value_ptr( config.obstacles[ 0 ] ) );
