@@ -8,7 +8,6 @@
 struct vertextureConfig {
 
 	// scaling the size of the GPU resources
-	int Guys;
 	int Lights;
 
 	// timekeeping since last reset
@@ -25,8 +24,6 @@ struct vertextureConfig {
 	// output settings
 	bool showTiming;
 	bool showTrident;
-
-	std::vector< vec3 > obstacles; // x,y location, then radius
 
 	// default orientation
 	vec3 basisX;
@@ -97,46 +94,6 @@ std::vector< std::string > eventReports;
 // remapping float range from1..to1 -> from2..to2
 inline float Remap ( float value, float from1, float to1, float from2, float to2 ) {
 	return ( value - from1 ) / ( to1 - from1 ) * ( to2 - from2 ) + from2;
-}
-
-// quad subdivision ( recursive )
-inline void subdivide (
-	std::vector< vec3 > &pointsVector,
-	const std::vector< vec3 > inputPoints,
-	const float minDisplacement = 0.01f ) {
-
-	if ( glm::distance( inputPoints[ 0 ], inputPoints[ 2 ] ) < minDisplacement ) {
-		/* corner-to-corner distance is small, time to write API geometry
-			A ( 0 )	@=======@ B ( 1 )
-					|      /|
-					|     / |
-					|    /  |
-					|   /   |
-					|  /    |
-					| /     |
-					|/      |
-			C ( 2 )	@=======@ D ( 3 ) --> X */
-		// triangle 1 ABC
-		pointsVector.push_back( inputPoints[ 0 ] );
-		pointsVector.push_back( inputPoints[ 1 ] );
-		pointsVector.push_back( inputPoints[ 2 ] );
-		// triangle 2 BCD
-		pointsVector.push_back( inputPoints[ 1 ] );
-		pointsVector.push_back( inputPoints[ 2 ] );
-		pointsVector.push_back( inputPoints[ 3 ] );
-	} else {
-		const vec3 center = ( inputPoints[ 0 ] +  inputPoints[ 1 ] + inputPoints[ 2 ] + inputPoints[ 3 ] ) / 4.0f;
-		// midpoints between corners
-		const vec3 midpoint13 = ( inputPoints[ 1 ] + inputPoints[ 3 ] ) / 2.0f;
-		const vec3 midpoint01 = ( inputPoints[ 0 ] + inputPoints[ 1 ] ) / 2.0f;
-		const vec3 midpoint23 = ( inputPoints[ 2 ] + inputPoints[ 3 ] ) / 2.0f;
-		const vec3 midpoint02 = ( inputPoints[ 0 ] + inputPoints[ 2 ] ) / 2.0f;
-		// recursive calls, next level of subdivision
-		subdivide( pointsVector, { midpoint01, inputPoints[ 1 ], center, midpoint13 }, minDisplacement );
-		subdivide( pointsVector, { inputPoints[ 0 ], midpoint01, midpoint02, center }, minDisplacement );
-		subdivide( pointsVector, { center, midpoint13, midpoint23, inputPoints[ 3 ] }, minDisplacement );
-		subdivide( pointsVector, { midpoint02, center, inputPoints[ 2 ], midpoint23 }, minDisplacement );
-	}
 }
 
 /* ==========================================================================================================================
@@ -218,9 +175,6 @@ void APIGeometryContainer::LoadConfig () {
 
 void APIGeometryContainer::Initialize () {
 	std::vector< point_t > points;
-
-	// clear existing list of obstacles
-	config.obstacles.resize( 0 );
 
 	// create all the graphics api resources
 	const string basePath( "./src/projects/Vertexture/shaders/" );
@@ -469,10 +423,6 @@ void APIGeometryContainer::Render () {
 	start = 0;
 	number = resources.numPointsStaticSpheres;
 	glDrawArrays( GL_POINTS, start, number ); // draw start to numstatic
-
-	start = resources.numPointsStaticSpheres;
-	number = resources.numPointsDynamicSpheres;
-	glDrawArrays( GL_POINTS, start, number ); // draw numstatic to end
 
 	// revert to default framebuffer
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
