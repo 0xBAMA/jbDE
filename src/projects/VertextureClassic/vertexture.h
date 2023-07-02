@@ -252,15 +252,18 @@ void APIGeometryContainer::Initialize () {
 		// ====================================
 		// == Framebuffer Textures ============
 		// ==== Depth =========================
-
+		opts.dataType = GL_DEPTH_COMPONENT32;
+		opts.width = config.width;
+		opts.height = config.height;
+		textureManager_local->Add( "Framebuffer Depth", opts );
 		// ==== Color =========================
-
+		opts.dataType = GL_RGBA16F;
+		textureManager_local->Add( "Framebuffer Color", opts );
 		// ==== Normal ========================
-
+		textureManager_local->Add( "Framebuffer Normal", opts );
 		// ==== Position ======================
-
+		textureManager_local->Add( "Framebuffer Position", opts );
 		// ====================================
-
 
 		// ====================================
 		// == Display Textures ================
@@ -294,52 +297,12 @@ void APIGeometryContainer::Initialize () {
 		GLuint waterColorTexture;
 		GLuint waterNormalTexture;
 		GLuint waterHeightTexture;
-		GLuint fbDepth;
-		GLuint fbColor;
-		GLuint fbNormal;
-		GLuint fbPosition;
 
-		// do the depth texture
-		glGenTextures( 1, &fbDepth );
-		glActiveTexture( GL_TEXTURE16 );
-		glBindTexture( GL_TEXTURE_2D, fbDepth );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, config.width, config.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbDepth, 0 );
-
-		// do the color texture
-		glGenTextures( 1, &fbColor );
-		glActiveTexture( GL_TEXTURE17 );
-		glBindTexture( GL_TEXTURE_2D, fbColor );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbColor, 0 ); // last argument is mip, interesting
-
-		// do the normal texture
-		glGenTextures( 1, &fbNormal );
-		glActiveTexture( GL_TEXTURE18 );
-		glBindTexture( GL_TEXTURE_2D, fbNormal );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, fbNormal, 0 );
-
-		// do the position texture
-		glGenTextures( 1, &fbPosition );
-		glActiveTexture( GL_TEXTURE19 );
-		glBindTexture( GL_TEXTURE_2D, fbPosition );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, config.width, config.height, 0, GL_RGBA, GL_FLOAT, NULL );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, fbPosition, 0 );
+		// last argument is mip level, interesting
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager_local->Get( "Framebuffer Depth" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager_local->Get( "Framebuffer Color" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager_local->Get( "Framebuffer Normal" ), 0 );
+		glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager_local->Get( "Framebuffer Position" ), 0 );
 
 		const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 		glDrawBuffers( 3, bufs );
@@ -404,10 +367,6 @@ void APIGeometryContainer::Initialize () {
 		resources.textures[ "Water Color" ] = waterColorTexture;
 		resources.textures[ "Water Normal" ] = waterNormalTexture;
 		resources.textures[ "Water Height" ] = waterHeightTexture;
-		resources.textures[ "fbDepth" ] = fbDepth;
-		resources.textures[ "fbColor" ] = fbColor;
-		resources.textures[ "fbNormal" ] = fbNormal;
-		resources.textures[ "fbPosition" ] = fbPosition;
 
 	}
 
@@ -826,14 +785,12 @@ void APIGeometryContainer::DeferredPass () {
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
 	glUniformMatrix3fv( glGetUniformLocation( resources.shaders[ "Deferred" ], "trident" ), 1, GL_FALSE, glm::value_ptr( tridentMat ) );
 
-	// from glActiveTexture... this sucks, not sure what the correct way is
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "depthTexture" ), 16 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "colorTexture" ), 17 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "normalTexture" ), 18 );
-	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "positionTexture" ), 19 );
+	textureManager_local->BindTexForShader( "Framebuffer Depth", "depthTexture", resources.shaders[ "Deferred" ], 0 );
+	textureManager_local->BindTexForShader( "Framebuffer Color", "colorTexture", resources.shaders[ "Deferred" ], 1 );
+	textureManager_local->BindTexForShader( "Framebuffer Normal", "normalTexture", resources.shaders[ "Deferred" ], 2 );
+	textureManager_local->BindTexForShader( "Framebuffer Position", "positionTexture", resources.shaders[ "Deferred" ], 3 );
 
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Deferred" ], "lightCount" ), config.Lights );
-
 	glUniform2f( glGetUniformLocation( resources.shaders[ "Deferred" ], "resolution" ), config.width, config.height );
 	glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
