@@ -237,7 +237,14 @@ public:
 			break;
 
 		case GL_TEXTURE_2D_ARRAY:
-			// todo - required for ProjectedFramebuffers ( rendering sponza, again, but much cooler this time )
+			glTexParameterf( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
+			glTexParameterf( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
+			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
+			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
+			glTexImage3D( GL_TEXTURE_2D_ARRAY, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, texOptsIn.depth, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
+			if ( needsMipmap == true ) {
+				glGenerateMipmap( GL_TEXTURE_2D_ARRAY );
+			}
 			break;
 
 		case GL_TEXTURE_3D:
