@@ -338,10 +338,11 @@ This is a planning document for work on this project and in general, about the t
 	- [Planet Geo](https://www.researchgate.net/publication/3422533_Climate_Modeling_with_Spherical_Geodesic_Grids)
 	- [Kali's Star Nest](https://www.shadertoy.com/view/slccDX) / [With A Bit Of Explanation](https://www.shadertoy.com/view/wlVSWV)
 
-- More stuff with the Erosion thing, I think I have the 3D version worked out pretty well
+- More stuff with the Erosion thing, I think I have the 3D version worked out pretty well conceptually
 	- Interesting variant of the erosion sim, much faster graph-based alternative to my slow particle-based impl
 		- [Video](https://twitter.com/Th3HolyMoose/status/1627073949606748166) / [Paper](https://hal.inria.fr/hal-01262376/document)
 	- That little acquarium simulator thing I wrote about in my notes
+	- [Visually Improved Erosion Algorithm for the Procedural Generation of Tile-based Terrain](https://www.scitepress.org/Papers/2022/107997/107997.pdf)
 	- The Nick Mcdonald [wind erosion sim](https://nickmcd.me/2020/11/23/particle-based-wind-erosion/)
 	- [Tangram heightmapper](https://tangrams.github.io/heightmapper/)
 	- [Wrighter's Cyclic Noise](https://www.shadertoy.com/view/3tcyD7)
@@ -543,6 +544,13 @@ This is a planning document for work on this project and in general, about the t
 - [TU Wien Algorithms for Real-Time Rendering Course](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE1-jb7DF313E6MvLcpTLqgH)
 - [TU Wien Rendering](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3e8SQowQ-DjD1eZkBA_Xb9)
 - [CIS 565 GPU Programming and Architecture Fall 2021 University of Pennsylvania](https://cis565-fall-2021.github.io/) / [Videos](https://cis565-fall-2022.github.io/syllabus/)
+
+--------------------------------------------------------------------------------------------------
+
+## Other Reading Material
+- [Algorithms for Modern Hardware](https://en.algorithmica.org/hpc/)
+- [Data Oriented Design Book](https://www.dataorienteddesign.com/dodbook/)
+- [Raft Concensus Algorithm Paper](https://raft.github.io/raft.pdf)
 
 --------------------------------------------------------------------------------------------------
 
