@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+
 #include "../../../../src/engine/coreUtils/random.h"
 #include "../../../../src/utils/trident/trident.h"
 #include "../../../../src/data/colors.h"
@@ -210,7 +211,7 @@ void APIGeometryContainer::Initialize () {
 	config.obstacles.resize( 0 );
 
 	// create all the graphics api resources
-	const string basePath( "./src/projects/Vertexture/shaders/" );
+	const string basePath( "./src/projects/VertextureClassic/shaders/" );
 	resources.shaders[ "Background" ]			= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Deferred" ]				= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
@@ -382,7 +383,7 @@ void APIGeometryContainer::Initialize () {
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
 		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
-		Image_4U heightmapImage( "./src/projects/Vertexture/textures/rock_height.png" );
+		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
 		glGenTextures( 1, &heightmap );
 		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
 		glBindTexture( GL_TEXTURE_2D, heightmap );
@@ -601,7 +602,7 @@ void APIGeometryContainer::Initialize () {
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ssbo );
 
 		GLuint sphereImage;
-		Image_4U sphereImageData( "./src/projects/Vertexture/textures/sphere.png" );
+		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );
 		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
 		glBindTexture( GL_TEXTURE_2D, sphereImage );
@@ -646,9 +647,9 @@ void APIGeometryContainer::Initialize () {
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
-		Image_4U color( "./src/projects/Vertexture/textures/water_color.png" );
-		Image_4U normal( "./src/projects/Vertexture/textures/water_norm.png" );
-		Image_4U height( "./src/projects/Vertexture/textures/water_height.png" );
+		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
+		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
+		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
 
 		GLuint waterColorTexture;
 		GLuint waterNormalTexture;
