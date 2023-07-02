@@ -49,23 +49,15 @@ struct vertextureConfig {
 	float AOMaxDistance = 0.07f;
 };
 
+// holding any required rng objects
 struct rnGenerators {
-	// these should come from the config, construct everything in the APIGeometryContainer::LoadConfig() function
-
-	rngi shaderWangSeed = rngi( 0, 100000 );
-
-	// needed:
-	// 	entity height min, max
-	// 	entity phase gen - rngN probably do spread about 0
-	// 	dudes max height for the bouncing
-	// 	tree height step
-	// 		tree number of points in canopy
-	// 	tree jitter diameter
-	// 		tree diameter for sim should be linked ( * 10.0f, looks like? )
-	// 	trunk constrict parameter ( try values >1.0 )
-	// 	trunk point size min, max
-	// 	canopy point size min, max
-	// 	ground cover point size min, max
+	rngi shaderWangSeed	= rngi( 0, 100000 );
+	rng xDistrib		= rng( -10.0f, 10.0f );
+	rng colorPick		= rng( 0.6f, 0.8f );
+	rng brightness		= rng( 0.0f, 1.0f );
+	rng gen				= rng( -1.0f, 1.0f );
+	rng size			= rng( 4.0f, 25.0f );
+	rng color			= rng( 0.0f, 0.65f );
 };
 
 // graphics api resources
@@ -163,6 +155,9 @@ void APIGeometryContainer::LoadConfig () {
 	config.worldY				= j[ "app" ][ "ProjectedFramebuffers" ][ "worldY" ];
 	config.framebufferX			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferX" ];
 	config.framebufferY			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferY" ];
+
+	// populate from config
+	rngs.brightness = rng( config.lightsMinBrightness, config.lightsMaxBrightness );
 
 	// update AR with current value of screen dims
 	config.width				= j[ "screenWidth" ];
@@ -286,9 +281,6 @@ void APIGeometryContainer::Initialize () {
 	std::vector< GLfloat > lightData;
 	{
 		GLuint ssbo;
-		rng xDistrib( -10.0f, 10.0f );
-		rng colorPick( 0.6f, 0.8f );
-		rng brightness( config.lightsMinBrightness, config.lightsMaxBrightness );
 
 		for ( int x = 0; x < config.Lights; x++ ) {
 		// need to figure out what the buffer needs to hold
@@ -296,12 +288,12 @@ void APIGeometryContainer::Initialize () {
 			// color ( vec3 + some extra value, again we'll find some kind of use for it )
 
 			// distribute initial light points
-			lightData.push_back( xDistrib() );
-			lightData.push_back( xDistrib() );
-			lightData.push_back( xDistrib() );
+			lightData.push_back( rngs.xDistrib() );
+			lightData.push_back( rngs.xDistrib() );
+			lightData.push_back( rngs.xDistrib() );
 			lightData.push_back( 0.0f );
 
-			vec3 col = palette::paletteRef( colorPick(), palette::type::paletteIndexed_interpolated ) * brightness();
+			vec3 col = palette::paletteRef( rngs.colorPick(), palette::type::paletteIndexed_interpolated ) * rngs.brightness();
 			lightData.push_back( col.r );
 			lightData.push_back( col.g );
 			lightData.push_back( col.b );
@@ -318,19 +310,18 @@ void APIGeometryContainer::Initialize () {
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * config.Lights, ( GLvoid * ) &lightData[ 0 ], GL_DYNAMIC_COPY );
 
 		resources.SSBOs[ "Lights" ] = ssbo;
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, resources.SSBOs[ "Lights" ] );
 	}
 
 	{
 		// put in some placeholder shit, to show signs of life
-		rng gen( -1.0f, 1.0f );
-		rng size( 4.0f, 25.0f );
-		rng color( 0.0f, 0.65f );
+
 
 		const uint32_t numPixelsFramebuffer = config.framebufferX * config.framebufferY;
 		for ( uint32_t i = 0; i < numPixelsFramebuffer; i++ ) {
 			points.push_back( {
-				vec4( gen(), gen(), gen(), size() ),
-				vec4( palette::paletteRef( color() ), 0.0f )
+				vec4( rngs.gen(), rngs.gen(), rngs.gen(), rngs.size() ),
+				vec4( palette::paletteRef( rngs.color() ), 0.0f )
 			} );
 		}
 
@@ -342,12 +333,16 @@ void APIGeometryContainer::Initialize () {
 
 		// need to know how many there are for later
 		resources.numPointsStaticSpheres = points.size();
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
 
 	}
 
-	// bind in known locations
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, resources.SSBOs[ "Spheres" ] );
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, resources.SSBOs[ "Lights" ] );
+	{
+		// the sponza geometry
+
+		// the array texture
+	}
+
 }
 
 void APIGeometryContainer::Terminate () {
