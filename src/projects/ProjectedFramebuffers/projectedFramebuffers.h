@@ -321,14 +321,28 @@ void APIGeometryContainer::Initialize () {
 	}
 
 	{
-		points.resize( 1000 );
+		// put in some placeholder shit, to show signs of life
+		rng gen( -1.0f, 1.0f );
+		rng size( 4.0f, 25.0f );
+		rng color( 0.0f, 0.65f );
+
+		const uint32_t numPixelsFramebuffer = config.framebufferX * config.framebufferY;
+		for ( uint32_t i = 0; i < numPixelsFramebuffer; i++ ) {
+			points.push_back( {
+				vec4( gen(), gen(), gen(), size() ),
+				vec4( palette::paletteRef( color() ), 0.0f )
+			} );
+		}
 
 		GLuint ssbo;
 		glGenBuffers( 1, &ssbo );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( point_t ) * ( points.size() ), ( GLvoid * ) &points[ 0 ], GL_DYNAMIC_COPY );
-
 		resources.SSBOs[ "Spheres" ] = ssbo;
+
+		// need to know how many there are for later
+		resources.numPointsStaticSpheres = points.size();
+
 	}
 
 	// bind in known locations
