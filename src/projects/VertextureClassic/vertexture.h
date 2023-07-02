@@ -239,13 +239,15 @@ void APIGeometryContainer::Initialize () {
 
 		// ====================================
 		// == Simulation Maps =================
-		Image_4U steepnessTex( 512, 512 );
 		// ==== Steepness =====================
-
+		opts.dataType = GL_RGBA32F;
+		opts.textureType = GL_TEXTURE_2D;
+		opts.width = 512;
+		opts.height = 512;
+		textureManager_local->Add( "Steepness Map", opts );
 		// ==== Distance / Direction ==========
-
+		textureManager_local->Add( "Distance / Direction Map", opts );
 		// ====================================
-
 
 		// ====================================
 		// == Framebuffer Textures ============
@@ -263,10 +265,11 @@ void APIGeometryContainer::Initialize () {
 		// ====================================
 		// == Display Textures ================
 		// ==== Sphere Heightmap ==============
+		// maybe port this to the analytic model, later - I might also want to keep it for legacy's sake
 		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
 
 		// ==== Rock Heightmap ================
-		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
+		// consider swapping out for a generated heightmap? something with ~10s of erosion applied? tbd
 		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
 
 		// ==== Water Heightmap ===============
@@ -291,8 +294,10 @@ void APIGeometryContainer::Initialize () {
 		GLuint waterColorTexture;
 		GLuint waterNormalTexture;
 		GLuint waterHeightTexture;
-		GLuint fbDepth, fbColor, fbNormal, fbPosition;
-		GLuint steepness, distanceDirection;
+		GLuint fbDepth;
+		GLuint fbColor;
+		GLuint fbNormal;
+		GLuint fbPosition;
 
 		// do the depth texture
 		glGenTextures( 1, &fbDepth );
@@ -344,16 +349,6 @@ void APIGeometryContainer::Initialize () {
 			cout << "framebuffer creation successful" << endl;
 		}
 
-		glGenTextures( 1, &steepness );
-		glActiveTexture( GL_TEXTURE14 );
-		glBindTexture( GL_TEXTURE_2D, steepness );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-
-		glGenTextures( 1, &distanceDirection );
-		glActiveTexture( GL_TEXTURE15 );
-		glBindTexture( GL_TEXTURE_2D, distanceDirection );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-
 		glGenTextures( 1, &heightmap );
 		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
 		glBindTexture( GL_TEXTURE_2D, heightmap );
@@ -404,8 +399,6 @@ void APIGeometryContainer::Initialize () {
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, height.Width(), height.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, height.GetImageDataBasePtr() );
 		glGenerateMipmap( GL_TEXTURE_2D );
 
-		resources.textures[ "Steepness Map" ] = steepness;
-		resources.textures[ "Distance/Direction Map" ] = distanceDirection;
 		resources.textures[ "Heightmap" ] = heightmap;
 		resources.textures[ "Sphere Image" ] = sphereImage;
 		resources.textures[ "Water Color" ] = waterColorTexture;
@@ -583,8 +576,6 @@ void APIGeometryContainer::Initialize () {
 	}
 
 	// spheres
-		// sphere heightmap texture
-			// try the math version, see if that's faster? from the nvidia paper
 		// shader + vertex buffer of the static points
 			// optionally include the debug spheres for the light positions
 		// shader + ssbo buffer of the dynamic points
@@ -892,8 +883,8 @@ void APIGeometryContainer::Render () {
 
 	// dynamic points
 	glUseProgram( resources.shaders[ "Moving Sphere" ] );
-	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glBindImageTexture( 1, textureManager_local->Get( "Steepness Map" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glBindImageTexture( 2, textureManager_local->Get( "Distance / Direction Map" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "heightScale" ), config.heightScale );
 	glUniform1f( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "time" ), config.timeVal / 10000.0f );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Moving Sphere" ], "inSeed" ), rngs.shaderWangSeed() );
@@ -946,8 +937,8 @@ void APIGeometryContainer::Update () {
 
 	// run the stuff to update the moving point locations
 	glUseProgram( resources.shaders[ "Sphere Map Update" ] );
-	glBindImageTexture( 1, resources.textures[ "Steepness Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
-	glBindImageTexture( 2, resources.textures[ "Distance/Direction Map" ], 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glBindImageTexture( 1, textureManager_local->Get( "Steepness Map" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
+	glBindImageTexture( 2, textureManager_local->Get( "Distance / Direction Map" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "heightmap" ), 9 );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "inSeed" ), rngs.shaderWangSeed() );
 	glUniform1i( glGetUniformLocation( resources.shaders[ "Sphere Map Update" ], "numObstacles" ), config.obstacles.size() );
