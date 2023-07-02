@@ -40,6 +40,8 @@ struct vertextureConfig {
 	// for computing screen AR, from config.json
 	uint32_t width;
 	uint32_t height;
+	uint32_t framebufferX;
+	uint32_t framebufferY;
 	float screenAR;
 
 	int AONumSamples = 16;
@@ -194,20 +196,23 @@ void APIGeometryContainer::LoadConfig () {
 	json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 
 	// this informs the behavior of Initialize()
-	config.Lights		= j[ "app" ][ "Vertexture" ][ "Lights" ];
+	config.Lights				= j[ "app" ][ "ProjectedFramebuffers" ][ "Lights" ];
 
 	// other program state
-	config.showTrident	= j[ "app" ][ "Vertexture" ][ "showTrident" ];
-	config.showTiming	= j[ "app" ][ "Vertexture" ][ "showTiming" ];
-	config.lightsMinBrightness = j[ "app" ][ "Vertexture" ][ "Lights Min Brightness" ];
-	config.lightsMaxBrightness = j[ "app" ][ "Vertexture" ][ "Lights Max Brightness" ];
-	config.worldX		= j[ "app" ][ "Vertexture" ][ "worldX" ];
-	config.worldY		= j[ "app" ][ "Vertexture" ][ "worldY" ];
+	config.showTrident			= j[ "app" ][ "ProjectedFramebuffers" ][ "showTrident" ];
+	config.showTiming			= j[ "app" ][ "ProjectedFramebuffers" ][ "showTiming" ];
+	config.lightsMinBrightness	= j[ "app" ][ "ProjectedFramebuffers" ][ "Lights Min Brightness" ];
+	config.lightsMaxBrightness	= j[ "app" ][ "ProjectedFramebuffers" ][ "Lights Max Brightness" ];
+	config.worldX				= j[ "app" ][ "ProjectedFramebuffers" ][ "worldX" ];
+	config.worldY				= j[ "app" ][ "ProjectedFramebuffers" ][ "worldY" ];
 
 	// update AR with current value of screen dims
-	config.width = j[ "screenWidth" ];
-	config.height = j[ "screenHeight" ];
-	config.screenAR = ( float ) config.width / ( float ) config.height;
+	config.width				= j[ "screenWidth" ];
+	config.height				= j[ "screenHeight" ];
+	config.screenAR 			= ( float ) config.width / ( float ) config.height;
+
+	config.framebufferX			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferX" ];
+	config.framebufferY			= j[ "app" ][ "ProjectedFramebuffers" ][ "framebufferY" ];
 
 	// reset amount of time since last reset
 	config.timeVal = 0.0f;

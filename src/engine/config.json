@@ -75,6 +75,19 @@
 			"ShowLightDebugLocations":false,
 			"worldX":1.6,
 			"worldY":3.2
+		},
+		"ProjectedFramebuffers":{
+			"showTrident":false,
+			"showTiming":false,
+			"Lights":64,
+			"Lights Min Brightness":0.005,
+			"Lights Max Brightness":0.020,
+			"Guys":0,
+			"ShowLightDebugLocations":false,
+			"worldX":1.6,
+			"worldY":3.2,
+			"framebufferX":640,
+			"framebufferY":360
 		}
 	}
 }
