@@ -172,12 +172,13 @@ void APIGeometryContainer::Initialize () {
 	std::vector< point_t > points;
 
 	// create all the graphics api resources
-	const string basePath( "./src/projects/Vertexture/shaders/" );
+	const string basePath( "./src/projects/ProjectedFramebuffers/shaders/" );
 	resources.shaders[ "Background" ]		= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Deferred" ]			= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]	= computeShader( basePath + "sphereMove.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Light Movement" ]	= computeShader( basePath + "lightMove.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere" ]			= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
+	resources.shaders[ "Sponza" ]			= regularShader( basePath + "sponza.vs.glsl", basePath + "sponza.fs.glsl" ).shaderHandle;
 
 	static bool firstTime = true;
 	if ( firstTime ) {
