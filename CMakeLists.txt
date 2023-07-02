@@ -326,6 +326,35 @@ target_link_libraries( Vertexture
 )
 
 # =================================================================================================
+# VertextureClassic
+# =================================================================================================
+add_executable( VertextureClassic
+	src/projects/VertextureClassic/main.cc
+	src/engine/engine.cc
+	src/engine/engineUtils.cc
+	src/engine/engineInit.cc
+	src/engine/engineImguiUtils.cc
+)
+
+target_link_libraries( VertextureClassic
+	PUBLIC
+	imgui
+	BigInt
+	tinyEXR
+	tinyXML2
+	opengl
+	sdl2
+	STB_ImageUtilsWrapper
+	stdc++fs
+	FastNoise
+	Perlin
+	Tracy::TracyClient
+	TinyOBJLoader
+	LodePNG
+	CompilerFlags
+)
+
+# =================================================================================================
 # Voraldo14
 # =================================================================================================
 add_executable( Voraldo14

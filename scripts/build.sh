@@ -16,7 +16,8 @@ cd build
 # time make -j17 Siren
 # time make -j17 SoftBodies				# soft body simulation
 # time make -j17 Vertexture				# point sprite sphere impostors
-time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
+time make -j17 VertextureClassic		# Vertexture, with the trees
+# time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
 # time make -j17 Voraldo14
 # time make -j17 VoxelSpace
 
