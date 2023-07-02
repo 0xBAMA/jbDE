@@ -232,47 +232,51 @@ void APIGeometryContainer::Initialize () {
 	resources.shaders[ "Water" ]				= regularShader( basePath + "water.vs.glsl", basePath + "water.fs.glsl" ).shaderHandle;
 	resources.shaders[ "Skirts" ]				= regularShader( basePath + "skirts.vs.glsl", basePath + "skirts.fs.glsl" ).shaderHandle;
 
-	GLuint steepness, distanceDirection;
-	Image_4U steepnessTex( 512, 512 );
-
-	glGenTextures( 1, &steepness );
-	glActiveTexture( GL_TEXTURE14 );
-	glBindTexture( GL_TEXTURE_2D, steepness );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-	resources.textures[ "Steepness Map" ] = steepness;
-
-	glGenTextures( 1, &distanceDirection );
-	glActiveTexture( GL_TEXTURE15 );
-	glBindTexture( GL_TEXTURE_2D, distanceDirection );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
-	resources.textures[ "Distance/Direction Map" ] = distanceDirection;
-
-
 	static bool firstTime = true;
 	if ( firstTime ) {
 
 		textureOptions_t opts;
 
-
-
 		// ====================================
 		// == Simulation Maps =================
+		Image_4U steepnessTex( 512, 512 );
 		// ==== Steepness =====================
+
 		// ==== Distance / Direction ==========
+
 		// ====================================
+
 
 		// ====================================
 		// == Framebuffer Textures ============
+		// ==== Depth =========================
+
+		// ==== Color =========================
+
+		// ==== Normal ========================
+
+		// ==== Position ======================
+
 		// ====================================
+
 
 		// ====================================
 		// == Display Textures ================
-		// ====================================
-		// 
+		// ==== Sphere Heightmap ==============
+		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
 
-		// ====================================
+		// ==== Rock Heightmap ================
+		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
+		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
 
+		// ==== Water Heightmap ===============
+		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
 
+		// ==== Water Normal ==================
+		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
+
+		// ==== Water Color ===================
+		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
 
 		// ====================================
 
@@ -282,7 +286,13 @@ void APIGeometryContainer::Initialize () {
 		glBindFramebuffer( GL_FRAMEBUFFER, primaryFramebuffer );
 
 		// create the textures and fill out the framebuffer information
+		GLuint heightmap;
+		GLuint sphereImage;
+		GLuint waterColorTexture;
+		GLuint waterNormalTexture;
+		GLuint waterHeightTexture;
 		GLuint fbDepth, fbColor, fbNormal, fbPosition;
+		GLuint steepness, distanceDirection;
 
 		// do the depth texture
 		glGenTextures( 1, &fbDepth );
@@ -329,20 +339,21 @@ void APIGeometryContainer::Initialize () {
 		const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 		glDrawBuffers( 3, bufs );
 
-		// make sure they're accessible from above
-		resources.textures[ "fbDepth" ] = fbDepth;
-		resources.textures[ "fbColor" ] = fbColor;
-		resources.textures[ "fbNormal" ] = fbNormal;
-		resources.textures[ "fbPosition" ] = fbPosition;
-
 		resources.FBOs[ "Primary" ] = primaryFramebuffer;
 		if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 			cout << "framebuffer creation successful" << endl;
 		}
 
-		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
-		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
-		GLuint heightmap;
+		glGenTextures( 1, &steepness );
+		glActiveTexture( GL_TEXTURE14 );
+		glBindTexture( GL_TEXTURE_2D, steepness );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
+
+		glGenTextures( 1, &distanceDirection );
+		glActiveTexture( GL_TEXTURE15 );
+		glBindTexture( GL_TEXTURE_2D, distanceDirection );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, steepnessTex.GetImageDataBasePtr() );
+
 		glGenTextures( 1, &heightmap );
 		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
 		glBindTexture( GL_TEXTURE_2D, heightmap );
@@ -352,10 +363,7 @@ void APIGeometryContainer::Initialize () {
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, heightmapImage.Width(), heightmapImage.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, heightmapImage.GetImageDataBasePtr() );
 		glGenerateMipmap( GL_TEXTURE_2D );
-		resources.textures[ "Heightmap" ] = heightmap;
 
-		GLuint sphereImage;
-		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
 		glGenTextures( 1, &sphereImage );
 		glActiveTexture( GL_TEXTURE10 ); // Texture unit 10
 		glBindTexture( GL_TEXTURE_2D, sphereImage );
@@ -365,15 +373,6 @@ void APIGeometryContainer::Initialize () {
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, sphereImageData.GetImageDataBasePtr() );
 		glGenerateMipmap( GL_TEXTURE_2D );
-		resources.textures[ "Sphere Image" ] = sphereImage;
-
-		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
-		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
-		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
-
-		GLuint waterColorTexture;
-		GLuint waterNormalTexture;
-		GLuint waterHeightTexture;
 
 		glGenTextures( 1, &waterColorTexture );
 		glActiveTexture( GL_TEXTURE11 );
@@ -405,18 +404,19 @@ void APIGeometryContainer::Initialize () {
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, height.Width(), height.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, height.GetImageDataBasePtr() );
 		glGenerateMipmap( GL_TEXTURE_2D );
 
+		resources.textures[ "Steepness Map" ] = steepness;
+		resources.textures[ "Distance/Direction Map" ] = distanceDirection;
+		resources.textures[ "Heightmap" ] = heightmap;
+		resources.textures[ "Sphere Image" ] = sphereImage;
 		resources.textures[ "Water Color" ] = waterColorTexture;
 		resources.textures[ "Water Normal" ] = waterNormalTexture;
 		resources.textures[ "Water Height" ] = waterHeightTexture;
+		resources.textures[ "fbDepth" ] = fbDepth;
+		resources.textures[ "fbColor" ] = fbColor;
+		resources.textures[ "fbNormal" ] = fbNormal;
+		resources.textures[ "fbPosition" ] = fbPosition;
 
 	}
-
-
-
-
-
-
-
 
 	// generate all the geometry
 
