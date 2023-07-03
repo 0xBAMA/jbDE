@@ -7,8 +7,9 @@ public:
 
 	void OnInit () {
 		ZoneScoped;
-		{ Block Start( "Additional User Init" );
-			// something to put some basic data in the accumulator texture - specific to the demo project
+		{
+			Block Start( "Additional User Init" );
+			// something to put some basic data in the accumulator texture - comes from the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Voraldo14/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 		}
 	}

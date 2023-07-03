@@ -33,6 +33,7 @@ void main () {
 		point_t newPoint;
 		newPoint.position			= vec4( positionSample, 10.0f );
 		newPoint.color				= vec4( colorSample, 0.0f );
+		// newPoint.color				= vec4( clamp( normalSample / 2.0f + vec3( 1.0f ), vec3( 0.0f ), vec3( 1.0f ) ), 0.0f );
 
 		const int bufferOffset		= loc.x + loc.y * int( resolution.x );
 		data[ bufferOffset ]		= newPoint;

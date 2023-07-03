@@ -7,9 +7,24 @@ public:
 
 	void OnInit () {
 		ZoneScoped;
-		{ Block Start( "Additional User Init" );
-			// something to put some basic data in the accumulator texture - specific to the demo project
+		{
+			Block Start( "Additional User Init" );
+
+			// something to put some basic data in the accumulator texture - comes from the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Physarum/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+
+			// get the configuration from config.json
+
+			// shader for the point motion
+
+			// shader for the gaussian blur
+
+			// shader for the point movement
+
+			// setup the ssbo for the points
+
+			// setup the image buffers for the atomic writes ( 2x for ping-ponging )
+
 		}
 	}
 
@@ -81,7 +96,11 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
+
+		// run the shader to move the points
+
+		// run the shader to do the gaussian blur
+
 	}
 
 	void OnRender () {
