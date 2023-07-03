@@ -7,12 +7,17 @@ in vec3 tangent;
 in vec3 bitangent;
 out vec4 fragmentOutput;
 
-layout( binding = 1 ) uniform sampler2DArray textures;
+uniform sampler2DArray textures;
 
 uniform mat4 transform;
 uniform vec3 lightPosition;
 
 const vec3 viewPosition = vec3( 0.0f );
+
+out float gl_FragDepth;
+layout( location = 0 ) out vec4 normalResult;
+layout( location = 1 ) out vec4 positionResult;
+layout( location = 2 ) out vec4 albedo;
 
 void main () {
 	// texture array - use texcoord z value * 2 for color, * 2 + 1 for normals
@@ -46,6 +51,11 @@ void main () {
 	vec3 specular = vec3( 0.3f ) * s; // assuming bright white light color
 // ====================================================
 
-	fragmentOutput = vec4( ambient + diffuse + specular, 1.0f );
-	// fragmentOutput = vec4( texRefColor.xyz, 1.0f );
+	positionResult = vec4( position * 0.0024, 1.0f );
+
+	// normalResult = vec4( normal, 1.0f );
+	normalResult = vec4( nMappedNormal, 1.0f );
+
+	albedo = vec4( texRefColor.xyz, 1.0f );
+	// albedo = vec4( ambient + diffuse + specular, 1.0f );
 }

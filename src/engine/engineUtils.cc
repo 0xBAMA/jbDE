@@ -146,7 +146,6 @@ void engineBase::PrepareProfilingData () {
 	timerQueries_engine.clear(); // prepare for next frame's data
 }
 
-
 //=============================================================================
 //==== std::chrono Wrapper - Simplified Tick() / Tock() Interface =============
 //=============================================================================
