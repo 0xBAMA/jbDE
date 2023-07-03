@@ -547,18 +547,16 @@ void APIGeometryContainer::Render () {
 
 	// compute the transform
 	mat4 transform;
-	// float time = SDL_GetTicks() / 10'000.0f;
-	float time = 4.0f;
+	float time = SDL_GetTicks() / 10.0f;
 	// transform = glm::perspective( ( float ) pi / 4.0f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 15.0f );
-	transform = glm::perspective( ( float ) pi / 2.0f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 10.0f );
+	transform = glm::perspective( ( float ) pi / 1.2f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 10.0f );
 	transform = glm::translate( transform, vec3( 0.0f, -1.0f, 0.0f ) );
 	transform = glm::rotate( transform, 0.3f * sin( time ), vec3( 1.0f, 0.0f, 0.0f ) );
 	transform = glm::rotate( transform, time, vec3( 0.0f, 1.0f, 0.0f ) );
 	transform = glm::scale( transform, vec3( 0.0024f ) );
-
-	// send view position ( transform, above - maybe inverted? tbd )
-	// send light position(s) maybe a buffer with a couple in it? or pass uniform vector
 	glUniformMatrix4fv( glGetUniformLocation( resources.shaders[ "Sponza" ], "transform" ), 1, GL_FALSE, glm::value_ptr( transform ) );
+
+	// render to framebuffer, at the specified resolution
 	glViewport( 0, 0, config.framebufferX, config.framebufferY );
 	glDrawArrays( GL_TRIANGLES, 0, 3 * resources.sponzaNumTriangles );
 

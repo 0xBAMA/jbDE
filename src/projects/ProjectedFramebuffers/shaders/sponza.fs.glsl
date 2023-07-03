@@ -51,7 +51,7 @@ void main () {
 	vec3 specular = vec3( 0.3f ) * s; // assuming bright white light color
 // ====================================================
 
-	positionResult = vec4( position * 0.0024, 1.0f );
+	positionResult = vec4( position * 0.001f, 1.0f );
 
 	// normalResult = vec4( normal, 1.0f );
 	normalResult = vec4( nMappedNormal, 1.0f );

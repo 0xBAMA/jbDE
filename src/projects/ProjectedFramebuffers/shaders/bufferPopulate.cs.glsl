@@ -31,7 +31,7 @@ void main () {
 		const vec3 depthSample		= texture( depth, sampleLocation ).xyz;
 
 		point_t newPoint;
-		newPoint.position			= vec4( positionSample, 4.0f );
+		newPoint.position			= vec4( positionSample, 10.0f );
 		newPoint.color				= vec4( colorSample, 0.0f );
 
 		const int bufferOffset		= loc.x + loc.y * int( resolution.x );
