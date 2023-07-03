@@ -286,6 +286,22 @@ void APIGeometryContainer::Initialize () {
 			std::vector<vec3> tangents;
 			std::vector<vec3> bitangents;
 
+			vec3 maxPosition = vec3( -10000000.0f );
+			vec3 minPosition = vec3(  10000000.0f );
+
+			for ( auto& triangle : s.triangles ) {
+				// computation of bounding box
+				maxPosition = glm::max( triangle.p0, maxPosition );
+				maxPosition = glm::max( triangle.p1, maxPosition );
+				maxPosition = glm::max( triangle.p2, maxPosition );
+				minPosition = glm::min( triangle.p0, minPosition );
+				minPosition = glm::min( triangle.p1, minPosition );
+				minPosition = glm::min( triangle.p2, minPosition );
+			}
+
+			cout << "   Bounding box is from " << minPosition.x << " " << minPosition.y << " " << minPosition.z << endl;
+			cout << "                     to " << maxPosition.x << " " << maxPosition.y << " " << maxPosition.z << endl;
+
 			for ( auto& triangle : s.triangles ) {
 				positions.push_back( triangle.p0 );
 				positions.push_back( triangle.p1 );
