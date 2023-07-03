@@ -303,7 +303,7 @@ public:
 	}
 
 	void Update ( string label /*, ... */ ) {
-		// pass in new data for the texture
+		// pass in new data for the texture... tbd
 	}
 
 	void EnumerateTextures () {

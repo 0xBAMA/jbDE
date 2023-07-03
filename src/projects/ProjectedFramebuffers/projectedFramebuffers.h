@@ -178,6 +178,7 @@ void APIGeometryContainer::Initialize () {
 	resources.shaders[ "Deferred" ]			= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]	= computeShader( basePath + "sphereMove.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Light Movement" ]	= computeShader( basePath + "lightMove.cs.glsl" ).shaderHandle;
+	resources.shaders[ "Buffer Populate" ]	= computeShader( basePath + "bufferPopulate.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere" ]			= regularShader( basePath + "sphere.vs.glsl", basePath + "sphere.fs.glsl" ).shaderHandle;
 	resources.shaders[ "Sponza" ]			= regularShader( basePath + "sponza.vs.glsl", basePath + "sponza.fs.glsl" ).shaderHandle;
 
@@ -286,21 +287,21 @@ void APIGeometryContainer::Initialize () {
 			std::vector<vec3> tangents;
 			std::vector<vec3> bitangents;
 
-			vec3 maxPosition = vec3( -10000000.0f );
-			vec3 minPosition = vec3(  10000000.0f );
+			// vec3 maxPosition = vec3( -10000000.0f );
+			// vec3 minPosition = vec3(  10000000.0f );
 
-			for ( auto& triangle : s.triangles ) {
-				// computation of bounding box
-				maxPosition = glm::max( triangle.p0, maxPosition );
-				maxPosition = glm::max( triangle.p1, maxPosition );
-				maxPosition = glm::max( triangle.p2, maxPosition );
-				minPosition = glm::min( triangle.p0, minPosition );
-				minPosition = glm::min( triangle.p1, minPosition );
-				minPosition = glm::min( triangle.p2, minPosition );
-			}
+			// for ( auto& triangle : s.triangles ) {
+			// 	// computation of bounding box
+			// 	maxPosition = glm::max( triangle.p0, maxPosition );
+			// 	maxPosition = glm::max( triangle.p1, maxPosition );
+			// 	maxPosition = glm::max( triangle.p2, maxPosition );
+			// 	minPosition = glm::min( triangle.p0, minPosition );
+			// 	minPosition = glm::min( triangle.p1, minPosition );
+			// 	minPosition = glm::min( triangle.p2, minPosition );
+			// }
 
-			cout << "   Bounding box is from " << minPosition.x << " " << minPosition.y << " " << minPosition.z << endl;
-			cout << "                     to " << maxPosition.x << " " << maxPosition.y << " " << maxPosition.z << endl;
+			// cout << "   Bounding box is from " << minPosition.x << " " << minPosition.y << " " << minPosition.z << endl;
+			// cout << "                     to " << maxPosition.x << " " << maxPosition.y << " " << maxPosition.z << endl;
 
 			for ( auto& triangle : s.triangles ) {
 				positions.push_back( triangle.p0 );
@@ -548,7 +549,8 @@ void APIGeometryContainer::Render () {
 	mat4 transform;
 	// float time = SDL_GetTicks() / 10'000.0f;
 	float time = 4.0f;
-	transform = glm::perspective( ( float ) pi / 4.0f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 15.0f );
+	// transform = glm::perspective( ( float ) pi / 4.0f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 15.0f );
+	transform = glm::perspective( ( float ) pi / 2.0f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 10.0f );
 	transform = glm::translate( transform, vec3( 0.0f, -1.0f, 0.0f ) );
 	transform = glm::rotate( transform, 0.3f * sin( time ), vec3( 1.0f, 0.0f, 0.0f ) );
 	transform = glm::rotate( transform, time, vec3( 0.0f, 1.0f, 0.0f ) );
@@ -561,6 +563,17 @@ void APIGeometryContainer::Render () {
 	glDrawArrays( GL_TRIANGLES, 0, 3 * resources.sponzaNumTriangles );
 
 	// populate the SSBO with the points
+	glUseProgram( resources.shaders[ "Buffer Populate" ] );
+
+	// bind textures
+	textureManager_local->BindTexForShader( "Geometry Framebuffer Depth", "depth", resources.shaders[ "Buffer Populate" ], 0 );
+	textureManager_local->BindTexForShader( "Geometry Framebuffer Albedo", "color", resources.shaders[ "Buffer Populate" ], 1 );
+	textureManager_local->BindTexForShader( "Geometry Framebuffer Normal", "normal", resources.shaders[ "Buffer Populate" ], 2 );
+	textureManager_local->BindTexForShader( "Geometry Framebuffer Position", "position", resources.shaders[ "Buffer Populate" ], 3 );
+
+	// put all the pixels into the buffer as points
+	glUniform2f( glGetUniformLocation( resources.shaders[ "Buffer Populate" ], "resolution" ), config.framebufferX, config.framebufferY );
+	glDispatchCompute( ( config.framebufferX + 15 ) / 16, ( config.framebufferY + 15 ) / 16, 1 );
 
 	// then the render the points, out of the SSBO
 	const mat3 tridentMat = mat3( config.basisX, config.basisY, config.basisZ ); // matrix for the view transform
