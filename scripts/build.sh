@@ -12,6 +12,7 @@ time make -j17 engineDemo				# super basic demo
 # child apps
 # time make -j17 AirplaneMode2
 # time make -j17 FontGame
+# time make -j16 HexDump
 # time make -j17 Physarum
 # time make -j17 Siren
 # time make -j17 SoftBodies	# soft body sim
