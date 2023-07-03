@@ -541,8 +541,13 @@ void APIGeometryContainer::Render () {
 	glUseProgram( resources.shaders[ "Sponza" ] );
 	glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Geometry" ] );
 
+	// bind the array texture
+	textureManager_local->BindTexForShader( "Sponza Array Texture", "textures", resources.shaders[ "Sponza" ], 0 );
+
+	// compute the transform
 	mat4 transform;
-	float time = SDL_GetTicks() / 10'000.0f;
+	// float time = SDL_GetTicks() / 10'000.0f;
+	float time = 4.0f;
 	transform = glm::perspective( ( float ) pi / 4.0f, float( config.framebufferX ) / float( config.framebufferY ), 0.001f, 15.0f );
 	transform = glm::translate( transform, vec3( 0.0f, -1.0f, 0.0f ) );
 	transform = glm::rotate( transform, 0.3f * sin( time ), vec3( 1.0f, 0.0f, 0.0f ) );
