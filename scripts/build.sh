@@ -14,12 +14,14 @@ time make -j17 engineDemo				# super basic demo
 # time make -j17 FontGame
 # time make -j17 Physarum
 # time make -j17 Siren
-# time make -j17 SoftBodies				# soft body simulation
+# time make -j17 SoftBodies	# soft body sim
+# time make -j17 Voraldo14	# volume renderer
+# time make -j17 VoxelSpace
+
+# Vertexture Variants
 # time make -j17 Vertexture				# point sprite sphere impostors
 # time make -j17 VertextureClassic		# Vertexture, with the trees
 # time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
-# time make -j17 Voraldo14
-# time make -j17 VoxelSpace
 
 # so apparently the default target builds everything in a
 # parallel fashion - need to test to see if this is faster
