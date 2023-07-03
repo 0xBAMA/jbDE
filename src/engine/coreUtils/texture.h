@@ -259,7 +259,8 @@ public:
 			break;
 
 		default:
-		break;
+			cout << "unknown texture type" << endl;
+			break;
 		}
 
 		// store for later
