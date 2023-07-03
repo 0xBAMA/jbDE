@@ -263,6 +263,9 @@ public:
 			break;
 		}
 
+		// data likely doesn't exist after initialization
+		tex.creationOptions.initialData = nullptr;
+
 		// store for later
 		textures.push_back( tex );
 
