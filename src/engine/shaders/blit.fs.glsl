@@ -4,6 +4,5 @@ uniform sampler2D current;
 uniform vec2 resolution;
 out vec4 fragmentOutput;
 void main () {
-	fragmentOutput = texture( current, gl_FragCoord.xy / resolution );
-	// fragmentOutput = texture( current, ( gl_FragCoord.xy + 0.5f ) / resolution ); // half pixel offset tbd
+	fragmentOutput = texture( current, ( gl_FragCoord.xy + 0.5f ) / resolution ); // half pixel offset
 }
