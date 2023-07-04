@@ -206,7 +206,6 @@ public:
 
 	}
 
-	int count = 0;
 	void Add ( string label, textureOptions_t &texOptsIn ) {
 
 		texture_t tex;
@@ -268,9 +267,6 @@ public:
 
 		// store for later
 		textures.push_back( tex );
-
-		// increment count on add - we'll keep it for the time being
-		count++; // kind of redundant with textures.size(), tbd
 	}
 
 	GLuint Get ( const string label ) { // if the array contains the key, return it, else some nonsense value
@@ -315,6 +311,10 @@ public:
 
 	void Update ( string label /*, ... */ ) {
 		// pass in new data for the texture... tbd
+	}
+
+	size_t Count () { // how many textures are in the current set?
+		return textures.size(); // this will support add / remove in the future
 	}
 
 	void EnumerateTextures () {
