@@ -10,23 +10,15 @@ cd build
 time make -j17 engineDemo				# super basic demo
 
 # child apps
-# time make -j17 AirplaneMode2
-# time make -j17 FontGame
-# time make -j16 HexDump
-# time make -j17 Physarum
-# time make -j17 Siren
-# time make -j17 SoftBodies	# soft body sim
-# time make -j17 Voraldo14	# volume renderer
-# time make -j17 VoxelSpace
+time make -j17 Physarum	# agent-based sim
+time make -j17 SoftBodies	# soft body sim
+
 
 # Vertexture Variants
-# time make -j17 Vertexture				# point sprite sphere impostors
-# time make -j17 VertextureClassic		# Vertexture, with the trees
-# time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
+time make -j17 Vertexture				# point sprite sphere impostors
+time make -j17 VertextureClassic		# Vertexture, with the trees
+time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
 
-# so apparently the default target builds everything in a
-# parallel fashion - need to test to see if this is faster
-# time make -j16 # I think it would also build the noise tool, tbd
 cd ..
 
 if [ "$1" == "noiseTool" ]

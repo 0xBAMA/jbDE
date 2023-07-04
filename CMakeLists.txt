@@ -122,64 +122,6 @@ target_link_libraries( engineDemo
 )
 
 # =================================================================================================
-# AirplaneMode2
-# =================================================================================================
-add_executable( AirplaneMode2
-	src/projects/AirplaneMode2/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( AirplaneMode2
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
-# FontGame
-# =================================================================================================
-add_executable( FontGame
-	src/projects/FontGame/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( FontGame
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
 # Physarum
 # =================================================================================================
 add_executable( Physarum
@@ -220,35 +162,6 @@ add_executable( ProjectedFramebuffers
 )
 
 target_link_libraries( ProjectedFramebuffers
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
-# Siren
-# =================================================================================================
-add_executable( Siren
-	src/projects/Siren/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( Siren
 	PUBLIC
 	imgui
 	BigInt
@@ -337,64 +250,6 @@ add_executable( VertextureClassic
 )
 
 target_link_libraries( VertextureClassic
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
-# Voraldo14
-# =================================================================================================
-add_executable( Voraldo14
-	src/projects/Voraldo14/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( Voraldo14
-	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
-)
-
-# =================================================================================================
-# VoxelSpace
-# =================================================================================================
-add_executable( VoxelSpace
-	src/projects/VoxelSpace/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
-)
-
-target_link_libraries( VoxelSpace
 	PUBLIC
 	imgui
 	BigInt
