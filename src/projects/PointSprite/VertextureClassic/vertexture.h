@@ -1,9 +1,9 @@
 #include <vector>
 #include <string>
 
-#include "../../../../src/engine/coreUtils/random.h"
-#include "../../../../src/utils/trident/trident.h"
-#include "../../../../src/data/colors.h"
+#include "../../../../../src/engine/coreUtils/random.h"
+#include "../../../../../src/utils/trident/trident.h"
+#include "../../../../../src/data/colors.h"
 
 // program config
 struct vertextureConfig {
@@ -220,7 +220,7 @@ void APIGeometryContainer::Initialize () {
 	config.obstacles.resize( 0 );
 
 	// create all the graphics api resources
-	const string basePath( "./src/projects/VertextureClassic/shaders/" );
+	const string basePath( "./src/projects/PointSprite/VertextureClassic/shaders/" );
 	resources.shaders[ "Background" ]			= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Deferred" ]				= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]		= computeShader( basePath + "movingSphere.cs.glsl" ).shaderHandle;
@@ -271,7 +271,7 @@ void APIGeometryContainer::Initialize () {
 		// == Display / Data Textures =========
 		// ==== Sphere Heightmap ==============
 		// maybe port this to the analytic model, later - I might also want to keep it for legacy's sake
-		Image_4U sphereImageData( "./src/projects/VertextureClassic/textures/sphere.png" );
+		Image_4U sphereImageData( "./src/projects/PointSprite/VertextureClassic/textures/sphere.png" );
 		opts.dataType = GL_RGBA8;
 		opts.minFilter = GL_LINEAR_MIPMAP_LINEAR;
 		opts.magFilter = GL_LINEAR;
@@ -283,28 +283,28 @@ void APIGeometryContainer::Initialize () {
 
 		// ==== Rock Heightmap ================
 		// consider swapping out for a generated heightmap? something with ~10s of erosion applied? tbd
-		Image_4U heightmapImage( "./src/projects/VertextureClassic/textures/rock_height.png" );
+		Image_4U heightmapImage( "./src/projects/PointSprite/VertextureClassic/textures/rock_height.png" );
 		opts.width = heightmapImage.Width();
 		opts.height = heightmapImage.Height();
 		opts.initialData = ( void * ) heightmapImage.GetImageDataBasePtr();
 		textureManager_local->Add( "Ground Heightmap", opts );
 
 		// ==== Water Heightmap ===============
-		Image_4U height( "./src/projects/VertextureClassic/textures/water_height.png" );
+		Image_4U height( "./src/projects/PointSprite/VertextureClassic/textures/water_height.png" );
 		opts.width = height.Width();
 		opts.height = height.Height();
 		opts.initialData = ( void * ) height.GetImageDataBasePtr();
 		textureManager_local->Add( "Water Heightmap", opts );
 
 		// ==== Water Normal ==================
-		Image_4U normal( "./src/projects/VertextureClassic/textures/water_norm.png" );
+		Image_4U normal( "./src/projects/PointSprite/VertextureClassic/textures/water_norm.png" );
 		opts.width = normal.Width();
 		opts.height = normal.Height();
 		opts.initialData = ( void * ) normal.GetImageDataBasePtr();
 		textureManager_local->Add( "Water Normal Map", opts );
 
 		// ==== Water Color ===================
-		Image_4U color( "./src/projects/VertextureClassic/textures/water_color.png" );
+		Image_4U color( "./src/projects/PointSprite/VertextureClassic/textures/water_color.png" );
 		opts.width = color.Width();
 		opts.height = color.Height();
 		opts.initialData = ( void * ) color.GetImageDataBasePtr();

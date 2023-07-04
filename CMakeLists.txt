@@ -92,15 +92,20 @@ target_compile_options( CompilerFlags INTERFACE -Wall -O3 -std=c++17 -lGL -lstdc
 # this builds the final executable(s)
 # probably some room for optimization here, there's a lot of redundant work happening in this last stage ( create library from engine cc files? )
 
-# =================================================================================================
-# base engine demo
-# =================================================================================================
-add_executable( engineDemo
-	src/projects/engineDemo/main.cc
+# base engine functionality
+file ( GLOB ENGINE_BASE
 	src/engine/engine.cc
 	src/engine/engineUtils.cc
 	src/engine/engineInit.cc
 	src/engine/engineImguiUtils.cc
+)
+
+# =================================================================================================
+# base engine demo
+# =================================================================================================
+add_executable( engineDemo
+	${ENGINE_BASE}
+	src/projects/engineDemo/main.cc
 )
 
 target_link_libraries( engineDemo
@@ -125,11 +130,8 @@ target_link_libraries( engineDemo
 # Physarum
 # =================================================================================================
 add_executable( Physarum
+	${ENGINE_BASE}
 	src/projects/Physarum/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
 )
 
 target_link_libraries( Physarum
@@ -154,11 +156,8 @@ target_link_libraries( Physarum
 # ProjectedFramebuffers
 # =================================================================================================
 add_executable( ProjectedFramebuffers
-	src/projects/ProjectedFramebuffers/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
+	${ENGINE_BASE}
+	src/projects/PointSprite/ProjectedFramebuffers/main.cc
 )
 
 target_link_libraries( ProjectedFramebuffers
@@ -183,12 +182,9 @@ target_link_libraries( ProjectedFramebuffers
 # SoftBodies
 # =================================================================================================
 add_executable( SoftBodies
+	${ENGINE_BASE}
 	src/projects/SoftBodies/main.cc
 	src/projects/SoftBodies/model.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
 )
 
 target_link_libraries( SoftBodies
@@ -213,11 +209,8 @@ target_link_libraries( SoftBodies
 # Vertexture
 # =================================================================================================
 add_executable( Vertexture
-	src/projects/Vertexture/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
+	${ENGINE_BASE}
+	src/projects/PointSprite/Vertexture/main.cc
 )
 
 target_link_libraries( Vertexture
@@ -242,11 +235,8 @@ target_link_libraries( Vertexture
 # VertextureClassic
 # =================================================================================================
 add_executable( VertextureClassic
-	src/projects/VertextureClassic/main.cc
-	src/engine/engine.cc
-	src/engine/engineUtils.cc
-	src/engine/engineInit.cc
-	src/engine/engineImguiUtils.cc
+	${ENGINE_BASE}
+	src/projects/PointSprite/VertextureClassic/main.cc
 )
 
 target_link_libraries( VertextureClassic

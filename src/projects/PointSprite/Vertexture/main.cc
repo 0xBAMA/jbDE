@@ -1,10 +1,10 @@
-#include "../../engine/engine.h"
-#include "projectedFramebuffers.h"
+#include "../../../engine/engine.h"
+#include "vertexture.h"
 
-class ProjectedFramebuffer : public engineBase {
+class Vertexture2 : public engineBase {
 public:
-	ProjectedFramebuffer () { Init(); OnInit(); PostInit(); }
-	~ProjectedFramebuffer () { Quit(); }
+	Vertexture2 () { Init(); OnInit(); PostInit(); }
+	~Vertexture2 () { Quit(); }
 
 	// application data
 	APIGeometryContainer data;
@@ -180,7 +180,7 @@ int main ( int argc, char *argv[] ) {
 	// 	cout << "  Game parameters defaulting" << endl;
 	// }
 
-	ProjectedFramebuffer engineInstance;
+	Vertexture2 engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }

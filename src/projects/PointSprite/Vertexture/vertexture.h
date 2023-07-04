@@ -1,8 +1,8 @@
 #include <vector>
 #include <string>
-#include "../../../../src/engine/coreUtils/random.h"
-#include "../../../../src/utils/trident/trident.h"
-#include "../../../../src/data/colors.h"
+#include "../../../../../src/engine/coreUtils/random.h"
+#include "../../../../../src/utils/trident/trident.h"
+#include "../../../../../src/data/colors.h"
 
 // program config
 struct vertextureConfig {
@@ -262,7 +262,7 @@ void APIGeometryContainer::Initialize () {
 	config.obstacles.resize( 0 );
 
 	// create all the graphics api resources
-	const string basePath( "./src/projects/Vertexture/shaders/" );
+	const string basePath( "./src/projects/PointSprite/Vertexture/shaders/" );
 	resources.shaders[ "Background" ]		= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Deferred" ]			= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]	= computeShader( basePath + "sphereMove.cs.glsl" ).shaderHandle;

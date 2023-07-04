@@ -1,8 +1,8 @@
 #include <vector>
 #include <string>
-#include "../../../../src/engine/coreUtils/random.h"
-#include "../../../../src/utils/trident/trident.h"
-#include "../../../../src/data/colors.h"
+#include "../../../../../src/engine/coreUtils/random.h"
+#include "../../../../../src/utils/trident/trident.h"
+#include "../../../../../src/data/colors.h"
 
 struct vertextureConfig {
 	int numGoodGuys = 10;
@@ -111,7 +111,7 @@ struct GroundModel {
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
 		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
-		Image_4U heightmapImage( "./src/projects/Vertexture/textures/rock_height.png" );
+		Image_4U heightmapImage( "./src/projects/PointSprite/Vertexture/textures/rock_height.png" );
 		glGenTextures( 1, &heightmap );
 		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
 		glBindTexture( GL_TEXTURE_2D, heightmap );
