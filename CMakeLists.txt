@@ -114,6 +114,8 @@ target_link_libraries(
 	CompilerFlags
 )
 
+
+
 # =================================================================================================
 # base engine demo
 # =================================================================================================
@@ -126,6 +128,8 @@ target_link_libraries( engineDemo
 	PUBLIC
 	ENGINE_LIBS
 )
+
+
 
 # =================================================================================================
 # Physarum
@@ -140,18 +144,7 @@ target_link_libraries( Physarum
 	ENGINE_LIBS
 )
 
-# =================================================================================================
-# ProjectedFramebuffers
-# =================================================================================================
-add_executable( ProjectedFramebuffers
-	${ENGINE_BASE}
-	src/projects/PointSprite/ProjectedFramebuffers/main.cc
-)
 
-target_link_libraries( ProjectedFramebuffers
-	PUBLIC
-	ENGINE_LIBS
-)
 
 # =================================================================================================
 # SoftBodies
@@ -163,6 +156,25 @@ add_executable( SoftBodies
 )
 
 target_link_libraries( SoftBodies
+	PUBLIC
+	ENGINE_LIBS
+)
+
+
+
+# =================================================================================================
+# =================================================================================================
+# Point Sprite Experiments
+# =================================================================================================
+# =================================================================================================
+# ProjectedFramebuffers
+# =================================================================================================
+add_executable( ProjectedFramebuffers
+	${ENGINE_BASE}
+	src/projects/PointSprite/ProjectedFramebuffers/main.cc
+)
+
+target_link_libraries( ProjectedFramebuffers
 	PUBLIC
 	ENGINE_LIBS
 )
