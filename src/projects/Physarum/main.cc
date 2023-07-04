@@ -1,9 +1,21 @@
 #include "../../engine/engine.h"
 
+struct physarumConfig_t {
+	uint32_t numAgents;
+	float senseAngle;
+	float senseDistance;
+	float turnAngle;
+	float stepSize;
+	float decayFactor;
+	uint32_t depositAmount;
+};
+
 class Physarum : public engineBase {
 public:
 	Physarum () { Init(); OnInit(); PostInit(); }
 	~Physarum () { Quit(); }
+
+	physarumConfig_t pysarumConfig;
 
 	void OnInit () {
 		ZoneScoped;
@@ -11,17 +23,29 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - comes from the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Physarum/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			const string basePath = "./src/projects/Physarum/shaders/";
+			shaders[ "Dummy Draw" ]			= computeShader( basePath + "dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
+			shaders[ "Agents" ]				= regularShader( basePath + "agent.vs.glsl", basePath + "agent.fs.glsl" ).shaderHandle;
+			shaders[ "Continuum" ]			= regularShader( basePath + "continuum.vs.glsl", basePath + "continuum.fs.glsl" ).shaderHandle;
 
 			// get the configuration from config.json
+			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			pysarumConfig.numAgents		= j[ "app" ][ "Physarum" ][ "numAgents" ];
+			pysarumConfig.senseAngle	= j[ "app" ][ "Physarum" ][ "senseAngle" ];
+			pysarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
+			pysarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
+			pysarumConfig.stepSize		= j[ "app" ][ "Physarum" ][ "stepSize" ];
+			pysarumConfig.decayFactor	= j[ "app" ][ "Physarum" ][ "decayFactor" ];
+			pysarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
 
-			// shader for the point motion
+			// setup the ssbo for the agent data
+			struct agent_t {
+				vec2 position;
+				vec2 direction;
+			};
 
-			// shader for the gaussian blur
-
-			// shader for the point movement
-
-			// setup the ssbo for the points
+			std::vector< agent_t > agentsInitialData;
 
 			// setup the image buffers for the atomic writes ( 2x for ping-ponging )
 
@@ -31,6 +55,7 @@ public:
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
+
 	}
 
 	void ImguiPass () {
@@ -45,13 +70,12 @@ public:
 		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
-
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 		// draw some shit
+
 	}
 
 	void ComputePasses () {
@@ -74,12 +98,6 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
-
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
@@ -87,11 +105,11 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{ // show trident with current orientation
-			scopedTimer Start( "Trident" );
-			trident.Update( textureManager.Get( "Display Texture" ) );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
+		// { // show trident with current orientation - has no relevance for this project
+		// 	scopedTimer Start( "Trident" );
+		// 	trident.Update( textureManager.Get( "Display Texture" ) );
+		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// }
 	}
 
 	void OnUpdate () {
