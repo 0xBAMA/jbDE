@@ -69,21 +69,14 @@ add_library( BigInt
 	src/utils/noise/VAT/BigInt/BigUnsignedInABase.cc
 	src/utils/noise/VAT/BigInt/BigIntegerUtils.cc
 )
-
 target_compile_options( BigInt PUBLIC -Wno-deprecated )
 
 add_library( tinyXML2 src/utils/Serialization/tinyXML2/tinyxml2.cc )
-
 add_library( tinyEXR src/utils/imageLibs/tinyEXR/tinyexr.cc src/utils/imageLibs/tinyEXR/miniz/miniz.c )
-
 add_library( STB_ImageUtilsWrapper src/utils/imageLibs/stb/impl.cc )
-
 add_library( TinyOBJLoader src/utils/ModelLoading/TinyOBJLoader/tiny_obj_loader.cc )
-
 add_library( LodePNG src/utils/imageLibs/LodePNG/lodepng.cc )
-
 add_library( Perlin src/utils/noise/perlin.cc )
-
 # add_library( Tracy src/utils/tracy/public/TracyClient.cpp ) # not sure what state this is in right now, can't build the server application because of some freetype dependency
 
 add_library( CompilerFlags INTERFACE )
@@ -100,16 +93,11 @@ file ( GLOB ENGINE_BASE
 	src/engine/engineImguiUtils.cc
 )
 
-# =================================================================================================
-# base engine demo
-# =================================================================================================
-add_executable( engineDemo
-	${ENGINE_BASE}
-	src/projects/engineDemo/main.cc
-)
-
-target_link_libraries( engineDemo
-	PUBLIC
+# libraries which are linked
+add_library( ENGINE_LIBS INTERFACE )
+target_link_libraries(
+	ENGINE_LIBS
+	INTERFACE
 	imgui
 	BigInt
 	tinyEXR
@@ -124,6 +112,19 @@ target_link_libraries( engineDemo
 	TinyOBJLoader
 	LodePNG
 	CompilerFlags
+)
+
+# =================================================================================================
+# base engine demo
+# =================================================================================================
+add_executable( engineDemo
+	${ENGINE_BASE}
+	src/projects/engineDemo/main.cc
+)
+
+target_link_libraries( engineDemo
+	PUBLIC
+	ENGINE_LIBS
 )
 
 # =================================================================================================
@@ -136,20 +137,7 @@ add_executable( Physarum
 
 target_link_libraries( Physarum
 	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
+	ENGINE_LIBS
 )
 
 # =================================================================================================
@@ -162,20 +150,7 @@ add_executable( ProjectedFramebuffers
 
 target_link_libraries( ProjectedFramebuffers
 	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
+	ENGINE_LIBS
 )
 
 # =================================================================================================
@@ -189,20 +164,7 @@ add_executable( SoftBodies
 
 target_link_libraries( SoftBodies
 	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
+	ENGINE_LIBS
 )
 
 # =================================================================================================
@@ -215,20 +177,7 @@ add_executable( Vertexture
 
 target_link_libraries( Vertexture
 	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
+	ENGINE_LIBS
 )
 
 # =================================================================================================
@@ -241,18 +190,5 @@ add_executable( VertextureClassic
 
 target_link_libraries( VertextureClassic
 	PUBLIC
-	imgui
-	BigInt
-	tinyEXR
-	tinyXML2
-	opengl
-	sdl2
-	STB_ImageUtilsWrapper
-	stdc++fs
-	FastNoise
-	Perlin
-	Tracy::TracyClient
-	TinyOBJLoader
-	LodePNG
-	CompilerFlags
+	ENGINE_LIBS
 )
