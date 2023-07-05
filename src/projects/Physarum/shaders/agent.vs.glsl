@@ -33,6 +33,21 @@ vec2 rotate(vec2 v, float a)
 	return m * v;
 }
 
+vec2 wrapPosition ( vec2 pos ) {
+	if ( pos.x >= 1.0f )
+		pos.x -= 2.0f;
+		
+	if ( pos.x <= -1.0f )
+		pos.x += 2.0f;
+		
+	if ( pos.y >= 1.0f )
+		pos.y -= 2.0f;
+		
+	if ( pos.y <= -1.0f )
+		pos.y += 2.0f;
+	
+	return pos;
+}
 
 
 void main()
@@ -45,10 +60,10 @@ void main()
 	// do the simulation logic to update the value of position
 	
 		// take your samples
-	ivec2 right_sample_loc = ivec2(imageSize(current) * (0.5 * (position + sense_distance * rotate(direction, -sense_angle) + vec2(1))));
-	ivec2 middle_sample_loc = ivec2(imageSize(current) * (0.5 * (position + sense_distance * direction + vec2(1))));
-	ivec2 left_sample_loc = ivec2(imageSize(current) * (0.5 * (position + sense_distance * rotate(direction, sense_angle) + vec2(1))));
-		
+	ivec2 right_sample_loc = ivec2( imageSize( current ) * wrapPosition( 0.5f * ( position + sense_distance * rotate( direction, -sense_angle ) + vec2( 1.0f ) ) ) );
+	ivec2 middle_sample_loc = ivec2( imageSize( current ) * wrapPosition( 0.5f * ( position + sense_distance * direction + vec2( 1.0f ) ) ) );
+	ivec2 left_sample_loc = ivec2( imageSize( current ) * wrapPosition( 0.5f * ( position + sense_distance * rotate( direction, sense_angle ) + vec2( 1 ) ) ) );
+
 	uint right_sample = imageLoad(current, right_sample_loc).r;
 	uint middle_sample = imageLoad(current, middle_sample_loc).r;
 	uint left_sample = imageLoad(current, left_sample_loc).r;
@@ -72,23 +87,8 @@ void main()
 	}
 	// else, fall through and retain value of direction
 	
-	vec2 new_position = (position + step_size * direction);
-	
-	// wrap logic
-	if(new_position.x > 1.0)
-		new_position.x = -1.0;
-		
-	if(new_position.x < -1.0)
-		new_position.x = 1.0;
-		
-	if(new_position.y > 1.0)
-		new_position.y = -1.0;
-		
-	if(new_position.y < -1.0)
-		new_position.y = 1.0;
-	
+	vec2 new_position = wrapPosition(position + step_size * direction);
 	data[index] = new_position;
-	
 	
 	imageAtomicAdd(current, ivec2(imageSize(current)*(0.5*(new_position+vec2(1)))), deposit_amount);
 	v_pos = new_position;
