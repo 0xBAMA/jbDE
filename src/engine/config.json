@@ -33,6 +33,7 @@
 	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
+		"showTonemapWindow":false,
 		"tonemapMode":6,
 		"gamma":1.337,
 		"colorTemp":6500.0
@@ -91,8 +92,8 @@
 		},
 		"Physarum":{
 			"numAgents":1000000,
-			"dimensionX":3000,
-			"dimensionY":2000,
+			"dimensionX":2560,
+			"dimensionY":1440,
 			"senseAngle":2.454,
 			"senseDistance":0.0013,
 			"turnAngle":1.25,

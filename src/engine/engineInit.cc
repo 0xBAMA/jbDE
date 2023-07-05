@@ -50,6 +50,7 @@ void engineBase::LoadConfig () {
 		showProfiler					= j[ "showProfiler" ];
 
 		// color grading stuff
+		tonemap.showTonemapWindow		= j[ "colorGrade" ][ "showTonemapWindow" ];
 		tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
 		tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
 		tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];

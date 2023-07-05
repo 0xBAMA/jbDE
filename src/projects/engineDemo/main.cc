@@ -42,7 +42,9 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		TonemapControlsWindow();
+		if ( tonemap.showTonemapWindow ) {
+			TonemapControlsWindow();
+		}
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render

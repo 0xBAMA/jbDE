@@ -27,6 +27,7 @@ struct configData {
 };
 
 struct colorGradeParameters {
+	bool showTonemapWindow = false;
 	int tonemapMode = 6; // todo: write an enum for this
 	float gamma = 1.1f;
 	float colorTemp = 6500.0f;

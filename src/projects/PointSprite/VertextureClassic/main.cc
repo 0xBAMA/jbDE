@@ -53,7 +53,10 @@ public:
 		ZoneScoped;
 
 		data.ControlWindow();
-		TonemapControlsWindow();
+
+		if ( tonemap.showTonemapWindow ) {
+			TonemapControlsWindow();
+		}
 
 		// something to show log events? tbd, that part of vertexture didn't really carry over, we'll see
 
