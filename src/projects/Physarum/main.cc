@@ -1,11 +1,18 @@
 #include "../../engine/engine.h"
 
 struct physarumConfig_t {
+	// environment setup
 	uint32_t numAgents;
+	uint32_t dimensionX;
+	uint32_t dimensionY;
+
+	// agent sim
 	float senseAngle;
 	float senseDistance;
 	float turnAngle;
 	float stepSize;
+
+	// diffuse + decay
 	float decayFactor;
 	uint32_t depositAmount;
 };
@@ -15,7 +22,9 @@ public:
 	Physarum () { Init(); OnInit(); PostInit(); }
 	~Physarum () { Quit(); }
 
-	physarumConfig_t pysarumConfig;
+	physarumConfig_t physarumConfig;
+
+	GLuint agentSSBO;
 
 	void OnInit () {
 		ZoneScoped;
@@ -31,13 +40,15 @@ public:
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			pysarumConfig.numAgents		= j[ "app" ][ "Physarum" ][ "numAgents" ];
-			pysarumConfig.senseAngle	= j[ "app" ][ "Physarum" ][ "senseAngle" ];
-			pysarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
-			pysarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
-			pysarumConfig.stepSize		= j[ "app" ][ "Physarum" ][ "stepSize" ];
-			pysarumConfig.decayFactor	= j[ "app" ][ "Physarum" ][ "decayFactor" ];
-			pysarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
+			physarumConfig.numAgents		= j[ "app" ][ "Physarum" ][ "numAgents" ];
+			physarumConfig.dimensionX		= j[ "app" ][ "Physarum" ][ "dimensionX" ];
+			physarumConfig.dimensionY		= j[ "app" ][ "Physarum" ][ "dimensionY" ];
+			physarumConfig.senseAngle		= j[ "app" ][ "Physarum" ][ "senseAngle" ];
+			physarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
+			physarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
+			physarumConfig.stepSize			= j[ "app" ][ "Physarum" ][ "stepSize" ];
+			physarumConfig.decayFactor		= j[ "app" ][ "Physarum" ][ "decayFactor" ];
+			physarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
 
 			// setup the ssbo for the agent data
 			struct agent_t {
@@ -46,9 +57,26 @@ public:
 			};
 
 			std::vector< agent_t > agentsInitialData;
+			size_t bufferSize = 4 * sizeof( GLfloat ) * physarumConfig.numAgents;
+			rng dist( -1.0f, 1.0f );
+
+			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
+				agentsInitialData.push_back( { { dist(), dist() }, glm::normalize( { dist(), dist() } ) } );
+			}
+
+			glGenBuffers( 1, &agentSSBO );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, bufferSize, ( GLvoid * ) &agentsInitialData[ 0 ], GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, agentSSBO );
 
 			// setup the image buffers for the atomic writes ( 2x for ping-ponging )
-
+			textureOptions_t opts;
+			opts.dataType		= GL_R32UI;
+			opts.width			= physarumConfig.dimensionX;
+			opts.height			= physarumConfig.dimensionY;
+			opts.textureType	= GL_TEXTURE_2D;
+			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
+			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 		}
 	}
 
@@ -115,9 +143,17 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		// run the shader to move the points
+		// // run the shader to do the gaussian blur
+		// glUseProgram( diffuse_and_decay_shader );
 
-		// run the shader to do the gaussian blur
+		// //swap the images
+		// std::swap( continuum_textures[ 0 ], continuum_textures[ 1 ] );
+		// glBindImageTexture( 1, continuum_textures[ 0 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+		// glBindImageTexture( 2, continuum_textures[ 1 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+		// glUniform1f( glGetUniformLocation( diffuse_and_decay_shader, "decay_factor" ), decay_factor );
+
+		// glDispatchCompute( DIM / 8, DIM / 8, 1 );
+		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 	}
 

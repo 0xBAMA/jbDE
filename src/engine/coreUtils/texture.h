@@ -8,17 +8,22 @@
 inline size_t bytesPerPixel ( GLint type ) {
 	// over time we'll accumulate all the ones that I use, this currently is sufficient
 	switch ( type ) {
-	// depth formats
+	// one channel formats
+	case GL_R32UI:
 	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
+
 	// two channel formats
 	case GL_RG32UI:				return 2 * 4; break;
+
 	// three channel formats
 	case GL_RGB8:				return 3 * 1; break;
+
 	// four channel formats
 	case GL_RGBA8:
 	case GL_RGBA8UI:			return 4 * 1; break;
 	case GL_RGBA16F:			return 4 * 2; break;
 	case GL_RGBA32F:			return 4 * 4; break;
+
 	default:
 		cout << "unknown type texture created" << endl;
 		return 0;
