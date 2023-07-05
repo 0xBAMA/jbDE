@@ -83,8 +83,6 @@ public:
 			opts.width			= physarumConfig.dimensionX;
 			opts.height			= physarumConfig.dimensionY;
 			opts.textureType	= GL_TEXTURE_2D;
-			// opts.magFilter		= GL_LINEAR;
-			// opts.minFilter		= GL_LINEAR;
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 		}
@@ -137,7 +135,7 @@ public:
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turn_angle" ), physarumConfig.turnAngle );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "deposit_amount" ), physarumConfig.depositAmount );
 
-		glDrawArrays( GL_POINTS, 0, physarumConfig.numAgents / 2 );
+		glDrawArrays( GL_POINTS, 0, physarumConfig.numAgents );
 	}
 
 	void ComputePasses () {
