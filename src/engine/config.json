@@ -100,8 +100,7 @@
 			"stepSize":0.0006,
 			"depositAmount":1250,
 			"decayFactor":0.9875,
-			"showTrails":true,
-			"showAgents":false
+			"writeBack":false
 		}
 	}
 }

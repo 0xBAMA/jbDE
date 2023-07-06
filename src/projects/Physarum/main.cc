@@ -5,8 +5,6 @@ struct physarumConfig_t {
 	uint32_t numAgents;
 	uint32_t dimensionX;
 	uint32_t dimensionY;
-	bool showTrails;
-	bool showAgents;
 	bool oddFrame = false;
 
 	// agent sim
@@ -51,8 +49,6 @@ public:
 			physarumConfig.numAgents		= j[ "app" ][ "Physarum" ][ "numAgents" ];
 			physarumConfig.dimensionX		= j[ "app" ][ "Physarum" ][ "dimensionX" ];
 			physarumConfig.dimensionY		= j[ "app" ][ "Physarum" ][ "dimensionY" ];
-			physarumConfig.showTrails		= j[ "app" ][ "Physarum" ][ "showTrails" ];
-			physarumConfig.showAgents		= j[ "app" ][ "Physarum" ][ "showAgents" ];
 			physarumConfig.senseAngle		= j[ "app" ][ "Physarum" ][ "senseAngle" ];
 			physarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
 			physarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
@@ -131,45 +127,47 @@ public:
 		}
 
 		// widgets
-		ImGui::Text("Sensor Angle:                ");
+		ImGui::Text( "Sensor Angle:                " );
 		ImGui::SameLine();
-		HelpMarker("The angle between the sensors.");
-		ImGui::SliderFloat("radians", &physarumConfig.senseAngle, 0.0f, 3.14f, "%.4f");
+		HelpMarker( "The angle between the sensors." );
+		ImGui::SliderFloat( "radians", &physarumConfig.senseAngle, 0.0f, 3.14f, "%.4f" );
 
 		ImGui::Separator();
 
-		ImGui::Text("Sensor Distance:             ");
+		ImGui::Text( "Sensor Distance:             " );
 		ImGui::SameLine();
-		HelpMarker("The distance from the agent position to the sensors.");
-		ImGui::SliderFloat("        ", &physarumConfig.senseDistance, 0.0f, 0.005f, "%.4f");
+		HelpMarker( "The distance from the agent position to the sensors." );
+		ImGui::SliderFloat( "        ", &physarumConfig.senseDistance, 0.0f, 0.005f, "%.4f" );
 
 		ImGui::Separator();
 
-		ImGui::Text("Turn Angle:                  ");
+		ImGui::Text( "Turn Angle:                  " );
 		ImGui::SameLine();
-		HelpMarker("Amount that each simulation agent can turn in the movement shader.");
-		ImGui::SliderFloat("radians ", &physarumConfig.turnAngle, 0.0f, 3.14f, "%.4f");
+		HelpMarker( "Amount that each simulation agent can turn in the movement shader." );
+		ImGui::SliderFloat( "radians ", &physarumConfig.turnAngle, 0.0f, 3.14f, "%.4f" );
 
 		ImGui::Separator();
 
-		ImGui::Text("Step Size:                   ");
+		ImGui::Text( "Step Size:                   " );
 		ImGui::SameLine();
-		HelpMarker("Distance that each sim agent will go in their current direction each step.");
-		ImGui::SliderFloat("    ", &physarumConfig.stepSize, 0.0f, 0.005f, "%.4f");
+		HelpMarker( "Distance that each sim agent will go in their current direction each step." );
+		ImGui::SliderFloat( "    ", &physarumConfig.stepSize, 0.0f, 0.005f, "%.4f" );
 
 		ImGui::Separator();
 
-		ImGui::Text("Deposit Amount:              ");
+		ImGui::Text( "Deposit Amount:              " );
 		ImGui::SameLine();
-		HelpMarker("Amout of pheremone that is deposited by each simulation agent.");
-		ImGui::DragScalar("  ", ImGuiDataType_U32, &physarumConfig.depositAmount, 50, NULL, NULL, "%u units");
+		HelpMarker( "Amout of pheremone that is deposited by each simulation agent." );
+		ImGui::DragScalar( "  ", ImGuiDataType_U32, &physarumConfig.depositAmount, 50, NULL, NULL, "%u units" );
 
 		ImGui::Separator();
 
-		ImGui::Text("Decay Factor:                ");
+		ImGui::Text( "Decay Factor:                " );
 		ImGui::SameLine();
-		HelpMarker("Scale factor applied when storing the result of the gaussian blur.");
-		ImGui::SliderFloat("              ", &physarumConfig.decayFactor, 0.75f, 1.0f, "%.4f");
+		HelpMarker( "Scale factor applied when storing the result of the gaussian blur." );
+		ImGui::SliderFloat( "              ", &physarumConfig.decayFactor, 0.75f, 1.0f, "%.4f" );
+
+		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
@@ -218,7 +216,6 @@ public:
 			bindSets[ "Drawing" ].apply();
 
 			glUseProgram( shaders[ "Buffer Copy" ] );
-			glUniform1i( glGetUniformLocation( shaders[ "Buffer Copy" ], "show_trails" ), physarumConfig.showTrails );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
 
