@@ -335,6 +335,9 @@ This is a planning document for work on this project and in general, about the t
 
 ## More Vague Future Software Project Ideas
 
+- More investigation into screenspace effects
+	- [Underwater Distort](https://www.shadertoy.com/view/4tG3WR)
+
 - Little JS demo based on [this](https://www.youtube.com/watch?v=XGioNBHrFU4) ( particle text )? would be cool to have something with interaction
 
 - [Impostor shader](https://www.landontownsend.com/single-post/super-imposter-shader-my-journey-to-make-a-high-quality-imposter-shader)
@@ -491,6 +494,10 @@ This is a planning document for work on this project and in general, about the t
 
 
 ## Makerspace Project Ideas
+
+- Moving to higher level languages to interact with the graphics API - will make it much easier to interop with other people
+	- [OpenGL in Python](https://www.youtube.com/watch?v=LCK1qdp_HhQ&list=PLn3eTxaOtL2PDnEVNwOgZFm5xYPr4dUoR)
+	- [Realtime RT in Python](https://www.youtube.com/playlist?list=PLn3eTxaOtL2Md9tyeycECvgT-FMsf0uAd)
 
 - Reverse Avalanche Oscillator PCB
 	- Learn KiCAD in order to be able to make the PCB
