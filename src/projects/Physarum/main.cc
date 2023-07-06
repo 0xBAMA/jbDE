@@ -7,7 +7,6 @@ struct physarumConfig_t {
 	uint32_t dimensionY;
 	bool showTrails;
 	bool showAgents;
-	float agentPointsize;
 	bool oddFrame = false;
 
 	// agent sim
@@ -53,7 +52,6 @@ public:
 			physarumConfig.dimensionY		= j[ "app" ][ "Physarum" ][ "dimensionY" ];
 			physarumConfig.showTrails		= j[ "app" ][ "Physarum" ][ "showTrails" ];
 			physarumConfig.showAgents		= j[ "app" ][ "Physarum" ][ "showAgents" ];
-			physarumConfig.agentPointsize	= j[ "app" ][ "Physarum" ][ "agentPointsize" ];
 			physarumConfig.senseAngle		= j[ "app" ][ "Physarum" ][ "senseAngle" ];
 			physarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
 			physarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
@@ -118,7 +116,6 @@ public:
 
 		// agents
 		glUseProgram( shaders[ "Agents" ] );
-		glPointSize( physarumConfig.agentPointsize );
 
 		// generation of the random values to be used in the shader
 		std::vector< glm::vec2 > randomDirections;

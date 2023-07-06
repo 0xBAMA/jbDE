@@ -101,8 +101,7 @@
 			"depositAmount":1250,
 			"decayFactor":0.9875,
 			"showTrails":true,
-			"showAgents":false,
-			"agentPointsize":3.0
+			"showAgents":false
 		}
 	}
 }
