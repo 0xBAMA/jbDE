@@ -24,7 +24,7 @@ void engineBase::QuitConf ( bool *open ) {
 	}
 }
 
-static void HelpMarker ( const char *desc ) {
+void engineBase::HelpMarker ( const char *desc ) {
 	ImGui::TextDisabled( "(?)" );
 	if ( ImGui::IsItemHovered() ) {
 		ImGui::BeginTooltip();

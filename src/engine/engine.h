@@ -50,12 +50,13 @@ protected:
 	void ImguiFrameStart ();
 	void ImguiFrameEnd ();
 	void DrawTextEditor ();
-	void MenuLayout ( bool* open );
-	void QuitConf ( bool* open );
+	void MenuLayout ( bool * open );
+	void QuitConf ( bool * open );
 
 //====== ImGui Windows ========================================================
 	bool showDemoWindow;
 	bool showProfiler;
+	void HelpMarker ( const char * desc );
 
 //====== LegitProfiler Data ===================================================
 	void PrepareProfilingData ();
