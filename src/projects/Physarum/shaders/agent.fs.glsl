@@ -2,7 +2,6 @@
 
 layout( binding = 1, r32ui ) uniform uimage2D current;
 
-in vec2 v_pos;
 uniform bool showAgents;
 
 out vec4 fragmentOutput;

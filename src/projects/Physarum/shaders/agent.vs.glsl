@@ -19,8 +19,6 @@ uniform uint depositAmount;
 
 uniform vec2 randomValues[ 8 ];
 
-out vec2 v_pos;
-
 //takes argument in radians
 vec2 rotate ( vec2 v, float a ) {
 	float s = sin( a );
@@ -78,7 +76,5 @@ void main () {
 	// data[ index ].direction = a.direction; // old impl never updated direction????
 
 	imageAtomicAdd( current, ivec2( imageSize( current ) * ( 0.5f * ( newPosition + vec2( 1.0f ) ) ) ), depositAmount );
-	v_pos = newPosition;
-
 	gl_Position = vec4( newPosition.x, newPosition.y, 0.0f, 1.0f );
 }
