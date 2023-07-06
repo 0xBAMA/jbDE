@@ -41,6 +41,9 @@ public:
 			const string basePath = "./src/projects/Physarum/shaders/";
 			shaders[ "Buffer Copy" ]		= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
+
+			// pending refactor
+			// shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 			shaders[ "Agents" ]				= regularShader( basePath + "agent.vs.glsl", basePath + "agent.fs.glsl" ).shaderHandle;
 
 			// get the configuration from config.json
@@ -130,13 +133,13 @@ public:
 		glUniform2fv( glGetUniformLocation( shaders[ "Agents" ], "randomValues" ), 8, glm::value_ptr( randomDirections[ 0 ] ) );
 
 		// the rest of the simulation parameters
-		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "showAgents" ), physarumConfig.showAgents );
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "stepSize" ), physarumConfig.stepSize );
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
 
+		// need to figure out indexing, before converting to compute
 		glDrawArrays( GL_POINTS, 0, physarumConfig.numAgents );
 	}
 
