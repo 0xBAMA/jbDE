@@ -1,8 +1,8 @@
 #version 430 core
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-layout( binding = 1, r32ui ) uniform uimage2D current;
-layout( binding = 2, r32ui ) uniform uimage2D previous;
+layout( binding = 1, r32ui ) uniform uimage2D previous;
+layout( binding = 2, r32ui ) uniform uimage2D current;
 
 uniform float decayFactor;
 
