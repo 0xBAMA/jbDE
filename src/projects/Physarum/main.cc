@@ -139,7 +139,10 @@ public:
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
 
-		glDispatchCompute( 100, 10, 10 );
+		// rounded up
+		const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
+
+		glDispatchCompute( 1, numSlices, 1 );
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
