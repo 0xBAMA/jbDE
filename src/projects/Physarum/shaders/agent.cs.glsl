@@ -20,8 +20,6 @@ uniform uint depositAmount;
 uniform uint numAgents;
 uniform bool writeBack;
 
-uniform vec2 randomValues[ 8 ];
-
 // takes argument in radians
 vec2 rotate ( const vec2 v, const float a ) {
 	const float s = sin( a );
@@ -38,6 +36,36 @@ vec2 wrapPosition ( vec2 pos ) {
 	return pos;
 }
 
+// random utilites
+uniform int wangSeed;
+uint seed = 0;
+uint wangHash () {
+	seed = uint( seed ^ uint( 61 ) ) ^ uint( seed >> uint( 16 ) );
+	seed *= uint( 9 );
+	seed = seed ^ ( seed >> 4 );
+	seed *= uint( 0x27d4eb2d );
+	seed = seed ^ ( seed >> 15 );
+	return seed;
+}
+
+float normalizedRandomFloat () {
+	return float( wangHash() ) / 4294967296.0f;
+}
+
+const float pi = 3.14159265358979323846f;
+vec3 randomUnitVector () {
+	float z = normalizedRandomFloat() * 2.0f - 1.0f;
+	float a = normalizedRandomFloat() * 2.0f * pi;
+	float r = sqrt( 1.0f - z * z );
+	float x = r * cos( a );
+	float y = r * sin( a );
+	return vec3( x, y, z );
+}
+
+vec2 randomInUnitDisk () {
+	return randomUnitVector().xy;
+}
+
 void main () {
 
 	const uvec3 globalDims = gl_NumWorkGroups * gl_WorkGroupSize;
@@ -47,6 +75,10 @@ void main () {
 		gl_GlobalInvocationID.x );
 
 	if ( index < numAgents ) {
+
+		// initialize the rng
+		seed = wangSeed + 69 * index;
+
 		agent_t a = data[ index ];
 
 		// do the simulation logic to update the value of position
@@ -64,7 +96,7 @@ void main () {
 		if ( middleSample > leftSample && middleSample > rightSample ) {
 			// just retain the existing direction
 		} else if ( middleSample < leftSample && middleSample < rightSample ) { // turn a random direction
-			a.direction = randomValues[ index % 8 ];
+			a.direction = randomInUnitDisk();
 		} else if ( rightSample > middleSample && middleSample > leftSample ) { // turn right (positive)
 			a.direction = rotate( a.direction, turnAngle );
 		} else if ( leftSample > middleSample && middleSample > rightSample ) { // turn left (negative)

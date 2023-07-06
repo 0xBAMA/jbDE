@@ -13,6 +13,7 @@ struct physarumConfig_t {
 	float turnAngle;
 	float stepSize;
 	bool writeBack;
+	rngi wangSeed = rngi( 0, 100000 );
 
 	// diffuse + decay
 	float decayFactor;
@@ -178,18 +179,6 @@ public:
 		// agents
 		glUseProgram( shaders[ "Agents" ] );
 
-		// generation of the random values to be used in the shader
-		std::vector< glm::vec2 > randomDirections;
-		long unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
-
-		std::default_random_engine gen{ seed };
-		std::uniform_real_distribution< GLfloat > dist{ -1.0f, 1.0f };
-
-		for ( int i = 0; i < 8; i++ )
-			randomDirections.push_back( glm::normalize( vec2( dist( gen ), dist( gen ) ) ) );
-
-		glUniform2fv( glGetUniformLocation( shaders[ "Agents" ], "randomValues" ), 8, glm::value_ptr( randomDirections[ 0 ] ) );
-
 		textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shaders[ "Agents" ], 2 );
 
 		// the rest of the simulation parameters
@@ -197,9 +186,10 @@ public:
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
+		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
+		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "wangSeed" ), physarumConfig.wangSeed() );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
-		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
 
 		// rounded up
 		const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
