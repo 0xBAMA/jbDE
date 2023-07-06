@@ -22,7 +22,7 @@ uniform vec2 randomValues[ 8 ];
 out vec2 v_pos;
 
 //takes argument in radians
-vec2 rotate( vec2 v, float a ) {
+vec2 rotate ( vec2 v, float a ) {
 	float s = sin( a );
 	float c = cos( a );
 	mat2 m = mat2( c, -s, s, c );
@@ -30,15 +30,16 @@ vec2 rotate( vec2 v, float a ) {
 }
 
 vec2 wrapPosition ( vec2 pos ) {
+
 	if ( pos.x >= 1.0f )
 		pos.x -= 2.0f;
-		
+
 	if ( pos.x <= -1.0f )
 		pos.x += 2.0f;
-		
+
 	if ( pos.y >= 1.0f )
 		pos.y -= 2.0f;
-		
+
 	if ( pos.y <= -1.0f )
 		pos.y += 2.0f;
 
@@ -72,12 +73,12 @@ void main () {
 	}
 	// else, fall through and retain value of direction
 
-	vec2 new_position = wrapPosition( a.position + stepSize * a.direction );
-	data[ index ].position = new_position;
+	vec2 newPosition = wrapPosition( a.position + stepSize * a.direction );
+	data[ index ].position = newPosition;
 	// data[ index ].direction = a.direction; // old impl never updated direction????
 
-	imageAtomicAdd( current, ivec2( imageSize( current ) * ( 0.5f * ( new_position + vec2( 1.0f ) ) ) ), depositAmount );
-	v_pos = new_position;
+	imageAtomicAdd( current, ivec2( imageSize( current ) * ( 0.5f * ( newPosition + vec2( 1.0f ) ) ) ), depositAmount );
+	v_pos = newPosition;
 
-	gl_Position = vec4( new_position.x, new_position.y, 0, 1 );
+	gl_Position = vec4( newPosition.x, newPosition.y, 0.0f, 1.0f );
 }
