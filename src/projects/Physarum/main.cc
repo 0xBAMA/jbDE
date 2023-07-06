@@ -108,6 +108,67 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
+		// expose controls for the physarum
+		if ( ImGui::SmallButton( "Randomize Parameters" ) ) {
+			long unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+			std::default_random_engine engine{ seed };
+			std::uniform_real_distribution<GLfloat> senseAngleDistribution( 0.0f, float( pi ) );
+			std::uniform_real_distribution<GLfloat> senseDistanceDistribution( 0.0f, 0.005f );
+			std::uniform_real_distribution<GLfloat> turnAngleDistribution( 0.0f, float( pi ) );
+			std::uniform_real_distribution<GLfloat> stepSizeDistribution( 0.0f, 0.005f );
+			std::uniform_int_distribution<int> depositAmountDistribution( 4000, 75000 );
+			std::uniform_real_distribution<GLfloat> decayFactorDistribution( 0.75f, 1.0f );
+
+			// generate new values based on above distributions
+			physarumConfig.senseAngle		= senseAngleDistribution( engine );
+			physarumConfig.senseDistance	= senseDistanceDistribution( engine );
+			physarumConfig.turnAngle		= turnAngleDistribution( engine );
+			physarumConfig.stepSize			= stepSizeDistribution( engine );
+			physarumConfig.depositAmount	= depositAmountDistribution( engine );
+			physarumConfig.decayFactor		= decayFactorDistribution( engine );
+		}
+
+		// widgets
+		ImGui::Text("Sensor Angle:                ");
+		ImGui::SameLine();
+		HelpMarker("The angle between the sensors.");
+		ImGui::SliderFloat("radians", &physarumConfig.senseAngle, 0.0f, 3.14f, "%.4f");
+
+		ImGui::Separator();
+
+		ImGui::Text("Sensor Distance:             ");
+		ImGui::SameLine();
+		HelpMarker("The distance from the agent position to the sensors.");
+		ImGui::SliderFloat("        ", &physarumConfig.senseDistance, 0.0f, 0.005f, "%.4f");
+
+		ImGui::Separator();
+
+		ImGui::Text("Turn Angle:                  ");
+		ImGui::SameLine();
+		HelpMarker("Amount that each simulation agent can turn in the movement shader.");
+		ImGui::SliderFloat("radians ", &physarumConfig.turnAngle, 0.0f, 3.14f, "%.4f");
+
+		ImGui::Separator();
+
+		ImGui::Text("Step Size:                   ");
+		ImGui::SameLine();
+		HelpMarker("Distance that each sim agent will go in their current direction each step.");
+		ImGui::SliderFloat("    ", &physarumConfig.stepSize, 0.0f, 0.005f, "%.4f");
+
+		ImGui::Separator();
+
+		ImGui::Text("Deposit Amount:              ");
+		ImGui::SameLine();
+		HelpMarker("Amout of pheremone that is deposited by each simulation agent.");
+		ImGui::DragScalar("  ", ImGuiDataType_U32, &physarumConfig.depositAmount, 50, NULL, NULL, "%u units");
+
+		ImGui::Separator();
+
+		ImGui::Text("Decay Factor:                ");
+		ImGui::SameLine();
+		HelpMarker("Scale factor applied when storing the result of the gaussian blur.");
+		ImGui::SliderFloat("              ", &physarumConfig.decayFactor, 0.75f, 1.0f, "%.4f");
+
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 

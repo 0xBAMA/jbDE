@@ -91,7 +91,7 @@
 			"framebufferY":800
 		},
 		"Physarum":{
-			"numAgents":1000000,
+			"numAgents":1048576,
 			"dimensionX":2560,
 			"dimensionY":1440,
 			"senseAngle":2.454,
