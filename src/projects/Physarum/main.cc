@@ -174,30 +174,33 @@ public:
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 
-		// agents
-		glUseProgram( shaders[ "Agents" ] );
-
-		textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shaders[ "Agents" ], 2 );
-
-		// the rest of the simulation parameters
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "stepSize" ), physarumConfig.stepSize );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
-		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
-		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "wangSeed" ), physarumConfig.wangSeed() );
-		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
-		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
-
-		// rounded up
-		const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
-
-		glDispatchCompute( 1, numSlices, 1 );
-		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
 	void ComputePasses () {
 		ZoneScoped;
+
+		{ // update agents, held in the SSBO
+			scopedTimer Start( "Agent Sim" );
+
+			// send the simulation parameters
+			glUseProgram( shaders[ "Agents" ] );
+			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "stepSize" ), physarumConfig.stepSize );
+			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
+			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
+			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
+			glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
+			glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "wangSeed" ), physarumConfig.wangSeed() );
+			glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
+			glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
+
+			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shaders[ "Agents" ], 2 );
+
+			// number of 1024-size jobs, rounded up
+			const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
+
+			glDispatchCompute( 1, numSlices, 1 );
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+		}
 
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
