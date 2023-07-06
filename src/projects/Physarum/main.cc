@@ -14,6 +14,7 @@ struct physarumConfig_t {
 	float senseDistance;
 	float turnAngle;
 	float stepSize;
+	bool writeBack;
 
 	// diffuse + decay
 	float decayFactor;
@@ -56,6 +57,7 @@ public:
 			physarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
 			physarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
 			physarumConfig.stepSize			= j[ "app" ][ "Physarum" ][ "stepSize" ];
+			physarumConfig.writeBack		= j[ "app" ][ "Physarum" ][ "writeBack" ];
 			physarumConfig.decayFactor		= j[ "app" ][ "Physarum" ][ "decayFactor" ];
 			physarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
 
@@ -199,6 +201,7 @@ public:
 		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
 		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
+		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
 
 		// rounded up
 		const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;

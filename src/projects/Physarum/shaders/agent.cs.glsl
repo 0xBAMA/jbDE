@@ -18,6 +18,7 @@ uniform float senseDistance;
 uniform float turnAngle;
 uniform uint depositAmount;
 uniform uint numAgents;
+uniform bool writeBack;
 
 uniform vec2 randomValues[ 8 ];
 
@@ -73,7 +74,10 @@ void main () {
 
 		vec2 newPosition = wrapPosition( a.position + stepSize * a.direction );
 		data[ index ].position = newPosition;
-		// data[ index ].direction = a.direction; // old impl never updated direction????
+		if ( writeBack ) {
+			data[ index ].direction = a.direction; // old impl never updated direction????
+		}
+
 		imageAtomicAdd( current, ivec2( imageSize( current ) * ( 0.5f * ( newPosition + vec2( 1.0f ) ) ) ), depositAmount );
 	}
 }
