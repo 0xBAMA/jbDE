@@ -47,6 +47,12 @@ void GLDebugEnable () {
 	//DEBUG ENABLE
 	glEnable( GL_DEBUG_OUTPUT );
 	glDebugMessageCallback( MessageCallback, 0 );
+
+	// GLint val[ 3 ];
+	// glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &val[ 0 ] );
+	// glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &val[ 1 ] );
+	// glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &val[ 2 ] );
+	// cout << "max work group count is " << val[ 0 ] << " " << val[ 1 ] << " " << val [ 2 ] << endl;
 }
 
 #endif
