@@ -127,15 +127,15 @@ public:
 		for ( int i = 0; i < 8; i++ )
 			randomDirections.push_back( glm::normalize( vec2( dist( gen ), dist( gen ) ) ) );
 
-		glUniform2fv( glGetUniformLocation( shaders[ "Agents" ], "random_values" ), 8, glm::value_ptr( randomDirections[ 0 ] ) );
+		glUniform2fv( glGetUniformLocation( shaders[ "Agents" ], "randomValues" ), 8, glm::value_ptr( randomDirections[ 0 ] ) );
 
 		// the rest of the simulation parameters
-		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "show_agents" ), physarumConfig.showAgents );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "step_size" ), physarumConfig.stepSize );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "sense_angle" ), physarumConfig.senseAngle );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "sense_distance" ), physarumConfig.senseDistance );
-		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turn_angle" ), physarumConfig.turnAngle );
-		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "deposit_amount" ), physarumConfig.depositAmount );
+		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "showAgents" ), physarumConfig.showAgents );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "stepSize" ), physarumConfig.stepSize );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
+		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
 
 		glDrawArrays( GL_POINTS, 0, physarumConfig.numAgents );
 	}
