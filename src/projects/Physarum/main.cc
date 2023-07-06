@@ -109,22 +109,20 @@ public:
 
 		// expose controls for the physarum
 		if ( ImGui::SmallButton( "Randomize Parameters" ) ) {
-			long unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
-			std::default_random_engine engine{ seed };
-			std::uniform_real_distribution<GLfloat> senseAngleDistribution( 0.0f, float( pi ) );
-			std::uniform_real_distribution<GLfloat> senseDistanceDistribution( 0.0f, 0.005f );
-			std::uniform_real_distribution<GLfloat> turnAngleDistribution( 0.0f, float( pi ) );
-			std::uniform_real_distribution<GLfloat> stepSizeDistribution( 0.0f, 0.005f );
-			std::uniform_int_distribution<int> depositAmountDistribution( 4000, 75000 );
-			std::uniform_real_distribution<GLfloat> decayFactorDistribution( 0.75f, 1.0f );
+			rng senseAngle( 0.0f, float( pi ) );
+			rng senseDistance( 0.0f, 0.005f );
+			rng turnAngle( 0.0f, float( pi ) );
+			rng stepSize( 0.0f, 0.005f );
+			rngi depositAmount( 4000, 75000 );
+			rng decayFactor( 0.75f, 1.0f );
 
 			// generate new values based on above distributions
-			physarumConfig.senseAngle		= senseAngleDistribution( engine );
-			physarumConfig.senseDistance	= senseDistanceDistribution( engine );
-			physarumConfig.turnAngle		= turnAngleDistribution( engine );
-			physarumConfig.stepSize			= stepSizeDistribution( engine );
-			physarumConfig.depositAmount	= depositAmountDistribution( engine );
-			physarumConfig.decayFactor		= decayFactorDistribution( engine );
+			physarumConfig.senseAngle		= senseAngle();
+			physarumConfig.senseDistance	= senseDistance();
+			physarumConfig.turnAngle		= turnAngle();
+			physarumConfig.stepSize			= stepSize();
+			physarumConfig.depositAmount	= depositAmount();
+			physarumConfig.decayFactor		= decayFactor();
 		}
 
 		// widgets
