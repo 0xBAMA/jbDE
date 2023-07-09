@@ -14,7 +14,8 @@ void main () {
 	// read state + neighborhood from back buffer
 
 	// determine new state
+	uint newState = imageLoad( backBuffer, writeLoc ).r;
 
 	// write the data to the front buffer
-
+	imageStore( frontBuffer, writeLoc, uvec4( newState, 1, 1, 1 ) );
 }

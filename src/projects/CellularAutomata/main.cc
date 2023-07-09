@@ -3,6 +3,7 @@
 struct CAConfig_t {
 	uint32_t dimensionX;
 	uint32_t dimensionY;
+	bool oddFrame = false;
 };
 
 class engineDemo : public engineBase {	// example derived class
@@ -24,21 +25,29 @@ public:
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
 			CAConfig.dimensionY = j[ "app" ][ "CellularAutomata" ][ "dimensionY" ];
 
-			// setup the image buffers for the CA state ( 2x for ping-ponging )
+		// setup the image buffers for the CA state ( 2x for ping-ponging )
+			// random data init
+			std::vector< uint32_t > initialData;
+			rngi gen( 0, 2 );
+			for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ )
+				initialData.push_back( gen() );
+
 			textureOptions_t opts;
 			opts.dataType		= GL_R32UI;
 			opts.width			= CAConfig.dimensionX;
 			opts.height			= CAConfig.dimensionY;
 			opts.textureType	= GL_TEXTURE_2D;
-			textureManager.Add( "CA State Buffer 0", opts );
-			textureManager.Add( "CA State Buffer 1", opts );
+			opts.pixelDataType	= GL_UNSIGNED_BYTE;
+			opts.initialData	= ( void * ) initialData.data();
+			textureManager.Add( "Automata State Buffer 0", opts );
+			textureManager.Add( "Automata State Buffer 1", opts );
 		}
 	}
 
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// want to reset buffer contents, in the back buffer
+		// reset buffer contents, in the back buffer
 
 	}
 
@@ -61,13 +70,22 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
+		// swap buffers - calculate strings for use later
+		CAConfig.oddFrame = !CAConfig.oddFrame;
+		string backBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "0" : "1" );
+		string frontBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "1" : "0" );
+
 		{ // update the state of the CA
 			scopedTimer Start( "Update" );
+			glUseProgram( shaders[ "Update" ] );
 
 			// bind front buffer, back buffer
+			textureManager.BindImageForShader( backBufferLabel, "backBuffer", shaders[ "Update" ], 2 );
+			textureManager.BindImageForShader( frontBufferLabel, "frontBuffer", shaders[ "Update" ], 3 );
 
 			// dispatch the compute shader - go from back buffer to front buffer
-
+			glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{ // draw the current state of the front buffer
@@ -76,7 +94,10 @@ public:
 			glUseProgram( shaders[ "Draw" ] );
 
 			// pass the current front buffer, to display it
+			glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ), CAConfig.dimensionX, CAConfig.dimensionY );
+			textureManager.BindTexForShader( frontBufferLabel, "CAStateBuffer", shaders[ "Draw" ], 2 );
 
+			// put it in the accumulator
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}

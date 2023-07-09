@@ -6,14 +6,13 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 // current state of the Cellular automata
 layout( binding = 2 ) uniform usampler2D CAStateBuffer;
-
-uniform float time;
+uniform vec2 resolution;
 
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
 	// placeholder value - replace with texture read
-	vec3 result = vec3( 255.0f, 100.0f, 0.0f );
+	vec3 result = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).xyz * 255.0f;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( result / 255.0f, 1.0f ) );
