@@ -30,6 +30,11 @@ bool getStateForBit ( ivec2 location, uint bit ) {
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
+	// iterate through the 32 bits in the buffer
+		// they will all be evaluated - CPU side makes the determination
+		// of whether they are active, by either having populated that
+		// sort of bit layer or having left it empty
+
 	uint newState = getStateForBit( writeLoc, 0 ) ? 1 : 0;
 
 	// write the data to the front buffer

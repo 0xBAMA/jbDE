@@ -7,6 +7,7 @@ struct CAConfig_t {
 
 	// deciding how to populate the buffer
 	float generatorThreshold;
+	uint8_t numBitsActive;
 
 	// toggling buffers
 	bool oddFrame = false;
@@ -31,24 +32,37 @@ public:
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
 			CAConfig.dimensionY = j[ "app" ][ "CellularAutomata" ][ "dimensionY" ];
 			CAConfig.generatorThreshold = j[ "app" ][ "CellularAutomata" ][ "generatorThreshold" ];
+			CAConfig.numBitsActive = j[ "app" ][ "CellularAutomata" ][ "numBitsActive" ];
 
 		// setup the image buffers for the CA state ( 2x for ping-ponging )
-			// random data init
-			std::vector< uint8_t > initialData;
-			rng gen( 0.0f, 1.0f );
-			for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ )
-				initialData.push_back( gen() < CAConfig.generatorThreshold ? 1 : 0 );
-
 			textureOptions_t opts;
 			opts.dataType		= GL_R32UI;
 			opts.width			= CAConfig.dimensionX;
 			opts.height			= CAConfig.dimensionY;
 			opts.textureType	= GL_TEXTURE_2D;
 			opts.pixelDataType	= GL_UNSIGNED_BYTE;
-			opts.initialData	= ( void * ) initialData.data();
+			opts.initialData	= nullptr;
 			textureManager.Add( "Automata State Buffer 0", opts );
 			textureManager.Add( "Automata State Buffer 1", opts );
+
+			BufferReset();
 		}
+	}
+
+	void BufferReset () { // put random bits in the buffer
+		string backBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "0" : "1" );
+
+		// random data init
+		std::vector< uint32_t > initialData;
+		rng gen( 0.0f, 1.0f );
+		for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ )
+			initialData.push_back( gen() < CAConfig.generatorThreshold ? 1 : 0 );
+
+		// no current functionality for updating the buffer - going to raw OpenGL
+		GLuint handle = textureManager.Get( backBufferLabel );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, CAConfig.dimensionX, CAConfig.dimensionY, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ( void * ) initialData.data() );
+
 	}
 
 	void HandleCustomEvents () {
@@ -77,8 +91,7 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		// swap buffers - calculate strings for use later
-		CAConfig.oddFrame = !CAConfig.oddFrame;
+		// swap buffers - precalculate strings for use later
 		string backBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "0" : "1" );
 		string frontBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "1" : "0" );
 
@@ -124,6 +137,9 @@ public:
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
+
+		// buffer swap
+		CAConfig.oddFrame = !CAConfig.oddFrame;
 	}
 
 	void OnRender () {
