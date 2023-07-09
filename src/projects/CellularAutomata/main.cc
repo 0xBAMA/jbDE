@@ -15,8 +15,9 @@ public:
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
-			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/CellularAutomata/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+
+			// something to put some basic data in the accumulator texture
+			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/shaders/draw.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
@@ -57,11 +58,21 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // dummy draw - draw something into accumulatorTexture
+		{ // update the state of the CA
+
+			// bind front buffer, back buffer
+
+			// dispatch the compute shader - go from back buffer to front buffer
+
+		}
+
+		{ // draw the current state of the front buffer
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1000.0f );
+			glUseProgram( shaders[ "Draw" ] );
+
+			// pass the current front buffer, to display it
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -74,12 +85,6 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
