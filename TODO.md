@@ -89,9 +89,6 @@ This is a planning document for work on this project and in general, about the t
 		- Some kind of timeline tool? Like what they do for demoscene stuff, sometimes, that could be a cool tool to try to write
 			- Maybe part of the SDF validation tool
 
-- Texture wrapper? At least a function - something to make the declaration of textures cleaner
-	- I can do something that just returns a GLuint, because that's how I'm using it now
-
 - More involved shader wrapper?
 	- More than just compilation
 	- Would be nice to have an abstraction layer over uniforms
@@ -119,6 +116,7 @@ This is a planning document for work on this project and in general, about the t
 		- I think I've also done most of what I want to do with it
 			- I think I will probably do a more flexible OBJ voxelizer for Voraldo14, but beyond that I don't have much in the way of plans for it
 	- Maintainence of my own buffers, this is something I want to use for plant simulation ( think, write nearest plant ID value per pixel, use this to track how much energy is recieved for that plant ID summed across all pixels )
+	- Current utility is something like a model loader
 
 - Dithering stuff
 	- Palette based version: Precompute 3d LUT texture(s) in order to avoid having to do the distance calculations
@@ -280,14 +278,7 @@ This is a planning document for work on this project and in general, about the t
 - 2D section
 
 
-
 ### [Pending Articles](https://jbaker.graphics/writings)
-
-- Deferred setup for vertexture, what that project turned into
-
-- Post with a youtube embed, for the talk, like [what I did with Voraldo](https://jbaker.graphics/writings/voraldo_talk.html)
-
-
 
 #### Keeping up with projects as they happen, so they don't pile up again
 
@@ -376,9 +367,8 @@ This is a planning document for work on this project and in general, about the t
 - [Grid-based SDFs](https://kosmonautblog.wordpress.com/2017/05/01/signed-distance-field-rendering-journey-pt-1/)
 
 - Depth Rendering to generate heightmaps
-	- Something like the face charms project, again, but generating the heightmaps from meshes directly
+	- Something like the [face charms project](https://jbaker.graphics/writings/cnc.html), again, but generating the heightmaps from meshes directly
 	- Maybe this is an application for SoftRast
-		- I want to template the Image wrapper before I do that, though
 	- Fogleman's [Heightmap Meshing Utility](https://github.com/fogleman/hmm)
 	- Raymarching heightmaps / terrain
 		- [ollj](https://www.shadertoy.com/view/Mtc3WX)
@@ -432,7 +422,7 @@ This is a planning document for work on this project and in general, about the t
 		- I really like his [Hilbert curve visualization of unstructured data from here](https://corte.si/posts/visualisation/entropy/index.html) and [here](https://corte.si/posts/visualisation/binvis/)
 			- [Lots of other cool articles on that site](https://corte.si/posts/code/hilbert/portrait/index.html)
 	- Inspiration from [hornet on shadertoy, "glitch: cyberpunk text"](https://www.shadertoy.com/view/3lKSz3)
-	- Aras-P [Float Compression](https://aras-p.info/blog/2023/01/29/Float-Compression-0-Intro/)
+	- Aras-P [Float Compression](https://aras-p.info/blog/2023/01/29/Float-Compression-0-Intro/) + [Gbuffer Compression](https://aras-p.info/blog/2009/08/04/compact-normal-storage-for-small-g-buffers/)
 	- Palette analysis tools [1](https://github.com/Quickmarble/censor) / [2 (the one on lospec)](https://pixeljoint.com/forum/forum_posts.asp?TID=26080)
 
 - Engine and Suspension Simulation
