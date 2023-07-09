@@ -18,6 +18,7 @@ public:
 
 			// something to put some basic data in the accumulator texture
 			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/shaders/update.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
@@ -36,7 +37,9 @@ public:
 
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
-		// application specific controls
+
+		// want to reset buffer contents, in the back buffer
+
 	}
 
 	void ImguiPass () {
@@ -59,6 +62,7 @@ public:
 		ZoneScoped;
 
 		{ // update the state of the CA
+			scopedTimer Start( "Update" );
 
 			// bind front buffer, back buffer
 
@@ -94,11 +98,6 @@ public:
 		}
 	}
 
-	void OnUpdate () {
-		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
-	}
-
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
@@ -122,7 +121,6 @@ public:
 		HandleQuitEvents();
 
 		// derived-class-specific functionality
-		OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame

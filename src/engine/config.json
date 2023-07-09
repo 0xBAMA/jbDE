@@ -103,8 +103,8 @@
 			"writeBack":false
 		},
 		"CellularAutomata":{
-			"dimensionX":2560,
-			"dimensionY":1440
+			"dimensionX":1920,
+			"dimensionY":1080
 		}
 	}
 }
