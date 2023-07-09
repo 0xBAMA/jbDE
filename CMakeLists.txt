@@ -128,6 +128,18 @@ target_link_libraries( EngineDemo
 	ENGINE_LIBS
 )
 
+# =================================================================================================
+# base engine demo
+# =================================================================================================
+add_executable( CellularAutomata
+	${ENGINE_BASE}
+	src/projects/CellularAutomata/main.cc
+)
+
+target_link_libraries( CellularAutomata
+	PUBLIC
+	ENGINE_LIBS
+)
 
 # =================================================================================================
 # Physarum

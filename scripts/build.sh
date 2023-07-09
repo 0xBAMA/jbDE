@@ -10,9 +10,9 @@ cd build
 time make -j17 EngineDemo		# super basic demo
 
 # child apps
-time make -j17 Physarum	# agent-based sim
-time make -j17 SoftBodies	# soft body sim
-
+time make -j17 Physarum			# agent-based sim
+time make -j17 SoftBodies		# soft body sim
+time make -j17 CellularAutomata	# some CA stuff
 
 # Vertexture Variants
 time make -j17 Vertexture				# point sprite sphere impostors

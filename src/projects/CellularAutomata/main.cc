@@ -13,23 +13,7 @@ public:
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/engineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-
-			// cout << newline;
-			// cout << "loaded " << glyphList.size() << " glyphs" << newline;
-			// cout << "loaded " << paletteList.size() << " palettes" << newline;
-			// cout << "loaded " << badWords.size() << " bad words" << newline;
-			// cout << "loaded " << colorWords.size() << " color words" << newline;
-
-			// Image_4F test( "testAltered.png" );
-			// test.BrownConradyLensDistortMSBlurredChromatic( 1000, 0.125f, 0.0125f, 0.01618f );
-			// test.BrownConradyLensDistortMSBlurredChromaticSmooth( 1000, 0.125f, 0.0125f, 0.01618f );
-			// test.SaturateAlpha();
-			// test.Save( "distorted2.png" );
-
-			// very interesting - can call stuff from the command line
-				// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
-			// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/CellularAutomata/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
 		}
 	}
@@ -94,12 +78,6 @@ public:
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
-
-		{ // show trident with current orientation
-			scopedTimer Start( "Trident" );
-			trident.Update( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
