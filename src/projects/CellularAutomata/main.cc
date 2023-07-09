@@ -1,13 +1,16 @@
 #include "../../engine/engine.h"
 
-float RangeRemap ( float value, float inLow, float inHigh, float outLow, float outHigh ) {
-	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
-}
+struct CAConfig_t {
+	uint32_t dimensionX;
+	uint32_t dimensionY;
+};
 
 class engineDemo : public engineBase {	// example derived class
 public:
 	engineDemo () { Init(); OnInit(); PostInit(); }
 	~engineDemo () { Quit(); }
+
+	CAConfig_t CAConfig;
 
 	void OnInit () {
 		ZoneScoped;
@@ -15,13 +18,24 @@ public:
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/CellularAutomata/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
+			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
+			CAConfig.dimensionY = j[ "app" ][ "CellularAutomata" ][ "dimensionY" ];
+
+			// setup the image buffers for the CA state ( 2x for ping-ponging )
+			textureOptions_t opts;
+			opts.dataType		= GL_R32UI;
+			opts.width			= CAConfig.dimensionX;
+			opts.height			= CAConfig.dimensionY;
+			opts.textureType	= GL_TEXTURE_2D;
+			textureManager.Add( "CA State Buffer 0", opts );
+			textureManager.Add( "CA State Buffer 1", opts );
 		}
 	}
 
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
-
 	}
 
 	void ImguiPass () {
@@ -38,13 +52,6 @@ public:
 		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
-
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
-	}
-
-	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit
 	}
 
 	void ComputePasses () {
@@ -90,7 +97,6 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
 		{

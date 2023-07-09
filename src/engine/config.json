@@ -101,6 +101,10 @@
 			"depositAmount":1250,
 			"decayFactor":0.9875,
 			"writeBack":false
+		},
+		"CellularAutomata":{
+			"dimensionX":2560,
+			"dimensionY":1440
 		}
 	}
 }
