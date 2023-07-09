@@ -35,10 +35,9 @@ public:
 	}
 
 	void HandleCustomEvents () {
-		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
-		const uint8_t * state = SDL_GetKeyboardState( NULL );
-
+		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
+		// const uint8_t * state = SDL_GetKeyboardState( NULL );
 	}
 
 	void ImguiPass () {
