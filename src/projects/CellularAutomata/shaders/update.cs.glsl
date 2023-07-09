@@ -13,19 +13,19 @@ bool getStateForBit ( ivec2 location, uint bit ) {
 	uint bitmask = 1u << bit;
 
 	// read state from back buffer
-	uint previousState = imageLoad( backBuffer, location ).r & bitmask;
+	uint previousState = ( imageLoad( backBuffer, location ).r & bitmask ) != 0 ? 1 : 0;
 
 	// read neighborhood values from back buffer
 	uint count = 0;
-	count += imageLoad( backBuffer, location + ivec2( -1, -1 ) ).r & bitmask;
-	count += imageLoad( backBuffer, location + ivec2(  0, -1 ) ).r & bitmask;
-	count += imageLoad( backBuffer, location + ivec2(  1, -1 ) ).r & bitmask;
-	count += imageLoad( backBuffer, location + ivec2( -1,  0 ) ).r & bitmask;
+	count += ( imageLoad( backBuffer, location + ivec2( -1, -1 ) ).r & bitmask ) != 0 ? 1 : 0;
+	count += ( imageLoad( backBuffer, location + ivec2(  0, -1 ) ).r & bitmask ) != 0 ? 1 : 0;
+	count += ( imageLoad( backBuffer, location + ivec2(  1, -1 ) ).r & bitmask ) != 0 ? 1 : 0;
+	count += ( imageLoad( backBuffer, location + ivec2( -1,  0 ) ).r & bitmask ) != 0 ? 1 : 0;
 	// skip center pixel, already exists in previousState
-	count += imageLoad( backBuffer, location + ivec2(  1,  0 ) ).r & bitmask;
-	count += imageLoad( backBuffer, location + ivec2( -1,  1 ) ).r & bitmask;
-	count += imageLoad( backBuffer, location + ivec2(  0,  1 ) ).r & bitmask;
-	count += imageLoad( backBuffer, location + ivec2(  1,  1 ) ).r & bitmask;
+	count += ( imageLoad( backBuffer, location + ivec2(  1,  0 ) ).r & bitmask ) != 0 ? 1 : 0;
+	count += ( imageLoad( backBuffer, location + ivec2( -1,  1 ) ).r & bitmask ) != 0 ? 1 : 0;
+	count += ( imageLoad( backBuffer, location + ivec2(  0,  1 ) ).r & bitmask ) != 0 ? 1 : 0;
+	count += ( imageLoad( backBuffer, location + ivec2(  1,  1 ) ).r & bitmask ) != 0 ? 1 : 0;
 
 	// determine new state - Conway's Game of Life rules
 	return ( ( count == 2 || count == 3 ) && previousState == 1 ) || ( count == 3 && previousState == 0 );
@@ -39,9 +39,13 @@ void main () {
 		// of whether they are active, by either having populated that
 		// sort of bit layer or having left it empty
 
-	// uint oldState = imageLoad( backBuffer, writeLoc ).r;
-	uint newState = getStateForBit( writeLoc, 0 ) ? 1 : 0;
+	uint state = 0;
+	for ( uint bit = 0; bit < 32; bit++ ) {
+		if ( getStateForBit( writeLoc, bit ) ) {
+			state += 1u << bit;
+		}
+	}
 
 	// write the data to the front buffer
-	imageStore( frontBuffer, writeLoc, uvec4( newState, 0, 0, 0 ) );
+	imageStore( frontBuffer, writeLoc, uvec4( state, 0, 0, 0 ) );
 }
