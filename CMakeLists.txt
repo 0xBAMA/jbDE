@@ -118,12 +118,12 @@ target_link_libraries(
 # =================================================================================================
 # base engine demo
 # =================================================================================================
-add_executable( engineDemo
+add_executable( EngineDemo
 	${ENGINE_BASE}
-	src/projects/engineDemo/main.cc
+	src/projects/EngineDemo/main.cc
 )
 
-target_link_libraries( engineDemo
+target_link_libraries( EngineDemo
 	PUBLIC
 	ENGINE_LIBS
 )

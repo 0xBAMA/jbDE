@@ -7,7 +7,7 @@ cd build
 
 # engine stuff
 # time make -j17 TracyClient
-time make -j17 engineDemo				# super basic demo
+time make -j17 EngineDemo		# super basic demo
 
 # child apps
 time make -j17 Physarum	# agent-based sim
