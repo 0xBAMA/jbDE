@@ -43,7 +43,6 @@ public:
 
 			// pending refactor
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
-			// shaders[ "Agents" ]				= regularShader( basePath + "agent.vs.glsl", basePath + "agent.fs.glsl" ).shaderHandle;
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
