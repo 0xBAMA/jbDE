@@ -35,10 +35,10 @@ void main () {
 	col = pow( col, vec3( 2.2f ) ); // normal colors
 	// col = pow( col, vec3( 2.0f ) ); // skews blue/white/etc
 
-	// some xor shit
-	uint x = uint( writeLoc.x ) % 256;
-	uint y = uint( writeLoc.y ) % 256;
-	uint xor = ( x ^ y );
+	// // some xor shit
+	// uint x = uint( writeLoc.x ) % 256;
+	// uint y = uint( writeLoc.y ) % 256;
+	// uint xor = ( x ^ y );
 
 	// get some blue noise going, for additional shits
 	// col = ( xor < 128 ) ?
@@ -46,5 +46,5 @@ void main () {
 	// 	vec3( xor / 255.0f * col );
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( col * 0.86f, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
 }
