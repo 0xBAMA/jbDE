@@ -37,6 +37,7 @@ public:
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 	}
 
