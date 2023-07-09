@@ -104,7 +104,8 @@
 		},
 		"CellularAutomata":{
 			"dimensionX":1920,
-			"dimensionY":1080
+			"dimensionY":1080,
+			"generatorThreshold":0.05
 		}
 	}
 }

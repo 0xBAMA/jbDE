@@ -11,9 +11,9 @@ uniform vec2 resolution;
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	// placeholder value - replace with texture read
-	vec3 result = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).xyz * 255.0f;
-	// vec3 result = texture( CAStateBuffer, vec2( writeLoc ) / resolution ).xyz * 255.0f;
+	// current state of the cellular automata
+	vec3 result = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).xxx * 255.0f;
+	// vec3 result = texture( CAStateBuffer, vec2( writeLoc ) / resolution ).xxx * 255.0f;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( result / 255.0f, 1.0f ) );

@@ -1,8 +1,14 @@
 #include "../../engine/engine.h"
 
 struct CAConfig_t {
+	// CA buffer dimensions
 	uint32_t dimensionX;
 	uint32_t dimensionY;
+
+	// deciding how to populate the buffer
+	float generatorThreshold;
+
+	// toggling buffers
 	bool oddFrame = false;
 };
 
@@ -24,13 +30,14 @@ public:
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
 			CAConfig.dimensionY = j[ "app" ][ "CellularAutomata" ][ "dimensionY" ];
+			CAConfig.generatorThreshold = j[ "app" ][ "CellularAutomata" ][ "generatorThreshold" ];
 
 		// setup the image buffers for the CA state ( 2x for ping-ponging )
 			// random data init
 			std::vector< uint8_t > initialData;
-			rngi gen( 0, 1 );
+			rng gen( 0.0f, 1.0f );
 			for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ )
-				initialData.push_back( gen() );
+				initialData.push_back( gen() < CAConfig.generatorThreshold ? 1 : 0 );
 
 			textureOptions_t opts;
 			opts.dataType		= GL_R32UI;
