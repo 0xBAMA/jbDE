@@ -55,14 +55,19 @@ public:
 		// random data init
 		std::vector< uint32_t > initialData;
 		rng gen( 0.0f, 1.0f );
-		for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ )
-			initialData.push_back( gen() < CAConfig.generatorThreshold ? 1 : 0 );
+		for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ ) {
+			uint32_t value = 0;
+			for ( size_t b = 0; b < CAConfig.numBitsActive; b++ ) {
+				value = value << 1;
+				value = value | ( ( gen() < CAConfig.generatorThreshold ) ? 1u : 0u );
+			}
+			initialData.push_back( value );
+		}
 
 		// no current functionality for updating the buffer - going to raw OpenGL
 		GLuint handle = textureManager.Get( backBufferLabel );
 		glBindTexture( GL_TEXTURE_2D, handle );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, CAConfig.dimensionX, CAConfig.dimensionY, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ( void * ) initialData.data() );
-
 	}
 
 	void HandleCustomEvents () {
