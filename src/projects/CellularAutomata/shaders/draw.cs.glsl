@@ -28,11 +28,7 @@ vec3 Jet ( float inputValue ) {
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	// current state of the cellular automata
-		// something to show the layers as a sum of colors... tbd
-
-	// vec3 result = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).xxx * 255.0f;
-
+	// current state of the cellular automata - sample the bit planes + sum a color value
 	vec3 accum = vec3( 0.0f );
 	uint state = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).r;
 	for ( uint bit = 0; bit < 32; bit++ ) {
@@ -42,5 +38,5 @@ void main () {
 	}
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( accum / 5.0f, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( accum / 3.0f, 1.0f ) );
 }
