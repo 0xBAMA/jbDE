@@ -70,7 +70,7 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1000.0f );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}

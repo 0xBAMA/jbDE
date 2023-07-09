@@ -7,15 +7,44 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 uniform float time;
 
 void main () {
-	// basic XOR pattern
+	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
+
+	// yonatan/zozuar's pulsing guts shader ported from twi.gl : https://twigl.app/?ol=true&ss=-NNIajM4aEzy75lqtAUd
+		// effect breakdown / explanation: https://www.shadertoy.com/view/dtSSDR
+	const ivec2 bufferSize = imageSize( accumulatorTexture ).xy;
+	vec2 uv = ( ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( bufferSize ) ) * 2.0f - vec2( 1.0f );
+	vec3 col = vec3( 0.0f );
+	vec2 n = vec2( 0.0f );
+	vec2 q = vec2( 0.0f );
+	vec2 p = uv;
+	float d = dot( p, p );
+	float S = 12.0f;
+	float a = 0.0f;
+	mat2 m = mat2( cos( 5.0f ), sin( 5.0f ), -sin( 5.0f ), cos( 5.0f ) );
+	for ( float j = 0.0f; j < 20.0f; j++ ) {
+		p *= m;
+		n *= m;
+		q = p * S + time * 4.0f + sin( time * 4.0f - d * 6.0f ) * 0.8f + j + n;
+		a += dot( cos( q ) / S, vec2( 0.2f ) );
+		n -= sin( q );
+		S *= 1.2f;
+	}
+
+	col = vec3( 4.0f, 2.0f, 1.0f ) * ( a + 0.2f ) + a + a - d;
+	col = pow( col, vec3( 2.2f ) ); // normal colors
+	// col = pow( col, vec3( 2.0f ) ); // skews blue/white/etc
+
+	// some xor shit
 	uint x = uint( writeLoc.x ) % 256;
 	uint y = uint( writeLoc.y ) % 256;
 	uint xor = ( x ^ y );
 
-	// blue noise, for shits
-	vec3 result = ( xor < 128 ) ? imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz + vec3( sin( time ) / 2.0f + vec3( 0.5f ) ) * 127 : vec3( xor );
+	// get some blue noise going, for additional shits
+	// col = ( xor < 128 ) ?
+	// 	( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz / 255.0f ) * col :
+	// 	vec3( xor / 255.0f * col );
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( result / 255.0f, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( col * 0.86f, 1.0f ) );
 }
