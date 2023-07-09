@@ -27,8 +27,8 @@ public:
 
 		// setup the image buffers for the CA state ( 2x for ping-ponging )
 			// random data init
-			std::vector< uint32_t > initialData;
-			rngi gen( 0, 2 );
+			std::vector< uint8_t > initialData;
+			rngi gen( 0, 1 );
 			for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ )
 				initialData.push_back( gen() );
 

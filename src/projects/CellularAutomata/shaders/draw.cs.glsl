@@ -13,6 +13,7 @@ void main () {
 
 	// placeholder value - replace with texture read
 	vec3 result = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).xyz * 255.0f;
+	// vec3 result = texture( CAStateBuffer, vec2( writeLoc ) / resolution ).xyz * 255.0f;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( result / 255.0f, 1.0f ) );
