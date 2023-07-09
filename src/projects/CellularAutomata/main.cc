@@ -73,8 +73,12 @@ public:
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// reset buffer contents, in the back buffer
-
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
+		if ( state[ SDL_SCANCODE_R ] ) {
+			// reset buffer contents, in the back buffer
+			BufferReset();
+			SDL_Delay( 20 ); // debounce
+		}
 	}
 
 	void ImguiPass () {
