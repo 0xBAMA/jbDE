@@ -1,13 +1,22 @@
 #include "../../../engine/engine.h"
 
-float RangeRemap ( float value, float inLow, float inHigh, float outLow, float outHigh ) {
-	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
-}
+struct node_t {
+	float nodeMass;
+	vec3 position;
+	vec3 velocity;
+	uint32_t anchored; // anchored only needs 1 bit - extra bits for number of connected nodes?
 
-class engineDemo : public engineBase {	// example derived class
+	// how do we want to represent the list of connected nodes?
+
+};
+
+class SoftBodiesGPU : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	SoftBodiesGPU () { Init(); OnInit(); PostInit(); }
+	~SoftBodiesGPU () { Quit(); }
+
+	GLuint OffsetSSBO;
+	GLuint DataSSBOs[ 2 ];
 
 	void OnInit () {
 		ZoneScoped;
@@ -15,10 +24,34 @@ public:
 			// something to put some basic data in the accumulator texture
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/SoftBodies/GPU/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
-			// create two SSBOs, front buffer/back buffer
+		// create the initial data
+
+			// populate the simulation model
+			std::vector< node_t > softbodyModel;
+				// ...
+
+			// linearize the data, calculate offsets
+			std::vector< float > data;
+			std::vector< uint32_t > offsets;
+				// ...
+
+			// calculate the size of the data
+			size_t numBytesData = data.size() * sizeof( float );
+			size_t numBytesOffsets = offsets.size() * sizeof( uint32_t );
+
+			// create two SSBOs, front buffer/back buffer for sim points
+			glCreateBuffers( 2, &DataSSBOs[ 0 ] );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, DataSSBOs[ 0 ] );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, numBytesData, ( GLvoid * ) &data[ 0 ], GL_DYNAMIC_COPY );
+
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, DataSSBOs[ 1 ] );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, numBytesData, ( GLvoid * ) &data[ 0 ], GL_DYNAMIC_COPY );
 
 			// create an SSBO with a set of parallel prefix sum offsets ( since each node can have a variable size footprint )
-
+				// usage: to get the offset into the data SSBO for node N, access offsets[ N ]
+			glCreateBuffers( 1, &OffsetSSBO );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, OffsetSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, numBytesOffsets, ( GLvoid * ) &offsets[ 0 ], GL_STATIC_READ );
 
 		}
 	}
@@ -132,7 +165,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	SoftBodiesGPU engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
