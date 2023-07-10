@@ -12,7 +12,8 @@ time make -j17 EngineDemo		# super basic demo
 # child apps
 time make -j17 Physarum			# agent-based sim
 time make -j17 SoftBodies		# soft body sim
-time make -j17 CellularAutomata	# experimenting with some CA stuff
+time make -j17 CABitPlanes		# parallel cellular automata
+time make -j17 CAHistory		# cellular automata with history
 
 # Vertexture Variants
 time make -j17 Vertexture				# point sprite sphere impostors

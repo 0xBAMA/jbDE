@@ -129,11 +129,24 @@ target_link_libraries( EngineDemo
 )
 
 # =================================================================================================
-# base engine demo
+# Cellular Automata with History
 # =================================================================================================
-add_executable( CellularAutomata
+add_executable( CAHistory
 	${ENGINE_BASE}
-	src/projects/CellularAutomata/main.cc
+	src/projects/CellularAutomata/history/main.cc
+)
+
+target_link_libraries( CellularAutomata
+	PUBLIC
+	ENGINE_LIBS
+)
+
+# =================================================================================================
+# Cellular Automata in Parallel Bit Planes
+# =================================================================================================
+add_executable( CABitPlanes
+	${ENGINE_BASE}
+	src/projects/CellularAutomata/bitPlanes/main.cc
 )
 
 target_link_libraries( CellularAutomata
