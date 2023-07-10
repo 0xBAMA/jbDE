@@ -136,7 +136,7 @@ add_executable( CAHistory
 	src/projects/CellularAutomata/history/main.cc
 )
 
-target_link_libraries( CellularAutomata
+target_link_libraries( CAHistory
 	PUBLIC
 	ENGINE_LIBS
 )
@@ -149,7 +149,7 @@ add_executable( CABitPlanes
 	src/projects/CellularAutomata/bitPlanes/main.cc
 )
 
-target_link_libraries( CellularAutomata
+target_link_libraries( CABitPlanes
 	PUBLIC
 	ENGINE_LIBS
 )

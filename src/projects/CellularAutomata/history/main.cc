@@ -1,4 +1,4 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 
 struct CAConfig_t {
 	// CA buffer dimensions
@@ -7,16 +7,15 @@ struct CAConfig_t {
 
 	// deciding how to populate the buffer
 	float generatorThreshold;
-	uint8_t numBitsActive;
 
 	// toggling buffers
 	bool oddFrame = false;
 };
 
-class engineDemo : public engineBase {	// example derived class
+class CAHistory : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	CAHistory () { Init(); OnInit(); PostInit(); }
+	~CAHistory () { Quit(); }
 
 	CAConfig_t CAConfig;
 
@@ -25,14 +24,13 @@ public:
 		{ Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture
-			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/shaders/draw.cs.glsl" ).shaderHandle;
-			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/shaders/update.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/history/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/history/shaders/update.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
 			CAConfig.dimensionY = j[ "app" ][ "CellularAutomata" ][ "dimensionY" ];
 			CAConfig.generatorThreshold = j[ "app" ][ "CellularAutomata" ][ "generatorThreshold" ];
-			CAConfig.numBitsActive = j[ "app" ][ "CellularAutomata" ][ "numBitsActive" ];
 
 		// setup the image buffers for the CA state ( 2x for ping-ponging )
 			textureOptions_t opts;
@@ -56,12 +54,7 @@ public:
 		std::vector< uint32_t > initialData;
 		rng gen( 0.0f, 1.0f );
 		for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ ) {
-			uint32_t value = 0;
-			for ( size_t b = 0; b < CAConfig.numBitsActive; b++ ) {
-				value = value << 1;
-				value = value | ( ( gen() < CAConfig.generatorThreshold ) ? 1u : 0u );
-			}
-			initialData.push_back( value );
+			initialData.push_back( ( gen() < CAConfig.generatorThreshold ) ? 1u : 0u );
 		}
 
 		// no current functionality for updating the buffer - going to raw OpenGL
@@ -183,7 +176,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	CAHistory engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
