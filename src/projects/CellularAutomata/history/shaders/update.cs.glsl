@@ -39,12 +39,8 @@ void main () {
 		// of whether they are active, by either having populated that
 		// sort of bit layer or having left it empty
 
-	uint state = 0;
-	for ( uint bit = 0; bit < 32; bit++ ) {
-		if ( getStateForBit( writeLoc, bit ) ) {
-			state += 1u << bit;
-		}
-	}
+	uint previousState = imageLoad( backBuffer, writeLoc ).r;
+	uint state = ( previousState << 1 ) + ( getStateForBit( writeLoc, 0 ) ? 1 : 0 );
 
 	// write the data to the front buffer
 	imageStore( frontBuffer, writeLoc, uvec4( state, 0, 0, 0 ) );
