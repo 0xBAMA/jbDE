@@ -1,4 +1,4 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 #include "model.h"
 
 class engineChild : public engineBase {	// example derived class
@@ -15,11 +15,11 @@ public:
 			// this will also contain application specific textures, shaders, and bindsets
 
 			// compile background shader
-			shaders[ "Background" ] = computeShader( "./src/projects/SoftBodies/shaders/background.cs.glsl" ).shaderHandle;
+			shaders[ "Background" ] = computeShader( "./src/projects/SoftBodies/CPU/shaders/background.cs.glsl" ).shaderHandle;
 
 			// compile display shaders
 			simulationModel.simGeometryShader =
-				shaders[ "Softbody Display" ] = regularShader( "./src/projects/SoftBodies/shaders/main.vs.glsl", "./src/projects/SoftBodies/shaders/main.fs.glsl" ).shaderHandle;
+				shaders[ "Softbody Display" ] = regularShader( "./src/projects/SoftBodies/CPU/shaders/main.vs.glsl", "./src/projects/SoftBodies/CPU/shaders/main.fs.glsl" ).shaderHandle;
 
 			// load and initialize the model
 			simulationModel.loadFramePoints();

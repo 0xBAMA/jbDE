@@ -173,11 +173,24 @@ target_link_libraries( Physarum
 # =================================================================================================
 add_executable( SoftBodies
 	${ENGINE_BASE}
-	src/projects/SoftBodies/main.cc
-	src/projects/SoftBodies/model.cc
+	src/projects/SoftBodies/CPU/main.cc
+	src/projects/SoftBodies/CPU/model.cc
 )
 
 target_link_libraries( SoftBodies
+	PUBLIC
+	ENGINE_LIBS
+)
+
+# =================================================================================================
+# SoftBodies
+# =================================================================================================
+add_executable( SoftBodiesGPU
+	${ENGINE_BASE}
+	src/projects/SoftBodies/GPU/main.cc
+)
+
+target_link_libraries( SoftBodiesGPU
 	PUBLIC
 	ENGINE_LIBS
 )

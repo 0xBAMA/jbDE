@@ -37,7 +37,7 @@ void model::loadFramePoints() {
 	// assumes obj file without the annotations -
 	// specifically carFrameWPanels.obj which has a few lines already removed
 
-	std::ifstream infile( "./src/projects/SoftBodies/carFrameWPanels.obj" );
+	std::ifstream infile( "./src/projects/SoftBodies/CPU/carFrameWPanels.obj" );
 	std::vector< glm::vec3 > normals;
 
 	// add the anchored points ( wheel control points )

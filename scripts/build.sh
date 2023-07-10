@@ -11,7 +11,10 @@ time make -j17 EngineDemo		# super basic demo
 
 # child apps
 time make -j17 Physarum			# agent-based sim
-time make -j17 SoftBodies		# soft body sim
+
+# softbody sim
+time make -j17 SoftBodies		# soft body sim on the CPU
+time make -j17 SoftBodiesGPU	# soft body sim on the GPU
 
 # cellular automata
 time make -j17 CABitPlanes		# parallel cellular automata
