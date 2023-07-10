@@ -150,7 +150,7 @@ inline vec3 SpectralZucconi ( float input ) {
 	const vec3 cs = vec3( 3.54541723f, 2.86670055f, 2.29421995f );
 	const vec3 xs = vec3( 0.69548916f, 0.49416934f, 0.28269708f );
 	const vec3 ys = vec3( 0.02320775f, 0.15936245f, 0.53520021f );
-	return bump3y ( cs * ( input - xs ), ys );
+	return bump3y( cs * ( input - xs ), ys );
 }
 
 inline vec3 SpectralZucconi6 ( float input ) {
