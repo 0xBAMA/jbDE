@@ -12,8 +12,13 @@ public:
 	void OnInit () {
 		ZoneScoped;
 		{ Block Start( "Additional User Init" );
-			// something to put some basic data in the accumulator texture - specific to the demo project
+			// something to put some basic data in the accumulator texture
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/SoftBodies/GPU/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+
+			// create two SSBOs, front buffer/back buffer
+
+			// create an SSBO with a set of parallel prefix sum offsets ( since each node can have a variable size footprint )
+
 
 		}
 	}
