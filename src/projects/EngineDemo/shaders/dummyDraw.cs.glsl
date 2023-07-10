@@ -10,6 +10,8 @@ void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
+#if 1 // 1 for guts, 0 for more generic version
+
 	// yonatan/zozuar's pulsing guts shader ported from twi.gl : https://twigl.app/?ol=true&ss=-NNIajM4aEzy75lqtAUd
 		// effect breakdown / explanation: https://www.shadertoy.com/view/dtSSDR
 	const ivec2 bufferSize = imageSize( accumulatorTexture ).xy;
@@ -34,15 +36,19 @@ void main () {
 	col = pow( col, vec3( 2.2f ) ); // normal colors
 	// col = pow( col, vec3( 2.0f ) ); // skews blue/white/etc
 
-	// // some xor shit
-	// uint x = uint( writeLoc.x ) % 256;
-	// uint y = uint( writeLoc.y ) % 256;
-	// uint xor = ( x ^ y );
+#else
+
+	// some xor shit
+	uint x = uint( writeLoc.x ) % 256;
+	uint y = uint( writeLoc.y ) % 256;
+	uint xor = ( x ^ y );
 
 	// get some blue noise going, for additional shits
-	// col = ( xor < 128 ) ?
-	// 	( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz / 255.0f ) * col :
-	// 	vec3( xor / 255.0f * col );
+	vec3 col = ( xor < 128 ) ?
+		( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz / 255.0f ) :
+		vec3( xor / 255.0f );
+
+#endif
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );

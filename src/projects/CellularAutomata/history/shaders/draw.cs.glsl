@@ -34,7 +34,6 @@ void main () {
 	for ( uint bit = 0; bit < 32; bit++ ) {
 		if ( ( ( state >> bit ) & 1u ) != 0 ) {
 			accum += Jet( 0.99f - ( bit / 32.0f ) );
-			// accum += vec3( 1.0f );
 		}
 	}
 
