@@ -1,9 +1,5 @@
 #include "../../engine/engine.h"
 
-float RangeRemap ( float value, float inLow, float inHigh, float outLow, float outHigh ) {
-	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
-}
-
 class engineDemo : public engineBase {	// example derived class
 public:
 	engineDemo () { Init(); OnInit(); PostInit(); }
@@ -11,14 +7,18 @@ public:
 
 	void OnInit () {
 		ZoneScoped;
-		{ Block Start( "Additional User Init" );
+		{
+			Block Start( "Additional User Init" );
+
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/EngineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
-			// very interesting - can call stuff from the command line
-				// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
-					// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
-			// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
+		// very interesting - can call stuff from the command line
+		// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
+
+			// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
+				// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
+				// something like bin/imageProcess <json path>, and have that json specify source file, a list of ops, and destination path
 
 		}
 	}

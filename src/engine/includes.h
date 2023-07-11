@@ -105,6 +105,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // wrapper around std::random + wip other methods
 #include "./coreUtils/random.h"
 
+// some useful math functions
+#include "./coreUtils/math.h"
+
 // coloring of CLI output + palette access stuff
 #include "../data/colors.h"
 
