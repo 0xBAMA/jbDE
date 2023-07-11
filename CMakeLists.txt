@@ -114,57 +114,62 @@ target_link_libraries(
 	CompilerFlags
 )
 
+# compile once and link to each target - this is much less redundant - only marginally faster, with threading, but whatever
+add_library( engineBase
+	${ENGINE_BASE}
+)
+
+target_link_libraries( engineBase
+	PUBLIC
+	ENGINE_LIBS
+)
 
 # =================================================================================================
 # base engine demo
 # =================================================================================================
 add_executable( EngineDemo
-	${ENGINE_BASE}
 	src/projects/EngineDemo/main.cc
 )
 
 target_link_libraries( EngineDemo
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 # =================================================================================================
 # Cellular Automata with History
 # =================================================================================================
 add_executable( CAHistory
-	${ENGINE_BASE}
 	src/projects/CellularAutomata/history/main.cc
 )
 
 target_link_libraries( CAHistory
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 # =================================================================================================
 # Cellular Automata in Parallel Bit Planes
 # =================================================================================================
 add_executable( CABitPlanes
-	${ENGINE_BASE}
 	src/projects/CellularAutomata/bitPlanes/main.cc
 )
 
 target_link_libraries( CABitPlanes
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 # =================================================================================================
 # Physarum
 # =================================================================================================
 add_executable( Physarum
-	${ENGINE_BASE}
 	src/projects/Physarum/main.cc
 )
 
 target_link_libraries( Physarum
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 
@@ -172,27 +177,25 @@ target_link_libraries( Physarum
 # SoftBodies
 # =================================================================================================
 add_executable( SoftBodies
-	${ENGINE_BASE}
 	src/projects/SoftBodies/CPU/main.cc
 	src/projects/SoftBodies/CPU/model.cc
 )
 
 target_link_libraries( SoftBodies
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 # =================================================================================================
 # SoftBodies
 # =================================================================================================
 add_executable( SoftBodiesGPU
-	${ENGINE_BASE}
 	src/projects/SoftBodies/GPU/main.cc
 )
 
 target_link_libraries( SoftBodiesGPU
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 
@@ -204,37 +207,34 @@ target_link_libraries( SoftBodiesGPU
 # ProjectedFramebuffers
 # =================================================================================================
 add_executable( ProjectedFramebuffers
-	${ENGINE_BASE}
 	src/projects/PointSprite/ProjectedFramebuffers/main.cc
 )
 
 target_link_libraries( ProjectedFramebuffers
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 # =================================================================================================
 # Vertexture
 # =================================================================================================
 add_executable( Vertexture
-	${ENGINE_BASE}
 	src/projects/PointSprite/Vertexture/main.cc
 )
 
 target_link_libraries( Vertexture
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
 
 # =================================================================================================
 # VertextureClassic
 # =================================================================================================
 add_executable( VertextureClassic
-	${ENGINE_BASE}
 	src/projects/PointSprite/VertextureClassic/main.cc
 )
 
 target_link_libraries( VertextureClassic
 	PUBLIC
-	ENGINE_LIBS
+	engineBase
 )
