@@ -7,4 +7,9 @@ inline float RangeRemap ( float value, float inLow, float inHigh, float outLow, 
 	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
 }
 
+// other curves? there were some things
+	// Bias and Gain Functions - https://arxiv.org/abs/2010.09714
+	// iq's Usful Functions - https://iquilezles.org/articles/functions/
+	// Easing Functions - https://easings.net/
+
 #endif // MATH_H

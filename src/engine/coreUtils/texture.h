@@ -172,6 +172,8 @@ class textureManager_t {
 public:
 	// prevent the use of 4.5 features
 	const bool compatibilityMode = false;
+
+	// report some OpenGL constants' values
 	const bool statsReport = false;
 
 	void Init () {
