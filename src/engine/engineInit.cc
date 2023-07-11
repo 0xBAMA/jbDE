@@ -302,19 +302,28 @@ void engineBase::LoadData () {
 
 	{
 		Block Start( "Loading Palettes" );
+
 		LoadPalettes( paletteList );
 		palette::PopulateLocalList( paletteList );
+		// cout << "loaded " << paletteList.size() << " palettes" << newline;
 	}
 
 	{
 		Block Start( "Loading Font Glyphs" );
+
 		LoadGlyphs( glyphList );
+		// cout << "loaded " << glyphList.size() << " glyphs" << newline;
 	}
 
 	{
 		Block Start( "Load Wordlists" );
+
 		LoadBadWords( badWords );
+		// cout << "loaded " << badWords.size() << " bad words" << newline;
+
 		LoadColorWords( colorWords );
+		// cout << "loaded " << colorWords.size() << " color words" << newline;
+
 		/* plantWords, animalWords, etc? tbd */
 	}
 }
