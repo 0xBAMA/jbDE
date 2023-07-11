@@ -133,6 +133,7 @@ This is a planning document for work on this project and in general, about the t
 		- [Easing Functions](https://easings.net/)
 	- Come up with a way to characterize the output, make sure we are getting "good" RNG
 		- do some histograms with the output, to measure
+	- [implot](https://github.com/epezent/implot) looked promising, but seg faulting when I try to access any of it
 
 - [Poisson Disk Sampling](https://github.com/corporateshark/poisson-disk-generator)
 	- Point locations based on [this paper](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
