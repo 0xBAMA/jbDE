@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1080,
-	"screenHeight":1920,
+	"screenWidth":1920,
+	"screenHeight":1080,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -109,7 +109,7 @@
 			"numBitsActive":32
 		},
 		"VoxelSpace":{
-			"mode":0
+			"mode":1
 		}
 	}
 }

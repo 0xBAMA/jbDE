@@ -33,24 +33,42 @@ public:
 			// compile all the shaders
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/VoxelSpace/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-
-			// rendering shader
+			shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
+			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
 
 			// stuff that always runs
-				// create the texture for the heightmap / colormap ( pack as 4 channel, rgb + height )
+			{
+				textureOptions_t opts;
+				opts.width = config.width;
+				opts.height = config.height;
+				opts.textureType = GL_TEXTURE_2D;
+
 				// create the texture for the regular display
 				// create the texture for the minimap
 
-			if ( voxelSpaceConfig.mode == -1 ) { // we know that we want to run the live erosion sim
+			}
+
+			// create the texture for the landscape
+			if ( voxelSpaceConfig.mode == 0 ) {
+				// we know that we want to run the live erosion sim
 
 				// create the heightmap that's used for the erosion
 
-				// load that initial heightmap into the map display texture
+				// create the texture from that heightmap
 
 				// set threadShouldRun flag, once everything is configured
 				// unset erosionReady flag, since that data is now potentially in flux
 
+			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
+				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
+				Image_4U map( string( "./src/projects/VoxelSpace/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( ".png" ) );
+
+				// create the texture from the loaded image
+				textureOptions_t opts;
+
+			} else {
+				cout << "invalid mode selected" << newline;
+				abort();
 			}
 		}
 	}
