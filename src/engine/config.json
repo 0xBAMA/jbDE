@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1920,
-	"screenHeight":1080,
+	"screenWidth":640,
+	"screenHeight":480,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -103,10 +103,13 @@
 			"writeBack":false
 		},
 		"CellularAutomata":{
-			"dimensionX":1920,
-			"dimensionY":1080,
-			"generatorThreshold":0.1,
+			"dimensionX":640,
+			"dimensionY":480,
+			"generatorThreshold":0.2,
 			"numBitsActive":32
+		},
+		"VoxelSpace":{
+			"mode":0
 		}
 	}
 }

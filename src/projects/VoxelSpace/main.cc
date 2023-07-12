@@ -1,36 +1,57 @@
 #include "../../engine/engine.h"
 
-float RangeRemap ( float value, float inLow, float inHigh, float outLow, float outHigh ) {
-	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
-}
+struct VoxelSpaceConfig_t {
 
-class engineDemo : public engineBase {	// example derived class
+	// what sim do we want to run
+	int32_t mode;
+
+	// renderer config
+		// tbd
+
+	// thread sync, erosion control
+	bool threadShouldRun;
+	bool erosionReady;
+
+};
+
+class VoxelSpace : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	VoxelSpace () { Init(); OnInit(); PostInit(); }
+	~VoxelSpace () { Quit(); }
+
+	VoxelSpaceConfig_t voxelSpaceConfig;
 
 	void OnInit () {
 		ZoneScoped;
-		{ Block Start( "Additional User Init" );
+		{
+			Block Start( "Additional User Init" );
+
+			// load config
+			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			voxelSpaceConfig.mode = j[ "app" ][ "VoxelSpace" ][ "mode" ];
+
+			// compile all the shaders
+
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/EngineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/VoxelSpace/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
-			// cout << newline;
-			// cout << "loaded " << glyphList.size() << " glyphs" << newline;
-			// cout << "loaded " << paletteList.size() << " palettes" << newline;
-			// cout << "loaded " << badWords.size() << " bad words" << newline;
-			// cout << "loaded " << colorWords.size() << " color words" << newline;
+			// rendering shader
 
-			// Image_4F test( "testAltered.png" );
-			// test.BrownConradyLensDistortMSBlurredChromatic( 1000, 0.125f, 0.0125f, 0.01618f );
-			// test.BrownConradyLensDistortMSBlurredChromaticSmooth( 1000, 0.125f, 0.0125f, 0.01618f );
-			// test.SaturateAlpha();
-			// test.Save( "distorted2.png" );
+			// stuff that always runs
+				// create the texture for the heightmap / colormap ( pack as 4 channel, rgb + height )
+				// create the texture for the regular display
+				// create the texture for the minimap
 
-			// very interesting - can call stuff from the command line
-				// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
-			// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
+			if ( voxelSpaceConfig.mode == -1 ) { // we know that we want to run the live erosion sim
 
+				// create the heightmap that's used for the erosion
+
+				// load that initial heightmap into the map display texture
+
+				// set threadShouldRun flag, once everything is configured
+				// unset erosionReady flag, since that data is now potentially in flux
+
+			}
 		}
 	}
 
@@ -66,13 +87,31 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // dummy draw - draw something into accumulatorTexture
+		{
+			// dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+			if ( voxelSpaceConfig.mode == -1 ) {
+				// check to see if the erosion thread is ready
+					// if it is
+						// pass it to the image
+						// run the "shade" shader
+
+				// barrier
+			}
+		
+			// draw the regular map into its image
+
+			// draw the minimap into its image
+
+			// flatten it down, put it in the accumulator - we're not going to screw with a framebuffer for this, I don't think...
+				// tbd, might be easier than writing the alpha blending myself, to use the API blending
+
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
@@ -143,7 +182,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
-	while( !engineInstance.MainLoop() );
+	VoxelSpace VoxelSpaceInstance;
+	while( !VoxelSpaceInstance.MainLoop() );
 	return 0;
 }

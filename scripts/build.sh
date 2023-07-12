@@ -11,6 +11,7 @@ time make -j17 EngineDemo		# super basic demo
 
 # child apps
 time make -j17 Physarum			# agent-based sim
+time make -j17 VoxelSpace		# voxelspace algorithm renderer
 
 # softbody sim
 time make -j17 SoftBodies		# soft body sim on the CPU
