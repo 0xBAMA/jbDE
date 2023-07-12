@@ -123,7 +123,10 @@ public:
 			glUseProgram( shaders[ "Draw" ] );
 
 			// pass the current front buffer, to display it
-			glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ), CAConfig.dimensionX, CAConfig.dimensionY );
+			glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ),
+				( float( config.width ) / float( CAConfig.dimensionX ) ) * float( CAConfig.dimensionX ),
+				( float( config.height ) / float( CAConfig.dimensionY ) ) * float( CAConfig.dimensionY ) );
+
 			textureManager.BindTexForShader( frontBufferLabel, "CAStateBuffer", shaders[ "Draw" ], 2 );
 
 			// put it in the accumulator
