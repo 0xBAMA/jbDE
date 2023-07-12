@@ -14,10 +14,8 @@ void engineBase::LoadConfig () {
 	{
 		Block Start( "Configuring Application" );
 
-		json j;
 		// load the config json, populate config struct - this will probably have more data, eventually
-		ifstream i( "src/engine/config.json" );
-		i >> j; i.close();
+		json j; ifstream i( "src/engine/config.json" ); i >> j; i.close();
 		config.windowTitle				= j[ "windowTitle" ];
 		config.width					= j[ "screenWidth" ];
 		config.height					= j[ "screenHeight" ];

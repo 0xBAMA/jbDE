@@ -88,13 +88,13 @@ public:
 		ZoneScoped;
 
 		{
-			// dummy draw - draw something into accumulatorTexture
-			scopedTimer Start( "Drawing" );
-			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// dummy draw - maybe revive this for doing some kind of background
+			// scopedTimer Start( "Drawing" );
+			// bindSets[ "Drawing" ].apply();
+			// glUseProgram( shaders[ "Dummy Draw" ] );
+			// glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 			if ( voxelSpaceConfig.mode == -1 ) {
 				// check to see if the erosion thread is ready
@@ -104,13 +104,10 @@ public:
 
 				// barrier
 			}
-		
+
 			// draw the regular map into its image
 
 			// draw the minimap into its image
-
-			// flatten it down, put it in the accumulator - we're not going to screw with a framebuffer for this, I don't think...
-				// tbd, might be easier than writing the alpha blending myself, to use the API blending
 
 		}
 
@@ -123,22 +120,10 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
-
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
-
-		{ // show trident with current orientation
-			scopedTimer Start( "Trident" );
-			trident.Update( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
@@ -153,7 +138,7 @@ public:
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
 		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
-		BlitToScreen();				// fullscreen triangle copying to the screen
+		// BlitToScreen();				// fullscreen triangle copying to the screen
 		{
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
