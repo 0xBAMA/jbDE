@@ -152,7 +152,6 @@ public:
 		ZoneScoped;
 
 		// event handling
-		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
 
