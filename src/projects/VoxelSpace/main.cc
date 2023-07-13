@@ -6,7 +6,19 @@ struct VoxelSpaceConfig_t {
 	int32_t mode;
 
 	// renderer config
-		// tbd
+	vec2 viewPosition	= vec2( 512, 512 );
+	int viewerHeight	= 75;
+	float viewAngle		= -0.425f;
+	float maxDistance	= 800.0f;
+	int horizonLine		= 700;
+	float heightScalar	= 1200.0f;
+	float offsetScalar	= 0.0f;
+	float fogScalar		= 0.451f;
+	float stepIncrement	= 0.0f;
+	float FoVScalar		= 0.85f;
+	float viewBump		= 275.0f;
+	float minimapScalar	= 0.3f;
+	bool adaptiveHeight	= false;
 
 	// thread sync, erosion control
 	bool threadShouldRun;
@@ -47,7 +59,9 @@ public:
 				opts.width = config.width;
 				opts.height = config.height;
 				opts.textureType = GL_TEXTURE_2D;
+				// ...
 
+				textureManager.Add( "Map", opts );
 
 				// set threadShouldRun flag, since once everything is configured, the thread should run
 				voxelSpaceConfig.threadShouldRun = true;
@@ -62,8 +76,12 @@ public:
 				textureOptions_t opts;
 				opts.width = map.Width();
 				opts.height = map.Height();
+				opts.dataType = GL_RGBA8;
 				opts.textureType = GL_TEXTURE_2D;
-				// ...
+				opts.pixelDataType = GL_UNSIGNED_BYTE;
+				opts.initialData = ( void * ) map.GetImageDataBasePtr();
+
+				textureManager.Add( "Map", opts );
 
 			} else {
 				cout << "invalid mode selected" << newline;
@@ -116,11 +134,17 @@ public:
 			if ( voxelSpaceConfig.mode == -1 ) {
 				// check to see if the erosion thread is ready
 					// if it is
+						// convert to a uint version
 						// pass it to the image
 						// run the "shade" shader
 
 				// barrier
 			}
+
+			glUseProgram( shaders[ "VoxelSpace" ] );
+			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 3 );
+			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 			// draw the regular map into the accumulator
 
