@@ -77,7 +77,7 @@ public:
 
 // Timing for the initialization code, similar to scoped timers but outputs to CLI
 class Block {
-const int reportWidth = 64;
+const int reportWidth = 40;
 public:
 	std::chrono::time_point<std::chrono::steady_clock> tStart;
 	Block( string sectionName ) {

@@ -36,28 +36,23 @@ public:
 			shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
 
-			// stuff that always runs
-			{
+			// create the texture for the landscape
+			if ( voxelSpaceConfig.mode == 0 ) {
+				// we know that we want to run the live erosion sim
+
+				// create the initial heightmap that's used for the erosion
+
+				// create the texture from that heightmap
 				textureOptions_t opts;
 				opts.width = config.width;
 				opts.height = config.height;
 				opts.textureType = GL_TEXTURE_2D;
 
-				// create the texture for the regular display
-				// create the texture for the minimap
 
-			}
-
-			// create the texture for the landscape
-			if ( voxelSpaceConfig.mode == 0 ) {
-				// we know that we want to run the live erosion sim
-
-				// create the heightmap that's used for the erosion
-
-				// create the texture from that heightmap
-
-				// set threadShouldRun flag, once everything is configured
+				// set threadShouldRun flag, since once everything is configured, the thread should run
+				voxelSpaceConfig.threadShouldRun = true;
 				// unset erosionReady flag, since that data is now potentially in flux
+				voxelSpaceConfig.erosionReady = false;
 
 			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
 				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
@@ -65,6 +60,10 @@ public:
 
 				// create the texture from the loaded image
 				textureOptions_t opts;
+				opts.width = map.Width();
+				opts.height = map.Height();
+				opts.textureType = GL_TEXTURE_2D;
+				// ...
 
 			} else {
 				cout << "invalid mode selected" << newline;
@@ -110,7 +109,7 @@ public:
 			// scopedTimer Start( "Drawing" );
 			// bindSets[ "Drawing" ].apply();
 			// glUseProgram( shaders[ "Dummy Draw" ] );
-			// glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			// glUniform1f( glGetUniformLocation( shaders[ "Background" ], "time" ), SDL_GetTicks() / 1600.0f );
 			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
@@ -123,9 +122,9 @@ public:
 				// barrier
 			}
 
-			// draw the regular map into its image
+			// draw the regular map into the accumulator
 
-			// draw the minimap into its image
+			// draw the minimap into the accumulator
 
 		}
 
