@@ -149,6 +149,18 @@ target_link_libraries( CAHistory
 )
 
 # =================================================================================================
+# Basic Game of Life sim
+# =================================================================================================
+add_executable( GoL
+	src/projects/CellularAutomata/GoL/main.cc
+)
+
+target_link_libraries( GoL
+	PUBLIC
+	engineBase
+)
+
+# =================================================================================================
 # Cellular Automata in Parallel Bit Planes
 # =================================================================================================
 add_executable( CABitPlanes

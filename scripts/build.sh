@@ -15,11 +15,12 @@ time make -j17 VoxelSpace		# voxelspace algorithm renderer
 
 # softbody sim
 time make -j17 SoftBodies		# soft body sim on the CPU
-time make -j17 SoftBodiesGPU	# soft body sim on the GPU
+time make -j17 SoftBodiesGPU	# soft body sim on the GPU ( unfinished )
 
 # cellular automata
 time make -j17 CABitPlanes		# parallel cellular automata
 time make -j17 CAHistory		# cellular automata with history
+time make -j17 GoL				# basic Game of Life
 
 # Vertexture Variants
 time make -j17 Vertexture				# point sprite sphere impostors
