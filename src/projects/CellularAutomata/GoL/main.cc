@@ -54,11 +54,7 @@ public:
 		std::vector< uint32_t > initialData;
 		rng gen( 0.0f, 1.0f );
 		for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ ) {
-			uint32_t value = 0;
-			for ( size_t b = 0; b < 32; b++ ) {
-				value = value << 1;
-				value = value | ( ( gen() < CAConfig.generatorThreshold ) ? 1u : 0u );
-			}
+			uint32_t value = ( gen() < CAConfig.generatorThreshold ) ? 1u : 0u;
 			initialData.push_back( value );
 		}
 
