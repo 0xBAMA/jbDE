@@ -9,6 +9,7 @@ inline size_t bytesPerPixel ( GLint type ) {
 	// over time we'll accumulate all the ones that I use, this currently is sufficient
 	switch ( type ) {
 	// one channel formats
+	case GL_DEPTH_COMPONENT16:	return 1 * 2; break;
 	case GL_R32UI:
 	case GL_DEPTH_COMPONENT32:	return 1 * 4; break;
 
