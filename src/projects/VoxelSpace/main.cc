@@ -32,6 +32,7 @@ public:
 	~VoxelSpace () { Quit(); }
 
 	VoxelSpaceConfig_t voxelSpaceConfig;
+	GLuint renderFramebuffer;
 
 	void OnInit () {
 		ZoneScoped;
@@ -47,6 +48,35 @@ public:
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
+			// todo: fullscreen triangle shader, less specialized than blit
+
+			// create a framebuffer to accumulate the images
+				// 16-bit color target gets fed into the tonemapping step
+			textureOptions_t opts;
+			opts.width = config.width;
+			opts.height = config.height;
+			opts.dataType = GL_RGBA16F;
+			opts.textureType = GL_TEXTURE_2D;
+			textureManager.Add( "Framebuffer Color", opts );
+			opts.dataType = GL_DEPTH_COMPONENT16;
+			textureManager.Add( "Framebuffer Depth", opts );
+
+			// // creating the actual framebuffers with their attachments
+			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0 }; // framebuffer just has the one color attachment + depth
+			glGenFramebuffers( 1, &renderFramebuffer );
+			glBindFramebuffer( GL_FRAMEBUFFER, renderFramebuffer );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Color" ), 0 );
+			glDrawBuffers( 1, bufs ); // how many active attachments, and their attachment locations
+			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+				cout << newline << "framebuffer creation successful" << endl;
+			}
+
+			// create the image to draw the regular map into
+
+			// create the image to draw the minimap into
+
+
 
 			// create the texture for the landscape
 			if ( voxelSpaceConfig.mode == 0 ) {
@@ -123,14 +153,6 @@ public:
 		ZoneScoped;
 
 		{
-			// dummy draw - maybe revive this for doing some kind of background
-			// scopedTimer Start( "Drawing" );
-			// bindSets[ "Drawing" ].apply();
-			// glUseProgram( shaders[ "Dummy Draw" ] );
-			// glUniform1f( glGetUniformLocation( shaders[ "Background" ], "time" ), SDL_GetTicks() / 1600.0f );
-			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
 			if ( voxelSpaceConfig.mode == -1 ) {
 				// check to see if the erosion thread is ready
 					// if it is
@@ -141,20 +163,32 @@ public:
 				// barrier
 			}
 
+			// update the main rendered view
 			glUseProgram( shaders[ "VoxelSpace" ] );
 			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 3 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
-			// draw the regular map into the accumulator
-
-			// draw the minimap into the accumulator
-
+			// update the minimap
+			// ...
 		}
+
+		// bind the framebuffer
+		// glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Geometry" ] );
+
+			// clear to the background color
+
+		// fullscreen triangle passes:
+
+			// draw the main rendered view, blending with the background color
+
+			// draw the minimap view, blending with the existing contents
+
+		// this color target becomes the input for the postprocessing step
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
-			bindSets[ "Postprocessing" ].apply();
+			// bindSets[ "Postprocessing" ].apply();
 			glUseProgram( shaders[ "Tonemap" ] );
 			SendTonemappingParameters();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );

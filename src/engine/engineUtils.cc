@@ -127,7 +127,7 @@ void engineBase::PrepareProfilingData () {
 		color = color % legit::Colors::colorList.size();
 		legit::ProfilerTask pt_CPU;
 		legit::ProfilerTask pt_GPU;
-		
+
 		// calculate start and end times
 		pt_CPU.startTime = offset_CPU / 1000.0f;
 		offset_CPU = offset_CPU + timerQueries_engine.queries_CPU[ i ].result;
