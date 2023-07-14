@@ -31,12 +31,6 @@ void main () {
 	// current state of the cellular automata - sample the history + sum a color value
 	vec3 accum = vec3( 0.0f );
 	uint state = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).r;
-	// for ( uint bit = 0; bit < 32; bit++ ) {
-	// 	if ( ( ( state >> bit ) & 1u ) != 0 ) {
-	// 		accum += Jet( 0.99f - ( bit / 32.0f ) );
-	// 	}
-	// }
-
 	accum = vec3( state & 1u );
 
 	// write the data to the image
