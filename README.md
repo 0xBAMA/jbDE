@@ -9,9 +9,12 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 - New in jbDE
 	- All applications inherit from a base engine class, and are built as part of the build script. Dependencies are pretty general across the apps, so there's really just a separate main.cc defining the inherited class for each one, plus whatever additional textures/shaders/etc they require. CMake script will create make targets for each one, `scripts/build.sh` calls each one in sequence.
 	- Current Project List:
-		- EngineDemo - minimal functioning of the display pipeline, imgui demo window, etc
-		- SoftBodies - port of [Softbodies](https://github.com/0xBAMA/SoftBodies) softbody sim on simple car chassis
+		- EngineDemo - minimal functioning of the display pipeline, imgui demo window, etc.
+		- Cellular Automata Experiments - Game of Life + some variants ( multiple parallel bitplanes, using bits for history ).
+		- Physarum Sim - reimplementation of my old [physarum sim](https://jbaker.graphics/writings/physarum.html), but with everything moved to compute shaders.
+		- SoftBodies - port of [Softbodies](https://github.com/0xBAMA/SoftBodies) softbody sim on simple car chassis. Also, WIP GPU Implementation.
 		- Vertexture2 - reimplementation of [Vertexture](https://jbaker.graphics/writings/vertexture.html), making heavier use of the GPU, extending the point sprite sphere impostor thing to write correct depths
+		- VoxelSpace - Reimplementation of the VoxelSpace algorithm in a compute shader. I had done this [previously](https://jbaker.graphics/writings/voxelspace.html), but this time using a custom framebuffer in order to do postprocessing etc on the color attachment.
 		- Future Projects
 			- Port of [Siren](https://github.com/0xBAMA/Siren)
 			- Next version of [Voraldo](https://github.com/0xBAMA/Voraldo13), Voraldo14
