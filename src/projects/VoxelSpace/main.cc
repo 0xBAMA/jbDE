@@ -20,6 +20,7 @@ struct VoxelSpaceConfig_t {
 	float viewBump		= 275.0f;
 	float minimapScalar	= 0.3f;
 	bool adaptiveHeight	= false;
+	ivec2 mapDims		= ivec2( 1024, 1024 );
 
 	// thread sync, erosion control
 	bool threadShouldRun;
@@ -166,29 +167,14 @@ public:
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// handle specific keys
-		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] )
-			voxelSpaceConfig.viewAngle += SDL_GetModState() & KMOD_SHIFT ? 0.05f : 0.005f;
-		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] )
-			voxelSpaceConfig.viewAngle -= SDL_GetModState() & KMOD_SHIFT ? 0.05f : 0.005f;
-
-		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {
-			positionAdjust( SDL_GetModState() & KMOD_SHIFT ? 5.0f : 1.0f );
-
-		}
-		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {
-			positionAdjust( SDL_GetModState() & KMOD_SHIFT ? -5.0f : -1.0f );
-
-		}
-
-		if ( state[ SDL_SCANCODE_PAGEUP ] )
-			voxelSpaceConfig.viewerHeight += SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
-		if ( state[ SDL_SCANCODE_PAGEDOWN ] )
-			voxelSpaceConfig.viewerHeight -= SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
-
-		if ( state[ SDL_SCANCODE_HOME ] )
-			voxelSpaceConfig.horizonLine += SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
-		if ( state[ SDL_SCANCODE_DELETE ] )
-			voxelSpaceConfig.horizonLine -= SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] )	voxelSpaceConfig.viewAngle += SDL_GetModState() & KMOD_SHIFT ? 0.05f : 0.005f;
+		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] )	voxelSpaceConfig.viewAngle -= SDL_GetModState() & KMOD_SHIFT ? 0.05f : 0.005f;
+		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] )		positionAdjust( SDL_GetModState() & KMOD_SHIFT ? 5.0f : 1.0f );
+		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] )	positionAdjust( SDL_GetModState() & KMOD_SHIFT ? -5.0f : -1.0f );
+		if ( state[ SDL_SCANCODE_PAGEUP ] )		voxelSpaceConfig.viewerHeight += SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] )	voxelSpaceConfig.viewerHeight -= SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+		if ( state[ SDL_SCANCODE_HOME ] )		voxelSpaceConfig.horizonLine += SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+		if ( state[ SDL_SCANCODE_DELETE ] )		voxelSpaceConfig.horizonLine -= SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
 	}
 
 	void ImguiPass () {
@@ -207,6 +193,61 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
+
+		// controls window for the renderer parameters
+			ImGui::Begin( "Renderer State", NULL, 0);
+
+			ImGui::Text( " Adjustment of Render parameters");
+			ImGui::Indent();
+			ImGui::Text( "Main" );
+			ImGui::SliderInt( "Height", &voxelSpaceConfig.viewerHeight, 0, 1800, "%d" );
+			ImGui::SliderFloat2( "Position", (float*)&voxelSpaceConfig.viewPosition, 0.0f, 1024.0f, "%.3f" );
+			ImGui::SliderFloat( "Angle", &voxelSpaceConfig.viewAngle, -3.14159265f, 3.14159265f, "%.3f" );
+			ImGui::SliderFloat( "Max Distance", &voxelSpaceConfig.maxDistance, 10.0f, 5000.0f, "%.3f" );
+			ImGui::SliderInt( "Horizon", &voxelSpaceConfig.horizonLine, 0, 3000, "%d" );
+			ImGui::SliderFloat( "Height Scale", &voxelSpaceConfig.heightScalar, 0.0f, 1500.0f, "%.3f" );
+			ImGui::SliderFloat( "Side-to-Side Offset", &voxelSpaceConfig.offsetScalar, 0.0f, 300.0f, "%.3f" );
+			ImGui::SliderFloat( "Step Increment", &voxelSpaceConfig.stepIncrement, 0.0f, 0.5f, "%.3f" );
+			ImGui::SliderFloat( "FoV", &voxelSpaceConfig.FoVScalar, 0.001f, 15.0f, "%.3f" );
+
+			// ImGui::SliderInt( "Linear Sampling", &linearTextures, 0, 1, "%d" );
+
+			ImGui::Checkbox( "Height follows Player Height", &voxelSpaceConfig.adaptiveHeight );
+			ImGui::Text( " " );
+			ImGui::SliderFloat( "View Bump", &voxelSpaceConfig.viewBump, 0.0f, 500.0f, "%.3f" );
+			ImGui::SliderFloat( "Minimap Scalar", &voxelSpaceConfig.minimapScalar, 0.1f, 5.0f, "%.3f" );
+			ImGui::Text( " " );
+			ImGui::SliderFloat( "Fog Scale", &voxelSpaceConfig.fogScalar, 0.0f, 1.5f, "%.3f" );
+			ImGui::ColorEdit3( "Fog Color", ( float * )&voxelSpaceConfig.fogColor, 0 );
+			ImGui::Text( " " );
+			// ImGui::SliderInt( "Erosion Steps per Update", &erosionNumStepsPerFrame, 0, 8000, "%d" );
+
+			// const char* items[] = { "XOR",
+			// 	"Map  1", "Map  2", "Map  3", "Map  4", "Map  5",
+			// 	"Map  6", "Map  7", "Map  8", "Map  9", "Map 10",
+			// 	"Map 11", "Map 12", "Map 13", "Map 14", "Map 15",
+			// 	"Map 16", "Map 17", "Map 18", "Map 19", "Map 20",
+			// 	"Map 21", "Map 22", "Map 23", "Map 24", "Map 25",
+			// 	"Map 26", "Map 27", "Map 28", "Map 29", "Map 30",
+			// 	"Erosion"};
+
+			// static int mapPickerItemPrevious = 31;
+			// ImGui::Combo("Map Picker", &mapPickerItemCurrent, items, IM_ARRAYSIZE(items));
+
+			// if( mapPickerItemCurrent != mapPickerItemPrevious ){
+			// 	mapPickerItemPrevious = mapPickerItemCurrent;
+			// 	loadMap( mapPickerItemCurrent );
+			// }
+			// ImGui::Unindent();
+			// ImGui::Text( std::string( " Render Pass Time: " + std::to_string( firstPassFrameTimeMs ) + " ms " ).c_str() );
+			// ImGui::Text( std::string( " Minimap Pass Time: " + std::to_string( secondPassFrameTimeMs ) + " ms " ).c_str() );
+			// ImGui::Text( "" );
+			// ImGui::Text( std::string( " Erosion Update Time: " + std::to_string( erosionPassTimeMs ) + " ms " ).c_str() );
+
+			// const float totalFrameTime = firstPassFrameTimeMs + secondPassFrameTimeMs;
+			// ImGui::Text( std::string( " Total Frame Time: " + std::to_string( totalFrameTime ) + " ms ( " + std::to_string( 1.0f / ( totalFrameTime / 1000.0f ) ) + " fps )" ).c_str() );
+
+			ImGui::End();
 	}
 
 	void ComputePasses () {
