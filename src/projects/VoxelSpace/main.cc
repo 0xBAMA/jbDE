@@ -143,12 +143,52 @@ public:
 		}
 	}
 
+	void positionAdjust ( float amt ) {
+		glm::mat2 rotate = glm::mat2(
+			 cos( voxelSpaceConfig.viewAngle ),
+			 sin( voxelSpaceConfig.viewAngle ),
+			-sin( voxelSpaceConfig.viewAngle ),
+			 cos( voxelSpaceConfig.viewAngle )
+		);
+		vec2 direction = rotate * vec2( 1.0f, 0.0f );
+		voxelSpaceConfig.viewPosition += amt * direction;
+
+		// adaptive height, todo
+		// int heightRef = heightmapReference( glm::ivec2( int( voxelSpaceConfig.viewPosition.x ), int( viewPosition.y )));
+		// if ( viewerHeight < heightRef )
+			// viewerHeight = heightRef + 5;
+	}
+
+
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
-			// controls tbd
+		// handle specific keys
+		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] )
+			voxelSpaceConfig.viewAngle += SDL_GetModState() & KMOD_SHIFT ? 0.05f : 0.005f;
+		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] )
+			voxelSpaceConfig.viewAngle -= SDL_GetModState() & KMOD_SHIFT ? 0.05f : 0.005f;
+
+		if ( state[ SDL_SCANCODE_W ] || state[ SDL_SCANCODE_UP ] ) {
+			positionAdjust( SDL_GetModState() & KMOD_SHIFT ? 5.0f : 1.0f );
+
+		}
+		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {
+			positionAdjust( SDL_GetModState() & KMOD_SHIFT ? -5.0f : -1.0f );
+
+		}
+
+		if ( state[ SDL_SCANCODE_PAGEUP ] )
+			voxelSpaceConfig.viewerHeight += SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] )
+			voxelSpaceConfig.viewerHeight -= SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+
+		if ( state[ SDL_SCANCODE_HOME ] )
+			voxelSpaceConfig.horizonLine += SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
+		if ( state[ SDL_SCANCODE_DELETE ] )
+			voxelSpaceConfig.horizonLine -= SDL_GetModState() & KMOD_SHIFT ? 10 : 1;
 	}
 
 	void ImguiPass () {
@@ -189,8 +229,8 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "stepIncrement" ), voxelSpaceConfig.stepIncrement );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "FoVScalar" ), voxelSpaceConfig.FoVScalar );
 
-			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 0 );
-			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
+			textureManager.BindImageForShader( "Map", "map", shaders[ "VoxelSpace" ], 0 );
+			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 1 );
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
 			// update the minimap rendered view - draw the area of the map near the user
