@@ -6,6 +6,7 @@ struct VoxelSpaceConfig_t {
 	int32_t mode;
 
 	// renderer config
+	vec4 fogColor		= vec4( 0.16f, 0.16f, 0.16f, 1.0f );
 	vec2 viewPosition	= vec2( 512, 512 );
 	int viewerHeight	= 75;
 	float viewAngle		= -0.425f;
@@ -33,6 +34,7 @@ public:
 
 	VoxelSpaceConfig_t voxelSpaceConfig;
 	GLuint renderFramebuffer;
+	particleEroder p;
 
 	void OnInit () {
 		ZoneScoped;
@@ -42,13 +44,14 @@ public:
 			// load config
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			voxelSpaceConfig.mode = j[ "app" ][ "VoxelSpace" ][ "mode" ];
+				// load the rest of the config
+
 
 			// compile all the shaders
-
-			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
+			// shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			// todo: fullscreen triangle shader, less specialized than blit
+			// todo: does it still make sense to have a separate minimap shader as a specialized version of the render shader?
+			// todo: fullscreen triangle shader, less specialized than blit - pass image
 
 			// create a framebuffer to accumulate the images
 				// 16-bit color target gets fed into the tonemapping step
@@ -72,31 +75,32 @@ public:
 				cout << newline << "framebuffer creation successful" << endl;
 			}
 
-			// create the image to draw the regular map into
-
-			// create the image to draw the minimap into
-
-
+			// tbd - for right now, I think these are going to be screen resolution, but maybe
+				// consider supersampling + generating mips, etc, to supersample / antialias a bit
+			textureManager.Add( "Main Rendered View", opts );		// create the image to draw the regular map into
+			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
 			// create the texture for the landscape
-			if ( voxelSpaceConfig.mode == 0 ) {
-				// we know that we want to run the live erosion sim
+			if ( voxelSpaceConfig.mode == 0 ) { // we know that we want to run the live erosion sim
 
 				// create the initial heightmap that's used for the erosion
+				p.InitWithDiamondSquare();
 
 				// create the texture from that heightmap
 				textureOptions_t opts;
 				opts.width = config.width;
 				opts.height = config.height;
 				opts.textureType = GL_TEXTURE_2D;
+				// process the initial data into a byte array
 				// ...
 
-				textureManager.Add( "Map", opts );
+				// this is actually going to be easier to take a 1 channel float, take it directly from the Image_1F
+					// do the processing into the map buffer on the GPU
 
-				// set threadShouldRun flag, since once everything is configured, the thread should run
-				voxelSpaceConfig.threadShouldRun = true;
-				// unset erosionReady flag, since that data is now potentially in flux
-				voxelSpaceConfig.erosionReady = false;
+				textureManager.Add( "Map Staging Buffer", opts );
+
+				voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
+				voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
 
 			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
 				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
@@ -124,6 +128,8 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+
+			// controls tbd
 	}
 
 	void ImguiPass () {
@@ -159,32 +165,46 @@ public:
 						// convert to a uint version
 						// pass it to the image
 						// run the "shade" shader
+						// it's now in the map texture
 
 				// barrier
 			}
 
-			// update the main rendered view
+			// update the main rendered view - draw the map
 			glUseProgram( shaders[ "VoxelSpace" ] );
+			// send uniforms and shit
+			textureManager.BindImageForShader( "Main Rendered View", "accumulatorTexture", shaders[ "VoxelSpace" ], 2 );
 			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 3 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT ); // barrier not required between passes
 
-			// update the minimap
-			// ...
+			// update the minimap rendered view - draw the area of the map near the user
+				// ...
+
+			// we do need a barrier before drawing the fullscreen triangles, images need to complete
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT );
 		}
 
-		// bind the framebuffer
-		// glBindFramebuffer( GL_FRAMEBUFFER, resources.FBOs[ "Geometry" ] );
+		// bind the framebuffer for drawing the layers
+		glBindFramebuffer( GL_FRAMEBUFFER, renderFramebuffer );
 
-			// clear to the background color
+		// clear to the background color to the fog color
+		glClearColor(
+			voxelSpaceConfig.fogColor.x,
+			voxelSpaceConfig.fogColor.y,
+			voxelSpaceConfig.fogColor.z,
+			voxelSpaceConfig.fogColor.w
+		);
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		// fullscreen triangle passes:
 
-			// draw the main rendered view, blending with the background color
+			// draw the main rendered view, blending with the background color for the fog
 
-			// draw the minimap view, blending with the existing contents
+			// draw the minimap view, blending with the existing contents, same blending logic
 
 		// this color target becomes the input for the postprocessing step
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
@@ -213,7 +233,7 @@ public:
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
 		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
-		// BlitToScreen();				// fullscreen triangle copying to the screen
+		BlitToScreen();				// fullscreen triangle copying to the screen
 		{
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
