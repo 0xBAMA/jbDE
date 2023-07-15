@@ -50,7 +50,7 @@ public:
 			// compile all the shaders
 			// shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			// todo: does it still make sense to have a separate minimap shader as a specialized version of the render shader?
+			// shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/shaders/MiniMap.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
@@ -77,7 +77,7 @@ public:
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Color" ), 0 );
 			glDrawBuffers( 1, bufs ); // how many active attachments, and their attachment locations
 			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-				cout << newline << "framebuffer creation successful" << endl;
+				// cout << newline << "framebuffer creation successful" << endl; // not important to report right now
 			}
 
 			// tbd - for right now, I think these are going to be screen resolution, but maybe
@@ -283,8 +283,9 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "stepIncrement" ), voxelSpaceConfig.stepIncrement );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "FoVScalar" ), voxelSpaceConfig.FoVScalar );
 
-			textureManager.BindImageForShader( "Map", "map", shaders[ "VoxelSpace" ], 0 );
-			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 1 );
+			textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shaders[ "VoxelSpace" ], 0 );
+			textureManager.BindImageForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
+			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 2 );
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
 			// update the minimap rendered view - draw the area of the map near the user

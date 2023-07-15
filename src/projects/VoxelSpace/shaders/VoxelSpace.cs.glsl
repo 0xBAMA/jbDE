@@ -1,7 +1,7 @@
 #version 430
 layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
-layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
+layout( rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( rgba8ui ) uniform uimage2D map; // convert to sampler? tbd
 layout( rgba16f ) uniform image2D target;
 
@@ -18,12 +18,20 @@ uniform float fogScalar;	// scalar for fog distance
 uniform float stepIncrement;// increase in step size as you get farther from the camera
 uniform float FoVScalar;	// adjustment for the FoV
 
+uvec4 blueNoiseRef ( ivec2 location ) {
+	location.x = location.x % imageSize( blueNoiseTexture ).x;
+	location.y = location.y % imageSize( blueNoiseTexture ).y;
+	return imageLoad( blueNoiseTexture, location );
+}
+
 void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const vec4 col ) {
+	const float blueNoiseScale = 255.0f * 127.0f;
 	const int yMin = clamp( yBottom, 0, imageSize( target ).y );
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
 	for ( int y = yMin; y < yMax; y++ ) {
-		imageStore( target, ivec2( x, y ), col );
+		float jitter = blueNoiseRef( ivec2( x, y ) ).r / blueNoiseScale;
+		imageStore( target, ivec2( x, y ), vec4( col.rgb, col.a + jitter ) );
 	}
 }
 
