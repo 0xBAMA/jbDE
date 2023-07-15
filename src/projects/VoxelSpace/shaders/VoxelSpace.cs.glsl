@@ -37,6 +37,9 @@ void main () {
 	const uint myXIndex		= uint( gl_GlobalInvocationID.x );
 	float yBuffer			= 0.0f;
 
+	// initial clear
+	DrawVerticalLine( myXIndex, 0, int( hPixels ), vec4( 0.0f ) );
+
 	// FoV considerations
 		// mapping [0..wPixels] to [-1..1]
 	float FoVAdjust			= -1.0f + float( myXIndex ) * ( 2.0f ) / float( wPixels );
