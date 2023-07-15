@@ -23,7 +23,7 @@ void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const v
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
 	for ( int y = yMin; y < yMax; y++ ) {
-		imageStore( target, ivec2( x, y ), col );
+		imageStore( target, ivec2( x, imageSize( target ).y - y ), col );
 	}
 }
 
@@ -51,7 +51,7 @@ void main () {
 	for ( float dSample = 1.0f, dz = 0.2f; dSample < maxDistance && yBuffer < hPixels; dSample += dz, dz += stepIncrement ) {
 		const ivec2 samplePosition	= ivec2( viewPositionLocal + dSample * direction );
 		const uvec4 dataSample		= imageLoad( map, samplePosition );
-		const float heightOnScreen	= ( ( dataSample.a - viewerHeight ) * ( 1.0f / dSample ) * heightScalar + horizonLine );
+		const float heightOnScreen	= ( ( float( dataSample.a ) - viewerHeight ) * ( 1.0f / dSample ) * heightScalar + horizonLine );
 		if ( heightOnScreen > yBuffer ) {
 			uint depthTerm = uint( max( 0, 255 - dSample * fogScalar ) );
 			DrawVerticalLine( myXIndex, int( yBuffer ), int( heightOnScreen ), vec4( dataSample.xyz, depthTerm ) / 255.0f );
