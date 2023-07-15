@@ -9,11 +9,11 @@ public:
 	particleEroder () {}
 
 	// functions
-	void InitWithDiamondSquare ( const uint32_t input ) {
+	void InitWithDiamondSquare () {
 		long unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 
-		std::default_random_engine engine{seed};
-		std::uniform_real_distribution<float> distribution{0, 1};
+		std::default_random_engine engine{ seed };
+		std::uniform_real_distribution<float> distribution{ 0, 1 };
 
 		// todo: make this variable ( data array cannot be variable size in c++ )
 		constexpr uint32_t dim = 1024;
@@ -72,7 +72,7 @@ public:
 		glm::vec3 n = glm::vec3( 0.15f ) * glm::normalize(glm::vec3( scale * ( atLocCache - cachep0 ), 1.0f, 0.0f ) );  // Positive X
 		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( scale * ( cachen0 - atLocCache ), 1.0f, 0.0f ) );         // Negative X
 		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( atLocCache - cache0p ) ) );        // Positive Y
-		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( cache0n - atLocCache) ) );       // Negative Y
+		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( cache0n - atLocCache) ) );        // Negative Y
 
 		// diagonals
 		n += glm::vec3( 0.1f ) * glm::normalize( glm::vec3( scale * ( atLocCache - cachepp ) / sqrt2, sqrt2, scale * ( atLocCache - cachepp ) / sqrt2 ) );
