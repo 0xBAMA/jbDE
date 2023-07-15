@@ -20,6 +20,27 @@ public:
 				// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
 				// something like bin/imageProcess <json path>, and have that json specify source file, a list of ops, and destination path
 
+
+			// const string pathToSource( "../heightmap_viewer/maps/" );
+			// for ( int i = 1; i <= 30; i++ ) {
+			// 	string colorFilename = string( pathToSource + "map" + to_string( i ) + "Color.png" );
+			// 	string heightFilename = string( pathToSource + "map" + to_string( i ) + "Height.png" );
+			// 	string outputFilename = string( "./src/projects/VoxelSpace/data/map" + to_string( i ) + ".png" );
+
+			// 	Image_4U heightSource( heightFilename );
+			// 	Image_4U colorSource( colorFilename );
+
+			// 	for ( uint32_t y = 0; y < heightSource.Height(); y++ ) {
+			// 		for ( uint32_t x = 0; x < heightSource.Width(); x++ ) {
+			// 			color_4U colorRead = colorSource.GetAtXY( x, y );
+			// 			color_4U heightRead = heightSource.GetAtXY( x, y );
+			// 			colorSource.SetAtXY( x, y, color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } ) );
+			// 		}
+			// 	}
+
+			// 	colorSource.Save( outputFilename );
+			// }
+
 		}
 	}
 
