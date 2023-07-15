@@ -111,16 +111,28 @@ public:
 
 			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
 				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
-				Image_4U map( string( "./src/projects/VoxelSpace/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( ".png" ) );
+				Image_4U mapHeight( string( "./src/projects/VoxelSpace/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
+				Image_4U mapColor( string( "./src/projects/VoxelSpace/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
 
-				// create the texture from the loaded image
+				// combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
+				Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
+				for ( uint32_t y = 0; y < mapColor.Height(); y++ ) {
+					for ( uint32_t x = 0; x < mapColor.Width(); x++ ) {
+						color_4U heightRead = mapHeight.GetAtXY( x, y );
+						color_4U colorRead = mapColor.GetAtXY( x, y );
+						color_4U combined = color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } );
+						combinedMap.SetAtXY( x, y, combined );
+					}
+				}
+
+				// create the texture from the combined image
 				textureOptions_t opts;
-				opts.width = map.Width();
-				opts.height = map.Height();
+				opts.width = combinedMap.Width();
+				opts.height = combinedMap.Height();
 				opts.dataType = GL_RGBA8UI;
 				opts.textureType = GL_TEXTURE_2D;
 				opts.pixelDataType = GL_UNSIGNED_BYTE;
-				opts.initialData = ( void * ) map.GetImageDataBasePtr();
+				opts.initialData = ( void * ) combinedMap.GetImageDataBasePtr();
 
 				textureManager.Add( "Map", opts );
 
