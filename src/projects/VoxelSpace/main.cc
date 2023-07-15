@@ -157,11 +157,6 @@ public:
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
-	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit
-	}
-
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -240,7 +235,6 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
 		{
