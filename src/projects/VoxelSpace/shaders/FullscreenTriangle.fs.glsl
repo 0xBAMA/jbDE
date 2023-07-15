@@ -4,5 +4,7 @@ uniform sampler2D current;
 uniform vec2 resolution;
 out vec4 fragmentOutput;
 void main () {
-	fragmentOutput = texture( current, ( gl_FragCoord.xy + 0.5f ) / resolution ); // half pixel offset
+	vec2 sampleLocation = ( gl_FragCoord.xy + 0.5f ) / resolution;
+	sampleLocation.y = 1.0f - sampleLocation.y; // rectify flip
+	fragmentOutput = texture( current, sampleLocation ); // half pixel offset
 }

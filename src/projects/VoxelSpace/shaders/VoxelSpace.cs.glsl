@@ -23,7 +23,7 @@ void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const v
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
 	for ( int y = yMin; y < yMax; y++ ) {
-		imageStore( target, ivec2( x, imageSize( target ).y - y ), col );
+		imageStore( target, ivec2( x, y ), col );
 	}
 }
 
