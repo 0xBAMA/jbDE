@@ -77,30 +77,31 @@ public:
 
 			// tbd - for right now, I think these are going to be screen resolution, but maybe
 				// consider supersampling + generating mips, etc, to supersample / antialias a bit
+			opts.dataType = GL_RGBA16F;
 			textureManager.Add( "Main Rendered View", opts );		// create the image to draw the regular map into
 			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
 			// create the texture for the landscape
 			if ( voxelSpaceConfig.mode == 0 ) { // we know that we want to run the live erosion sim
 
-				// create the initial heightmap that's used for the erosion
-				p.InitWithDiamondSquare();
+				// // create the initial heightmap that's used for the erosion
+				// p.InitWithDiamondSquare();
 
-				// create the texture from that heightmap
-				textureOptions_t opts;
-				opts.width = config.width;
-				opts.height = config.height;
-				opts.textureType = GL_TEXTURE_2D;
-				// process the initial data into a byte array
-				// ...
+				// // create the texture from that heightmap
+				// textureOptions_t opts;
+				// opts.width = config.width;
+				// opts.height = config.height;
+				// opts.textureType = GL_TEXTURE_2D;
+				// // process the initial data into a byte array
+				// // ...
 
-				// this is actually going to be easier to take a 1 channel float, take it directly from the Image_1F
-					// do the processing into the map buffer on the GPU
+				// // this is actually going to be easier to take a 1 channel float, take it directly from the Image_1F
+				// 	// do the processing into the map buffer on the GPU
 
-				textureManager.Add( "Map Staging Buffer", opts );
+				// textureManager.Add( "Map Staging Buffer", opts );
 
-				voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
-				voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
+				// voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
+				// voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
 
 			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
 				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
@@ -110,7 +111,7 @@ public:
 				textureOptions_t opts;
 				opts.width = map.Width();
 				opts.height = map.Height();
-				opts.dataType = GL_RGBA8;
+				opts.dataType = GL_RGBA8UI;
 				opts.textureType = GL_TEXTURE_2D;
 				opts.pixelDataType = GL_UNSIGNED_BYTE;
 				opts.initialData = ( void * ) map.GetImageDataBasePtr();
@@ -173,10 +174,9 @@ public:
 			// update the main rendered view - draw the map
 			glUseProgram( shaders[ "VoxelSpace" ] );
 			// send uniforms and shit
-			textureManager.BindImageForShader( "Main Rendered View", "accumulatorTexture", shaders[ "VoxelSpace" ], 2 );
-			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 3 );
+			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 0 );
+			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT ); // barrier not required between passes
 
 			// update the minimap rendered view - draw the area of the map near the user
 				// ...
@@ -211,7 +211,7 @@ public:
 			// bindSets[ "Postprocessing" ].apply();
 			glUseProgram( shaders[ "Tonemap" ] );
 			SendTonemappingParameters();
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
