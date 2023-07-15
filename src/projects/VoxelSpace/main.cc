@@ -175,10 +175,23 @@ public:
 		{
 			// update the main rendered view - draw the map
 			glUseProgram( shaders[ "VoxelSpace" ] );
+
 			// send uniforms and shit
+			glUniform2i( glGetUniformLocation( shaders[ "VoxelSpace" ], "resolution" ), config.width, config.height );
+			glUniform2f( glGetUniformLocation( shaders[ "VoxelSpace" ], "viewPosition" ), voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y );
+			glUniform1i( glGetUniformLocation( shaders[ "VoxelSpace" ], "viewerHeight" ), voxelSpaceConfig.viewerHeight );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "viewAngle" ), voxelSpaceConfig.viewAngle );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "maxDistance" ), voxelSpaceConfig.maxDistance );
+			glUniform1i( glGetUniformLocation( shaders[ "VoxelSpace" ], "horizonLine" ), voxelSpaceConfig.horizonLine );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "heightScalar" ), voxelSpaceConfig.heightScalar );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "offsetScalar" ), voxelSpaceConfig.offsetScalar );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "fogScalar" ), voxelSpaceConfig.fogScalar );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "stepIncrement" ), voxelSpaceConfig.stepIncrement );
+			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "FoVScalar" ), voxelSpaceConfig.FoVScalar );
+
 			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 0 );
 			textureManager.BindTexForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
 			// update the minimap rendered view - draw the area of the map near the user
 				// ...
