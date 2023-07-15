@@ -254,6 +254,8 @@ public:
 		ZoneScoped;
 
 		{
+			scopedTimer Start( "VoxelSpace Render" );
+
 			// update the main rendered view - draw the map
 			glUseProgram( shaders[ "VoxelSpace" ] );
 
@@ -281,31 +283,35 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT );
 		}
 
-		// bind the framebuffer for drawing the layers
-		glBindFramebuffer( GL_FRAMEBUFFER, renderFramebuffer );
+		{
+			scopedTimer Start( "Fullscreen Triangle Passes" );
 
-		// clear to the background color to the fog color
-		glClearColor(
-			voxelSpaceConfig.fogColor.x,
-			voxelSpaceConfig.fogColor.y,
-			voxelSpaceConfig.fogColor.z,
-			voxelSpaceConfig.fogColor.w
-		);
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+			// bind the framebuffer for drawing the layers
+			glBindFramebuffer( GL_FRAMEBUFFER, renderFramebuffer );
 
-		// fullscreen triangle passes:
-		glUseProgram( shaders[ "Fullscreen Triangle" ] );
-		glUniform2f( glGetUniformLocation( shaders[ "Fullscreen Triangle" ], "resolution" ), config.width, config.height );
+			// clear to the background color to the fog color
+			glClearColor(
+				voxelSpaceConfig.fogColor.x,
+				voxelSpaceConfig.fogColor.y,
+				voxelSpaceConfig.fogColor.z,
+				voxelSpaceConfig.fogColor.w
+			);
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-		// draw the main rendered view, blending with the background color for the fog
-		textureManager.BindTexForShader( "Main Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
-		glDrawArrays( GL_TRIANGLES, 0, 3 );
+			// fullscreen triangle passes:
+			glUseProgram( shaders[ "Fullscreen Triangle" ] );
+			glUniform2f( glGetUniformLocation( shaders[ "Fullscreen Triangle" ], "resolution" ), config.width, config.height );
 
-		// draw the minimap view, blending with the existing contents, same blending logic
-		textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
-		glDrawArrays( GL_TRIANGLES, 0, 3 );
+			// draw the main rendered view, blending with the background color for the fog
+			textureManager.BindTexForShader( "Main Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
+			glDrawArrays( GL_TRIANGLES, 0, 3 );
 
-		// this color target becomes the input for the postprocessing step
+			// draw the minimap view, blending with the existing contents, same blending logic
+			textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
+			glDrawArrays( GL_TRIANGLES, 0, 3 );
+
+			// this color target becomes the input for the postprocessing step
+		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
