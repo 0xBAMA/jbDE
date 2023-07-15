@@ -161,17 +161,6 @@ public:
 		ZoneScoped;
 
 		{
-			if ( voxelSpaceConfig.mode == -1 ) {
-				// check to see if the erosion thread is ready
-					// if it is
-						// convert to a uint version
-						// pass it to the image
-						// run the "shade" shader
-						// it's now in the map texture
-
-				// barrier
-			}
-
 			// update the main rendered view - draw the map
 			glUseProgram( shaders[ "VoxelSpace" ] );
 			// send uniforms and shit
@@ -229,7 +218,17 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
+
+		if ( voxelSpaceConfig.mode == -1 ) {
+			// check to see if the erosion thread is ready
+				// if it is
+					// convert to a uint version
+					// pass it to the image
+					// run the "shade" shader
+					// it's now in the map texture
+
+			// barrier
+		}
 	}
 
 	void OnRender () {
