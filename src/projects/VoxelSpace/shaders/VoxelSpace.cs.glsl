@@ -5,7 +5,7 @@ layout( local_size_x = 16, local_size_y = 1, local_size_z = 1 ) in;
 layout( rgba8ui ) uniform uimage2D map;
 layout( rgba16f ) uniform image2D target;
 
-// uniform float time;
+// parameters
 
 void main () {
 
