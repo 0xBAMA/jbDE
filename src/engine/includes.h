@@ -31,6 +31,7 @@ using std::flush;
 using std::string;
 using std::stringstream;
 using std::unordered_map;
+using std::to_string;
 constexpr char newline = '\n';
 
 // pi definition - definitely sufficient precision
