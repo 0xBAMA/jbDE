@@ -46,12 +46,16 @@ public:
 			voxelSpaceConfig.mode = j[ "app" ][ "VoxelSpace" ][ "mode" ];
 				// load the rest of the config
 
-
 			// compile all the shaders
 			// shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
 			// todo: does it still make sense to have a separate minimap shader as a specialized version of the render shader?
-			// todo: fullscreen triangle shader, less specialized than blit - pass image
+
+			// for rendering into the framebuffer
+			shaders[ "Fullscreen Triangle" ] = regularShader(
+				"./src/projects/VoxelSpace/shaders/FullscreenTriangle.vs.glsl",
+				"./src/projects/VoxelSpace/shaders/FullscreenTriangle.fs.glsl"
+			).shaderHandle;
 
 			// create a framebuffer to accumulate the images
 				// 16-bit color target gets fed into the tonemapping step
@@ -83,6 +87,8 @@ public:
 
 			// create the texture for the landscape
 			if ( voxelSpaceConfig.mode == 0 ) { // we know that we want to run the live erosion sim
+
+			// this is kind of secondary, want to get the basic renderer running first
 
 				// // create the initial heightmap that's used for the erosion
 				// p.InitWithDiamondSquare();
@@ -204,14 +210,14 @@ public:
 			// draw the minimap view, blending with the existing contents, same blending logic
 
 		// this color target becomes the input for the postprocessing step
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
-			// bindSets[ "Postprocessing" ].apply();
 			glUseProgram( shaders[ "Tonemap" ] );
+			glBindImageTexture( 0, textureManager.Get( "Framebuffer Color" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA16F );
+			glBindImageTexture( 1, textureManager.Get( "Display Texture" ), 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA8UI );
 			SendTonemappingParameters();
-			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
@@ -221,6 +227,9 @@ public:
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
+
+		// reset to default framebuffer
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
 	void OnUpdate () {
