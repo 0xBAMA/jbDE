@@ -188,10 +188,16 @@ public:
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		// fullscreen triangle passes:
+		glUseProgram( shaders[ "Fullscreen Triangle" ] );
+		glUniform2f( glGetUniformLocation( shaders[ "Fullscreen Triangle" ], "resolution" ), config.width, config.height );
 
-			// draw the main rendered view, blending with the background color for the fog
+		// draw the main rendered view, blending with the background color for the fog
+		textureManager.BindTexForShader( "Main Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
+		glDrawArrays( GL_TRIANGLES, 0, 3 );
 
-			// draw the minimap view, blending with the existing contents, same blending logic
+		// draw the minimap view, blending with the existing contents, same blending logic
+		textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
+		glDrawArrays( GL_TRIANGLES, 0, 3 );
 
 		// this color target becomes the input for the postprocessing step
 

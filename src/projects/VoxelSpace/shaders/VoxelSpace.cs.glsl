@@ -8,5 +8,7 @@ layout( rgba16f ) uniform image2D target;
 // uniform float time;
 
 void main () {
-	
+
+	// imageStore( target, ivec2( gl_GlobalInvocationID.xy ), vec4( 1.0f, 0.0f, 0.0f, 0.2f ) );
+
 }
