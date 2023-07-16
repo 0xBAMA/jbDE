@@ -18,11 +18,11 @@ uniform float fogScalar;	// scalar for fog distance
 uniform float stepIncrement;// increase in step size as you get farther from the camera
 uniform float FoVScalar;	// adjustment for the FoV
 
-uvec4 blueNoiseRef ( ivec2 location ) {
-	location.x = location.x % imageSize( blueNoiseTexture ).x;
-	location.y = location.y % imageSize( blueNoiseTexture ).y;
-	return imageLoad( blueNoiseTexture, location );
-}
+// uvec4 blueNoiseRef ( ivec2 location ) {
+// 	location.x = location.x % imageSize( blueNoiseTexture ).x;
+// 	location.y = location.y % imageSize( blueNoiseTexture ).y;
+// 	return imageLoad( blueNoiseTexture, location );
+// }
 
 void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const vec4 col ) {
 	const float blueNoiseScale = 255.0f * 127.0f;
@@ -30,8 +30,9 @@ void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const v
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
 	for ( int y = yMin; y < yMax; y++ ) {
-		float jitter = blueNoiseRef( ivec2( x, y ) ).r / blueNoiseScale;
-		imageStore( target, ivec2( x, y ), vec4( col.rgb, col.a + jitter ) );
+		// float jitter = blueNoiseRef( ivec2( x, y ) ).r / blueNoiseScale;
+		// imageStore( target, ivec2( x, y ), vec4( col.rgb, col.a + jitter ) );
+		imageStore( target, ivec2( x, y ), col );
 	}
 }
 
