@@ -50,7 +50,7 @@ public:
 			// compile all the shaders
 			// shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			// shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/shaders/MiniMap.cs.glsl" ).shaderHandle;
+			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/shaders/MiniMap.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
@@ -289,7 +289,11 @@ public:
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
 			// update the minimap rendered view - draw the area of the map near the user
-				// ...
+			glUseProgram( shaders[ "MiniMap" ] );
+
+			// image bind, uniforms, etc
+
+			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
 			// we do need a barrier before drawing the fullscreen triangles, images need to complete
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT );
