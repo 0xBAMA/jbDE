@@ -147,7 +147,7 @@ uniform float FoVScalar;	// adjustment for the FoV
 // }
 
 void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const vec4 col ) {
-	const float blueNoiseScale = 255.0f * 127.0f;
+	// const float blueNoiseScale = 255.0f * 127.0f;
 	const int yMin = clamp( yBottom, 0, imageSize( target ).y );
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
@@ -163,10 +163,13 @@ mat2 Rotate2D ( float r ) {
 }
 
 void main () {
-	const float wPixels		= imageSize( target ).x;
+	const float wPixels		= resolution.x;
 	const float hPixels		= imageSize( target ).y;
 	const uint myXIndex		= uint( gl_GlobalInvocationID.x );
-	float yBuffer			= 0.0f;
+	float yBuffer			= 13.0f * hPixels / 24.0f;
+
+	// no reason to run outside the width of the minimap
+	if ( myXIndex > wPixels ) return;
 
 	// initial clear
 	DrawVerticalLine( myXIndex, 0, int( hPixels ), vec4( 0.0f ) );
@@ -178,11 +181,19 @@ void main () {
 	const mat2 rotation		= Rotate2D( viewAngle + FoVAdjust * FoVScalar );
 	const vec2 direction	= rotation * vec2( 1.0f, 0.0f );
 
+	const vec2 forwards = globalForwards = rotate2D( viewAngle ) * vec2( 1.0f, 0.0f );
+	const vec2 fixedDirection = direction * ( dot( direction, forwards ) / dot( forwards, forwards ) );
+
+	vec3 sideVector			= cross( vec3( forwards.x, 0.0f, forwards.y ), vec3( 0.0f, 1.0f, 0.0f ) );
+	vec2 viewPositionLocal	= startCenter + sideVector.xz * FoVAdjust * offsetScalar;
+
 	// need a side-to-side adjust to give some spread - CPU side adjustment scalar needs to be added
 	vec3 sideVector			= cross( vec3( direction.x, 0.0f, direction.y ), vec3( 0.0f, 1.0f, 0.0f ) );
 	vec2 viewPositionLocal	= viewPosition + sideVector.xz * FoVAdjust * offsetScalar;
 
-	for ( float dSample = 1.0f, dz = 0.2f; dSample < maxDistance && yBuffer < hPixels; dSample += dz, dz += stepIncrement ) {
+	// draw the vertical strip of pixels for myXIndex
+	const float dz = 0.25f;
+	for ( float dSample = 1.0f; dSample < maxDistance && yBuffer < hPixels; dSample += dz ) {
 		const ivec2 samplePosition	= ivec2( viewPositionLocal + dSample * direction );
 		const uvec4 dataSample		= imageLoad( map, samplePosition );
 		const float heightOnScreen	= ( ( float( dataSample.a ) - viewerHeight ) * ( 1.0f / dSample ) * heightScalar + horizonLine );

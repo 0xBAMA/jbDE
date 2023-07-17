@@ -25,7 +25,7 @@ uniform float FoVScalar;	// adjustment for the FoV
 // }
 
 void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const vec4 col ) {
-	const float blueNoiseScale = 255.0f * 127.0f;
+	// const float blueNoiseScale = 255.0f * 127.0f;
 	const int yMin = clamp( yBottom, 0, imageSize( target ).y );
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
