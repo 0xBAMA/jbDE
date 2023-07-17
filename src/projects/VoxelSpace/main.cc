@@ -290,6 +290,15 @@ public:
 
 			// update the minimap rendered view - draw the area of the map near the user
 			glUseProgram( shaders[ "MiniMap" ] );
+			// updating all the uniforms
+			glUniform2i( glGetUniformLocation( shaders[ "MiniMap" ], "resolution" ), config.width / 4, config.height / 3 );
+			glUniform2f( glGetUniformLocation( shaders[ "MiniMap" ], "viewPosition" ), voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y );
+			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewAngle" ), voxelSpaceConfig.viewAngle );
+			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewBump" ), voxelSpaceConfig.viewBump );
+			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "minimapScalar" ), voxelSpaceConfig.minimapScalar );
+
+			// glGetTexImage... or read it in the shader? alternatively, keep a copy of the heightmap on the CPU like before
+			// glUniform1i( glGetUniformLocation( shaders[ "MiniMap" ], "viewerElevation" ), voxelSpaceConfig.viewerElevation );
 
 			// image bind, uniforms, etc
 
