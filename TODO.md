@@ -123,6 +123,7 @@ This is a planning document for work on this project and in general, about the t
 		- This will absolutely help perf on large color count palettes
 			- Instead of iterating through and doing N distance checks for every pixel, every frame, just keep LUTs of closest, second closest color for all points in a 3D LDR RGB colorspace, and use dither patterns as before
 	- Probably make this built-in functionality in the engine, part of postprocessing stack?
+		- Yes - add as a configurable postprocess step on VSRA, after tonemapping
 
 - [Properly Seeding the Mersenne Twistor](https://www.phy.olemiss.edu/~kbeach/guide/2020/01/11/random/)
 	- VAT, Spaceship Generator need repeatability in random number generation
