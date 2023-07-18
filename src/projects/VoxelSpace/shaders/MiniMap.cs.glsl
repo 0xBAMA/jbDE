@@ -140,20 +140,13 @@ uniform float fogScalar;	// scalar for fog distance
 uniform float stepIncrement;// increase in step size as you get farther from the camera
 uniform float FoVScalar;	// adjustment for the FoV
 
-// uvec4 blueNoiseRef ( ivec2 location ) {
-// 	location.x = location.x % imageSize( blueNoiseTexture ).x;
-// 	location.y = location.y % imageSize( blueNoiseTexture ).y;
-// 	return imageLoad( blueNoiseTexture, location );
-// }
+vec2 globalForwards = vec2( 0.0f );
 
 void DrawVerticalLine ( const uint x, const int yBottom, const int yTop, const vec4 col ) {
-	// const float blueNoiseScale = 255.0f * 127.0f;
 	const int yMin = clamp( yBottom, 0, imageSize( target ).y );
 	const int yMax = clamp( yTop, 0, imageSize( target ).y );
 	if ( yMin > yMax ) return;
 	for ( int y = yMin; y < yMax; y++ ) {
-		// float jitter = blueNoiseRef( ivec2( x, y ) ).r / blueNoiseScale;
-		// imageStore( target, ivec2( x, y ), vec4( col.rgb, col.a + jitter ) );
 		imageStore( target, ivec2( x, y ), col );
 	}
 }
@@ -172,7 +165,7 @@ void main () {
 	if ( myXIndex > wPixels ) return;
 
 	// initial clear
-	DrawVerticalLine( myXIndex, 0, int( hPixels ), vec4( 0.0f ) );
+	DrawVerticalLine( myXIndex, int( yBuffer ), int( hPixels ), vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );
 
 	// FoV considerations
 		// mapping [0..wPixels] to [-1..1]
@@ -180,16 +173,18 @@ void main () {
 
 	const mat2 rotation		= Rotate2D( viewAngle + FoVAdjust * FoVScalar );
 	const vec2 direction	= rotation * vec2( 1.0f, 0.0f );
+	vec2 startCenter		= viewPosition - 200.0f * direction;
 
-	const vec2 forwards = globalForwards = rotate2D( viewAngle ) * vec2( 1.0f, 0.0f );
+
+	const vec2 forwards = globalForwards = Rotate2D( viewAngle ) * vec2( 1.0f, 0.0f );
 	const vec2 fixedDirection = direction * ( dot( direction, forwards ) / dot( forwards, forwards ) );
 
 	vec3 sideVector			= cross( vec3( forwards.x, 0.0f, forwards.y ), vec3( 0.0f, 1.0f, 0.0f ) );
 	vec2 viewPositionLocal	= startCenter + sideVector.xz * FoVAdjust * offsetScalar;
 
 	// need a side-to-side adjust to give some spread - CPU side adjustment scalar needs to be added
-	vec3 sideVector			= cross( vec3( direction.x, 0.0f, direction.y ), vec3( 0.0f, 1.0f, 0.0f ) );
-	vec2 viewPositionLocal	= viewPosition + sideVector.xz * FoVAdjust * offsetScalar;
+	// vec3 sideVector			= cross( vec3( direction.x, 0.0f, direction.y ), vec3( 0.0f, 1.0f, 0.0f ) );
+	// vec2 viewPositionLocal	= viewPosition + sideVector.xz * FoVAdjust * offsetScalar;
 
 	// draw the vertical strip of pixels for myXIndex
 	const float dz = 0.25f;
@@ -198,8 +193,7 @@ void main () {
 		const uvec4 dataSample		= imageLoad( map, samplePosition );
 		const float heightOnScreen	= ( ( float( dataSample.a ) - viewerHeight ) * ( 1.0f / dSample ) * heightScalar + horizonLine );
 		if ( heightOnScreen > yBuffer ) {
-			uint depthTerm = uint( max( 0, 255 - dSample * fogScalar ) );
-			DrawVerticalLine( myXIndex, int( yBuffer ), int( heightOnScreen ), vec4( dataSample.xyz, depthTerm ) / 255.0f );
+			DrawVerticalLine( myXIndex, int( yBuffer ), int( heightOnScreen ), vec4( dataSample.xyz, 1.0f ) / 255.0f );
 			yBuffer = uint( heightOnScreen );
 		}
 	}

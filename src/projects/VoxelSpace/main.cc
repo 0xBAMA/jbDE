@@ -283,7 +283,7 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "stepIncrement" ), voxelSpaceConfig.stepIncrement );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "FoVScalar" ), voxelSpaceConfig.FoVScalar );
 
-			textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shaders[ "VoxelSpace" ], 0 );
+			// textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shaders[ "VoxelSpace" ], 0 );
 			textureManager.BindImageForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
 			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 2 );
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
@@ -300,7 +300,9 @@ public:
 			// glGetTexImage... or read it in the shader? alternatively, keep a copy of the heightmap on the CPU like before
 			// glUniform1i( glGetUniformLocation( shaders[ "MiniMap" ], "viewerElevation" ), voxelSpaceConfig.viewerElevation );
 
-			// image bind, uniforms, etc
+			// textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shaders[ "MiniMap" ], 0 );
+			textureManager.BindImageForShader( "Map", "map", shaders[ "MiniMap" ], 1 );
+			textureManager.BindImageForShader( "Minimap Rendered View", "target", shaders[ "MiniMap" ], 2 );
 
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
@@ -327,6 +329,8 @@ public:
 			glUseProgram( shaders[ "Fullscreen Triangle" ] );
 			glUniform2f( glGetUniformLocation( shaders[ "Fullscreen Triangle" ], "resolution" ), config.width, config.height );
 
+			glDisable( GL_DEPTH_TEST );
+
 			// draw the main rendered view, blending with the background color for the fog
 			textureManager.BindTexForShader( "Main Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
 			glDrawArrays( GL_TRIANGLES, 0, 3 );
@@ -335,8 +339,10 @@ public:
 			textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
 			glDrawArrays( GL_TRIANGLES, 0, 3 );
 
-			// this color target becomes the input for the postprocessing step
+			glEnable( GL_DEPTH_TEST );
 		}
+
+		// this framebuffer's color attachment becomes the input for the postprocessing step
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
