@@ -128,17 +128,29 @@ layout( rgba8ui ) uniform uimage2D map; // convert to sampler? tbd
 layout( rgba16f ) uniform image2D target;
 
 // parameters
-uniform ivec2 resolution;	// current screen resolution
-uniform vec2 viewPosition;	// starting point for rendering
-uniform int viewerHeight;	// viewer height
-uniform float viewAngle;	// view direction angle
-uniform float maxDistance;	// maximum traversal
-uniform int horizonLine;	// horizon line position
-uniform float heightScalar;	// scale value for height
-uniform float offsetScalar;	// scale the side-to-side spread
-uniform float fogScalar;	// scalar for fog distance
-uniform float stepIncrement;// increase in step size as you get farther from the camera
-uniform float FoVScalar;	// adjustment for the FoV
+// uniform ivec2 resolution;	// current screen resolution
+// uniform vec2 viewPosition;	// starting point for rendering
+// uniform int viewerHeight;	// viewer height
+// uniform float viewAngle;	// view direction angle
+// uniform float maxDistance;	// maximum traversal
+// uniform int horizonLine;	// horizon line position
+// uniform float heightScalar;	// scale value for height
+// uniform float offsetScalar;	// scale the side-to-side spread
+// uniform float fogScalar;	// scalar for fog distance
+// uniform float stepIncrement;// increase in step size as you get farther from the camera
+// uniform float FoVScalar;	// adjustment for the FoV
+
+uniform ivec2 resolution;			// current screen resolution
+uniform vec2 viewPosition;			// starting point for rendering
+const int viewerHeight = 300;		// viewer height
+uniform float viewAngle;			// view direction angle
+const float maxDistance = 400.0f;	// maximum traversal
+const int horizonLine = 1000;		// horizon line position
+const float heightScalar = 150.0f;	// scale value for height
+const float offsetScalar = 110.0f;	// scale the side-to-side spread
+uniform float fogScalar;			// scalar for fog distance
+uniform float stepIncrement;		// increase in step size as you get farther from the camera
+const float FoVScalar = 0.275f;		// adjustment for the FoV
 
 vec2 globalForwards = vec2( 0.0f );
 
@@ -165,7 +177,7 @@ void main () {
 	if ( myXIndex > wPixels ) return;
 
 	// initial clear
-	DrawVerticalLine( myXIndex, int( yBuffer ), int( hPixels ), vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	DrawVerticalLine( myXIndex, int( yBuffer ), int( hPixels ), vec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
 	// FoV considerations
 		// mapping [0..wPixels] to [-1..1]
@@ -174,7 +186,6 @@ void main () {
 	const mat2 rotation		= Rotate2D( viewAngle + FoVAdjust * FoVScalar );
 	const vec2 direction	= rotation * vec2( 1.0f, 0.0f );
 	vec2 startCenter		= viewPosition - 200.0f * direction;
-
 
 	const vec2 forwards = globalForwards = Rotate2D( viewAngle ) * vec2( 1.0f, 0.0f );
 	const vec2 fixedDirection = direction * ( dot( direction, forwards ) / dot( forwards, forwards ) );
@@ -193,7 +204,7 @@ void main () {
 		const uvec4 dataSample		= imageLoad( map, samplePosition );
 		const float heightOnScreen	= ( ( float( dataSample.a ) - viewerHeight ) * ( 1.0f / dSample ) * heightScalar + horizonLine );
 		if ( heightOnScreen > yBuffer ) {
-			DrawVerticalLine( myXIndex, int( yBuffer ), int( heightOnScreen ), vec4( dataSample.xyz, 1.0f ) / 255.0f );
+			DrawVerticalLine( myXIndex, int( yBuffer ), int( heightOnScreen ), vec4( dataSample.xyz, 255.0f ) / 255.0f );
 			yBuffer = uint( heightOnScreen );
 		}
 	}

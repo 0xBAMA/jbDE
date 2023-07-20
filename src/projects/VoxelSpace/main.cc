@@ -304,7 +304,7 @@ public:
 			textureManager.BindImageForShader( "Map", "map", shaders[ "MiniMap" ], 1 );
 			textureManager.BindImageForShader( "Minimap Rendered View", "target", shaders[ "MiniMap" ], 2 );
 
-			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
+			glDispatchCompute( ( ( config.width / 4 ) + 63 ) / 64, 1, 1 );
 
 			// we do need a barrier before drawing the fullscreen triangles, images need to complete
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT );
