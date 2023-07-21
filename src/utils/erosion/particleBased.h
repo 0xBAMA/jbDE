@@ -13,7 +13,7 @@ public:
 		long unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 
 		std::default_random_engine engine{ seed };
-		std::uniform_real_distribution<float> distribution{ 0, 1 };
+		std::uniform_real_distribution< float > distribution{ 0.0f, 1.0f };
 
 		// todo: make this variable ( data array cannot be variable size in c++ )
 		constexpr uint32_t dim = 1024;
@@ -25,7 +25,7 @@ public:
 	#endif
 
 		constexpr auto edge = size - 1;
-		float data[ size ][ size ] = { { 0 } };
+		float data[ size ][ size ] = { { 0.0f } };
 		data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.25f;
 
 	#ifdef TILE
