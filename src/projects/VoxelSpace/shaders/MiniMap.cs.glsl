@@ -127,29 +127,14 @@ layout( rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( rgba8ui ) uniform uimage2D map; // convert to sampler? tbd
 layout( rgba16f ) uniform image2D target;
 
-// parameters
-// uniform ivec2 resolution;	// current screen resolution
-// uniform vec2 viewPosition;	// starting point for rendering
-// uniform int viewerHeight;	// viewer height
-// uniform float viewAngle;	// view direction angle
-// uniform float maxDistance;	// maximum traversal
-// uniform int horizonLine;	// horizon line position
-// uniform float heightScalar;	// scale value for height
-// uniform float offsetScalar;	// scale the side-to-side spread
-// uniform float fogScalar;	// scalar for fog distance
-// uniform float stepIncrement;// increase in step size as you get farther from the camera
-// uniform float FoVScalar;	// adjustment for the FoV
-
 uniform ivec2 resolution;			// current screen resolution
 uniform vec2 viewPosition;			// starting point for rendering
-const int viewerHeight = 300;		// viewer height
 uniform float viewAngle;			// view direction angle
-const float maxDistance = 400.0f;	// maximum traversal
+const float maxDistance = 500.0f;	// maximum traversal
+const int viewerHeight = 300;		// viewer height
 const int horizonLine = 1000;		// horizon line position
-const float heightScalar = 150.0f;	// scale value for height
+const float heightScalar = 170.0f;	// scale value for height
 const float offsetScalar = 110.0f;	// scale the side-to-side spread
-uniform float fogScalar;			// scalar for fog distance
-uniform float stepIncrement;		// increase in step size as you get farther from the camera
 const float FoVScalar = 0.275f;		// adjustment for the FoV
 
 vec2 globalForwards = vec2( 0.0f );
@@ -171,7 +156,7 @@ void main () {
 	const float wPixels		= resolution.x;
 	const float hPixels		= imageSize( target ).y;
 	const uint myXIndex		= uint( gl_GlobalInvocationID.x );
-	float yBuffer			= 13.0f * hPixels / 24.0f;
+	float yBuffer			= 15.0f * hPixels / 24.0f;
 
 	// no reason to run outside the width of the minimap
 	if ( myXIndex > wPixels ) return;
@@ -186,16 +171,10 @@ void main () {
 	const mat2 rotation		= Rotate2D( viewAngle + FoVAdjust * FoVScalar );
 	const vec2 direction	= rotation * vec2( 1.0f, 0.0f );
 	vec2 startCenter		= viewPosition - 200.0f * direction;
-
-	const vec2 forwards = globalForwards = Rotate2D( viewAngle ) * vec2( 1.0f, 0.0f );
+	const vec2 forwards		= globalForwards = Rotate2D( viewAngle ) * vec2( 1.0f, 0.0f );
 	const vec2 fixedDirection = direction * ( dot( direction, forwards ) / dot( forwards, forwards ) );
-
 	vec3 sideVector			= cross( vec3( forwards.x, 0.0f, forwards.y ), vec3( 0.0f, 1.0f, 0.0f ) );
 	vec2 viewPositionLocal	= startCenter + sideVector.xz * FoVAdjust * offsetScalar;
-
-	// need a side-to-side adjust to give some spread - CPU side adjustment scalar needs to be added
-	// vec3 sideVector			= cross( vec3( direction.x, 0.0f, direction.y ), vec3( 0.0f, 1.0f, 0.0f ) );
-	// vec2 viewPositionLocal	= viewPosition + sideVector.xz * FoVAdjust * offsetScalar;
 
 	// draw the vertical strip of pixels for myXIndex
 	const float dz = 0.25f;

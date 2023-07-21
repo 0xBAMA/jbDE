@@ -52,7 +52,6 @@ void main () {
 	// FoV considerations
 		// mapping [0..wPixels] to [-1..1]
 	float FoVAdjust			= -1.0f + float( myXIndex ) * ( 2.0f ) / float( wPixels );
-
 	const mat2 rotation		= Rotate2D( viewAngle + FoVAdjust * FoVScalar );
 	const vec2 direction	= rotation * vec2( 1.0f, 0.0f );
 
