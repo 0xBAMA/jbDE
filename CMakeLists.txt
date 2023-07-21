@@ -189,7 +189,7 @@ target_link_libraries( Physarum
 # VoxelSpace
 # =================================================================================================
 add_executable( VoxelSpace
-	src/projects/VoxelSpace/main.cc
+	src/projects/VoxelSpace/CommancheMaps/main.cc
 )
 
 target_link_libraries( VoxelSpace

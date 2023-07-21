@@ -1,4 +1,4 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 
 struct VoxelSpaceConfig_t {
 
@@ -48,14 +48,13 @@ public:
 				// load the rest of the config
 
 			// compile all the shaders
-			// shaders[ "Background" ] = computeShader( "./src/projects/VoxelSpace/shaders/Background.cs.glsl" ).shaderHandle;
-			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/shaders/MiniMap.cs.glsl" ).shaderHandle;
+			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/CommancheMaps/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
+			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/CommancheMaps/shaders/MiniMap.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
-				"./src/projects/VoxelSpace/shaders/FullscreenTriangle.vs.glsl",
-				"./src/projects/VoxelSpace/shaders/FullscreenTriangle.fs.glsl"
+				"./src/projects/VoxelSpace/CommancheMaps/shaders/FullscreenTriangle.vs.glsl",
+				"./src/projects/VoxelSpace/CommancheMaps/shaders/FullscreenTriangle.fs.glsl"
 			).shaderHandle;
 
 			// create a framebuffer to accumulate the images
@@ -112,8 +111,8 @@ public:
 
 			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
 				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
-				Image_4U mapHeight( string( "./src/projects/VoxelSpace/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
-				Image_4U mapColor( string( "./src/projects/VoxelSpace/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
+				Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
+				Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
 
 				// combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
 				Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
@@ -329,6 +328,7 @@ public:
 			glUseProgram( shaders[ "Fullscreen Triangle" ] );
 			glUniform2f( glGetUniformLocation( shaders[ "Fullscreen Triangle" ], "resolution" ), config.width, config.height );
 
+			// just want simple overwriting behavior for these passes
 			glDisable( GL_DEPTH_TEST );
 
 			// draw the main rendered view, blending with the background color for the fog
@@ -339,6 +339,7 @@ public:
 			textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
 			glDrawArrays( GL_TRIANGLES, 0, 3 );
 
+			// return to default
 			glEnable( GL_DEPTH_TEST );
 		}
 
