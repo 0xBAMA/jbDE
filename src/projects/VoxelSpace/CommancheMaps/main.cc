@@ -22,10 +22,6 @@ struct VoxelSpaceConfig_t {
 	bool adaptiveHeight	= false;
 	ivec2 mapDims		= ivec2( 1024, 1024 );
 
-	// thread sync, erosion control
-	bool threadShouldRun;
-	bool erosionReady;
-
 };
 
 class VoxelSpace : public engineBase {	// example derived class
@@ -35,7 +31,6 @@ public:
 
 	VoxelSpaceConfig_t voxelSpaceConfig;
 	GLuint renderFramebuffer;
-	particleEroder p;
 
 	void OnInit () {
 		ZoneScoped;
@@ -85,31 +80,7 @@ public:
 			textureManager.Add( "Main Rendered View", opts );		// create the image to draw the regular map into
 			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
-			// create the texture for the landscape
-			if ( voxelSpaceConfig.mode == 0 ) { // we know that we want to run the live erosion sim
-
-			// this is kind of secondary, want to get the basic renderer running first
-
-				// // create the initial heightmap that's used for the erosion
-				// p.InitWithDiamondSquare();
-
-				// // create the texture from that heightmap
-				// textureOptions_t opts;
-				// opts.width = config.width;
-				// opts.height = config.height;
-				// opts.textureType = GL_TEXTURE_2D;
-				// // process the initial data into a byte array
-				// // ...
-
-				// // this is actually going to be easier to take a 1 channel float, take it directly from the Image_1F
-				// 	// do the processing into the map buffer on the GPU
-
-				// textureManager.Add( "Map Staging Buffer", opts );
-
-				// voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
-				// voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
-
-			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
+			if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
 				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
 				Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
 				Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
