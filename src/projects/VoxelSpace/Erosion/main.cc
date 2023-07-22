@@ -16,7 +16,7 @@ struct VoxelSpaceConfig_t {
 	float FoVScalar		= 0.85f;
 	float viewBump		= 275.0f;
 	float minimapScalar	= 0.3f;
-	bool adaptiveHeight	= false;
+	bool showMinimap	= true;
 
 	// thread sync, erosion control - initally true, this prevents the thread running before init completes
 	bool erosionReady	= true;
@@ -179,11 +179,15 @@ public:
 		ImGui::SliderFloat( "Step Increment", &voxelSpaceConfig.stepIncrement, 0.0f, 0.5f, "%.3f" );
 		ImGui::SliderFloat( "FoV", &voxelSpaceConfig.FoVScalar, 0.001f, 15.0f, "%.3f" );
 		ImGui::Text( " " );
-		ImGui::SliderFloat( "View Bump", &voxelSpaceConfig.viewBump, 0.0f, 500.0f, "%.3f" );
-		ImGui::SliderFloat( "Minimap Scalar", &voxelSpaceConfig.minimapScalar, 0.1f, 5.0f, "%.3f" );
-		ImGui::Text( " " );
 		ImGui::SliderFloat( "Fog Scale", &voxelSpaceConfig.fogScalar, 0.0f, 1.5f, "%.3f" );
 		ImGui::ColorEdit3( "Fog Color", ( float * ) &voxelSpaceConfig.fogColor, 0 );
+		ImGui::Text( " " );
+		ImGui::Unindent();
+		ImGui::Text( "MiniMap" );
+		ImGui::Indent();
+		ImGui::Checkbox( "Show Minimap", &voxelSpaceConfig.showMinimap );
+		ImGui::SliderFloat( "View Bump", &voxelSpaceConfig.viewBump, 0.0f, 500.0f, "%.3f" );
+		ImGui::SliderFloat( "Minimap Scalar", &voxelSpaceConfig.minimapScalar, 0.1f, 5.0f, "%.3f" );
 		ImGui::Text( " " );
 		ImGui::Unindent();
 		ImGui::Text( "Erosion" );
@@ -230,16 +234,18 @@ public:
 			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 2 );
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
-			// update the minimap rendered view - draw the area of the map near the user
-			glUseProgram( shaders[ "MiniMap" ] );
-			glUniform2i( glGetUniformLocation( shaders[ "MiniMap" ], "resolution" ), config.width / 4, config.height / 3 );
-			glUniform2f( glGetUniformLocation( shaders[ "MiniMap" ], "viewPosition" ), voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y );
-			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewAngle" ), voxelSpaceConfig.viewAngle );
-			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewBump" ), voxelSpaceConfig.viewBump );
-			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "minimapScalar" ), voxelSpaceConfig.minimapScalar );
-			textureManager.BindImageForShader( "Map", "map", shaders[ "MiniMap" ], 1 );
-			textureManager.BindImageForShader( "Minimap Rendered View", "target", shaders[ "MiniMap" ], 2 );
-			glDispatchCompute( ( ( config.width / 4 ) + 63 ) / 64, 1, 1 );
+			if ( voxelSpaceConfig.showMinimap ) {
+				// update the minimap rendered view - draw the area of the map near the user
+				glUseProgram( shaders[ "MiniMap" ] );
+				glUniform2i( glGetUniformLocation( shaders[ "MiniMap" ], "resolution" ), config.width / 4, config.height / 3 );
+				glUniform2f( glGetUniformLocation( shaders[ "MiniMap" ], "viewPosition" ), voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y );
+				glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewAngle" ), voxelSpaceConfig.viewAngle );
+				glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewBump" ), voxelSpaceConfig.viewBump );
+				glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "minimapScalar" ), voxelSpaceConfig.minimapScalar );
+				textureManager.BindImageForShader( "Map", "map", shaders[ "MiniMap" ], 1 );
+				textureManager.BindImageForShader( "Minimap Rendered View", "target", shaders[ "MiniMap" ], 2 );
+				glDispatchCompute( ( ( config.width / 4 ) + 63 ) / 64, 1, 1 );
+			}
 
 			// we do need a barrier before drawing the fullscreen triangles, images need to complete
 				// this kind of prevents, ah, well, profiling the two passes separately, but whatever
@@ -272,9 +278,11 @@ public:
 			textureManager.BindTexForShader( "Main Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
 			glDrawArrays( GL_TRIANGLES, 0, 3 );
 
-			// draw the minimap view, blending with the existing contents, same blending logic
-			textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
-			glDrawArrays( GL_TRIANGLES, 0, 3 );
+			if ( voxelSpaceConfig.showMinimap ) {
+				// draw the minimap view, blending with the existing contents, same blending logic
+				textureManager.BindTexForShader( "Minimap Rendered View", "current", shaders[ "Fullscreen Triangle" ], 0 );
+				glDrawArrays( GL_TRIANGLES, 0, 3 );
+			}
 
 			// return to default
 			glEnable( GL_DEPTH_TEST );
