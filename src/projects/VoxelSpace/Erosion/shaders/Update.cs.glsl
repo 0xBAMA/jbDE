@@ -18,7 +18,7 @@ vec3 GetNormal ( ivec2 location ) {
 	const float cachenp = imageLoad( sourceData, location + ivec2( -1,  1 ) ).r;
 	const float cachenn = imageLoad( sourceData, location + ivec2( -1, -1 ) ).r;
 
-	vec3 n = vec3( 0.15f ) * normalize(vec3( scale * ( cache00 - cachep0 ), 1.0f, 0.0f ) );  // Positive X
+	vec3 n = vec3( 0.15f ) * normalize( vec3( scale * ( cache00 - cachep0 ), 1.0f, 0.0f ) );  // Positive X
 	n += vec3( 0.15f ) * normalize( vec3( scale * ( cachen0 - cache00 ), 1.0f, 0.0f ) );     // Negative X
 	n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache00 - cache0p ) ) );     // Positive Y
 	n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache0n - cache00 ) ) );     // Negative Y
@@ -34,7 +34,7 @@ vec3 GetNormal ( ivec2 location ) {
 
 void main () {
 	ivec2 location = ivec2( gl_GlobalInvocationID.xy );
-	float src = 120.0f * imageLoad( sourceData, location ).r + 75.0f;
+	float src = 255.0f * imageLoad( sourceData, location ).r;
 	vec3 normal = GetNormal( location );
 
 	vec3 shadingResult = vec3( dot( vec3( 0.0f, 1.0f, 0.0f ), normal ) ) * ( 1.0f / 255.0f ) * vec3( 1.618f * ( 255.0f - src * 255.0f ), 1.618 * float( src * 255.0f ), 1.0f / ( src * 255.0f ) );

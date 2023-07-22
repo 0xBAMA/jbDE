@@ -90,8 +90,22 @@ public:
 			// initialize the erosion map with a diamond square heightmap
 			voxelSpaceConfig.p.InitWithDiamondSquare();
 
-			// so there is going to be two maps
+			// compress/expand the range to 0..1 - needs further testing, not getting expected behavior
+			Image_1F::rangeRemapInputs_t remap;
 
+			// cout << endl << "before remapping min:" << voxelSpaceConfig.p.model.GetPixelMin( red ) << " max: " << voxelSpaceConfig.p.model.GetPixelMax( red ) << endl;
+
+			remap.rangeType = Image_1F::HARDCLIP;
+			remap.rangeStartLow = voxelSpaceConfig.p.model.GetPixelMin( red );
+			remap.rangeStartHigh = voxelSpaceConfig.p.model.GetPixelMax( red );
+			remap.rangeEndLow = 0.0001f;
+			remap.rangeEndHigh = 1.0f;
+			voxelSpaceConfig.p.model.RangeRemap( &remap );
+
+			// cout << "after remapping min:" << voxelSpaceConfig.p.model.GetPixelMin( red ) << " max: " << voxelSpaceConfig.p.model.GetPixelMax( red ) << endl;
+
+
+			// so there is going to be two maps
 			// 1-channel floating point height from the eroder
 			opts.width = voxelSpaceConfig.p.model.Width();
 			opts.height = voxelSpaceConfig.p.model.Height();
@@ -184,7 +198,7 @@ public:
 		ImGui::Unindent();
 		ImGui::Text( "Erosion" );
 		ImGui::Indent();
-		ImGui::SliderInt( "Steps per Update", &voxelSpaceConfig.erosionSteps, 0, 8000, "%d" );
+		ImGui::SliderInt( "Steps per Update", &voxelSpaceConfig.erosionSteps, 0, 25000, "%d" );
 		ImGui::Text( " " );
 		ImGui::Unindent();
 		ImGui::Text( " Postprocess Controls" );
