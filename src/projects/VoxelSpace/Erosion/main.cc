@@ -90,8 +90,24 @@ public:
 			voxelSpaceConfig.p.InitWithDiamondSquare();
 
 			// so there is going to be two maps
-				// 1-channel floating point height from the eroder
-				// 4-channel color which is used for the display
+
+			// 1-channel floating point height from the eroder
+			opts.width = voxelSpaceConfig.p.model.Width();
+			opts.height = voxelSpaceConfig.p.model.Height();
+			opts.dataType = GL_R32F;
+			opts.textureType = GL_TEXTURE_2D;
+			opts.pixelDataType = GL_UNSIGNED_BYTE;
+			opts.initialData = nullptr;
+			textureManager.Add( "Erosion Result", opts );
+
+			// 4-channel color which is used for the display
+			opts.width = voxelSpaceConfig.p.model.Width();
+			opts.height = voxelSpaceConfig.p.model.Height();
+			opts.dataType = GL_RGBA8UI;
+			opts.textureType = GL_TEXTURE_2D;
+			opts.pixelDataType = GL_UNSIGNED_BYTE;
+			opts.initialData = nullptr;
+			textureManager.Add( "Map", opts );
 
 			voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
 		}
