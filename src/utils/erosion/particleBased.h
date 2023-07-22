@@ -64,7 +64,7 @@ public:
 		const float cache0n = model.GetAtXY( x, y - 1 )[ red ];
 		const float cachepp = model.GetAtXY( x + 1, y + 1 )[ red ];
 		const float cachepn = model.GetAtXY( x + 1, y - 1 )[ red ];
-		const float cachenp = model.GetAtXY( x + 1, y - 1 )[ red ];
+		const float cachenp = model.GetAtXY( x - 1, y + 1 )[ red ];
 		const float cachenn = model.GetAtXY( x - 1, y - 1 )[ red ];
 
 		const float sqrt2 = sqrt( 2.0f );
