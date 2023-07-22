@@ -212,6 +212,19 @@ target_link_libraries( VoxelSpace_Erode
 
 
 # =================================================================================================
+# VoxelSpace_Physarum
+# =================================================================================================
+add_executable( VoxelSpace_Physarum
+	src/projects/VoxelSpace/Physarum/main.cc
+)
+
+target_link_libraries( VoxelSpace_Physarum
+	PUBLIC
+	engineBase
+)
+
+
+# =================================================================================================
 # SoftBodies
 # =================================================================================================
 add_executable( SoftBodies
