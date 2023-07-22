@@ -1,7 +1,6 @@
 *.o
 build
 bin
-exe
 imgui.ini
 
 .vscode/
