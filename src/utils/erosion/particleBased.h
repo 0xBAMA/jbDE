@@ -102,7 +102,7 @@ public:
 		// run the simulation for the specified number of steps
 		for ( unsigned int i = 0; i < numIterations; i++ ) {
 
-			cout << "\r" << i << "/" << numIterations << "                     ";
+			// cout << "\r" << i << "/" << numIterations << "                     ";
 			//spawn a new particle at a random position
 			particle p;
 			p.position = glm::vec2( distX( gen ), distY( gen ) );
