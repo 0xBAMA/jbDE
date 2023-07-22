@@ -416,6 +416,10 @@ This is a planning document for work on this project and in general, about the t
 		- Exploring the space, generate noise field for randomly picked rules and then you can watch it kind of thing
 	- [Forest Fire Model](https://en.wikipedia.org/wiki/Forest-fire_model)
 
+- Realistic camera / lens element simulation with iq's [raytracing booleans](https://www.shadertoy.com/view/mlfGRM) for lens element shapes
+	- [Pencil of Rays](https://www.pencilofrays.com/) stuff on lens design
+	- Spectral? would need to look into wavelength-dependent behavior for the rays
+
 - Data visualization for its own sake
 	- [Byte-level file format details by corkami](https://github.com/corkami/pics/blob/master/binary/README.md#images)
 		- Cyberpunk 2077 has a lot of little decorations that seem to be styled after some human readable format of executables
