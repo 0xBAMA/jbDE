@@ -109,36 +109,38 @@ public:
 				// voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
 				// voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
 
-			} else if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
-				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
-				Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
-				Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
 
-				// combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
-				Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
-				for ( uint32_t y = 0; y < mapColor.Height(); y++ ) {
-					for ( uint32_t x = 0; x < mapColor.Width(); x++ ) {
-						color_4U heightRead = mapHeight.GetAtXY( x, y );
-						color_4U colorRead = mapColor.GetAtXY( x, y );
-						color_4U combined = color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } );
-						combinedMap.SetAtXY( x, y, combined );
-					}
-				}
 
-				// create the texture from the combined image
-				textureOptions_t opts;
-				opts.width = combinedMap.Width();
-				opts.height = combinedMap.Height();
-				opts.dataType = GL_RGBA8UI;
-				opts.textureType = GL_TEXTURE_2D;
-				opts.pixelDataType = GL_UNSIGNED_BYTE;
-				opts.initialData = ( void * ) combinedMap.GetImageDataBasePtr();
 
-				textureManager.Add( "Map", opts );
 
-			} else {
-				cout << "invalid mode selected" << newline;
-				abort();
+
+
+				// // we want to load one of the basic maps from disk - color in the rgb + height in alpha
+				// Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
+				// Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
+
+				// // combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
+				// Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
+				// for ( uint32_t y = 0; y < mapColor.Height(); y++ ) {
+				// 	for ( uint32_t x = 0; x < mapColor.Width(); x++ ) {
+				// 		color_4U heightRead = mapHeight.GetAtXY( x, y );
+				// 		color_4U colorRead = mapColor.GetAtXY( x, y );
+				// 		color_4U combined = color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } );
+				// 		combinedMap.SetAtXY( x, y, combined );
+				// 	}
+				// }
+
+				// // create the texture from the combined image
+				// textureOptions_t opts;
+				// opts.width = combinedMap.Width();
+				// opts.height = combinedMap.Height();
+				// opts.dataType = GL_RGBA8UI;
+				// opts.textureType = GL_TEXTURE_2D;
+				// opts.pixelDataType = GL_UNSIGNED_BYTE;
+				// opts.initialData = ( void * ) combinedMap.GetImageDataBasePtr();
+
+				// textureManager.Add( "Map", opts );
+
 			}
 		}
 	}
@@ -218,30 +220,10 @@ public:
 		ImGui::Text( " " );
 		// ImGui::SliderInt( "Erosion Steps per Update", &erosionNumStepsPerFrame, 0, 8000, "%d" );
 
-		// const char* items[] = { "XOR",
-		// 	"Map  1", "Map  2", "Map  3", "Map  4", "Map  5",
-		// 	"Map  6", "Map  7", "Map  8", "Map  9", "Map 10",
-		// 	"Map 11", "Map 12", "Map 13", "Map 14", "Map 15",
-		// 	"Map 16", "Map 17", "Map 18", "Map 19", "Map 20",
-		// 	"Map 21", "Map 22", "Map 23", "Map 24", "Map 25",
-		// 	"Map 26", "Map 27", "Map 28", "Map 29", "Map 30",
-		// 	"Erosion"};
-
-		// static int mapPickerItemPrevious = 31;
-		// ImGui::Combo("Map Picker", &mapPickerItemCurrent, items, IM_ARRAYSIZE(items));
-
 		// if( mapPickerItemCurrent != mapPickerItemPrevious ){
 		// 	mapPickerItemPrevious = mapPickerItemCurrent;
 		// 	loadMap( mapPickerItemCurrent );
 		// }
-		// ImGui::Unindent();
-		// ImGui::Text( std::string( " Render Pass Time: " + std::to_string( firstPassFrameTimeMs ) + " ms " ).c_str() );
-		// ImGui::Text( std::string( " Minimap Pass Time: " + std::to_string( secondPassFrameTimeMs ) + " ms " ).c_str() );
-		// ImGui::Text( "" );
-		// ImGui::Text( std::string( " Erosion Update Time: " + std::to_string( erosionPassTimeMs ) + " ms " ).c_str() );
-
-		// const float totalFrameTime = firstPassFrameTimeMs + secondPassFrameTimeMs;
-		// ImGui::Text( std::string( " Total Frame Time: " + std::to_string( totalFrameTime ) + " ms ( " + std::to_string( 1.0f / ( totalFrameTime / 1000.0f ) ) + " fps )" ).c_str() );
 
 		ImGui::Unindent();
 		ImGui::Text( " Postprocess Controls" );
@@ -367,16 +349,14 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		if ( voxelSpaceConfig.mode == -1 ) {
-			// check to see if the erosion thread is ready
-				// if it is
-					// convert to a uint version
-					// pass it to the image
-					// run the "shade" shader
-					// it's now in the map texture
+		// check to see if the erosion thread is ready
+			// if it is
+				// convert to a uint version
+				// pass it to the image
+				// run the "shade" shader
+				// it's now in the map texture
 
-			// barrier
-		}
+		// barrier
 	}
 
 	void OnRender () {
