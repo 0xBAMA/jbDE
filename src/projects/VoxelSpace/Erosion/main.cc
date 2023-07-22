@@ -51,6 +51,7 @@ public:
 			// compile all the shaders
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
 			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/MiniMap.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/Update.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
@@ -329,7 +330,6 @@ public:
 
 		// check to see if the erosion thread is ready
 		if ( voxelSpaceConfig.erosionReady ) {
-		// if it is
 			// update the 1-channel image data on the GPU
 			const GLuint handle = textureManager.Get( "Erosion Result" );
 			glBindTexture( GL_TEXTURE_2D, handle );
@@ -340,6 +340,10 @@ public:
 			glMemoryBarrier( GL_TEXTURE_UPDATE_BARRIER_BIT );
 
 			// run the "shading" shader - produces the new 4-channel color / height map for next renderer update
+			glUseProgram( shaders[ "Update" ] );
+			textureManager.BindImageForShader( "Erosion Result", "sourceData", shaders[ "Update" ], 0 );
+			textureManager.BindImageForShader( "Map", "map", shaders[ "Update" ], 1 );
+			glDispatchCompute( voxelSpaceConfig.mapDims.x / 16, voxelSpaceConfig.mapDims.y / 16, 1 );
 
 			// make sure it's ready, after that shader runs
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
