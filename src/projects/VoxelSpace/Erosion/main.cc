@@ -2,9 +2,6 @@
 
 struct VoxelSpaceConfig_t {
 
-	// what sim do we want to run
-	int32_t mode;
-
 	// renderer config
 	vec4 fogColor		= vec4( 0.16f, 0.16f, 0.16f, 1.0f );
 	vec2 viewPosition	= vec2( 512, 512 );
@@ -20,11 +17,14 @@ struct VoxelSpaceConfig_t {
 	float viewBump		= 275.0f;
 	float minimapScalar	= 0.3f;
 	bool adaptiveHeight	= false;
-	ivec2 mapDims		= ivec2( 1024, 1024 );
 
 	// thread sync, erosion control
 	bool threadShouldRun;
 	bool erosionReady;
+
+	// map for the eroder
+	ivec2 mapDims;
+	particleEroder p;
 
 };
 
@@ -35,7 +35,6 @@ public:
 
 	VoxelSpaceConfig_t voxelSpaceConfig;
 	GLuint renderFramebuffer;
-	particleEroder p;
 
 	void OnInit () {
 		ZoneScoped;
@@ -44,8 +43,7 @@ public:
 
 			// load config
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			voxelSpaceConfig.mode = j[ "app" ][ "VoxelSpace" ][ "mode" ];
-				// load the rest of the config
+			voxelSpaceConfig.mapDims = ivec2( j[ "app" ][ "VoxelSpace" ][ "eroderDim" ] );
 
 			// compile all the shaders
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
@@ -86,62 +84,30 @@ public:
 			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
 			// create the texture for the landscape
-			if ( voxelSpaceConfig.mode == 0 ) { // we know that we want to run the live erosion sim
 
-			// this is kind of secondary, want to get the basic renderer running first
+			// // create the initial heightmap that's used for the erosion
+			// p.InitWithDiamondSquare();
 
-				// // create the initial heightmap that's used for the erosion
-				// p.InitWithDiamondSquare();
-
-				// // create the texture from that heightmap
-				// textureOptions_t opts;
-				// opts.width = config.width;
-				// opts.height = config.height;
-				// opts.textureType = GL_TEXTURE_2D;
-				// // process the initial data into a byte array
-				// // ...
-
-				// // this is actually going to be easier to take a 1 channel float, take it directly from the Image_1F
-				// 	// do the processing into the map buffer on the GPU
-
-				// textureManager.Add( "Map Staging Buffer", opts );
-
-				// voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
-				// voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
+			// so there is going to be two maps
+				// 1-channel floating point height from the eroder
+					// also include 3 channel normals? tbd - expensive on CPU
+				// 4-channel color which is used for the display
 
 
+			// // create the texture from that heightmap
+			// textureOptions_t opts;
+			// opts.width = voxelSpaceConfig.mapDims.x;
+			// opts.height = voxelSpaceConfig.mapDims.y;
+			// opts.textureType = GL_TEXTURE_2D;
 
+			// // this is actually going to be easier to take a 1 channel float, take it directly from the Image_1F
+			// 	// do the processing into the map buffer on the GPU
 
+			// textureManager.Add( "Map Staging Buffer", opts );
 
+			// voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
+			// voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
 
-
-				// // we want to load one of the basic maps from disk - color in the rgb + height in alpha
-				// Image_4U mapHeight( string( "./src/projects/VoxelSpace/Erosion/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
-				// Image_4U mapColor( string( "./src/projects/VoxelSpace/Erosion/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
-
-				// // combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
-				// Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
-				// for ( uint32_t y = 0; y < mapColor.Height(); y++ ) {
-				// 	for ( uint32_t x = 0; x < mapColor.Width(); x++ ) {
-				// 		color_4U heightRead = mapHeight.GetAtXY( x, y );
-				// 		color_4U colorRead = mapColor.GetAtXY( x, y );
-				// 		color_4U combined = color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } );
-				// 		combinedMap.SetAtXY( x, y, combined );
-				// 	}
-				// }
-
-				// // create the texture from the combined image
-				// textureOptions_t opts;
-				// opts.width = combinedMap.Width();
-				// opts.height = combinedMap.Height();
-				// opts.dataType = GL_RGBA8UI;
-				// opts.textureType = GL_TEXTURE_2D;
-				// opts.pixelDataType = GL_UNSIGNED_BYTE;
-				// opts.initialData = ( void * ) combinedMap.GetImageDataBasePtr();
-
-				// textureManager.Add( "Map", opts );
-
-			}
 		}
 	}
 

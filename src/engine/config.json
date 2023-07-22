@@ -109,7 +109,8 @@
 			"numBitsActive":32
 		},
 		"VoxelSpace":{
-			"mode":0
+			"mode":0,
+			"eroderDim":1024
 		}
 	}
 }
