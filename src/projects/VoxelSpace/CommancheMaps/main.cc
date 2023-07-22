@@ -306,6 +306,7 @@ public:
 			glDispatchCompute( ( ( config.width / 4 ) + 63 ) / 64, 1, 1 );
 
 			// we do need a barrier before drawing the fullscreen triangles, images need to complete
+				// this kind of prevents, ah, well, profiling the two passes separately, but whatever
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT );
 		}
 

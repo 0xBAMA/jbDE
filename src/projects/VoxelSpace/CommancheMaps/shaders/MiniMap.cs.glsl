@@ -32,17 +32,16 @@ mat2 Rotate2D ( float r ) {
 
 // masked map reference - circle around viewer position
 vec2 globalForwards = vec2( 0.0f );
-uvec4 mapReference ( ivec2 location, inout bool passing ) {
+uvec4 mapReference ( ivec2 location, out bool passing ) {
 	vec2 location_local = vec2( location );
 	location_local = vec2( ( vec2( location_local - viewPosition ) * ( 1.0f / minimapScalar ) ) + viewPosition );
 	location_local += vec2( viewBump * globalForwards );
 	const bool insideMask = distance( location_local, viewPosition + vec2( viewBump * globalForwards ) ) < ( 100.0f / minimapScalar );
 	const bool outerRing = distance( location_local, viewPosition + vec2( viewBump * globalForwards ) ) > ( 97.0f / minimapScalar );
-	// const bool insideMask = distance( location_local, viewPosition + vec2( viewBump * globalForwards ) ) < 10.0f;
 	if ( insideMask ) {
 		uvec4 dataSample = imageLoad( map, ivec2( location_local ) );
 		passing = true;
-		if ( distance( location_local, viewPosition ) < ( 1.618 / minimapScalar ) ) {
+		if ( distance( location_local, viewPosition ) < ( 1.618f / minimapScalar ) ) {
 			// little taller, to show the user's location
 			dataSample.rgb = uvec3( 255, 0, 0 );
 			dataSample.a += 20;
@@ -83,7 +82,7 @@ void main () {
 
 	// draw the vertical strip of pixels for myXIndex
 	const float dz = 0.25f;
-	bool passing;
+	bool passing = false;
 	for ( float dSample = 1.0f; dSample < maxDistance && yBuffer < hPixels; dSample += dz ) {
 		const ivec2 samplePosition	= ivec2( viewPositionLocal + dSample * direction );
 		const uvec4 dataSample		= mapReference( samplePosition, passing );
