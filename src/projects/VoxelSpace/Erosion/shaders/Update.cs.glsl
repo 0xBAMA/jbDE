@@ -8,7 +8,7 @@ const float sqrt2 = sqrt( 2.0f );
 const float scale = 60.0f;
 
 vec3 GetNormal ( ivec2 location ) {
-	const float atLocCache = imageLoad( sourceData, location + ivec2( 0, 0 ) ).r;
+	const float cache00 = imageLoad( sourceData, location + ivec2( 0, 0 ) ).r;
 	const float cachep0 = imageLoad( sourceData, location + ivec2(  1,  0 ) ).r;
 	const float cachen0 = imageLoad( sourceData, location + ivec2( -1,  0 ) ).r;
 	const float cache0p = imageLoad( sourceData, location + ivec2(  0,  1 ) ).r;
@@ -18,15 +18,15 @@ vec3 GetNormal ( ivec2 location ) {
 	const float cachenp = imageLoad( sourceData, location + ivec2( -1,  1 ) ).r;
 	const float cachenn = imageLoad( sourceData, location + ivec2( -1, -1 ) ).r;
 
-	vec3 n = vec3( 0.15f ) * normalize(vec3( scale * ( atLocCache - cachep0 ), 1.0f, 0.0f ) );  // Positive X
-	n += vec3( 0.15f ) * normalize( vec3( scale * ( cachen0 - atLocCache ), 1.0f, 0.0f ) );     // Negative X
-	n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( atLocCache - cache0p ) ) );     // Positive Y
-	n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache0n - atLocCache ) ) );     // Negative Y
+	vec3 n = vec3( 0.15f ) * normalize(vec3( scale * ( cache00 - cachep0 ), 1.0f, 0.0f ) );  // Positive X
+	n += vec3( 0.15f ) * normalize( vec3( scale * ( cachen0 - cache00 ), 1.0f, 0.0f ) );     // Negative X
+	n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache00 - cache0p ) ) );     // Positive Y
+	n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache0n - cache00 ) ) );     // Negative Y
 	// diagonals
-	n += vec3( 0.1f ) * normalize( vec3( scale * ( atLocCache - cachepp ) / sqrt2, sqrt2, scale * ( atLocCache - cachepp ) / sqrt2 ) );
-	n += vec3( 0.1f ) * normalize( vec3( scale * ( atLocCache - cachepn ) / sqrt2, sqrt2, scale * ( atLocCache - cachepn ) / sqrt2 ) );
-	n += vec3( 0.1f ) * normalize( vec3( scale * ( atLocCache - cachenp ) / sqrt2, sqrt2, scale * ( atLocCache - cachenp ) / sqrt2 ) );
-	n += vec3( 0.1f ) * normalize( vec3( scale * ( atLocCache - cachenn ) / sqrt2, sqrt2, scale * ( atLocCache - cachenn ) / sqrt2 ) );
+	n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachepp ) / sqrt2, sqrt2, scale * ( cache00 - cachepp ) / sqrt2 ) );
+	n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachepn ) / sqrt2, sqrt2, scale * ( cache00 - cachepn ) / sqrt2 ) );
+	n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachenp ) / sqrt2, sqrt2, scale * ( cache00 - cachenp ) / sqrt2 ) );
+	n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachenn ) / sqrt2, sqrt2, scale * ( cache00 - cachenn ) / sqrt2 ) );
 
 	n.y *= 0.001f;
 	return normalize( n );
