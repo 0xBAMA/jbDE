@@ -16,15 +16,15 @@ public:
 		std::uniform_real_distribution< float > distribution{ 0.0f, 1.0f };
 
 		// todo: make this variable ( data array cannot be variable size in c++ )
-		constexpr uint32_t dim = 1024;
+		const uint32_t dim = 1024;
 
 	#ifdef TILE
-		constexpr auto size = dim;
+		const auto size = dim;
 	#else
-		constexpr auto size = dim + 1; // for no_wrap
+		const auto size = dim + 1; // for no_wrap
 	#endif
 
-		constexpr auto edge = size - 1;
+		const auto edge = size - 1;
 		float data[ size ][ size ] = { { 0.0f } };
 		data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.25f;
 
@@ -51,23 +51,23 @@ public:
 		);
 
 		model = Image_1F( size, size, &data[ 0 ][ 0 ] );
-		model.Save( "test.exr", Image_1F::backend::TINYEXR );
+		// model.Save( "test.exr", Image_1F::backend::TINYEXR );
 	}
 
 	glm::vec3 GetSurfaceNormal ( uint32_t x, uint32_t y ) {
-		float scale = 60.0f;
+		const float scale = 60.0f;
 
-		float atLocCache = model.GetAtXY( x, y )[ red ];
-		float cachep0 = model.GetAtXY( x + 1, y )[ red ];
-		float cachen0 = model.GetAtXY( x - 1, y )[ red ];
-		float cache0p = model.GetAtXY( x, y + 1 )[ red ];
-		float cache0n = model.GetAtXY( x, y - 1 )[ red ];
-		float cachepp = model.GetAtXY( x + 1, y + 1 )[ red ];
-		float cachepn = model.GetAtXY( x + 1, y - 1 )[ red ];
-		float cachenp = model.GetAtXY( x + 1, y - 1 )[ red ];
-		float cachenn = model.GetAtXY( x - 1, y - 1 )[ red ];
+		const float atLocCache = model.GetAtXY( x, y )[ red ];
+		const float cachep0 = model.GetAtXY( x + 1, y )[ red ];
+		const float cachen0 = model.GetAtXY( x - 1, y )[ red ];
+		const float cache0p = model.GetAtXY( x, y + 1 )[ red ];
+		const float cache0n = model.GetAtXY( x, y - 1 )[ red ];
+		const float cachepp = model.GetAtXY( x + 1, y + 1 )[ red ];
+		const float cachepn = model.GetAtXY( x + 1, y - 1 )[ red ];
+		const float cachenp = model.GetAtXY( x + 1, y - 1 )[ red ];
+		const float cachenn = model.GetAtXY( x - 1, y - 1 )[ red ];
 
-		float sqrt2 = sqrt( 2.0f );
+		const float sqrt2 = sqrt( 2.0f );
 
 		glm::vec3 n = glm::vec3( 0.15f ) * glm::normalize(glm::vec3( scale * ( atLocCache - cachep0 ), 1.0f, 0.0f ) );  // Positive X
 		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( scale * ( cachen0 - atLocCache ), 1.0f, 0.0f ) );         // Negative X
@@ -89,7 +89,6 @@ public:
 		float volume = 1.0f;
 		float sedimentFraction = 0.0f;
 	};
-
 
 	void Erode ( uint32_t numIterations ) {
 		std::default_random_engine gen;
