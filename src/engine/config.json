@@ -109,7 +109,7 @@
 			"numBitsActive":32
 		},
 		"VoxelSpace":{
-			"mode":1
+			"mode":0
 		}
 	}
 }

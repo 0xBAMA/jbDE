@@ -80,38 +80,42 @@ public:
 			textureManager.Add( "Main Rendered View", opts );		// create the image to draw the regular map into
 			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
-			if ( voxelSpaceConfig.mode >= 1 && voxelSpaceConfig.mode <= 30 ) {
-				// we want to load one of the basic maps from disk - color in the rgb + height in alpha
-				Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
-				Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
+			// load one of the maps, just to get some dimensions
+			Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode + 1 ) + string( "Height.png" ) );
 
-				// combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
-				Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
-				for ( uint32_t y = 0; y < mapColor.Height(); y++ ) {
-					for ( uint32_t x = 0; x < mapColor.Width(); x++ ) {
-						color_4U heightRead = mapHeight.GetAtXY( x, y );
-						color_4U colorRead = mapColor.GetAtXY( x, y );
-						color_4U combined = color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } );
-						combinedMap.SetAtXY( x, y, combined );
-					}
-				}
+			// create the texture from the combined image
+			opts.width = mapHeight.Width();
+			opts.height = mapHeight.Height();
+			opts.dataType = GL_RGBA8UI;
+			opts.textureType = GL_TEXTURE_2D;
+			opts.pixelDataType = GL_UNSIGNED_BYTE;
+			opts.initialData = nullptr;
+			textureManager.Add( "Map", opts );
+			UpdateMap();
 
-				// create the texture from the combined image
-				textureOptions_t opts;
-				opts.width = combinedMap.Width();
-				opts.height = combinedMap.Height();
-				opts.dataType = GL_RGBA8UI;
-				opts.textureType = GL_TEXTURE_2D;
-				opts.pixelDataType = GL_UNSIGNED_BYTE;
-				opts.initialData = ( void * ) combinedMap.GetImageDataBasePtr();
+		}
+	}
 
-				textureManager.Add( "Map", opts );
+	void UpdateMap () {
+		// we want to load one of the basic maps from disk - color in the rgb + height in alpha
+		Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode + 1 ) + string( "Height.png" ) );
+		Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode + 1 ) + string( "Color.png" ) );
 
-			} else {
-				cout << "invalid mode selected" << newline;
-				abort();
+		// combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
+		Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
+		for ( uint32_t y = 0; y < mapColor.Height(); y++ ) {
+			for ( uint32_t x = 0; x < mapColor.Width(); x++ ) {
+				color_4U heightRead = mapHeight.GetAtXY( x, y );
+				color_4U colorRead = mapColor.GetAtXY( x, y );
+				color_4U combined = color_4U( { colorRead[ red ], colorRead[ green ], colorRead[ blue ], heightRead[ red ] } );
+				combinedMap.SetAtXY( x, y, combined );
 			}
 		}
+
+		GLuint handle = textureManager.Get( "Map" );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, combinedMap.Width(), combinedMap.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ( void * ) combinedMap.GetImageDataBasePtr() );
+
 	}
 
 	void positionAdjust ( float amt ) {
@@ -129,7 +133,6 @@ public:
 		// if ( viewerHeight < heightRef )
 			// viewerHeight = heightRef + 5;
 	}
-
 
 	void HandleCustomEvents () {
 		// application specific controls
@@ -163,10 +166,23 @@ public:
 
 		// controls window for the renderer parameters
 		ImGui::Begin( "Renderer State", NULL, 0);
-
 		ImGui::Text( " Adjustment of Render parameters" );
 		ImGui::Indent();
 		ImGui::Text( "Main" );
+
+		const char* items[] = { "Map  1", "Map  2", "Map  3", "Map  4", "Map  5",
+			"Map  6", "Map  7", "Map  8", "Map  9", "Map 10", "Map 11", "Map 12",
+			"Map 13", "Map 14", "Map 15", "Map 16", "Map 17", "Map 18", "Map 19",
+			"Map 20", "Map 21", "Map 22", "Map 23", "Map 24", "Map 25", "Map 26",
+			"Map 27", "Map 28", "Map 29", "Map 30" };
+
+		int mapPickerItemCurrent = voxelSpaceConfig.mode;
+		ImGui::Combo( "Map Picker", &mapPickerItemCurrent, items, IM_ARRAYSIZE( items ) );
+		if ( ImGui::IsItemEdited() ) {
+			voxelSpaceConfig.mode = mapPickerItemCurrent;
+			UpdateMap();
+		}
+
 		ImGui::SliderInt( "Height", &voxelSpaceConfig.viewerHeight, 0, 1800, "%d" );
 		ImGui::SliderFloat2( "Position", (float*)&voxelSpaceConfig.viewPosition, 0.0f, 1024.0f, "%.3f" );
 		ImGui::SliderFloat( "Angle", &voxelSpaceConfig.viewAngle, -3.14159265f, 3.14159265f, "%.3f" );
@@ -187,32 +203,6 @@ public:
 		ImGui::SliderFloat( "Fog Scale", &voxelSpaceConfig.fogScalar, 0.0f, 1.5f, "%.3f" );
 		ImGui::ColorEdit3( "Fog Color", ( float * )&voxelSpaceConfig.fogColor, 0 );
 		ImGui::Text( " " );
-		// ImGui::SliderInt( "Erosion Steps per Update", &erosionNumStepsPerFrame, 0, 8000, "%d" );
-
-		// const char* items[] = { "XOR",
-		// 	"Map  1", "Map  2", "Map  3", "Map  4", "Map  5",
-		// 	"Map  6", "Map  7", "Map  8", "Map  9", "Map 10",
-		// 	"Map 11", "Map 12", "Map 13", "Map 14", "Map 15",
-		// 	"Map 16", "Map 17", "Map 18", "Map 19", "Map 20",
-		// 	"Map 21", "Map 22", "Map 23", "Map 24", "Map 25",
-		// 	"Map 26", "Map 27", "Map 28", "Map 29", "Map 30",
-		// 	"Erosion"};
-
-		// static int mapPickerItemPrevious = 31;
-		// ImGui::Combo("Map Picker", &mapPickerItemCurrent, items, IM_ARRAYSIZE(items));
-
-		// if( mapPickerItemCurrent != mapPickerItemPrevious ){
-		// 	mapPickerItemPrevious = mapPickerItemCurrent;
-		// 	loadMap( mapPickerItemCurrent );
-		// }
-		// ImGui::Unindent();
-		// ImGui::Text( std::string( " Render Pass Time: " + std::to_string( firstPassFrameTimeMs ) + " ms " ).c_str() );
-		// ImGui::Text( std::string( " Minimap Pass Time: " + std::to_string( secondPassFrameTimeMs ) + " ms " ).c_str() );
-		// ImGui::Text( "" );
-		// ImGui::Text( std::string( " Erosion Update Time: " + std::to_string( erosionPassTimeMs ) + " ms " ).c_str() );
-
-		// const float totalFrameTime = firstPassFrameTimeMs + secondPassFrameTimeMs;
-		// ImGui::Text( std::string( " Total Frame Time: " + std::to_string( totalFrameTime ) + " ms ( " + std::to_string( 1.0f / ( totalFrameTime / 1000.0f ) ) + " fps )" ).c_str() );
 
 		ImGui::Unindent();
 		ImGui::Text( " Postprocess Controls" );
