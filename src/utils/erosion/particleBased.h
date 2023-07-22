@@ -72,7 +72,7 @@ public:
 		glm::vec3 n = glm::vec3( 0.15f ) * glm::normalize(glm::vec3( scale * ( atLocCache - cachep0 ), 1.0f, 0.0f ) );  // Positive X
 		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( scale * ( cachen0 - atLocCache ), 1.0f, 0.0f ) );         // Negative X
 		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( atLocCache - cache0p ) ) );        // Positive Y
-		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( cache0n - atLocCache) ) );        // Negative Y
+		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( cache0n - atLocCache ) ) );       // Negative Y
 
 		// diagonals
 		n += glm::vec3( 0.1f ) * glm::normalize( glm::vec3( scale * ( atLocCache - cachepp ) / sqrt2, sqrt2, scale * ( atLocCache - cachepp ) / sqrt2 ) );

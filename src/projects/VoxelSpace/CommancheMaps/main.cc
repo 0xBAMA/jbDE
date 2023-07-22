@@ -128,6 +128,7 @@ public:
 		vec2 direction = rotate * vec2( 1.0f, 0.0f );
 		voxelSpaceConfig.viewPosition += amt * direction;
 
+		// glGetTexImage... or read it in the shader? alternatively, keep a copy of the heightmap on the CPU like before
 		// adaptive height, todo
 		// int heightRef = heightmapReference( glm::ivec2( int( voxelSpaceConfig.viewPosition.x ), int( viewPosition.y )));
 		// if ( viewerHeight < heightRef )
@@ -162,10 +163,8 @@ public:
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
-
 		// controls window for the renderer parameters
-		ImGui::Begin( "Renderer State", NULL, 0);
+		ImGui::Begin( "Renderer State", NULL, 0 );
 		ImGui::Text( " Adjustment of Render parameters" );
 		ImGui::Indent();
 		ImGui::Text( "Main" );
@@ -192,9 +191,6 @@ public:
 		ImGui::SliderFloat( "Side-to-Side Offset", &voxelSpaceConfig.offsetScalar, 0.0f, 300.0f, "%.3f" );
 		ImGui::SliderFloat( "Step Increment", &voxelSpaceConfig.stepIncrement, 0.0f, 0.5f, "%.3f" );
 		ImGui::SliderFloat( "FoV", &voxelSpaceConfig.FoVScalar, 0.001f, 15.0f, "%.3f" );
-
-		// ImGui::SliderInt( "Linear Sampling", &linearTextures, 0, 1, "%d" );
-
 		ImGui::Checkbox( "Height follows Player Height", &voxelSpaceConfig.adaptiveHeight );
 		ImGui::Text( " " );
 		ImGui::SliderFloat( "View Bump", &voxelSpaceConfig.viewBump, 0.0f, 500.0f, "%.3f" );
@@ -217,7 +213,6 @@ public:
 		ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
 		ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
 		ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
-
 		ImGui::End();
 	}
 
@@ -229,8 +224,6 @@ public:
 
 			// update the main rendered view - draw the map
 			glUseProgram( shaders[ "VoxelSpace" ] );
-
-			// send uniforms and shit
 			glUniform2i( glGetUniformLocation( shaders[ "VoxelSpace" ], "resolution" ), config.width, config.height );
 			glUniform2f( glGetUniformLocation( shaders[ "VoxelSpace" ], "viewPosition" ), voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y );
 			glUniform1i( glGetUniformLocation( shaders[ "VoxelSpace" ], "viewerHeight" ), voxelSpaceConfig.viewerHeight );
@@ -242,25 +235,19 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "fogScalar" ), voxelSpaceConfig.fogScalar );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "stepIncrement" ), voxelSpaceConfig.stepIncrement );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "FoVScalar" ), voxelSpaceConfig.FoVScalar );
-
 			textureManager.BindImageForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
 			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 2 );
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
 			// update the minimap rendered view - draw the area of the map near the user
 			glUseProgram( shaders[ "MiniMap" ] );
-			// updating all the uniforms
 			glUniform2i( glGetUniformLocation( shaders[ "MiniMap" ], "resolution" ), config.width / 4, config.height / 3 );
 			glUniform2f( glGetUniformLocation( shaders[ "MiniMap" ], "viewPosition" ), voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y );
 			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewAngle" ), voxelSpaceConfig.viewAngle );
 			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewBump" ), voxelSpaceConfig.viewBump );
 			glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "minimapScalar" ), voxelSpaceConfig.minimapScalar );
-
-			// glGetTexImage... or read it in the shader? alternatively, keep a copy of the heightmap on the CPU like before
-
 			textureManager.BindImageForShader( "Map", "map", shaders[ "MiniMap" ], 1 );
 			textureManager.BindImageForShader( "Minimap Rendered View", "target", shaders[ "MiniMap" ], 2 );
-
 			glDispatchCompute( ( ( config.width / 4 ) + 63 ) / 64, 1, 1 );
 
 			// we do need a barrier before drawing the fullscreen triangles, images need to complete
@@ -274,7 +261,7 @@ public:
 			// bind the framebuffer for drawing the layers
 			glBindFramebuffer( GL_FRAMEBUFFER, renderFramebuffer );
 
-			// clear to the background color to the fog color
+			// clear to the background color to the fog color - hijacking alpha blending while drawing color targets to do fog
 			glClearColor(
 				voxelSpaceConfig.fogColor.x,
 				voxelSpaceConfig.fogColor.y,
