@@ -41,14 +41,14 @@ public:
 			voxelSpaceConfig.mapDims = ivec2( j[ "app" ][ "VoxelSpace_Erode" ][ "eroderDim" ] );
 
 			// compile all the shaders
-			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/MiniMap.cs.glsl" ).shaderHandle;
-			shaders[ "Update" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/Update.cs.glsl" ).shaderHandle;
+			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Physarum/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
+			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/Physarum/shaders/MiniMap.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/VoxelSpace/Physarum/shaders/Update.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
-				"./src/projects/VoxelSpace/Erosion/shaders/FullscreenTriangle.vs.glsl",
-				"./src/projects/VoxelSpace/Erosion/shaders/FullscreenTriangle.fs.glsl"
+				"./src/projects/VoxelSpace/Physarum/shaders/FullscreenTriangle.vs.glsl",
+				"./src/projects/VoxelSpace/Physarum/shaders/FullscreenTriangle.fs.glsl"
 			).shaderHandle;
 
 			// create a framebuffer to accumulate the images
