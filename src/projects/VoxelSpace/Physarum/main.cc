@@ -18,16 +18,8 @@ struct VoxelSpaceConfig_t {
 	float minimapScalar	= 0.3f;
 	bool showMinimap	= true;
 
-	// thread sync, erosion control - initally true, this prevents the thread running before init completes
-	bool erosionReady	= true;
-	int erosionSteps	= 8000;
-
-	// map for the eroder
+	// map for the physarum
 	ivec2 mapDims;
-	particleEroder p;
-
-	// timing on the erosion thread
-	float msLastUpdate	= 0.0f;
 
 };
 
@@ -87,37 +79,7 @@ public:
 			textureManager.Add( "Main Rendered View", opts );		// create the image to draw the regular map into
 			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
-			// initialize the erosion map with a diamond square heightmap
-			voxelSpaceConfig.p.InitWithDiamondSquare();
-
-			Image_1F::rangeRemapInputs_t remap;
-			remap.rangeType = Image_1F::HARDCLIP;
-			remap.rangeStartLow = voxelSpaceConfig.p.model.GetPixelMin( red );
-			remap.rangeStartHigh = voxelSpaceConfig.p.model.GetPixelMax( red );
-			remap.rangeEndLow = 0.0001f;
-			remap.rangeEndHigh = 1.0f;
-			voxelSpaceConfig.p.model.RangeRemap( &remap );
-
-			// so there is going to be two maps
-			// 1-channel floating point height from the eroder
-			opts.width = voxelSpaceConfig.p.model.Width();
-			opts.height = voxelSpaceConfig.p.model.Height();
-			opts.dataType = GL_R32F;
-			opts.textureType = GL_TEXTURE_2D;
-			opts.pixelDataType = GL_UNSIGNED_BYTE;
-			opts.initialData = nullptr;
-			textureManager.Add( "Erosion Result", opts );
-
-			// 4-channel color which is used for the display
-			opts.width = voxelSpaceConfig.p.model.Width();
-			opts.height = voxelSpaceConfig.p.model.Height();
-			opts.dataType = GL_RGBA8UI;
-			opts.textureType = GL_TEXTURE_2D;
-			opts.pixelDataType = GL_UNSIGNED_BYTE;
-			opts.initialData = nullptr;
-			textureManager.Add( "Map", opts );
-
-			voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
+			// physarum sim setup
 		}
 	}
 
@@ -130,12 +92,7 @@ public:
 		);
 		vec2 direction = rotate * vec2( 1.0f, 0.0f );
 		voxelSpaceConfig.viewPosition += amt * direction;
-
-		int heightRef = voxelSpaceConfig.p.model.GetAtXY( voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y )[ red ] * 255;
-		if ( voxelSpaceConfig.viewerHeight < heightRef )
-			voxelSpaceConfig.viewerHeight = heightRef + 5;
 	}
-
 
 	void HandleCustomEvents () {
 		// application specific controls
@@ -188,11 +145,6 @@ public:
 		ImGui::Checkbox( "Show Minimap", &voxelSpaceConfig.showMinimap );
 		ImGui::SliderFloat( "View Bump", &voxelSpaceConfig.viewBump, 0.0f, 500.0f, "%.3f" );
 		ImGui::SliderFloat( "Minimap Scalar", &voxelSpaceConfig.minimapScalar, 0.1f, 5.0f, "%.3f" );
-		ImGui::Text( " " );
-		ImGui::Unindent();
-		ImGui::Text( "Erosion" );
-		ImGui::Indent();
-		ImGui::SliderInt( "Steps per Update", &voxelSpaceConfig.erosionSteps, 0, 25000, "%d" );
 		ImGui::Text( " " );
 		ImGui::Unindent();
 		ImGui::Text( " Postprocess Controls" );
@@ -311,60 +263,11 @@ public:
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
-	// update thread
-	std::thread erosionThread { [=] () {
-		while ( !pQuit ) { // while the program is running
-			if ( voxelSpaceConfig.erosionReady ) { // waiting
-				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
-			} else {
-				auto tstart = std::chrono::high_resolution_clock::now();
-				int count = voxelSpaceConfig.erosionSteps;
-				// run the erosion for the specified number of steps
-				while ( ( count -= 500 ) > 0 ) {
-					voxelSpaceConfig.p.Erode( 500 );
-				}
-
-				// 1-channel image data will now be ready to pass during the next time OnUpdate() is called
-					// no CPU-side prep work is needed - the 4 channel map is prepared on the GPU
-
-				voxelSpaceConfig.msLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::high_resolution_clock::now() - tstart ).count();
-
-				// the work for this timestep has completed
-				voxelSpaceConfig.erosionReady = true;
-			}
-		}
-	}};
-
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		const int w = voxelSpaceConfig.p.model.Width();
-		const int h = voxelSpaceConfig.p.model.Height();
+		// do the physarum update
 
-		// check to see if the erosion thread is ready
-		if ( voxelSpaceConfig.erosionReady ) {
-			// update the 1-channel image data on the GPU
-			const GLuint handle = textureManager.Get( "Erosion Result" );
-			glBindTexture( GL_TEXTURE_2D, handle );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT,
-				( void * ) voxelSpaceConfig.p.model.GetImageDataBasePtr() );
-
-			// GPU resource barrier - allow glTexImage2D to complete before continuing
-			glMemoryBarrier( GL_TEXTURE_UPDATE_BARRIER_BIT );
-
-			// run the "shading" shader - produces the new 4-channel color / height map for next renderer update
-			glUseProgram( shaders[ "Update" ] );
-			textureManager.BindImageForShader( "Erosion Result", "sourceData", shaders[ "Update" ], 0 );
-			textureManager.BindImageForShader( "Map", "map", shaders[ "Update" ], 1 );
-			glDispatchCompute( voxelSpaceConfig.mapDims.x / 16, voxelSpaceConfig.mapDims.y / 16, 1 );
-
-			// make sure it's ready, after that shader runs
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-			// tell the erosion thread to continue
-			voxelSpaceConfig.erosionReady = false;
-		}
 	}
 
 	void OnRender () {
@@ -401,9 +304,5 @@ public:
 int main ( int argc, char *argv[] ) {
 	VoxelSpace VoxelSpaceInstance;
 	while( !VoxelSpaceInstance.MainLoop() );
-
-	// terminate erosion thread, since pQuit is now false
-	VoxelSpaceInstance.erosionThread.join();
-
 	return 0;
 }
