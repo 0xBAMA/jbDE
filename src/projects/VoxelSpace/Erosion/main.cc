@@ -90,20 +90,13 @@ public:
 			// initialize the erosion map with a diamond square heightmap
 			voxelSpaceConfig.p.InitWithDiamondSquare();
 
-			// compress/expand the range to 0..1 - needs further testing, not getting expected behavior
 			Image_1F::rangeRemapInputs_t remap;
-
-			// cout << endl << "before remapping min:" << voxelSpaceConfig.p.model.GetPixelMin( red ) << " max: " << voxelSpaceConfig.p.model.GetPixelMax( red ) << endl;
-
 			remap.rangeType = Image_1F::HARDCLIP;
 			remap.rangeStartLow = voxelSpaceConfig.p.model.GetPixelMin( red );
 			remap.rangeStartHigh = voxelSpaceConfig.p.model.GetPixelMax( red );
 			remap.rangeEndLow = 0.0001f;
 			remap.rangeEndHigh = 1.0f;
 			voxelSpaceConfig.p.model.RangeRemap( &remap );
-
-			// cout << "after remapping min:" << voxelSpaceConfig.p.model.GetPixelMin( red ) << " max: " << voxelSpaceConfig.p.model.GetPixelMax( red ) << endl;
-
 
 			// so there is going to be two maps
 			// 1-channel floating point height from the eroder
@@ -138,11 +131,9 @@ public:
 		vec2 direction = rotate * vec2( 1.0f, 0.0f );
 		voxelSpaceConfig.viewPosition += amt * direction;
 
-		// glGetTexImage... or read it in the shader? alternatively, keep a copy of the heightmap on the CPU like before
-		// adaptive height, todo
-		// int heightRef = heightmapReference( glm::ivec2( int( voxelSpaceConfig.viewPosition.x ), int( viewPosition.y )));
-		// if ( viewerHeight < heightRef )
-			// viewerHeight = heightRef + 5;
+		int heightRef = voxelSpaceConfig.p.model.GetAtXY( voxelSpaceConfig.viewPosition.x, voxelSpaceConfig.viewPosition.y )[ red ] * 255;
+		if ( voxelSpaceConfig.viewerHeight < heightRef )
+			voxelSpaceConfig.viewerHeight = heightRef + 5;
 	}
 
 
@@ -187,7 +178,6 @@ public:
 		ImGui::SliderFloat( "Side-to-Side Offset", &voxelSpaceConfig.offsetScalar, 0.0f, 300.0f, "%.3f" );
 		ImGui::SliderFloat( "Step Increment", &voxelSpaceConfig.stepIncrement, 0.0f, 0.5f, "%.3f" );
 		ImGui::SliderFloat( "FoV", &voxelSpaceConfig.FoVScalar, 0.001f, 15.0f, "%.3f" );
-		ImGui::Checkbox( "Height follows Player Height", &voxelSpaceConfig.adaptiveHeight );
 		ImGui::Text( " " );
 		ImGui::SliderFloat( "View Bump", &voxelSpaceConfig.viewBump, 0.0f, 500.0f, "%.3f" );
 		ImGui::SliderFloat( "Minimap Scalar", &voxelSpaceConfig.minimapScalar, 0.1f, 5.0f, "%.3f" );
