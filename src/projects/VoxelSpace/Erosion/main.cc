@@ -303,15 +303,14 @@ public:
 				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 			} else {
 				auto tstart = std::chrono::high_resolution_clock::now();
-
-				// run the erosion for the specified number of steps
 				int count = voxelSpaceConfig.erosionSteps;
+				// run the erosion for the specified number of steps
 				while ( ( count -= 500 ) > 0 ) {
 					voxelSpaceConfig.p.Erode( 500 );
 				}
 
 				// 1-channel image data will now be ready to pass during the next time OnUpdate() is called
-					// no prep work is needed
+					// no CPU-side prep work is needed - the 4 channel map is prepared on the GPU
 
 				voxelSpaceConfig.msLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
 					std::chrono::high_resolution_clock::now() - tstart ).count();
@@ -325,17 +324,29 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
+		const int w = voxelSpaceConfig.p.model.Width();
+		const int h = voxelSpaceConfig.p.model.Height();
+
 		// check to see if the erosion thread is ready
 		if ( voxelSpaceConfig.erosionReady ) {
-			// if it is
-				// update the amount of time since the last erosion update
-				// update the 1-channel image data on the GPU
-				// run the "shading" shader
-					// produces the new 4-channel color / height map for next renderer update
+		// if it is
+			// update the 1-channel image data on the GPU
+			const GLuint handle = textureManager.Get( "Erosion Result" );
+			glBindTexture( GL_TEXTURE_2D, handle );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT,
+				( void * ) voxelSpaceConfig.p.model.GetImageDataBasePtr() );
 
-			// barrier
+			// GPU resource barrier - allow glTexImage2D to complete before continuing
+			glMemoryBarrier( GL_TEXTURE_UPDATE_BARRIER_BIT );
+
+			// run the "shading" shader - produces the new 4-channel color / height map for next renderer update
+
+			// make sure it's ready, after that shader runs
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+			// tell the erosion thread to continue
+			voxelSpaceConfig.erosionReady = false;
 		}
-
 	}
 
 	void OnRender () {
