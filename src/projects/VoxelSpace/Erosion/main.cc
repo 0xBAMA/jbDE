@@ -164,7 +164,6 @@ public:
 		ImGui::Begin( "Renderer State", NULL, 0 );
 		ImGui::Text( " Adjustment of Render parameters" );
 		ImGui::Indent();
-		ImGui::Text( "Main" );
 		ImGui::SliderInt( "Height", &voxelSpaceConfig.viewerHeight, 0, 1800, "%d" );
 		ImGui::SliderFloat2( "Position", (float*)&voxelSpaceConfig.viewPosition, 0.0f, 1024.0f, "%.3f" );
 		ImGui::SliderFloat( "Angle", &voxelSpaceConfig.viewAngle, -3.14159265f, 3.14159265f, "%.3f" );
@@ -182,8 +181,11 @@ public:
 		ImGui::SliderFloat( "Fog Scale", &voxelSpaceConfig.fogScalar, 0.0f, 1.5f, "%.3f" );
 		ImGui::ColorEdit3( "Fog Color", ( float * ) &voxelSpaceConfig.fogColor, 0 );
 		ImGui::Text( " " );
-		// ImGui::SliderInt( "Erosion Steps per Update", &erosionNumStepsPerFrame, 0, 8000, "%d" );
-
+		ImGui::Unindent();
+		ImGui::Text( "Erosion" );
+		ImGui::Indent();
+		ImGui::SliderInt( "Steps per Update", &voxelSpaceConfig.erosionSteps, 0, 8000, "%d" );
+		ImGui::Text( " " );
 		ImGui::Unindent();
 		ImGui::Text( " Postprocess Controls" );
 		ImGui::Indent();
