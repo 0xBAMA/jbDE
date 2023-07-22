@@ -335,21 +335,6 @@ public:
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
-	void OnUpdate () {
-		ZoneScoped; scopedTimer Start( "Update" );
-
-		if ( voxelSpaceConfig.mode == -1 ) {
-			// check to see if the erosion thread is ready
-				// if it is
-					// convert to a uint version
-					// pass it to the image
-					// run the "shade" shader
-					// it's now in the map texture
-
-			// barrier
-		}
-	}
-
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
@@ -372,7 +357,6 @@ public:
 		HandleQuitEvents();
 
 		// derived-class-specific functionality
-		OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
