@@ -419,6 +419,7 @@ This is a planning document for work on this project and in general, about the t
 - Realistic camera / lens element simulation with iq's [raytracing booleans](https://www.shadertoy.com/view/mlfGRM) for lens element shapes
 	- [Pencil of Rays](https://www.pencilofrays.com/) stuff on lens design
 	- Spectral? would need to look into wavelength-dependent behavior for the rays
+		- [Efficient Monte Carlo Rendering with Realistic Lenses](https://jo.dreggn.org/home/2014_lenssim.pdf)
 
 - Data visualization for its own sake
 	- [Byte-level file format details by corkami](https://github.com/corkami/pics/blob/master/binary/README.md#images)
@@ -505,6 +506,7 @@ This is a planning document for work on this project and in general, about the t
 
 - Learning KiCAD opens up a lot of other stuff
 	- Microcontroller stuff, PIC
+		- [Getting started with the ESP32](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/)
 	- ToF laser distance sensors
 	- Accelerometers
 
