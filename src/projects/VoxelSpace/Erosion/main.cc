@@ -18,13 +18,16 @@ struct VoxelSpaceConfig_t {
 	float minimapScalar	= 0.3f;
 	bool adaptiveHeight	= false;
 
-	// thread sync, erosion control
-	bool threadShouldRun;
-	bool erosionReady;
+	// thread sync, erosion control - initally true, this prevents the thread running before init completes
+	bool erosionReady	= true;
+	int erosionSteps	= 8000;
 
 	// map for the eroder
 	ivec2 mapDims;
 	particleEroder p;
+
+	// timing on the erosion thread
+	float msLastUpdate	= 0.0f;
 
 };
 
@@ -43,7 +46,7 @@ public:
 
 			// load config
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			voxelSpaceConfig.mapDims = ivec2( j[ "app" ][ "VoxelSpace" ][ "eroderDim" ] );
+			voxelSpaceConfig.mapDims = ivec2( j[ "app" ][ "VoxelSpace_Erode" ][ "eroderDim" ] );
 
 			// compile all the shaders
 			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
@@ -90,7 +93,6 @@ public:
 				// 1-channel floating point height from the eroder
 				// 4-channel color which is used for the display
 
-			voxelSpaceConfig.threadShouldRun = true;	// set threadShouldRun flag, the thread should run after init finishes
 			voxelSpaceConfig.erosionReady = false;		// unset erosionReady flag, since that data is now potentially in flux
 		}
 	}
@@ -278,17 +280,46 @@ public:
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
+	// update thread
+	std::thread erosionThread { [=] () {
+		while ( !pQuit ) { // while the program is running
+			if ( voxelSpaceConfig.erosionReady ) { // waiting
+				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+			} else {
+				auto tstart = std::chrono::high_resolution_clock::now();
+
+				// run the erosion for the specified number of steps
+				int count = voxelSpaceConfig.erosionSteps;
+				while ( ( count -= 500 ) > 0 ) {
+					voxelSpaceConfig.p.Erode( 500 );
+				}
+
+				// 1-channel image data will now be ready to pass during the next time OnUpdate() is called
+					// no prep work is needed
+
+				voxelSpaceConfig.msLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::high_resolution_clock::now() - tstart ).count();
+
+				// the work for this timestep has completed
+				voxelSpaceConfig.erosionReady = true;
+			}
+		}
+	}};
+
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
 		// check to see if the erosion thread is ready
+		if ( voxelSpaceConfig.erosionReady ) {
 			// if it is
-				// convert to a uint version
-				// pass it to the image
-				// run the "shade" shader
-				// it's now in the map texture
+				// update the amount of time since the last erosion update
+				// update the 1-channel image data on the GPU
+				// run the "shading" shader
+					// produces the new 4-channel color / height map for next renderer update
 
-		// barrier
+			// barrier
+		}
+
 	}
 
 	void OnRender () {
@@ -325,5 +356,9 @@ public:
 int main ( int argc, char *argv[] ) {
 	VoxelSpace VoxelSpaceInstance;
 	while( !VoxelSpaceInstance.MainLoop() );
+
+	// terminate erosion thread, since pQuit is now false
+	VoxelSpaceInstance.erosionThread.join();
+
 	return 0;
 }
