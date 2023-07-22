@@ -48,13 +48,13 @@ public:
 				// load the rest of the config
 
 			// compile all the shaders
-			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/CommancheMaps/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/CommancheMaps/shaders/MiniMap.cs.glsl" ).shaderHandle;
+			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
+			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/Erosion/shaders/MiniMap.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
-				"./src/projects/VoxelSpace/CommancheMaps/shaders/FullscreenTriangle.vs.glsl",
-				"./src/projects/VoxelSpace/CommancheMaps/shaders/FullscreenTriangle.fs.glsl"
+				"./src/projects/VoxelSpace/Erosion/shaders/FullscreenTriangle.vs.glsl",
+				"./src/projects/VoxelSpace/Erosion/shaders/FullscreenTriangle.fs.glsl"
 			).shaderHandle;
 
 			// create a framebuffer to accumulate the images
@@ -116,8 +116,8 @@ public:
 
 
 				// // we want to load one of the basic maps from disk - color in the rgb + height in alpha
-				// Image_4U mapHeight( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
-				// Image_4U mapColor( string( "./src/projects/VoxelSpace/CommancheMaps/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
+				// Image_4U mapHeight( string( "./src/projects/VoxelSpace/Erosion/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Height.png" ) );
+				// Image_4U mapColor( string( "./src/projects/VoxelSpace/Erosion/data/map" ) + std::to_string( voxelSpaceConfig.mode ) + string( "Color.png" ) );
 
 				// // combining the height and color data into one texture - height in alpha - separate images end up being significantly smaller on disk
 				// Image_4U combinedMap( mapColor.Width(), mapColor.Height() );
