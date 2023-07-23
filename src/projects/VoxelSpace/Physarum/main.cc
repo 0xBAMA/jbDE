@@ -82,8 +82,8 @@ public:
 			shaders[ "VoxelSpace" ]			= computeShader( basePath + "VoxelSpace.cs.glsl" ).shaderHandle;
 			shaders[ "MiniMap" ]			= computeShader( basePath + "MiniMap.cs.glsl" ).shaderHandle;
 			shaders[ "Update" ]				= computeShader( basePath + "Update.cs.glsl" ).shaderHandle;
-			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
-			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
+			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "DiffuseAndDecay.cs.glsl" ).shaderHandle;
+			shaders[ "Agents" ]				= computeShader( basePath + "Agent.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
@@ -302,7 +302,7 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "fogScalar" ), voxelSpaceConfig.fogScalar );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "stepIncrement" ), voxelSpaceConfig.stepIncrement );
 			glUniform1f( glGetUniformLocation( shaders[ "VoxelSpace" ], "FoVScalar" ), voxelSpaceConfig.FoVScalar );
-			textureManager.BindImageForShader( "Map", "map", shaders[ "VoxelSpace" ], 1 );
+			textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "map", shaders[ "VoxelSpace" ], 1 );
 			textureManager.BindImageForShader( "Main Rendered View", "target", shaders[ "VoxelSpace" ], 2 );
 			glDispatchCompute( ( config.width + 63 ) / 64, 1, 1 );
 
@@ -314,7 +314,7 @@ public:
 				glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewAngle" ), voxelSpaceConfig.viewAngle );
 				glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "viewBump" ), voxelSpaceConfig.viewBump );
 				glUniform1f( glGetUniformLocation( shaders[ "MiniMap" ], "minimapScalar" ), voxelSpaceConfig.minimapScalar );
-				textureManager.BindImageForShader( "Map", "map", shaders[ "MiniMap" ], 1 );
+				textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "map", shaders[ "MiniMap" ], 1 );
 				textureManager.BindImageForShader( "Minimap Rendered View", "target", shaders[ "MiniMap" ], 2 );
 				glDispatchCompute( ( ( config.width / 4 ) + 63 ) / 64, 1, 1 );
 			}
@@ -386,7 +386,33 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		// do the physarum update
+		// run the shader to do the gaussian blur
+		glUseProgram( shaders[ "Diffuse and Decay" ] );
+		glBindImageTexture( 1, textureManager.Get( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ) ), 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI ); // previous
+		glBindImageTexture( 2, textureManager.Get( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ) ), 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI ); // current
+		glUniform1f( glGetUniformLocation( shaders[ "Diffuse and Decay" ], "decayFactor" ), physarumConfig.decayFactor );
+		physarumConfig.oddFrame = !physarumConfig.oddFrame;
+
+		glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		glUseProgram( shaders[ "Agents" ] );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "stepSize" ), physarumConfig.stepSize );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
+		glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
+		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
+		glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "wangSeed" ), physarumConfig.wangSeed() );
+		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
+		glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
+
+		textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shaders[ "Agents" ], 2 );
+
+		// number of 1024-size jobs, rounded up
+		const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
+
+		glDispatchCompute( 1, numSlices, 1 );
+		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 
 	}
 
