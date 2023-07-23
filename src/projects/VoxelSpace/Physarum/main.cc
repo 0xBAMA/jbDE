@@ -284,8 +284,6 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		// const string frontPheremoneBuffer = 
-
 		{
 			scopedTimer Start( "VoxelSpace Render" );
 

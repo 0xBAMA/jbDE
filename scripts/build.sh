@@ -10,7 +10,10 @@ cd build
 # time make -j17 EngineDemo				# super basic demo
 
 # # child apps
+
 # time make -j17 Physarum				# agent-based sim
+
+# # voxelspace variants
 # time make -j17 VoxelSpace				# voxelspace algorithm renderer
 # time make -j17 VoxelSpace_Erode		# visualizing the erosion update
 # time make -j17 VoxelSpace_Physarum	# visualizing the physarum sim
@@ -19,12 +22,13 @@ cd build
 # time make -j17 SoftBodies				# soft body sim on the CPU
 # time make -j17 SoftBodiesGPU			# soft body sim on the GPU ( unfinished )
 
-# # cellular automata
+# # cellular automata variants
 # time make -j17 CABitPlanes			# parallel cellular automata
 # time make -j17 CAHistory				# cellular automata with history
+# time make -j17 CAColorSplit			# same as above, but different color distribution
 # time make -j17 GoL					# basic Game of Life
 
-# # Vertexture Variants
+# # vertexture point sprite sphere impostors variants
 # time make -j17 Vertexture				# point sprite sphere impostors
 # time make -j17 VertextureClassic		# Vertexture, with the trees
 # time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
