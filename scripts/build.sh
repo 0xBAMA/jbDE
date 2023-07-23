@@ -29,7 +29,8 @@ cd build
 # time make -j17 VertextureClassic		# Vertexture, with the trees
 # time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
 
-# this runs all the targets - use the above individual targets to enable / disable piecemeal
+# this runs all the targets in parallel
+	# use the above individual targets to enable / disable piecemeal
 time make -j17 all
 
 cd ..

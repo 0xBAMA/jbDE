@@ -37,7 +37,7 @@ void main () {
 	float src = 255.0f * imageLoad( sourceData, location ).r;
 	vec3 normal = GetNormal( location );
 
-	vec3 shadingResult = vec3( dot( vec3( 0.0f, 1.0f, 0.0f ), normal ) ) * ( 1.0f / 255.0f ) * vec3( 1.618f * ( 255.0f - src * 255.0f ), 1.618 * float( src * 255.0f ), 1.0f / ( src * 255.0f ) );
+	vec3 shadingResult = vec3( dot( vec3( 0.0f, 1.0f, 0.0f ), normal ) ) * ( 1.0f / 255.0f ) * vec3( 1.618f * ( 255.0f - src * 255.0f ), 1.618f * float( src * 255.0f ), 1.0f / ( src * 255.0f ) );
 
 	imageStore( map, location, uvec4( uvec3( shadingResult.xyz ), src ) );
 }
