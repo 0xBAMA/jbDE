@@ -40,8 +40,6 @@ public:
 			const string basePath = "./src/projects/Physarum/shaders/";
 			shaders[ "Buffer Copy" ]		= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
-
-			// pending refactor
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 
 			// get the configuration from config.json

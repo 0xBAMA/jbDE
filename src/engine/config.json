@@ -108,7 +108,7 @@
 			"generatorThreshold":0.2,
 			"numBitsActive":32
 		},
-		"VoxelSpace":{
+		"VoxelSpace_Commanche":{
 			"map":0
 		},
 		"VoxelSpace_Erode":{

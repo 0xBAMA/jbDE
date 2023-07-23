@@ -39,7 +39,7 @@ public:
 
 			// load config
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			voxelSpaceConfig.mode = j[ "app" ][ "VoxelSpace" ][ "map" ];
+			voxelSpaceConfig.mode = j[ "app" ][ "VoxelSpace_Commanche" ][ "map" ];
 				// load the rest of the config
 
 			// compile all the shaders
