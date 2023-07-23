@@ -60,6 +60,7 @@ using glm::ivec4;
 using glm::mat2;
 using glm::mat3;
 using glm::mat4;
+using glm::normalize;
 
 // OpenGL Function Loader
 #define GLEW_STATIC // found this in the old Vertexture code... is this something useful?

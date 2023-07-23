@@ -54,10 +54,10 @@ public:
 		// model.Save( "test.exr", Image_1F::backend::TINYEXR );
 	}
 
-	glm::vec3 GetSurfaceNormal ( uint32_t x, uint32_t y ) {
+	vec3 GetSurfaceNormal ( uint32_t x, uint32_t y ) {
 		const float scale = 60.0f;
 
-		const float atLocCache = model.GetAtXY( x, y )[ red ];
+		const float cache00 = model.GetAtXY( x, y )[ red ];
 		const float cachep0 = model.GetAtXY( x + 1, y )[ red ];
 		const float cachen0 = model.GetAtXY( x - 1, y )[ red ];
 		const float cache0p = model.GetAtXY( x, y + 1 )[ red ];
@@ -69,16 +69,16 @@ public:
 
 		const float sqrt2 = sqrt( 2.0f );
 
-		glm::vec3 n = glm::vec3( 0.15f ) * glm::normalize(glm::vec3( scale * ( atLocCache - cachep0 ), 1.0f, 0.0f ) );  // Positive X
-		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( scale * ( cachen0 - atLocCache ), 1.0f, 0.0f ) );         // Negative X
-		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( atLocCache - cache0p ) ) );        // Positive Y
-		n += glm::vec3( 0.15f ) * glm::normalize( glm::vec3( 0.0f, 1.0f, scale * ( cache0n - atLocCache ) ) );       // Negative Y
+		vec3 n = vec3( 0.15f ) * normalize(vec3( scale * ( cache00 - cachep0 ), 1.0f, 0.0f ) );  // Positive X
+		n += vec3( 0.15f ) * normalize( vec3( scale * ( cachen0 - cache00 ), 1.0f, 0.0f ) );         // Negative X
+		n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache00 - cache0p ) ) );        // Positive Y
+		n += vec3( 0.15f ) * normalize( vec3( 0.0f, 1.0f, scale * ( cache0n - cache00 ) ) );       // Negative Y
 
 		// diagonals
-		n += glm::vec3( 0.1f ) * glm::normalize( glm::vec3( scale * ( atLocCache - cachepp ) / sqrt2, sqrt2, scale * ( atLocCache - cachepp ) / sqrt2 ) );
-		n += glm::vec3( 0.1f ) * glm::normalize( glm::vec3( scale * ( atLocCache - cachepn ) / sqrt2, sqrt2, scale * ( atLocCache - cachepn ) / sqrt2 ) );
-		n += glm::vec3( 0.1f ) * glm::normalize( glm::vec3( scale * ( atLocCache - cachenp ) / sqrt2, sqrt2, scale * ( atLocCache - cachenp ) / sqrt2 ) );
-		n += glm::vec3( 0.1f ) * glm::normalize( glm::vec3( scale * ( atLocCache - cachenn ) / sqrt2, sqrt2, scale * ( atLocCache - cachenn ) / sqrt2 ) );
+		n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachepp ) / sqrt2, sqrt2, scale * ( cache00 - cachepp ) / sqrt2 ) );
+		n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachepn ) / sqrt2, sqrt2, scale * ( cache00 - cachepn ) / sqrt2 ) );
+		n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachenp ) / sqrt2, sqrt2, scale * ( cache00 - cachenp ) / sqrt2 ) );
+		n += vec3( 0.1f ) * normalize( vec3( scale * ( cache00 - cachenn ) / sqrt2, sqrt2, scale * ( cache00 - cachenn ) / sqrt2 ) );
 
 		return n;
 	}
@@ -109,7 +109,7 @@ public:
 
 			while ( p.volume > minVolume ) { // while the droplet exists (drop volume > 0)
 				const glm::uvec2 initialPosition = p.position; // cache the initial position
-				const glm::vec3 normal = GetSurfaceNormal( initialPosition.x, initialPosition.y );
+				const vec3 normal = GetSurfaceNormal( initialPosition.x, initialPosition.y );
 
 				// newton's second law to calculate acceleration
 				p.speed += timeStep * glm::vec2( normal.x, normal.z ) / ( p.volume * density ); // F = MA, A = F/M
