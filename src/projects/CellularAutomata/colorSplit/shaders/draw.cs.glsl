@@ -29,14 +29,13 @@ void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
 	// current state of the cellular automata - sample the history + sum a color value
-	vec3 accum = vec3( 0.0f );
 	uint state = texture( CAStateBuffer, ( vec2( writeLoc ) + vec2( 0.5f ) ) / resolution ).r;
-	for ( uint bit = 0; bit < 32; bit++ ) {
-		if ( ( ( state >> bit ) & 1u ) != 0 ) {
-			accum += Jet( 0.99f - ( bit / 32.0f ) );
-		}
-	}
+
+	uvec3 result = uvec3( 0 );
+	result.r = state & 0xFFu;
+	result.g = ( state >> 8 ) & 0xFFu;
+	result.b = ( state >> 16 ) & 0xFFu;
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( accum / 3.0f, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( result / 255.0f, 1.0f ) );
 }
