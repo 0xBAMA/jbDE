@@ -24,8 +24,8 @@ public:
 		{ Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture
-			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/history/shaders/draw.cs.glsl" ).shaderHandle;
-			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/history/shaders/update.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/colorSplit/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/colorSplit/shaders/update.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			CAConfig.dimensionX = j[ "app" ][ "CellularAutomata" ][ "dimensionX" ];
