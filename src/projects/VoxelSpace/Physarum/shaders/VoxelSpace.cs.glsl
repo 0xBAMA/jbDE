@@ -2,7 +2,7 @@
 layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
 layout( rgba8ui ) uniform uimage2D blueNoiseTexture;
-layout( rgba8ui ) uniform uimage2D map; // convert to sampler? tbd
+layout( r32ui ) uniform uimage2D map;
 layout( rgba16f ) uniform image2D target;
 
 // parameters
@@ -61,7 +61,7 @@ void main () {
 
 	for ( float dSample = 1.0f, dz = 0.2f; dSample < maxDistance && yBuffer < hPixels; dSample += dz, dz += stepIncrement ) {
 		const ivec2 samplePosition	= ivec2( viewPositionLocal + dSample * direction );
-		const uvec4 dataSample		= imageLoad( map, samplePosition );
+		const uvec4 dataSample		= imageLoad( map, samplePosition ).rggr / 10000;
 		const float heightOnScreen	= ( ( float( dataSample.a ) - viewerHeight ) * ( 1.0f / dSample ) * heightScalar + horizonLine );
 		if ( heightOnScreen > yBuffer ) {
 			uint depthTerm = uint( max( 0, 255 - dSample * fogScalar ) );

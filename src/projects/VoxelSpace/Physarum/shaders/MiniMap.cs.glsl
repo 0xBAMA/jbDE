@@ -2,7 +2,7 @@
 layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
 layout( rgba8ui ) uniform uimage2D blueNoiseTexture;
-layout( rgba8ui ) uniform uimage2D map; // convert to sampler? tbd
+layout( r32ui ) uniform uimage2D map;
 layout( rgba16f ) uniform image2D target;
 
 uniform ivec2 resolution;			// current screen resolution
@@ -39,7 +39,7 @@ uvec4 mapReference ( ivec2 location, out bool passing ) {
 	const bool insideMask = distance( location_local, viewPosition + vec2( viewBump * globalForwards ) ) < ( 100.0f / minimapScalar );
 	const bool outerRing = distance( location_local, viewPosition + vec2( viewBump * globalForwards ) ) > ( 97.0f / minimapScalar );
 	if ( insideMask ) {
-		uvec4 dataSample = imageLoad( map, ivec2( location_local ) );
+		uvec4 dataSample = imageLoad( map, ivec2( location_local ) ).rggr / 10000;
 		passing = true;
 		if ( distance( location_local, viewPosition ) < ( 1.618f / minimapScalar ) ) {
 			// little taller, to show the user's location
