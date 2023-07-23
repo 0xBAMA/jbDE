@@ -62,15 +62,19 @@ public:
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			voxelSpaceConfig.mapDims = ivec2( j[ "app" ][ "VoxelSpace_Erode" ][ "eroderDim" ] );
 
+			const string basePath = "./src/projects/VoxelSpace/Physarum/shaders/";
+
 			// compile all the shaders
-			shaders[ "VoxelSpace" ] = computeShader( "./src/projects/VoxelSpace/Physarum/shaders/VoxelSpace.cs.glsl" ).shaderHandle;
-			shaders[ "MiniMap" ] = computeShader( "./src/projects/VoxelSpace/Physarum/shaders/MiniMap.cs.glsl" ).shaderHandle;
-			shaders[ "Update" ] = computeShader( "./src/projects/VoxelSpace/Physarum/shaders/Update.cs.glsl" ).shaderHandle;
+			shaders[ "VoxelSpace" ]			= computeShader( basePath + "VoxelSpace.cs.glsl" ).shaderHandle;
+			shaders[ "MiniMap" ]			= computeShader( basePath + "MiniMap.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ]				= computeShader( basePath + "Update.cs.glsl" ).shaderHandle;
+			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
+			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 
 			// for rendering into the framebuffer
 			shaders[ "Fullscreen Triangle" ] = regularShader(
-				"./src/projects/VoxelSpace/Physarum/shaders/FullscreenTriangle.vs.glsl",
-				"./src/projects/VoxelSpace/Physarum/shaders/FullscreenTriangle.fs.glsl"
+				basePath + "FullscreenTriangle.vs.glsl",
+				basePath + "FullscreenTriangle.fs.glsl"
 			).shaderHandle;
 
 			// create a framebuffer to accumulate the images
