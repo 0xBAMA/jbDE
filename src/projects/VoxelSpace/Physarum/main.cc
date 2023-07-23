@@ -23,6 +23,28 @@ struct VoxelSpaceConfig_t {
 
 };
 
+struct physarumConfig_t {
+
+	// environment setup
+	uint32_t numAgents;
+	uint32_t dimensionX;
+	uint32_t dimensionY;
+	bool oddFrame = false;
+
+	// agent sim
+	float senseAngle;
+	float senseDistance;
+	float turnAngle;
+	float stepSize;
+	bool writeBack;
+	rngi wangSeed = rngi( 0, 100000 );
+
+	// diffuse + decay
+	float decayFactor;
+	uint32_t depositAmount;
+
+};
+
 class VoxelSpace : public engineBase {	// example derived class
 public:
 	VoxelSpace () { Init(); OnInit(); PostInit(); }
