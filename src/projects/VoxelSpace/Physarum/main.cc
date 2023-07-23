@@ -77,9 +77,8 @@ public:
 			physarumConfig.decayFactor		= j[ "app" ][ "VoxelSpace_Physarum" ][ "decayFactor" ];
 			physarumConfig.depositAmount	= j[ "app" ][ "VoxelSpace_Physarum" ][ "depositAmount" ];
 
-			const string basePath = "./src/projects/VoxelSpace/Physarum/shaders/";
-
 			// compile all the shaders
+			const string basePath = "./src/projects/VoxelSpace/Physarum/shaders/";
 			shaders[ "VoxelSpace" ]			= computeShader( basePath + "VoxelSpace.cs.glsl" ).shaderHandle;
 			shaders[ "MiniMap" ]			= computeShader( basePath + "MiniMap.cs.glsl" ).shaderHandle;
 			shaders[ "Update" ]				= computeShader( basePath + "Update.cs.glsl" ).shaderHandle;
@@ -205,6 +204,58 @@ public:
 		ImGui::Text( " " );
 		ImGui::SliderFloat( "Fog Scale", &voxelSpaceConfig.fogScalar, 0.0f, 1.5f, "%.3f" );
 		ImGui::ColorEdit3( "Fog Color", ( float * ) &voxelSpaceConfig.fogColor, 0 );
+		ImGui::Text( " " );
+		ImGui::Unindent();
+		ImGui::Text( "Physarum" );
+		ImGui::Indent();
+		// expose controls for the physarum
+		if ( ImGui::SmallButton( "Randomize Parameters" ) ) {
+			rng senseAngle( 0.0f, float( pi ) );
+			rng senseDistance( 0.0f, 0.005f );
+			rng turnAngle( 0.0f, float( pi ) );
+			rng stepSize( 0.0f, 0.005f );
+			rngi depositAmount( 4000, 75000 );
+			rng decayFactor( 0.75f, 1.0f );
+
+			// generate new values based on above distributions
+			physarumConfig.senseAngle		= senseAngle();
+			physarumConfig.senseDistance	= senseDistance();
+			physarumConfig.turnAngle		= turnAngle();
+			physarumConfig.stepSize			= stepSize();
+			physarumConfig.depositAmount	= depositAmount();
+			physarumConfig.decayFactor		= decayFactor();
+		}
+		// widgets
+		HelpMarker( "The angle between the sensors." );
+		ImGui::SameLine();
+		ImGui::Text( "Sensor Angle:" );
+		ImGui::SliderFloat( "radians", &physarumConfig.senseAngle, 0.0f, 3.14f, "%.4f" );
+		ImGui::Separator();
+		HelpMarker( "The distance from the agent position to the sensors." );
+		ImGui::SameLine();
+		ImGui::Text( "Sensor Distance:" );
+		ImGui::SliderFloat( "        ", &physarumConfig.senseDistance, 0.0f, 0.005f, "%.4f" );
+		ImGui::Separator();
+		HelpMarker( "Amount that each simulation agent can turn in the movement shader." );
+		ImGui::SameLine();
+		ImGui::Text( "Turn Angle:" );
+		ImGui::SliderFloat( "radians ", &physarumConfig.turnAngle, 0.0f, 3.14f, "%.4f" );
+		ImGui::Separator();
+		HelpMarker( "Distance that each sim agent will go in their current direction each step." );
+		ImGui::SameLine();
+		ImGui::Text( "Step Size:" );
+		ImGui::SliderFloat( "    ", &physarumConfig.stepSize, 0.0f, 0.005f, "%.4f" );
+		ImGui::Separator();
+		HelpMarker( "Amout of pheremone that is deposited by each simulation agent." );
+		ImGui::SameLine();
+		ImGui::Text( "Deposit Amount:" );
+		ImGui::DragScalar( "  ", ImGuiDataType_U32, &physarumConfig.depositAmount, 50, NULL, NULL, "%u units" );
+		ImGui::Separator();
+		HelpMarker( "Scale factor applied when storing the result of the gaussian blur." );
+		ImGui::SameLine();
+		ImGui::Text( "Decay Factor:" );
+		ImGui::SliderFloat( "              ", &physarumConfig.decayFactor, 0.75f, 1.0f, "%.4f" );
+		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 		ImGui::Text( " " );
 		ImGui::Unindent();
 		ImGui::Text( "MiniMap" );
