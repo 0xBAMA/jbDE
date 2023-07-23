@@ -51,7 +51,13 @@ public:
 	~VoxelSpace () { Quit(); }
 
 	VoxelSpaceConfig_t voxelSpaceConfig;
+	physarumConfig_t physarumConfig;
+
 	GLuint renderFramebuffer;
+
+	GLuint agentSSBO;
+	GLuint continuumVAO;
+	GLuint continuumVBO;
 
 	void OnInit () {
 		ZoneScoped;
@@ -60,7 +66,16 @@ public:
 
 			// load config
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			voxelSpaceConfig.mapDims = ivec2( j[ "app" ][ "VoxelSpace_Erode" ][ "eroderDim" ] );
+			physarumConfig.numAgents		= j[ "app" ][ "VoxelSpace_Physarum" ][ "numAgents" ];
+			physarumConfig.dimensionX		= j[ "app" ][ "VoxelSpace_Physarum" ][ "dimensionX" ];
+			physarumConfig.dimensionY		= j[ "app" ][ "VoxelSpace_Physarum" ][ "dimensionY" ];
+			physarumConfig.senseAngle		= j[ "app" ][ "VoxelSpace_Physarum" ][ "senseAngle" ];
+			physarumConfig.senseDistance	= j[ "app" ][ "VoxelSpace_Physarum" ][ "senseDistance" ];
+			physarumConfig.turnAngle		= j[ "app" ][ "VoxelSpace_Physarum" ][ "turnAngle" ];
+			physarumConfig.stepSize			= j[ "app" ][ "VoxelSpace_Physarum" ][ "stepSize" ];
+			physarumConfig.writeBack		= j[ "app" ][ "VoxelSpace_Physarum" ][ "writeBack" ];
+			physarumConfig.decayFactor		= j[ "app" ][ "VoxelSpace_Physarum" ][ "decayFactor" ];
+			physarumConfig.depositAmount	= j[ "app" ][ "VoxelSpace_Physarum" ][ "depositAmount" ];
 
 			const string basePath = "./src/projects/VoxelSpace/Physarum/shaders/";
 
@@ -191,6 +206,8 @@ public:
 
 	void ComputePasses () {
 		ZoneScoped;
+
+		// const string frontPheremoneBuffer = 
 
 		{
 			scopedTimer Start( "VoxelSpace Render" );
