@@ -1,6 +1,6 @@
 # jbDE - the jb Demo Engine
 
-This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-engine) engine. One of the key points is for each project to inherit from a base engine class so that keeping projects up to date and working is a minimal load, makes my life a lot easier. I will be containing all the child projects as folders within this repository, and they will all inherit from the base engine class. General architecture is subject to change, but this is the current high-level plan.
+This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-engine) engine. One of the key points is for each project to inherit from a base engine class so that keeping projects up to date and working is a minimal load, makes my life a lot easier. I will be containing all the child projects as folders within this repository, in `src/projects`, and they will all inherit from the base engine class. General architecture is subject to change, but this is the current high-level plan.
 
 # Setup
 - Requires `libsdl2-dev`, `libglew-dev` on Ubuntu.
