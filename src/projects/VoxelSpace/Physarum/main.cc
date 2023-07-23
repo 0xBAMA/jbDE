@@ -120,7 +120,33 @@ public:
 			textureManager.Add( "Main Rendered View", opts );		// create the image to draw the regular map into
 			textureManager.Add( "Minimap Rendered View", opts );	// create the image to draw the minimap into
 
-			// physarum sim setup
+		// physarum sim
+			// setup the ssbo for the agent data
+			struct agent_t {
+				vec2 position;
+				vec2 direction;
+			};
+
+			std::vector< agent_t > agentsInitialData;
+			size_t bufferSize = 4 * sizeof( GLfloat ) * physarumConfig.numAgents;
+			rng dist( -1.0f, 1.0f );
+
+			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
+				agentsInitialData.push_back( { { dist(), dist() }, glm::normalize( vec2( dist(), dist() ) ) } );
+			}
+
+			glGenBuffers( 1, &agentSSBO );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, bufferSize, ( GLvoid * ) &agentsInitialData[ 0 ], GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, agentSSBO );
+
+			// setup the image buffers for the atomic writes ( 2x for ping-ponging )
+			opts.dataType		= GL_R32UI;
+			opts.width			= physarumConfig.dimensionX;
+			opts.height			= physarumConfig.dimensionY;
+			opts.textureType	= GL_TEXTURE_2D;
+			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
+			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 		}
 	}
 
