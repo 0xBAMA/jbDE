@@ -1,10 +1,12 @@
 #include "../../../engine/engine.h"
 
 struct sirenConfig_t {
+// program parameters and state
 
 	uint32_t targetWidth;
 	uint32_t targetHeight;
 	uint32_t performanceHistorySamples;
+	uint32_t numFullscreenPasses = 0;
 
 	uint32_t tileSize;
 	uint32_t tilePerFrameCap;
@@ -16,12 +18,13 @@ struct sirenConfig_t {
 	uint32_t raymarchMaxBounces;
 	float raymarchMaxDistance;
 	float raymarchEpsilon;
+	float raymarchUnderstep;
 
 	float exposure;
 	float renderFoV;
 	vec3 viewerPosition;	// orientation will come from the trident
 
-// questionable:
+// questionable need:
 	// dither parameters ( mode, colorspace, pattern )
 	// depth fog parameters ( mode, scalar )
 	// display mode ( preview depth, normals, colors, pathtrace )
@@ -44,6 +47,8 @@ public:
 
 			// something to put some basic data in the accumulator texture
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			// preview shader
+			// pathtrace shader
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
@@ -55,6 +60,7 @@ public:
 			sirenConfig.raymarchMaxBounces			= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
 			sirenConfig.raymarchMaxDistance			= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
 			sirenConfig.raymarchEpsilon				= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
+			sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
 			sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
 			sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
 			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
