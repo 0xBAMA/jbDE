@@ -47,8 +47,8 @@ constexpr double pi = 3.14159265358979323846;
 #include "../utils/GLM/gtc/type_ptr.hpp"			// to send matricies gpu-side
 #include "../utils/GLM/gtx/rotate_vector.hpp"
 #include "../utils/GLM/gtx/transform.hpp"
-#include "../utils/GLM/gtx/string_cast.hpp"		// to_string for glm types
-// #define GLX_GLEXT_PROTOTYPES 			// not sure as to the utility of this
+#include "../utils/GLM/gtx/string_cast.hpp"			// to_string for glm types
+// #define GLX_GLEXT_PROTOTYPES 					// not sure as to the utility of this
 
 // convenience defines for GLM
 using glm::vec2;
@@ -147,10 +147,10 @@ using XMLDocument = tinyxml2::XMLDocument;
 // png-encoded glyph list decoder
 #include "../data/glyphLoader.h"
 
-// wordlists
+// wordlist decoders
 #include "../data/wordlistLoader.h"
 
-// diamond square heightmap generation
+// templated diamond square heightmap generation
 #include "../utils/noise/diamondSquare/diamond_square.h"
 
 // particle based erosion
@@ -159,10 +159,10 @@ using XMLDocument = tinyxml2::XMLDocument;
 // Brent Werness' Voxel Automata Terrain, adapted to C++
 #include "../utils/noise/VAT/VAT.h"
 
-// bringing the old perlin impl back
+// bringing the old perlin implementation back
 #include "../utils/noise/perlin.h"
 
-// config, etc structs
+// config struct, tonemapping struct
 #include "./dataStructs.h"
 
 // management of window and GL context
