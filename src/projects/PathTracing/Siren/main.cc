@@ -46,7 +46,20 @@ public:
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			// sirenConfig...	= j[ "app" ][ "Siren" ][ "..." ];
+			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
+			sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
+			sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
+			sirenConfig.tilePerFrameCap				= j[ "app" ][ "Siren" ][ "tilePerFrameCap" ];
+			sirenConfig.performanceHistorySamples	= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
+			sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
+			sirenConfig.raymarchMaxBounces			= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
+			sirenConfig.raymarchMaxDistance			= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
+			sirenConfig.raymarchEpsilon				= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
+			sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
+			sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
+			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
+			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
+			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
 
 		}
 	}
