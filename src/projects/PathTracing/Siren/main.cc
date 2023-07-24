@@ -1,9 +1,15 @@
 #include "../../../engine/engine.h"
 
+struct sirenConfig_t {
+
+};
+
 class engineDemo : public engineBase {	// example derived class
 public:
 	engineDemo () { Init(); OnInit(); PostInit(); }
 	~engineDemo () { Quit(); }
+
+	sirenConfig_t sirenConfig;
 
 	void OnInit () {
 		ZoneScoped;
@@ -12,6 +18,9 @@ public:
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+
+			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			// sirenConfig...	= j[ "app" ][ "Siren" ][ "..." ];
 
 		}
 	}
