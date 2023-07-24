@@ -4,10 +4,10 @@ struct sirenConfig_t {
 
 };
 
-class engineDemo : public engineBase {	// example derived class
+class Siren : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	Siren () { Init(); OnInit(); PostInit(); }
+	~Siren () { Quit(); }
 
 	sirenConfig_t sirenConfig;
 
@@ -134,7 +134,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
-	while( !engineInstance.MainLoop() );
+	Siren sirenInstance;
+	while( !sirenInstance.MainLoop() );
 	return 0;
 }
