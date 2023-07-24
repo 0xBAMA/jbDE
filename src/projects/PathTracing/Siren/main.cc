@@ -2,7 +2,31 @@
 
 struct sirenConfig_t {
 
-	// ...
+	uint32_t targetWidth;
+	uint32_t targetHeight;
+	uint32_t performanceHistorySamples;
+
+	uint32_t tileSize;
+	uint32_t tilePerFrameCap;
+	int32_t sampleCountCap;	// -1 for unlimited
+	uvec2 tileOffset;
+	uvec2 blueNoiseOffset;
+
+	uint32_t raymarchMaxSteps;
+	uint32_t raymarchMaxBounces;
+	float raymarchMaxDistance;
+	float raymarchEpsilon;
+
+	float exposure;
+	float renderFoV;
+	vec3 viewerPosition;	// orientation will come from the trident
+
+// questionable:
+	// dither parameters ( mode, colorspace, pattern )
+	// depth fog parameters ( mode, scalar )
+	// display mode ( preview depth, normals, colors, pathtrace )
+	// thin lens parameters ( focus distance, disk offset jitter )
+	// normal mode - I think this doesn't really make sense to include, because only one really worked correctly last time
 
 };
 
