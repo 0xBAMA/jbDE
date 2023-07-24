@@ -2,6 +2,8 @@
 
 struct sirenConfig_t {
 
+	// ...
+
 };
 
 class Siren : public engineBase {	// example derived class
@@ -16,7 +18,7 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			// something to put some basic data in the accumulator texture - specific to the demo project
+			// something to put some basic data in the accumulator texture
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
@@ -33,9 +35,6 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
-		}
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
@@ -46,7 +45,6 @@ public:
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void DrawAPIGeometry () {
@@ -95,11 +93,6 @@ public:
 		}
 	}
 
-	void OnUpdate () {
-		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
-	}
-
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
@@ -124,7 +117,6 @@ public:
 		HandleQuitEvents();
 
 		// derived-class-specific functionality
-		OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame

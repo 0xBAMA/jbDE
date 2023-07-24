@@ -130,6 +130,8 @@
 			"targetWidth": 1000,
 			"targetHeight": 1000,
 			"tileSize":128,
+			"tilePerFrameCap":128,
+			"performanceHistorySamples":250,
 			"maxSteps":100,
 			"maxBounces":10,
 			"maxDistance":100.0,
