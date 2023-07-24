@@ -84,11 +84,6 @@ public:
 
 	}
 
-	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit
-	}
-
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -110,12 +105,6 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
-
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
@@ -133,7 +122,6 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
 		{
