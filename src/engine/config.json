@@ -125,6 +125,22 @@
 			"depositAmount":1250,
 			"decayFactor":0.9875,
 			"writeBack":false
+		},
+		"Siren":{
+			"targetWidth": 1000,
+			"targetHeight": 1000,
+			"tileSize":128,
+			"maxSteps":100,
+			"maxBounces":10,
+			"maxDistance":100.0,
+			"epsilon":0.001,
+			"exposure":1.0,
+			"FoV":0.618,
+			"viewerPosition":{
+				"x":0.0,
+				"y":0.0,
+				"z":0.0
+			}
 		}
 	}
 }
