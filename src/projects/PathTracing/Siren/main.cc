@@ -3,19 +3,22 @@
 struct sirenConfig_t {
 // program parameters and state
 
-	// performance monitoring
+	// performance settings / monitoring
 	uint32_t performanceHistorySamples;
 	std::deque< float > fpsHistory;
 	std::deque< float > tileHistory;
 	uint32_t numFullscreenPasses = 0;
+	int32_t sampleCountCap;				// -1 for unlimited
 
 	// renderer state
+	uint32_t tileSize;
 	uint32_t targetWidth;
 	uint32_t targetHeight;
-	uint32_t tileSize;
 	uint32_t tilePerFrameCap;
-	int32_t sampleCountCap;	// -1 for unlimited
-	uvec2 tileOffset;
+	bool tileListNeedsUpdate = true;
+	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
+	uint32_t tileOffset;				// offset into tile list
+	
 	ivec2 blueNoiseOffset;
 	float exposure;
 	float renderFoV;
@@ -111,7 +114,27 @@ public:
 	}
 
 	ivec2 GetTile () {
-		return ivec2( 0 );
+		if ( sirenConfig.tileListNeedsUpdate == true ) {
+			// construct the tile list ( runs at frame 0 and again any time the tilesize changes )
+			sirenConfig.tileListNeedsUpdate = false;
+			for ( int x = 0; x <= config.width; x += sirenConfig.tileSize ) {
+				for ( int y = 0; y <= config.height; y += sirenConfig.tileSize ) {
+					sirenConfig.tileOffsets.push_back( ivec2( x, y ) );
+				}
+			}
+		} else { // check if the offset needs to be reset, this means a full pass has been completed
+			if ( ++sirenConfig.tileOffset == sirenConfig.tileOffsets.size() ) {
+				sirenConfig.tileOffset = 0;
+				sirenConfig.numFullscreenPasses++;
+			}
+		}
+		// shuffle when listOffset is zero ( first iteration, and any subsequent resets )
+		if ( !sirenConfig.tileOffset ) {
+			std::random_device rd;
+			std::mt19937 rngen( rd() );
+			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
+		}
+		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
 
 	void ComputePasses () {
