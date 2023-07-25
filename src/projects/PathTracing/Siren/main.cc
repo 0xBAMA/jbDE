@@ -113,40 +113,6 @@ public:
 
 	}
 
-	void ResetAccumulators () {
-		// clear the buffers
-
-	}
-
-	void updateNoiseOffset () {
-		static rng offsetGenerator = rng( 0, 512 );
-		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
-	}
-
-	ivec2 GetTile () {
-		if ( sirenConfig.tileListNeedsUpdate == true ) {
-			// construct the tile list ( runs at frame 0 and again any time the tilesize changes )
-			sirenConfig.tileListNeedsUpdate = false;
-			for ( int x = 0; x <= config.width; x += sirenConfig.tileSize ) {
-				for ( int y = 0; y <= config.height; y += sirenConfig.tileSize ) {
-					sirenConfig.tileOffsets.push_back( ivec2( x, y ) );
-				}
-			}
-		} else { // check if the offset needs to be reset, this means a full pass has been completed
-			if ( ++sirenConfig.tileOffset == sirenConfig.tileOffsets.size() ) {
-				sirenConfig.tileOffset = 0;
-				sirenConfig.numFullscreenPasses++;
-			}
-		}
-		// shuffle when listOffset is zero ( first iteration, and any subsequent resets )
-		if ( !sirenConfig.tileOffset ) {
-			std::random_device rd;
-			std::mt19937 rngen( rd() );
-			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
-		}
-		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
-	}
-
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -184,6 +150,41 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
+
+	void ResetAccumulators () {
+		// clear the buffers
+
+	}
+
+	void UpdateNoiseOffset () {
+		static rng offsetGenerator = rng( 0, 512 );
+		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
+	}
+
+	ivec2 GetTile () {
+		if ( sirenConfig.tileListNeedsUpdate == true ) {
+			// construct the tile list ( runs at frame 0 and again any time the tilesize changes )
+			sirenConfig.tileListNeedsUpdate = false;
+			for ( int x = 0; x <= config.width; x += sirenConfig.tileSize ) {
+				for ( int y = 0; y <= config.height; y += sirenConfig.tileSize ) {
+					sirenConfig.tileOffsets.push_back( ivec2( x, y ) );
+				}
+			}
+		} else { // check if the offset needs to be reset, this means a full pass has been completed
+			if ( ++sirenConfig.tileOffset == sirenConfig.tileOffsets.size() ) {
+				sirenConfig.tileOffset = 0;
+				sirenConfig.numFullscreenPasses++;
+			}
+		}
+		// shuffle when listOffset is zero ( first iteration, and any subsequent resets )
+		if ( !sirenConfig.tileOffset ) {
+			std::random_device rd;
+			std::mt19937 rngen( rd() );
+			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
+		}
+		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
+	}
+
 
 	void OnRender () {
 		ZoneScoped;
