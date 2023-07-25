@@ -16,10 +16,10 @@ struct sirenConfig_t {
 	uint32_t tilePerFrameCap;
 	int32_t sampleCountCap;	// -1 for unlimited
 	uvec2 tileOffset;
-	uvec2 blueNoiseOffset;
+	ivec2 blueNoiseOffset;
 	float exposure;
 	float renderFoV;
-	vec3 viewerPosition;	// orientation will come from the trident
+	vec3 viewerPosition;	// orientation will come from the trident, I think
 
 	// raymarch parameters
 	uint32_t raymarchMaxSteps;
@@ -54,6 +54,7 @@ public:
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 			// preview shader
 			// pathtrace shader
+			// custom tonemap shader, to use the 32-bit float accumulator
 			// ...
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
@@ -74,7 +75,7 @@ public:
 			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
 
 			// remove the 16-bit accumulator, because we're going to want to use a 32-bit version
-			textureManager.Remove( "Accumulator" ); // does this make sense?
+			textureManager.Remove( "Accumulator" );
 
 		}
 	}
@@ -101,6 +102,12 @@ public:
 
 	void ResetAccumulators () {
 		// clear the buffers
+
+	}
+
+	void updateNoiseOffset () {
+		static rng offsetGenerator = rng( 0, 512 );
+		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
 	}
 
 	ivec2 GetTile () {
