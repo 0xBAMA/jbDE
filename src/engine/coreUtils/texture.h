@@ -360,17 +360,23 @@ public:
 		// delete texture
 		GLuint tex = Get( label );
 		glDeleteTextures( 1, &tex );
-		// remove it from the list
-		for ( auto& t : textures ) {
-			if ( t.label == label ) {
-				// put the matching texture on the end of the list and pop it off
-				std::swap( t, *textures.end() );
-				textures.pop_back();
-				return;
+
+		// do the removal
+		bool removed = false;
+		std::vector< texture_t >::iterator itr = textures.begin();
+		while ( itr != textures.end() ) {
+			if ( itr->label == label ) {
+				textures.erase( itr );
+				removed = true;
+			} else {
+				++itr;
 			}
 		}
+
 		// if we get through the list without finding, the texture was not found
-		cout << "texture not found" << endl;
+		if ( !removed ) {
+			cout << "texture not found" << endl;
+		}
 	}
 
 	// TODO

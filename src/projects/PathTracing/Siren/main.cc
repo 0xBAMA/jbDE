@@ -73,7 +73,8 @@ public:
 			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
 			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
 
-			textureManager.Remove( "Accumulator" );
+			// remove the 16-bit accumulator, because we're going to want to use a 32-bit version
+			textureManager.Remove( "Accumulator" ); // does this make sense?
 
 		}
 	}
