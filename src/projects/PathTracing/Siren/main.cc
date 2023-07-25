@@ -3,26 +3,31 @@
 struct sirenConfig_t {
 // program parameters and state
 
-	uint32_t targetWidth;
-	uint32_t targetHeight;
+	// performance monitoring
 	uint32_t performanceHistorySamples;
+	std::deque< float > fpsHistory;
+	std::deque< float > tileHistory;
 	uint32_t numFullscreenPasses = 0;
 
+	// renderer state
+	uint32_t targetWidth;
+	uint32_t targetHeight;
 	uint32_t tileSize;
 	uint32_t tilePerFrameCap;
 	int32_t sampleCountCap;	// -1 for unlimited
 	uvec2 tileOffset;
 	uvec2 blueNoiseOffset;
+	float exposure;
+	float renderFoV;
+	vec3 viewerPosition;	// orientation will come from the trident
 
+	// raymarch parameters
 	uint32_t raymarchMaxSteps;
 	uint32_t raymarchMaxBounces;
 	float raymarchMaxDistance;
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
-	float exposure;
-	float renderFoV;
-	vec3 viewerPosition;	// orientation will come from the trident
 
 // questionable need:
 	// dither parameters ( mode, colorspace, pattern )
@@ -49,6 +54,7 @@ public:
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 			// preview shader
 			// pathtrace shader
+			// ...
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
@@ -66,6 +72,8 @@ public:
 			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
 			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
 			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
+
+			textureManager.Remove( "Accumulator" );
 
 		}
 	}
@@ -88,6 +96,14 @@ public:
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
+	}
+
+	void ResetAccumulators () {
+		// clear the buffers
+	}
+
+	ivec2 GetTile () {
+		return ivec2( 0 );
 	}
 
 	void ComputePasses () {

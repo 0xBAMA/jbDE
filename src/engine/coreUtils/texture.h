@@ -358,6 +358,19 @@ public:
 	// TODO
 	void Remove ( string label ) {
 		// delete texture
+		GLuint tex = Get( label );
+		glDeleteTextures( 1, &tex );
+		// remove it from the list
+		for ( auto& t : textures ) {
+			if ( t.label == label ) {
+				// put the matching texture on the end of the list and pop it off
+				std::swap( t, *textures.end() );
+				textures.pop_back();
+				return;
+			}
+		}
+		// if we get through the list without finding, the texture was not found
+		cout << "texture not found" << endl;
 	}
 
 	// TODO

@@ -12,6 +12,7 @@ cd build
 # # child apps
 
 # time make -j17 Physarum				# agent-based sim
+time make -j17 Siren					# tile based async pathtracer
 
 # # voxelspace variants
 # time make -j17 VoxelSpace				# voxelspace algorithm renderer
@@ -35,7 +36,7 @@ cd build
 
 # this runs all the targets in parallel
 	# use the above individual targets to enable / disable piecemeal
-time make -j17 all
+# time make -j17 all
 
 cd ..
 
