@@ -79,6 +79,17 @@ public:
 			// remove the 16-bit accumulator, because we're going to want to use a 32-bit version
 			textureManager.Remove( "Accumulator" );
 
+			// create the new accumulator(s)
+			textureOptions_t opts;
+			opts.dataType		= GL_RGBA32F;
+			opts.width			= sirenConfig.targetWidth;
+			opts.height			= sirenConfig.targetHeight;
+			opts.textureType	= GL_TEXTURE_2D;
+			textureManager.Add( "Color Accumulator", opts );
+			textureManager.Add( "Depth/Normals Accumulator", opts );
+
+			// initial blue noise offset
+			UpdateNoiseOffset();
 		}
 	}
 
