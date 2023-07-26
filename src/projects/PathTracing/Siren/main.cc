@@ -76,6 +76,7 @@ public:
 
 			// remove the 16-bit accumulator, because we're going to want to use a 32-bit version
 			textureManager.Remove( "Accumulator" );
+				// might bring it back, tbd - custom tonemap shader baking down the result to this accumulator, which then preps for display...?
 
 			// create the new accumulator(s)
 			textureOptions_t opts;
@@ -116,24 +117,32 @@ public:
 
 		{
 			scopedTimer Start( "Tiled Update" );
-			glUseProgram( shaders[ "Pathtrace" ] );
+			const GLuint shader = shaders[ "Pathtrace" ];
+			glUseProgram( shader );
 
+			// send uniforms
 
+			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
+			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
 
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			// going to basically say that tilesizes are multiples of 16
+			glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
-			glUseProgram( shaders[ "Tonemap" ] );
+			const GLuint shader = shaders[ "Tonemap" ];
+			glUseProgram( shader );
 
-			// bind appropriate images
-			textureManager.BindImageForShader( "Color Accumulator", "source", shaders[ "Tonemap" ], 0 );
-			textureManager.BindImageForShader( "Display Texture", "displayTexture", shaders[ "Tonemap" ], 1 );
-
+			// eventually more will be going on with this pass
 			SendTonemappingParameters();
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+				// send additional uniforms
+
+			textureManager.BindImageForShader( "Color Accumulator", "source", shader, 0 );
+			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 1 );
+
+			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
