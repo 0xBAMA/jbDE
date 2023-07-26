@@ -53,11 +53,9 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			// something to put some basic data in the accumulator texture
-			// preview shader
-			// pathtrace shader
-			// custom tonemap shader, to use the 32-bit float accumulator
-			// ...
+			// shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
+			shaders[ "Tonemap" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/tonemap.cs.glsl" ).shaderHandle; // custom, 32-bit target
+
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
@@ -131,6 +129,8 @@ public:
 			glUseProgram( shaders[ "Tonemap" ] );
 
 			// bind appropriate images
+			textureManager.BindImageForShader( "Color Accumulator", "source", shaders[ "Tonemap" ], 0 );
+			textureManager.BindImageForShader( "Display Texture", "displayTexture", shaders[ "Tonemap" ], 1 );
 
 			SendTonemappingParameters();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
