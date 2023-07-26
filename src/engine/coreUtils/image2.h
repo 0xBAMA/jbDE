@@ -273,6 +273,22 @@ public:
 		}
 	}
 
+	void ClearEveryOtherColumnTo ( color c ) {
+		for ( uint32_t y { 0 }; y < height; y++ ){
+			for ( uint32_t x { 0 }; x < width; x+=2 ) {
+				SetAtXY( x, y, c );
+			}
+		}
+	}
+
+	void ClearEveryOtherRowTo ( color c ) {
+		for ( uint32_t y { 0 }; y < height; y+=2 ){
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				SetAtXY( x, y, c );
+			}
+		}
+	}
+
 //======= Esoterica ===================================================================================================
 
 	void Swizzle ( const char swizzle [ numChannels ] ) {
