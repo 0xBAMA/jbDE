@@ -200,8 +200,8 @@ void engineBase::SetupTextureData () {
 		opts.width = config.width;
 		opts.height = config.height;
 		opts.dataType = GL_RGBA8;
-		opts.minFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
-		opts.magFilter = config.linearFilter ? GL_LINEAR : GL_NEAREST;
+		opts.minFilter = ( config.linearFilter ? GL_LINEAR : GL_NEAREST );
+		opts.magFilter = ( config.linearFilter ? GL_LINEAR : GL_NEAREST );
 		opts.textureType = GL_TEXTURE_2D;
 		opts.pixelDataType = GL_UNSIGNED_BYTE;
 		opts.initialData = nullptr;
