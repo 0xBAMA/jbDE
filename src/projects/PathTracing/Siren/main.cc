@@ -84,8 +84,21 @@ public:
 			opts.width			= sirenConfig.targetWidth;
 			opts.height			= sirenConfig.targetHeight;
 			opts.textureType	= GL_TEXTURE_2D;
-			textureManager.Add( "Color Accumulator", opts );
+
 			textureManager.Add( "Depth/Normals Accumulator", opts );
+
+			Image_4U src( opts.width, opts.height );
+			color_4U set( { uint8_t( 255 ), uint8_t( 0 ), uint8_t( 0 ), uint8_t( 255 ) } );
+			src.ClearTo( set );
+			set[ red ] = 0;
+			set[ green ] = 127;
+			src.ClearEveryOtherRowTo( set );
+			set[ green ] = 0;
+			set[ blue ] = 255;
+			src.ClearEveryOtherColumnTo( set );
+			opts.pixelDataType = GL_UNSIGNED_BYTE;
+			opts.initialData = ( void * ) src.GetImageDataBasePtr();
+			textureManager.Add( "Color Accumulator", opts );
 
 			// initial blue noise offset
 			UpdateNoiseOffset();
@@ -117,17 +130,17 @@ public:
 
 		{
 			scopedTimer Start( "Tiled Update" );
-			const GLuint shader = shaders[ "Pathtrace" ];
-			glUseProgram( shader );
+			// const GLuint shader = shaders[ "Pathtrace" ];
+			// glUseProgram( shader );
 
 			// send uniforms
 
-			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
-			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
+			// textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
+			// textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
 
 			// going to basically say that tilesizes are multiples of 16
-			glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
@@ -135,14 +148,15 @@ public:
 			const GLuint shader = shaders[ "Tonemap" ];
 			glUseProgram( shader );
 
+			textureManager.BindTexForShader( "Color Accumulator", "source", shader, 0 );
+			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 1 );
+
 			// eventually more will be going on with this pass
 			SendTonemappingParameters();
 				// send additional uniforms
+			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 
-			textureManager.BindImageForShader( "Color Accumulator", "source", shader, 0 );
-			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 1 );
-
-			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
+			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
