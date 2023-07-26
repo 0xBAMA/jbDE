@@ -83,6 +83,8 @@ public:
 			opts.dataType		= GL_RGBA32F;
 			opts.width			= sirenConfig.targetWidth;
 			opts.height			= sirenConfig.targetHeight;
+			opts.minFilter		= GL_LINEAR;
+			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
 
 			textureManager.Add( "Depth/Normals Accumulator", opts );
