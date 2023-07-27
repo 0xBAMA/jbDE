@@ -15,7 +15,10 @@ struct sirenConfig_t {
 	uint32_t targetWidth;
 	uint32_t targetHeight;
 	uint32_t tilePerFrameCap;
-	bool tileListNeedsUpdate = true;
+	// I think it would make sense to dispatch some N tiles between timer queries, to make better use of the GPU
+		// probably configure that here
+
+	bool tileListNeedsUpdate = true;	// need to generate new tile list ( if e.g. tile size changes )
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset;				// offset into tile list
 	
@@ -24,6 +27,9 @@ struct sirenConfig_t {
 	float renderFoV;
 	vec3 viewerPosition;	// orientation will come from the trident, I think
 
+	// enhanced sphere tracing paper - potential for some optimizations - over-relaxation, refraction, dynamic epsilon
+		// https://erleuchtet.org/~cupe/permanent/enhanced_sphere_tracing.pdf
+
 	// raymarch parameters
 	uint32_t raymarchMaxSteps;
 	uint32_t raymarchMaxBounces;
@@ -31,10 +37,12 @@ struct sirenConfig_t {
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
-
 // questionable need:
 	// dither parameters ( mode, colorspace, pattern )
+		// dithering the pathtrace result, seems, questionable - tbd
 	// depth fog parameters ( mode, scalar )
+		// will probably add this in
+		// additionally, with depth + normals stored, SSAO? might add something, but will have to evaluate
 	// display mode ( preview depth, normals, colors, pathtrace )
 	// thin lens parameters ( focus distance, disk offset jitter )
 	// normal mode - I think this doesn't really make sense to include, because only one really worked correctly last time
@@ -99,6 +107,7 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+
 	}
 
 	void ImguiPass () {
