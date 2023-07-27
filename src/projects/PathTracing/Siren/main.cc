@@ -88,18 +88,6 @@ public:
 			opts.textureType	= GL_TEXTURE_2D;
 
 			textureManager.Add( "Depth/Normals Accumulator", opts );
-
-			Image_4U src( opts.width, opts.height );
-			color_4U set( { uint8_t( 255 ), uint8_t( 0 ), uint8_t( 0 ), uint8_t( 255 ) } );
-			src.ClearTo( set );
-			set[ red ] = 0;
-			set[ green ] = 127;
-			src.ClearEveryOtherRowTo( set );
-			set[ green ] = 0;
-			set[ blue ] = 255;
-			src.ClearEveryOtherColumnTo( set );
-			opts.pixelDataType = GL_UNSIGNED_BYTE;
-			opts.initialData = ( void * ) src.GetImageDataBasePtr();
 			textureManager.Add( "Color Accumulator", opts );
 
 			// initial blue noise offset
