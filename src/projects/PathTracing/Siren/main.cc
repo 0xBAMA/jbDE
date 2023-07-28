@@ -64,7 +64,6 @@ public:
 			shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 			shaders[ "Tonemap" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/tonemap.cs.glsl" ).shaderHandle; // custom, 32-bit target
 
-
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
 			sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
@@ -82,9 +81,8 @@ public:
 			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
 			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
 
-			// remove the 16-bit accumulator, because we're going to want to use a 32-bit version
+			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
-				// might bring it back, tbd - custom tonemap shader baking down the result to this accumulator, which then preps for display...?
 
 			// create the new accumulator(s)
 			textureOptions_t opts;
@@ -129,17 +127,19 @@ public:
 
 		{
 			scopedTimer Start( "Tiled Update" );
-			// const GLuint shader = shaders[ "Pathtrace" ];
-			// glUseProgram( shader );
+			const GLuint shader = shaders[ "Pathtrace" ];
+			glUseProgram( shader );
 
 			// send uniforms
+			ivec2 tileOffset = GetTile();
+			glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
 
-			// textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
-			// textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
+			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
+			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
 
 			// going to basically say that tilesizes are multiples of 16
-			// glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
-			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping

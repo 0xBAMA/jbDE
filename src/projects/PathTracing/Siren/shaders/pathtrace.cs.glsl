@@ -668,6 +668,17 @@
 #version 430 core
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
+layout( rgba32f ) uniform image2D accumulatorColor;
+layout( rgba32f ) uniform image2D accumulatorNormalsAndDepth;
+layout( rgba8ui ) uniform uimage2D blueNoise;
+
+#include "hg_sdf.glsl" // SDF modeling functions
+
+uniform ivec2 tileOffset;
+
 void main () {
-	// placeholder
+	// placeholder xor
+	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
+	uint result = ( location.x % 256 ) ^ ( location.y % 256 );
+	imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
 }

@@ -127,8 +127,8 @@
 			"writeBack":false
 		},
 		"Siren":{
-			"targetWidth": 300,
-			"targetHeight": 200,
+			"targetWidth": 1920,
+			"targetHeight": 1080,
 			"tileSize":128,
 			"tilePerFrameCap":128,
 			"performanceHistorySamples":250,
