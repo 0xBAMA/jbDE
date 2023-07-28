@@ -61,7 +61,7 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			// shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
+			shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 			shaders[ "Tonemap" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/tonemap.cs.glsl" ).shaderHandle; // custom, 32-bit target
 
 
