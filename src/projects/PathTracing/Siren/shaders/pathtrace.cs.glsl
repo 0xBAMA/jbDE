@@ -674,9 +674,11 @@ layout( rgba8ui ) uniform uimage2D blueNoise;
 
 #include "hg_sdf.glsl" // SDF modeling functions
 
+// offsets
 uniform ivec2 tileOffset;
 uniform ivec2 noiseOffset;
 
+// more general parameters
 uniform int wangSeed;
 uniform float exposure;
 uniform float FoV;
@@ -685,12 +687,12 @@ uniform vec3 basisX;
 uniform vec3 basisY;
 uniform vec3 basisZ;
 
+// raymarch parameters
 uniform int raymarchMaxSteps;
 uniform int raymarchMaxBounces;
 uniform float raymarchMaxDistance;
 uniform float raymarchEpsilon;
 uniform float raymarchUnderstep;
-
 
 uvec4 blueNoiseReference ( ivec2 location ) {
 	location += noiseOffset;
