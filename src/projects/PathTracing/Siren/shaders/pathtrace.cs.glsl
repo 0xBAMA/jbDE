@@ -744,6 +744,11 @@ uvec4 blueNoiseReference ( ivec2 location ) {
 	return imageLoad( blueNoise, location );
 }
 
+bool boundsCheck ( ivec2 loc ) { // used to abort off-image samples
+	ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
+	return ( loc.x < bounds.x && loc.y < bounds.y );
+}
+
 void main () {
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
 
