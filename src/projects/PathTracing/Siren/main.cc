@@ -21,7 +21,7 @@ struct sirenConfig_t {
 	bool tileListNeedsUpdate = true;	// need to generate new tile list ( if e.g. tile size changes )
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset = 0;			// offset into tile list
-	
+
 	ivec2 blueNoiseOffset;
 	float exposure;
 	float renderFoV;
@@ -130,12 +130,16 @@ public:
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-			// send uniforms
+			// send uniforms ( initial, shared across frame )
+			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
+
+			// send uniforms ( per loop iteration )
 			ivec2 tileOffset = GetTile();
 			glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
 
 			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
 			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
+			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 
 			// going to basically say that tilesizes are multiples of 16
 			glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );

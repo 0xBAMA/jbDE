@@ -675,10 +675,19 @@ layout( rgba8ui ) uniform uimage2D blueNoise;
 #include "hg_sdf.glsl" // SDF modeling functions
 
 uniform ivec2 tileOffset;
+uniform ivec2 noiseOffset;
+
+uvec4 blueNoiseReference ( ivec2 location ) {
+	location += noiseOffset;
+	location.x = location.x % imageSize( blueNoise ).x;
+	location.y = location.y % imageSize( blueNoise ).y;
+	return imageLoad( blueNoise, location );
+}
 
 void main () {
 	// placeholder xor
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
-	uint result = ( location.x % 256 ) ^ ( location.y % 256 );
+	// uint result = ( location.x % 256 ) ^ ( location.y % 256 );
+	uint result = blueNoiseReference( ivec2( location ) ).r;
 	imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
 }
