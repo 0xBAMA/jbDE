@@ -20,12 +20,13 @@ struct sirenConfig_t {
 
 	bool tileListNeedsUpdate = true;	// need to generate new tile list ( if e.g. tile size changes )
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
-	uint32_t tileOffset = 0;			// offset into tile list
+	uint32_t tileOffset = 0;			// offset into tile list - start at first element
 
 	ivec2 blueNoiseOffset;
 	float exposure;
 	float renderFoV;
-	vec3 viewerPosition;	// orientation will come from the trident, I think
+	vec3 viewerPosition;				// orientation will come from the trident, I think
+	rngi wangSeeder = rngi( 0, 100000000 );	// initial value for the wang ( +x,y offset per invocation )
 
 	// enhanced sphere tracing paper - potential for some optimizations - over-relaxation, refraction, dynamic epsilon
 		// https://erleuchtet.org/~cupe/permanent/enhanced_sphere_tracing.pdf
@@ -131,11 +132,20 @@ public:
 			glUseProgram( shader );
 
 			// send uniforms ( initial, shared across frame )
+			// UpdateNoiseOffset(); // this frame's blue noise offset
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
+			glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), sirenConfig.raymarchMaxSteps );
+			glUniform1i( glGetUniformLocation( shader, "raymarchMaxBounces" ), sirenConfig.raymarchMaxBounces );
+			glUniform1i( glGetUniformLocation( shader, "raymarchMaxDistance" ), sirenConfig.raymarchMaxDistance );
+			glUniform1i( glGetUniformLocation( shader, "raymarchEpsilon" ), sirenConfig.raymarchEpsilon );
+			glUniform1i( glGetUniformLocation( shader, "raymarchUnderstep" ), sirenConfig.raymarchUnderstep );
+			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
+			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
 
 			// send uniforms ( per loop iteration )
 			ivec2 tileOffset = GetTile();
 			glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
+			glUniform1i( glGetUniformLocation( shader, "wangSeed" ), sirenConfig.wangSeeder() );
 
 			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
 			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );

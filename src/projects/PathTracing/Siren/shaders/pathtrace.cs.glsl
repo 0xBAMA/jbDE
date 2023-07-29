@@ -677,6 +677,21 @@ layout( rgba8ui ) uniform uimage2D blueNoise;
 uniform ivec2 tileOffset;
 uniform ivec2 noiseOffset;
 
+uniform int wangSeed;
+uniform float exposure;
+uniform float FoV;
+uniform vec3 viewerPosition;
+uniform vec3 basisX;
+uniform vec3 basisY;
+uniform vec3 basisZ;
+
+uniform int raymarchMaxSteps;
+uniform int raymarchMaxBounces;
+uniform float raymarchMaxDistance;
+uniform float raymarchEpsilon;
+uniform float raymarchUnderstep;
+
+
 uvec4 blueNoiseReference ( ivec2 location ) {
 	location += noiseOffset;
 	location.x = location.x % imageSize( blueNoise ).x;
@@ -685,9 +700,7 @@ uvec4 blueNoiseReference ( ivec2 location ) {
 }
 
 void main () {
-	// placeholder xor
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
-	// uint result = ( location.x % 256 ) ^ ( location.y % 256 );
 	uint result = blueNoiseReference( ivec2( location ) ).r;
 	imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
 }
