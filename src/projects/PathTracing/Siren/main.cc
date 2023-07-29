@@ -96,9 +96,6 @@ public:
 
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
-
-			// initial blue noise offset
-			UpdateNoiseOffset();
 		}
 	}
 
@@ -220,6 +217,7 @@ public:
 			std::random_device rd;
 			std::mt19937 rngen( rd() );
 			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
+			UpdateNoiseOffset(); // this pass's blue noise offset
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
