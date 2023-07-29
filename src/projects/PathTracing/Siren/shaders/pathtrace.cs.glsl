@@ -15,10 +15,10 @@
 // uniform float	thinLensIntensity;	// scalar on the thin lens DoF effect
 // uniform float	FoV;				// field of view
 // uniform float	exposure;			// exposure adjustment
-// uniform vec3	viewerPosition;		// position of the viewer
-// uniform vec3	basisX;				// x basis vector
-// uniform vec3	basisY;				// y basis vector
-// uniform vec3	basisZ;				// z basis vector
+// uniform vec3		viewerPosition;		// position of the viewer
+// uniform vec3		basisX;				// x basis vector
+// uniform vec3		basisY;				// y basis vector
+// uniform vec3		basisZ;				// z basis vector
 // uniform int		wangSeed;			// integer value used for seeding the wang hash rng
 // uniform int		modeSelect;			// do we do a pathtrace sample, or just the preview
 
@@ -464,7 +464,8 @@ uvec4 blueNoiseReference ( ivec2 location ) {
 	return imageLoad( blueNoise, location );
 }
 
-bool boundsCheck ( ivec2 loc ) { // used to abort off-image samples
+bool boundsCheck ( ivec2 loc ) {
+	// used to abort off-image samples
 	ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
 	return ( loc.x < bounds.x && loc.y < bounds.y );
 }
@@ -477,4 +478,5 @@ void main () {
 
 	uint result = blueNoiseReference( ivec2( location ) ).r;
 	imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
+	// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
 }

@@ -189,7 +189,13 @@ public:
 
 	void ResetAccumulators () {
 		// clear the buffers
-
+		Image_4U zeroes( sirenConfig.targetWidth, sirenConfig.targetHeight );
+		GLuint handle = textureManager.Get( "Color Accumulator" );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, zeroes.Width(), zeroes.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		handle = textureManager.Get( "Depth/Normals Accumulator" );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, zeroes.Width(), zeroes.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
 	}
 
 	void UpdateNoiseOffset () {
