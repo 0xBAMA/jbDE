@@ -20,7 +20,7 @@ struct sirenConfig_t {
 
 	bool tileListNeedsUpdate = true;	// need to generate new tile list ( if e.g. tile size changes )
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
-	uint32_t tileOffset;				// offset into tile list
+	uint32_t tileOffset = 0;			// offset into tile list
 	
 	ivec2 blueNoiseOffset;
 	float exposure;
