@@ -63,7 +63,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
-			shaders[ "Tonemap" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/tonemap.cs.glsl" ).shaderHandle; // custom, 32-bit target
+			shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
@@ -157,8 +157,9 @@ public:
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
+			// potentially add stuff like SSAO, depth fog, etc
 			scopedTimer Start( "Postprocess" );
-			const GLuint shader = shaders[ "Tonemap" ];
+			const GLuint shader = shaders[ "Postprocess" ];
 			glUseProgram( shader );
 
 			textureManager.BindTexForShader( "Color Accumulator", "source", shader, 0 );
