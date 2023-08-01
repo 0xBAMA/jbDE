@@ -165,9 +165,16 @@ public:
 			textureManager.BindTexForShader( "Color Accumulator", "source", shader, 0 );
 			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 1 );
 
-			// eventually more will be going on with this pass
-			SendTonemappingParameters();
-				// send additional uniforms
+			// eventually more will be going on with this pass ( dither, depth fog, SSAO, etc )
+			static float prevColorTemperature = 0.0f;
+			static vec3 temperatureColor;
+			if ( tonemap.colorTemp != prevColorTemperature ) {
+				prevColorTemperature = tonemap.colorTemp;
+				temperatureColor = GetColorForTemperature( tonemap.colorTemp );
+			}
+			glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1, glm::value_ptr( temperatureColor ) );
+			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ), tonemap.tonemapMode );
+			glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
 			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
