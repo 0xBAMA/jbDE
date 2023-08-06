@@ -120,15 +120,29 @@ public:
 
 	}
 
-	void ScreenShots ( const bool colorEXR, const bool normalEXR, const bool tonemappedResult ) {
+	void ScreenShots ( const bool colorEXR = true, const bool normalEXR = false, const bool tonemappedResult = false ) {
 		if ( colorEXR == true ) {
+			std::vector< uint8_t > imageBytesToSave;
+			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
+			// glBindTexture( GL_TEXTURE_2D, textures[ "Color Accumulator" ] );
+			glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+			Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 
+			// time string
+			const string filename = string( "test" ) + timeDateString() + string( ".png" );
+
+			// screenshot.FlipVertical();
+			// screenshot.Resize( resize );
+			// screenshot.Save( ssA.str(), Image_4F::backend::TINYEXR );
+			screenshot.Save( filename );
+			cout << "saved " << filename << endl;
 		}
 		if ( normalEXR == true ) {
 
 		}
 		if ( tonemappedResult == true ) {
-			
+
 		}
 	}
 
@@ -243,7 +257,8 @@ public:
 			std::random_device rd;
 			std::mt19937 rngen( rd() );
 			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
-			UpdateNoiseOffset(); // this pass's blue noise offset
+			// UpdateNoiseOffset(); // this pass's blue noise offset
+			ScreenShots();
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
