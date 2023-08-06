@@ -2,6 +2,15 @@
 #define TIMER
 
 #include <chrono>
+#include <sstream>
+
+inline std::string timeDateString () {
+	auto now = std::chrono::system_clock::now();
+	auto inTime_t = std::chrono::system_clock::to_time_t( now );
+	std::stringstream ssA;
+	ssA << std::put_time( std::localtime( &inTime_t ), "-%Y-%m-%d %X" );
+	return ssA.str();
+} 
 
 //=============================================================================
 //==== OpenGL Timer Query Wrapper =============================================
