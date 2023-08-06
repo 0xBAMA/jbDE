@@ -116,8 +116,20 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
-		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
+		QuitConf( &quitConfirm ); // show quit confirm window, ief triggered
 
+	}
+
+	void ScreenShots ( const bool colorEXR, const bool normalEXR, const bool tonemappedResult ) {
+		if ( colorEXR == true ) {
+
+		}
+		if ( normalEXR == true ) {
+
+		}
+		if ( tonemappedResult == true ) {
+			
+		}
 	}
 
 	void ComputePasses () {
@@ -231,7 +243,7 @@ public:
 			std::random_device rd;
 			std::mt19937 rngen( rd() );
 			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
-			// UpdateNoiseOffset(); // this pass's blue noise offset
+			UpdateNoiseOffset(); // this pass's blue noise offset
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
