@@ -1,7 +1,8 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-uniform sampler2D source;
+uniform sampler2D sourceC;
+uniform sampler2D sourceDN;
 layout( rgba8 ) uniform image2D displayTexture;
 
 #include "tonemap.glsl" // tonemapping curves
@@ -15,11 +16,14 @@ void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
 	sampleLoc.y = 1.0f - sampleLoc.y;
-	vec4 originalValue = texture( source, sampleLoc );
+	vec4 originalValue = texture( sourceC, sampleLoc );
 	
 	vec3 color = tonemap( tonemapMode, colorTempAdjust * vec3( originalValue.rgb ) );
 	color = gammaCorrect( gamma, color );
-	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), originalValue.a * 255.0f );
+
+	// keeping sample count in the alpha channel
+	// uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), originalValue.a * 255.0f );
+	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), 255 );
 
 	imageStore( displayTexture, loc, originalValue );
 }
