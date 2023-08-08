@@ -122,15 +122,21 @@ public:
 
 	void ScreenShots ( const bool colorEXR = true, const bool normalEXR = false, const bool tonemappedResult = false ) {
 		if ( colorEXR == true ) {
-			std::vector< uint8_t > imageBytesToSave;
-			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
-			// glBindTexture( GL_TEXTURE_2D, textures[ "Color Accumulator" ] );
-			glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
-			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-			Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
+			std::vector< float > imageBytesToSave;
+			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4 * 4, 0 );
+			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Color Accumulator" ) );
+			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+			Image_4F screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
+
+			// std::vector< uint8_t > imageBytesToSave;
+			// imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
+			// glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+			// glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+			// Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 
 			// time string
-			const string filename = string( "test" ) + timeDateString() + string( ".png" );
+			// const string filename = string( "test" ) + timeDateString() + string( ".png" );
+			const string filename = string( "test.png" );
 
 			// screenshot.FlipVertical();
 			// screenshot.Resize( resize );
@@ -180,6 +186,7 @@ public:
 			// going to basically say that tilesizes are multiples of 16
 			glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
@@ -219,6 +226,10 @@ public:
 			trident.Update( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
+
+		glMemoryBarrier( GL_ALL_BARRIER_BITS );
+		ScreenShots();
+
 	}
 
 	void ResetAccumulators () {
@@ -258,7 +269,6 @@ public:
 			std::mt19937 rngen( rd() );
 			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
 			// UpdateNoiseOffset(); // this pass's blue noise offset
-			ScreenShots();
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}

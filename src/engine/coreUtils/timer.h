@@ -10,7 +10,7 @@ inline std::string timeDateString () {
 	std::stringstream ssA;
 	ssA << std::put_time( std::localtime( &inTime_t ), "-%Y-%m-%d %X" );
 	return ssA.str();
-} 
+}
 
 //=============================================================================
 //==== OpenGL Timer Query Wrapper =============================================
