@@ -479,7 +479,11 @@ void main () {
 	// wang hash seeded uniquely for every pixel
 	seed = wangSeed + 42069 * location.x + 451 * location.y;
 
-	uint result = blueNoiseReference( ivec2( location ) ).r;
-	imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
+	// uint result = blueNoiseReference( ivec2( location ) ).r;
+	// imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
+
 	// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
+
+	vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
+	imageStore( accumulatorColor, ivec2( location ), vec4( uv.xy, 0.0f, 1.0f ) );
 }
