@@ -155,6 +155,7 @@ float calcAO ( in vec3 pos, in vec3 nor ) {
 void main () {
 	vec4 pixCol = vec4( 0.0f );
 	int aa = 3;
+	int samplesHit = 0;
 	for ( int x = 0; x < aa; x++ ) {
 		for ( int y = 0; y < aa; y++ ) {
 			vec2 loc = vec2( ivec2( gl_GlobalInvocationID.xy ) ) + ( 1.0f / aa ) * vec2( x, y );
@@ -183,42 +184,44 @@ void main () {
 			vec3 surfaceNormal = normal( hitPoint );
 			vec4 wCol = deMat( hitPoint ); // albedo + distance
 
-			// go go gadget phong
-			vec3 light1Position = vec3( -1.4f, -0.8f, -0.15f );
-			vec3 light2Position = vec3( 1.8f, -0.3f,  0.25f );
-			vec3 eyePosition = vec3( 0.0f, 0.0f, -1.0f );
-			vec3 l1 = normalize( hitPoint - light1Position );
-			vec3 l2 = normalize( hitPoint - light2Position );
-			vec3 v = normalize( hitPoint - eyePosition );
-			vec3 n = normalize( surfaceNormal );
-			vec3 r1 = normalize( reflect( l1, n ) );
-			vec3 r2 = normalize( reflect( l2, n ) );
-			iterationColor = wCol.xyz;
+			if ( wCol.a <= EPSILON ) {
+				// go go gadget phong
+				vec3 light1Position = vec3( -1.4f, -0.8f, -0.15f );
+				vec3 light2Position = vec3( 1.8f, -0.3f,  0.25f );
+				vec3 eyePosition = vec3( 0.0f, 0.0f, -1.0f );
+				vec3 l1 = normalize( hitPoint - light1Position );
+				vec3 l2 = normalize( hitPoint - light2Position );
+				vec3 v = normalize( hitPoint - eyePosition );
+				vec3 n = normalize( surfaceNormal );
+				vec3 r1 = normalize( reflect( l1, n ) );
+				vec3 r2 = normalize( reflect( l2, n ) );
+				iterationColor = wCol.xyz;
 
-			float ambient = 0.0f;
-			iterationColor += ambient * vec3( 0.1f, 0.1f, 0.2f );
-			
-			float diffuse1 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light1Position ), 2.0f ) ) ) * 0.18f * max( dot( n,  l1 ), 0.0f );
-			float diffuse2 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light2Position ), 2.0f ) ) ) * 0.18f * max( dot( n,  l2 ), 0.0f );
+				float ambient = 0.0f;
+				iterationColor += ambient * vec3( 0.1f, 0.1f, 0.2f );
+				
+				float diffuse1 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light1Position ), 2.0f ) ) ) * 0.18f * max( dot( n,  l1 ), 0.0f );
+				float diffuse2 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light2Position ), 2.0f ) ) ) * 0.18f * max( dot( n,  l2 ), 0.0f );
 
-			iterationColor += diffuse1 * vec3( 0.09f, 0.09f, 0.04f );
-			iterationColor += diffuse2 * vec3( 0.09f, 0.09f, 0.04f );
-			
-			float specular1 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light1Position ), 2.0f ) ) ) * 0.4f * pow( max( dot( r1, v ), 0.0f ), 60.0f );
-			float specular2 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light2Position ), 2.0f ) ) ) * 0.4f * pow( max( dot( r2, v ), 0.0f ), 80.0f );
+				iterationColor += diffuse1 * vec3( 0.09f, 0.09f, 0.04f );
+				iterationColor += diffuse2 * vec3( 0.09f, 0.09f, 0.04f );
+				
+				float specular1 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light1Position ), 2.0f ) ) ) * 0.4f * pow( max( dot( r1, v ), 0.0f ), 60.0f );
+				float specular2 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light2Position ), 2.0f ) ) ) * 0.4f * pow( max( dot( r2, v ), 0.0f ), 80.0f );
 
-			if ( dot( n, l1 ) > 0.0f ) iterationColor += specular1 * vec3( 0.4f, 0.2f, 0.0f );
-			if ( dot( n, l2 ) > 0.0f ) iterationColor += specular2 * vec3( 0.4f, 0.2f, 0.0f );
+				if ( dot( n, l1 ) > 0.0f ) iterationColor += specular1 * vec3( 0.4f, 0.2f, 0.0f );
+				if ( dot( n, l2 ) > 0.0f ) iterationColor += specular2 * vec3( 0.4f, 0.2f, 0.0f );
 
-			iterationColor *= calcAO( hitPoint, surfaceNormal );
-			pixCol.xyz += iterationColor;
-			pixCol.a += ( wCol.a < ( EPSILON * 5.0f ) ) ? 1.0f : 0.0f;
+				iterationColor *= calcAO( hitPoint, surfaceNormal );
+				pixCol.xyz += iterationColor;
+				pixCol.a += 1.0f;
+				samplesHit++;
+			}
 		}
 	}
 
-	pixCol /= float( aa * aa );
+	pixCol /= float( samplesHit );
 
-	// colorResult = uvec4( uvec3( wCol.rgb * 255 ), wCol.a < ( EPSILON * 5.0 ) ? 255 : 0 );
-	uvec4 colorResult = uvec4( uvec3( pixCol * 255 ), pixCol.a * 255 );
+	uvec4 colorResult = uvec4( uvec3( pixCol * 255 ), pow( pixCol.a, 1.0f / 2.2f ) * 255 );
 	imageStore( tridentStorage, ivec2( gl_GlobalInvocationID.xy ), colorResult );
 }
