@@ -227,8 +227,8 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		glMemoryBarrier( GL_ALL_BARRIER_BITS );
-		ScreenShots();
+		// glMemoryBarrier( GL_ALL_BARRIER_BITS );
+		// ScreenShots();
 
 	}
 
