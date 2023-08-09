@@ -473,6 +473,11 @@ bool boundsCheck ( ivec2 loc ) {
 	return ( loc.x < bounds.x && loc.y < bounds.y );
 }
 
+vec3 getCameraRayForUV ( vec2 uv ) {
+	// placeholder for switchable cameras ( fisheye, etc )
+	return vec3( uv, 1.0f );
+}
+
 void main () {
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
 
@@ -485,5 +490,5 @@ void main () {
 	// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
 
 	vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-	imageStore( accumulatorColor, ivec2( location ), vec4( uv.xy, 0.0f, 1.0f ) );
+	imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
 }
