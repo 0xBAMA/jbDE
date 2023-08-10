@@ -11,13 +11,15 @@ protected:
 	orientTrident trident;				// orientation gizmo from Voraldo13
 	textureManager_t textureManager;	// simplified texture interface
 
+	// shaderManager_t shaderManager;	// shader compilation + management would be nice
+
 //====== OpenGL ===============================================================
 	GLuint displayVAO;
 	GLuint displayVBO;
 
 	// resource management
-	unordered_map< string, GLuint > shaders;
-	unordered_map< string, bindSet > bindSets; // needs refactor to use the new texture manager
+	unordered_map< string, GLuint > shaders;	// replace with shaderManager, I think
+	unordered_map< string, bindSet > bindSets;	// needs refactor to use the new texture manager
 
 //====== Tonemapping Parameters + Adjustment ==================================
 	colorGradeParameters tonemap;
