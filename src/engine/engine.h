@@ -17,7 +17,7 @@ protected:
 
 	// resource management
 	unordered_map< string, GLuint > shaders;
-	unordered_map< string, bindSet > bindSets;
+	unordered_map< string, bindSet > bindSets; // needs refactor to use the new texture manager
 
 //====== Tonemapping Parameters + Adjustment ==================================
 	colorGradeParameters tonemap;

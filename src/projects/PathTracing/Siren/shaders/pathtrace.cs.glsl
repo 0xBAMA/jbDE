@@ -1,27 +1,3 @@
-// #include "hg_sdf.glsl" // SDF modeling functions
-
-// #define AA 1 // AA value of 2 means each sample is actually 2*2 = 4 offset samples, slows things way down
-
-// // core rendering stuff
-// uniform ivec2	tileOffset;			// tile renderer offset for the current tile
-// uniform ivec2	noiseOffset;		// jitters the noise sample read locations
-// uniform int		maxSteps;			// max steps to hit
-// uniform int		maxBounces;			// number of pathtrace bounces
-// uniform float	maxDistance;		// maximum ray travel
-// uniform float 	understep;			// scale factor on distance, when added as raymarch step
-// uniform float	epsilon;			// how close is considered a surface hit
-// uniform int		normalMethod;		// selector for normal computation method
-// uniform float	focusDistance;		// for thin lens approx
-// uniform float	thinLensIntensity;	// scalar on the thin lens DoF effect
-// uniform float	FoV;				// field of view
-// uniform float	exposure;			// exposure adjustment
-// uniform vec3		viewerPosition;		// position of the viewer
-// uniform vec3		basisX;				// x basis vector
-// uniform vec3		basisY;				// y basis vector
-// uniform vec3		basisZ;				// z basis vector
-// uniform int		wangSeed;			// integer value used for seeding the wang hash rng
-// uniform int		modeSelect;			// do we do a pathtrace sample, or just the preview
-
 // // render modes
 // #define PATHTRACE		0
 // #define PREVIEW_DIFFUSE	1
@@ -29,52 +5,13 @@
 // #define PREVIEW_DEPTH	3
 // #define PREVIEW_SHADED	4 // TODO: some basic phong + AO... tbd
 
-// // lens parameters
-// uniform float lensScaleFactor;		// scales the lens DE
-// uniform float lensRadius1;			// radius of the sphere for the first side
-// uniform float lensRadius2;			// radius of the sphere for the second side
-// uniform float lensThickness;		// offset between the two spheres
-// uniform float lensRotate;			// rotating the displacement offset betwee spheres
-// uniform float lensIoR;				// index of refraction for the lens
-// uniform bool showLens;				// whether or not to show lens sdf
-
-// // scene parameters
-// uniform vec3 redWallColor;
-// uniform vec3 greenWallColor;
-// uniform vec3 whiteWallColor;
-// uniform vec3 floorCielingColor;
-// uniform vec3 metallicDiffuse;
-
 // // global state
 // 	// requires manual management of geo, to ensure that the lens material does not intersect with itself
 // bool enteringRefractive = false; // multiply by the lens distance estimate, to invert when inside a refractive object
 // float sampleCount = 0.0f;
 
-// #include "BRDFUtils.glsl" // Namless's BRDF code
-
-// #define NOHIT 0
-// #define DIFFUSE 1
-// #define PERFECTREFLECT 2
-// #define METALLIC 3
-// #define EMISSIVE 4
-// #define REFRACTIVE 5
-// #define GGX 6
-
 // // eventually, probably define a list of materials, and index into that - that will allow for
 // 	// e.g. refractive materials of multiple different indices of refraction
-
-// // fake AO, computed from SDF
-// float calcAO ( in vec3 position, in vec3 normal ) {
-// 	float occ = 0.0f;
-// 	float sca = 1.0f;
-// 	for( int i = 0; i < 5; i++ ) {
-// 		float h = 0.001f + 0.15f * float( i ) / 4.0f;
-// 		float d = de( position + h * normal );
-// 		occ += ( h - d ) * sca;
-// 		sca *= 0.95f;
-// 	}
-// 	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
-// }
 
 // // normalized gradient of the SDF - 3 different methods
 // vec3 normal ( vec3 p ) {
@@ -93,30 +30,6 @@
 // 		case 2: // from iq - less efficient, 6 DE evaluations
 // 			e = vec2( epsilon, 0.0f );
 // 			return normalize( vec3( de( p + e.xyy ) - de( p - e.xyy ), de( p + e.yxy ) - de( p - e.yxy ), de( p + e.yyx ) - de( p - e.yyx ) ) );
-// 			break;
-
-// 		default:
-// 			break;
-// 	}
-// }
-
-// // there's definitely a better way to do this, instead of two separate functions - some preprocessor fuckery? tbd
-// vec3 lensNormal ( vec3 p ) {
-// 	vec2 e;
-// 	switch( normalMethod ) {
-// 		case 0: // tetrahedron version, unknown original source - 4 DE evaluations
-// 			e = vec2( 1.0f, -1.0f ) * epsilon;
-// 			return normalize( e.xyy * deLens( p + e.xyy ) + e.yyx * deLens( p + e.yyx ) + e.yxy * deLens( p + e.yxy ) + e.xxx * deLens( p + e.xxx ) );
-// 			break;
-
-// 		case 1: // from iq = more efficient, 4 DE evaluations
-// 			e = vec2( epsilon, 0.0f );
-// 			return normalize( vec3( deLens( p ) ) - vec3( deLens( p - e.xyy ), deLens( p - e.yxy ), deLens( p - e.yyx ) ) );
-// 			break;
-
-// 		case 2: // from iq - less efficient, 6 DE evaluations
-// 			e = vec2( epsilon, 0.0f );
-// 			return normalize( vec3( deLens( p + e.xyy ) - deLens( p - e.xyy ), deLens( p + e.yxy ) - deLens( p - e.yxy ), deLens( p + e.yyx ) - deLens( p - e.yyx ) ) );
 // 			break;
 
 // 		default:
@@ -205,8 +118,6 @@
 
 // 		vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * hitNormal + randomUnitVector() );
 // 		vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * hitNormal + mix( reflectedVector, randomUnitVector(), 0.1f ) );
-
-
 
 // 		// currently just implementing diffuse and emissive behavior
 // 			// eventually add different ray behaviors for each material here
@@ -476,6 +387,19 @@ bool boundsCheck ( ivec2 loc ) {
 vec3 getCameraRayForUV ( vec2 uv ) {
 	// placeholder for switchable cameras ( fisheye, etc )
 	return vec3( uv, 1.0f );
+}
+
+// fake AO, computed from SDF
+float calcAO ( in vec3 position, in vec3 normal ) {
+	float occ = 0.0f;
+	float sca = 1.0f;
+	for( int i = 0; i < 5; i++ ) {
+		float h = 0.001f + 0.15f * float( i ) / 4.0f;
+		float d = de( position + h * normal );
+		occ += ( h - d ) * sca;
+		sca *= 0.95f;
+	}
+	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
 }
 
 void main () {
