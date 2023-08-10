@@ -44,25 +44,6 @@
 // 	return r0 + ( 1.0f - r0 ) * pow( ( 1.0f - cosTheta ), 5.0f );
 // }
 
-// // raymarches to the next hit
-// float raymarch ( vec3 origin, vec3 direction ) {
-// 	float dQuery = 0.0f;
-// 	float dTotal = 0.0f;
-// 	for ( int steps = 0; steps < maxSteps; steps++ ) {
-// 		vec3 pQuery = origin + dTotal * direction;
-// 		dQuery = de( pQuery );
-// 		dTotal += dQuery * understep;
-// 		if ( dTotal > maxDistance || abs( dQuery ) < epsilon ) {
-// 			break;
-// 		}
-// 		// // certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
-// 		// if ( normalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
-// 		// 	direction = normalize( direction + 0.4f * randomUnitVector() );
-// 		// }
-// 	}
-// 	return dTotal;
-// }
-
 // ivec2 location = ivec2( 0, 0 );	// 2d location, pixel coords
 // vec3 colorSample ( vec3 rayOrigin_in, vec3 rayDirection_in ) {
 
@@ -389,6 +370,37 @@ vec3 getCameraRayForUV ( vec2 uv ) {
 	return vec3( uv, 1.0f );
 }
 
+float de ( vec3 p ) {
+	float S = 1.0f;
+	float R, e;
+	float time = 0.0f;
+	p.y += p.z;
+	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
+		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+	}
+	return e * R * 0.1f;
+}
+
+// raymarches to the next hit
+float raymarch ( vec3 origin, vec3 direction ) {
+	float dQuery = 0.0f;
+	float dTotal = 0.0f;
+	for ( int steps = 0; steps < raymarchMaxSteps; steps++ ) {
+		vec3 pQuery = origin + dTotal * direction;
+		dQuery = de( pQuery );
+		dTotal += dQuery * raymarchUnderstep;
+		if ( dTotal > raymarchMaxDistance || abs( dQuery ) < raymarchEpsilon ) {
+			break;
+		}
+		// // certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
+		// if ( normalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
+		// 	direction = normalize( direction + 0.4f * randomUnitVector() );
+		// }
+	}
+	return dTotal;
+}
+
 // fake AO, computed from SDF
 float calcAO ( in vec3 position, in vec3 normal ) {
 	float occ = 0.0f;
@@ -408,11 +420,16 @@ void main () {
 	// wang hash seeded uniquely for every pixel
 	seed = wangSeed + 42069 * location.x + 451 * location.y;
 
+	// debug vis blue noise
 	// uint result = blueNoiseReference( ivec2( location ) ).r;
 	// imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
 
+	// debug vis rng
 	// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
 
+	// debug vis screen uv
 	vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-	imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
+	// imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
+
+	imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( vec3( uv, 0.0f ), vec3( 0.0f, 0.0f, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
 }
