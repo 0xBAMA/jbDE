@@ -356,21 +356,36 @@ bool boundsCheck ( ivec2 loc ) {
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
-vec3 getCameraRayForUV ( vec2 uv ) {
-	// placeholder for switchable cameras ( fisheye, etc )
-	return vec3( uv, 1.0f );
+// vec3 getCameraRayForUV ( vec2 uv ) {
+// 	// placeholder for switchable cameras ( fisheye, etc )
+// 	return vec3( uv, 1.0f );
+// }
+
+vec2 subpixelOffset () {
+	// tbd, probably blue noise
+	return vec2( normalizedRandomFloat(), normalizedRandomFloat() );
 }
 
-float de ( vec3 p ) {
-	float S = 1.0f;
-	float R, e;
-	float time = 0.0f;
-	p.y += p.z;
-	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
-		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+// organic shape
+// float de ( vec3 p ) {
+// 	float S = 1.0f;
+// 	float R, e;
+// 	float time = 0.0f;
+// 	p.y += p.z;
+// 	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+// 	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
+// 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+// 	}
+// 	return e * R * 0.1f;
+// }
+
+float de ( vec3 p0 ) {
+	vec4 p = vec4( p0, 1.0f );
+	for ( int i = 0; i < 8; i++ ) {
+		p.xyz = mod( p.xyz - 1.0f, 2.0f ) - 1.0f;
+		p *= 1.4f / dot( p.xyz, p.xyz );
 	}
-	return e * R * 0.1f;
+	return ( length( p.xz / p.w ) * 0.25f );
 }
 
 // raymarches to the next hit
@@ -413,26 +428,16 @@ void main () {
 		// wang hash seeded uniquely for every pixel
 		seed = wangSeed + 42069 * location.x + 451 * location.y;
 
-		// debug vis blue noise
-		// uint result = blueNoiseReference( ivec2( location ) ).r;
-		// imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
+		// subpixel offset, remap uv, etc
+		const vec2 uv = ( vec2( location ) + vec2( 0.5f ) + subpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
+		const vec2 uvRemapped = 2.0f * ( uv - vec2( 0.5f ) );
+		const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
-		// debug vis rng
-		// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
+		const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
+		const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
 
-		// debug vis screen uv
-		// vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-		// imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
-
-		// debug vis very simple intersection
-		// vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-		// imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( vec3( uv, 0.0f ), vec3( 0.0f, 0.0f, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
-
-		const vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-		const vec3 rayOrigin = viewerPosition + vec3( uv, 0.0f );
-		const vec3 rayDirection = uv.x * basisX + uv.y * basisY;
+		// imageStore( accumulatorColor, ivec2( location ), vec4( 1.0f / raymarch( vec3( uv, 0.0f ), vec3( uv, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
+		// imageStore( accumulatorColor, ivec2( location ), vec4( rayOrigin, 1.0f ) );
 		imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( rayOrigin, rayDirection ), 0.0f, 0.0f, 1.0f ) );
-
-		
 	}
 }
