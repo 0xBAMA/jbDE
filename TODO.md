@@ -398,6 +398,8 @@ This is a planning document for work on this project and in general, about the t
 		- [Online LIDAR Point Cloud Viewer](http://lidarview.com/)
 		- [Potree](https://potree.github.io/) / [Repo](https://github.com/potree/potree)
 	- Mesh to point cloud conversion, Poisson Disk Sampling on triangles to generate points
+	- Python converting to more friendly format:
+		- [PyLAS](https://pypi.org/project/pylas/) / [LAZ support library](https://github.com/hobuinc/laz-perf) - maybe easier than [what I was looking at before](https://laspy.readthedocs.io/en/latest/)?
 	- Find more LIDAR scans data to look at
 		- [Some on Sketchfab](https://sketchfab.com/3d-models/sy-carola-point-cloud-17bd8188447b48baab75125b9ad20788)
 		- I thing the poisson disk sampling thing would be an interesting way to generate them from meshes
