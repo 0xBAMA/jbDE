@@ -158,7 +158,7 @@ void main () {
 	int samplesHit = 0;
 	for ( int x = 0; x < aa; x++ ) {
 		for ( int y = 0; y < aa; y++ ) {
-			vec2 loc = vec2( ivec2( gl_GlobalInvocationID.xy ) ) + ( 1.0f / aa ) * vec2( x, y );
+			vec2 loc = vec2( ivec2( gl_GlobalInvocationID.xy ) ) + ( ( 1.0f / aa ) * vec2( x, y ) );
 			vec2 position = loc / vec2( imageSize( tridentStorage ).xy );
 
 			// ray starting location comes from mapped location on the texture
@@ -213,6 +213,7 @@ void main () {
 				if ( dot( n, l2 ) > 0.0f ) iterationColor += specular2 * vec3( 0.4f, 0.2f, 0.0f );
 
 				iterationColor *= calcAO( hitPoint, surfaceNormal );
+
 				pixCol.xyz += iterationColor;
 				pixCol.a += 1.0f;
 				samplesHit++;
@@ -220,8 +221,10 @@ void main () {
 		}
 	}
 
-	pixCol /= float( samplesHit );
+	if ( samplesHit > 0 ) {
+		pixCol /= float( samplesHit );
+	}
 
-	uvec4 colorResult = uvec4( uvec3( pixCol * 255 ), pow( pixCol.a, 1.0f / 2.2f ) * 255 );
+	uvec4 colorResult = uvec4( uvec3( pixCol * 255 ), ( float( samplesHit ) / float( aa * aa ) ) * 255 );
 	imageStore( tridentStorage, ivec2( gl_GlobalInvocationID.xy ), colorResult );
 }
