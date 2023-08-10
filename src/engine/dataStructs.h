@@ -17,6 +17,7 @@ struct configData {
 	bool SDLDisplayModeDump = false;
 
 	bool reportPlatformInfo = true;
+	bool loadDataResources = true;
 
 	bool enableDepthTesting = false;
 	bool SRGBFramebuffer = false;

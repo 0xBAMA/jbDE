@@ -22,6 +22,7 @@
 	"SDL_WINDOW_BORDERLESS":false,
 	"SDL_WINDOW_RESIZABLE":true,
 	"SDL_WINDOW_INPUT_GRABBED":false,
+	"loadDataResources":false,
 	"clearColor":{
 		"r":0.0,
 		"g":0.0,

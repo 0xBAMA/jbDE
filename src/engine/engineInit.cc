@@ -38,6 +38,7 @@ void engineBase::LoadConfig () {
 		config.reportPlatformInfo		= j[ "reportPlatformInfo" ];
 		config.enableDepthTesting		= j[ "depthTesting" ];
 		config.SRGBFramebuffer			= j[ "SRGBFramebuffer" ];
+		config.loadDataResources		= j[ "loadDataResources" ];
 		config.clearColor.r				= j[ "clearColor" ][ "r" ];
 		config.clearColor.g				= j[ "clearColor" ][ "g" ];
 		config.clearColor.b				= j[ "clearColor" ][ "b" ];
@@ -298,31 +299,33 @@ void engineBase::SetupTextureData () {
 void engineBase::LoadData () {
 	ZoneScoped;
 
-	{
-		Block Start( "Loading Palettes" );
+	if ( config.loadDataResources ) { // toggle loading of palettes, font glyphs, and bad/color wordlists
+		{
+			Block Start( "Loading Palettes" );
 
-		LoadPalettes( paletteList );
-		palette::PopulateLocalList( paletteList );
-		// cout << "loaded " << paletteList.size() << " palettes" << newline;
-	}
+			LoadPalettes( paletteList );
+			palette::PopulateLocalList( paletteList );
+			// cout << "loaded " << paletteList.size() << " palettes" << newline;
+		}
 
-	{
-		Block Start( "Loading Font Glyphs" );
+		{
+			Block Start( "Loading Font Glyphs" );
 
-		LoadGlyphs( glyphList );
-		// cout << "loaded " << glyphList.size() << " glyphs" << newline;
-	}
+			LoadGlyphs( glyphList );
+			// cout << "loaded " << glyphList.size() << " glyphs" << newline;
+		}
 
-	{
-		Block Start( "Load Wordlists" );
+		{
+			Block Start( "Load Wordlists" );
 
-		LoadBadWords( badWords );
-		// cout << "loaded " << badWords.size() << " bad words" << newline;
+			LoadBadWords( badWords );
+			// cout << "loaded " << badWords.size() << " bad words" << newline;
 
-		LoadColorWords( colorWords );
-		// cout << "loaded " << colorWords.size() << " color words" << newline;
+			LoadColorWords( colorWords );
+			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-		/* plantWords, animalWords, etc? tbd */
+			/* plantWords, animalWords, etc? tbd */
+		}
 	}
 }
 
