@@ -205,7 +205,7 @@ void main () {
 
 				iterationColor += diffuse1 * vec3( 0.09f, 0.09f, 0.04f );
 				iterationColor += diffuse2 * vec3( 0.09f, 0.09f, 0.04f );
-				
+
 				float specular1 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light1Position ), 2.0f ) ) ) * 0.4f * pow( max( dot( r1, v ), 0.0f ), 60.0f );
 				float specular2 = ( 1.0f / ( pow( 0.25f * distance( hitPoint, light2Position ), 2.0f ) ) ) * 0.4f * pow( max( dot( r2, v ), 0.0f ), 80.0f );
 
@@ -213,7 +213,6 @@ void main () {
 				if ( dot( n, l2 ) > 0.0f ) iterationColor += specular2 * vec3( 0.4f, 0.2f, 0.0f );
 
 				iterationColor *= calcAO( hitPoint, surfaceNormal );
-
 				pixCol.xyz += iterationColor;
 				pixCol.a += 1.0f;
 				samplesHit++;

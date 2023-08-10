@@ -379,6 +379,7 @@ vec2 subpixelOffset () {
 // 	return e * R * 0.1f;
 // }
 
+// basic apollonian
 float de ( vec3 p0 ) {
 	vec4 p = vec4( p0, 1.0f );
 	for ( int i = 0; i < 8; i++ ) {
