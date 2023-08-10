@@ -16,7 +16,6 @@ protected:
 	GLuint displayVBO;
 
 	// resource management
-	unordered_map< string, GLuint > textures;
 	unordered_map< string, GLuint > shaders;
 	unordered_map< string, bindSet > bindSets;
 

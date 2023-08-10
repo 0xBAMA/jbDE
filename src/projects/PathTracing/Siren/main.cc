@@ -297,13 +297,13 @@ public:
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
 
-		// derived-class-specific functionality
-		OnRender();
-
 		// event handling
 		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
+
+		// derived-class-specific functionality
+		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
 		PrepareProfilingData(); // get profiling data ready for next frame
