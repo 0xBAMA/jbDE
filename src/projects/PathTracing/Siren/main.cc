@@ -182,13 +182,6 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( trident.basisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( trident.basisZ ) );
 
-			// cout << "trident is:" << endl;
-			// cout << trident.basisX.x << " " << trident.basisX.y << " " << trident.basisX.z << endl;
-			// cout << trident.basisY.x << " " << trident.basisY.y << " " << trident.basisY.z << endl;
-			// cout << trident.basisZ.x << " " << trident.basisZ.y << " " << trident.basisZ.z << endl;
-			// cout << "viewer is located:" << endl;
-			// cout << sirenConfig.viewerPosition.x << " " << sirenConfig.viewerPosition.y << " " << sirenConfig.viewerPosition.z << endl;
-
 			// send uniforms ( per loop iteration )
 			ivec2 tileOffset = GetTile();
 			glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );

@@ -22,7 +22,6 @@ void main () {
 	color = gammaCorrect( gamma, color );
 
 	// keeping sample count in the alpha channel
-	// uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), originalValue.a * 255.0f );
 	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), 255 );
 
 	imageStore( displayTexture, loc, originalValue );

@@ -437,8 +437,6 @@ void main () {
 		const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
 		const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
 
-		// imageStore( accumulatorColor, ivec2( location ), vec4( 1.0f / raymarch( vec3( uv, 0.0f ), vec3( uv, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
-		// imageStore( accumulatorColor, ivec2( location ), vec4( rayOrigin, 1.0f ) );
 		imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( rayOrigin, rayDirection ), 0.0f, 0.0f, 1.0f ) );
 	}
 }

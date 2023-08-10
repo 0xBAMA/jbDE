@@ -6,13 +6,6 @@ void engineBase::ClearColorAndDepth () {
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-	// ImGuiIO &io = ImGui::GetIO();
-	// const int width = ( int ) io.DisplaySize.x;
-	// const int height = ( int ) io.DisplaySize.y;
-	// // prevent -1, -1 being passed on first frame, since ImGui hasn't rendered yet
-	// glViewport( 0, 0, width > 0 ? width : config.width, height > 0 ? height : config.height ); // should this be elsewhere?
-
 	glViewport( 0, 0, config.width, config.height );
 }
 
@@ -37,10 +30,6 @@ void engineBase::BlitToScreen () {
 	const GLuint shader = shaders[ "Display" ];
 	glUseProgram( shader );
 	glBindVertexArray( displayVAO );
-
-	// so this is the procedure:
-	// glBindTextureUnit( 0, textures[ "Display Texture" ] ); // requires OpenGL 4.5, shouldn't be an issue - but in the wrapper, will support both modes
-	// glUniform1i( glGetUniformLocation( shader, "current" ), 0 );
 
 	textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
