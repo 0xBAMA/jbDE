@@ -102,7 +102,14 @@ public:
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
+
+		// testing - probably put this on T or R later or something, tbd
+			// R for buffer reset, T for take screenshot? sounds good
+		if ( state[ SDL_SCANCODE_F ] ) {
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+			ScreenShots();
+		}
 
 	}
 
@@ -128,26 +135,20 @@ public:
 			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
 			Image_4F screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 
-			// std::vector< uint8_t > imageBytesToSave;
-			// imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
-			// glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
-			// glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-			// Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
-
 			// time string
-			// const string filename = string( "test" ) + timeDateString() + string( ".png" );
-			const string filename = string( "test.png" );
-
-			// screenshot.FlipVertical();
-			// screenshot.Resize( resize );
-			// screenshot.Save( ssA.str(), Image_4F::backend::TINYEXR );
-			screenshot.Save( filename );
+			const string filename = string( "test" ) + timeDateString() + string( ".exr" );
+			screenshot.Save( filename, Image_4F::backend::TINYEXR );
 			cout << "saved " << filename << endl;
 		}
 		if ( normalEXR == true ) {
 
 		}
 		if ( tonemappedResult == true ) {
+			// std::vector< uint8_t > imageBytesToSave;
+			// imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
+			// glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
+			// glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+			// Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 
 		}
 	}
@@ -227,8 +228,6 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// glMemoryBarrier( GL_ALL_BARRIER_BITS );
-		// ScreenShots();
 
 	}
 
