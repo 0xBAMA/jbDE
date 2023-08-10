@@ -402,6 +402,10 @@ This is a planning document for work on this project and in general, about the t
 		- [Some on Sketchfab](https://sketchfab.com/3d-models/sy-carola-point-cloud-17bd8188447b48baab75125b9ad20788)
 		- I thing the poisson disk sampling thing would be an interesting way to generate them from meshes
 			- Generate evenly spaced sample points on the triangles, get texture, normal, etc samples
+		- [USGS Resource](https://apps.nationalmap.gov/lidar-explorer/#/)
+			- Need to convert LAZ to LAS in order to load
+				- [This looks promising for converting](https://www.danielgm.net/cc/) - need to figure out the command line utility for batch mode converting though - CloudCompare
+				- [Another GIS software to check out](https://qgis.org/en/site/) - QGIS
 	- [Surface Splatting](https://www.shadertoy.com/view/XllGRl)
 	- [Software Rasterization of 2 Billion Points in Real Time](https://arxiv.org/abs/2204.01287)
 

@@ -1,10 +1,3 @@
-// // render modes
-// #define PATHTRACE		0
-// #define PREVIEW_DIFFUSE	1
-// #define PREVIEW_NORMAL	2
-// #define PREVIEW_DEPTH	3
-// #define PREVIEW_SHADED	4 // TODO: some basic phong + AO... tbd
-
 // // global state
 // 	// requires manual management of geo, to ensure that the lens material does not intersect with itself
 // bool enteringRefractive = false; // multiply by the lens distance estimate, to invert when inside a refractive object
@@ -413,8 +406,10 @@ float calcAO ( in vec3 position, in vec3 normal ) {
 }
 
 void main () {
+	// tiled offset
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
-	if ( boundsCheck( location ) ) {
+
+	if ( boundsCheck( ivec2( location ) ) ) {
 		// wang hash seeded uniquely for every pixel
 		seed = wangSeed + 42069 * location.x + 451 * location.y;
 
@@ -430,7 +425,14 @@ void main () {
 		// imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
 
 		// debug vis very simple intersection
-		vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-		imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( vec3( uv, 0.0f ), vec3( 0.0f, 0.0f, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
+		// vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
+		// imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( vec3( uv, 0.0f ), vec3( 0.0f, 0.0f, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
+
+		const vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
+		const vec3 rayOrigin = viewerPosition + vec3( uv, 0.0f );
+		const vec3 rayDirection = uv.x * basisX + uv.y * basisY;
+		imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( rayOrigin, rayDirection ), 0.0f, 0.0f, 1.0f ) );
+
+		
 	}
 }
