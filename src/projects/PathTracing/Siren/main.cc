@@ -62,8 +62,7 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
-			shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
+			ReloadShaders();
 
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
@@ -109,6 +108,11 @@ public:
 		if ( state[ SDL_SCANCODE_F ] ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 			ScreenShots( true, true, true );
+		}
+
+		// reload shaders
+		if ( state[ SDL_SCANCODE_Y ] ) {
+			ReloadShaders();
 		}
 
 	}
@@ -247,6 +251,11 @@ public:
 		handle = textureManager.Get( "Depth/Normals Accumulator" );
 		glBindTexture( GL_TEXTURE_2D, handle );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, zeroes.Width(), zeroes.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+	}
+
+	void ReloadShaders () {
+		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 	}
 
 	void UpdateNoiseOffset () {
