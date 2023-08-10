@@ -108,7 +108,7 @@ public:
 			// R for buffer reset, T for take screenshot? sounds good
 		if ( state[ SDL_SCANCODE_F ] ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
-			ScreenShots();
+			ScreenShots( true, true, true );
 		}
 
 	}
@@ -127,29 +127,36 @@ public:
 
 	}
 
-	void ScreenShots ( const bool colorEXR = true, const bool normalEXR = false, const bool tonemappedResult = false ) {
+	void ScreenShots ( const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {
 		if ( colorEXR == true ) {
 			std::vector< float > imageBytesToSave;
-			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4 * 4, 0 );
+			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * sizeof( float ) * 4, 0 );
 			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Color Accumulator" ) );
 			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
 			Image_4F screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
-
-			// time string
-			const string filename = string( "test" ) + timeDateString() + string( ".exr" );
+			const string filename = string( "ColorAccumulator-" ) + timeDateString() + string( ".exr" );
 			screenshot.Save( filename, Image_4F::backend::TINYEXR );
-			cout << "saved " << filename << endl;
 		}
+
 		if ( normalEXR == true ) {
-
+			std::vector< float > imageBytesToSave;
+			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * sizeof( float ) * 4, 0 );
+			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Depth/Normals Accumulator" ) );
+			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+			Image_4F screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
+			const string filename = string( "NormalDepthAccumulator-" ) + timeDateString() + string( ".exr" );
+			screenshot.Save( filename, Image_4F::backend::TINYEXR );
 		}
-		if ( tonemappedResult == true ) {
-			// std::vector< uint8_t > imageBytesToSave;
-			// imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
-			// glBindTexture( GL_TEXTURE_2D, textures[ "Display Texture" ] );
-			// glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-			// Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 
+		if ( tonemappedResult == true ) {
+			std::vector< uint8_t > imageBytesToSave;
+			imageBytesToSave.resize( config.width * config.height * 4, 0 );
+			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
+			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+			Image_4U screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
+			const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
+			screenshot.FlipVertical(); // whatever
+			screenshot.Save( filename );
 		}
 	}
 
@@ -290,13 +297,13 @@ public:
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
 
+		// derived-class-specific functionality
+		OnRender();
+
 		// event handling
 		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
-
-		// derived-class-specific functionality
-		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
 		PrepareProfilingData(); // get profiling data ready for next frame
