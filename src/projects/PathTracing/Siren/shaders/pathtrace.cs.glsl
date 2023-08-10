@@ -253,8 +253,6 @@
 // 	location = ivec2( gl_GlobalInvocationID.xy ) + tileOffset;
 // 	if ( !boundsCheck( location ) ) return; // abort on out of bounds
 
-// 	seed = location.x * 1973 + location.y * 9277 + wangSeed;
-
 // 	switch ( modeSelect ) {
 // 		case PATHTRACE:
 // 			vec4 prevResult = imageLoad( accumulatorColor, location );
@@ -362,7 +360,7 @@ uvec4 blueNoiseReference ( ivec2 location ) {
 bool boundsCheck ( ivec2 loc ) {
 	// used to abort off-image samples
 	ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
-	return ( loc.x < bounds.x && loc.y < bounds.y );
+	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
 vec3 getCameraRayForUV ( vec2 uv ) {
@@ -416,20 +414,23 @@ float calcAO ( in vec3 position, in vec3 normal ) {
 
 void main () {
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
+	if ( boundsCheck( location ) ) {
+		// wang hash seeded uniquely for every pixel
+		seed = wangSeed + 42069 * location.x + 451 * location.y;
 
-	// wang hash seeded uniquely for every pixel
-	seed = wangSeed + 42069 * location.x + 451 * location.y;
+		// debug vis blue noise
+		// uint result = blueNoiseReference( ivec2( location ) ).r;
+		// imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
 
-	// debug vis blue noise
-	// uint result = blueNoiseReference( ivec2( location ) ).r;
-	// imageStore( accumulatorColor, ivec2( location ), vec4( vec3( result / 255.0f ), 1.0f ) );
+		// debug vis rng
+		// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
 
-	// debug vis rng
-	// imageStore( accumulatorColor, ivec2( location ), vec4( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat(), 1.0f ) );
+		// debug vis screen uv
+		// vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
+		// imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
 
-	// debug vis screen uv
-	vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
-	// imageStore( accumulatorColor, ivec2( location ), vec4( getCameraRayForUV( uv ), 1.0f ) );
-
-	imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( vec3( uv, 0.0f ), vec3( 0.0f, 0.0f, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
+		// debug vis very simple intersection
+		vec2 uv = ( vec2( location ) + vec2( 0.5f ) ) / vec2( imageSize( accumulatorColor ).xy );
+		imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( vec3( uv, 0.0f ), vec3( 0.0f, 0.0f, 1.0f ) ), 0.0f, 0.0f, 1.0f ) );
+	}
 }
