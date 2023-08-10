@@ -172,7 +172,7 @@ public:
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-			// send uniforms ( initial, shared across frame )
+			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
 			glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), sirenConfig.raymarchMaxSteps );
 			glUniform1i( glGetUniformLocation( shader, "raymarchMaxBounces" ), sirenConfig.raymarchMaxBounces );
@@ -182,22 +182,31 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
 			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( sirenConfig.viewerPosition ) );
+			// would it make more sense to invert these? I think it's kind of perceptually backwards, somehow
 			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( trident.basisX ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( trident.basisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( trident.basisZ ) );
-
-			// send uniforms ( per loop iteration )
-			ivec2 tileOffset = GetTile();
-			glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
-			glUniform1i( glGetUniformLocation( shader, "wangSeed" ), sirenConfig.wangSeeder() );
-
+			// color, depth, normal targets, blue noise source data
 			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
 			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
 			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 
-			// going to basically say that tilesizes are multiples of 16
-			glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// the loop
+			{
+				// run some N tiles ( currently N == 1 )
+				{
+					// send uniforms ( per loop iteration )
+					const ivec2 tileOffset = GetTile();
+					glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
+					glUniform1i( glGetUniformLocation( shader, "wangSeed" ), sirenConfig.wangSeeder() );
+
+					// going to basically say that tilesizes are multiples of 16, to match the group size
+					glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
+				}
+
+				// after N tiles have run, put a barrier, check timing, break if greater than 16.6ms
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
 
 		}
 
