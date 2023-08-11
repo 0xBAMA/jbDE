@@ -75,7 +75,7 @@ void engineBase::DrawTextEditor () {
 void engineBase::TonemapControlsWindow () {
 	ZoneScoped;
 
-	ImGui::SetNextWindowSize( { 425, 115 } );
+	ImGui::SetNextWindowSize( { 425, 135 } );
 	ImGui::Begin( "Tonemapping Controls", NULL, 0 );
 	const char* tonemapModesList[] = {
 		"None (Linear)",

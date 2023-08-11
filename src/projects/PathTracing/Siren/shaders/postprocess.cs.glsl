@@ -36,11 +36,11 @@ void main () {
 
 	originalValue.rgb = ApplySaturation( originalValue.rgb );
 	originalValue.rgb = colorTempAdjust * originalValue.rgb;
-	vec3 color = tonemap( tonemapMode, originalValue.rgb );
-	color = gammaCorrect( gamma, color );
+	originalValue.rgb = tonemap( tonemapMode, originalValue.rgb );
+	originalValue.rgb = gammaCorrect( gamma, originalValue.rgb );
 
 	// keeping sample count in the alpha channel
-	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), 255 );
+	uvec4 tonemappedValue = uvec4( uvec3( originalValue.rgb * 255.0f ), 255 );
 
 	imageStore( displayTexture, loc, originalValue );
 }
