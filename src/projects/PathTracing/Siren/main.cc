@@ -205,15 +205,11 @@ public:
 					glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
 				}
 
-				// after N tiles have run, put a barrier - how important is this, actually?
-				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
 				// submit the second query
 
 				// evaluate how long it takes, break if 16.6ms is exceeded
 
 			}
-
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
@@ -254,7 +250,6 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-
 	}
 
 	void ResetAccumulators () {
@@ -287,19 +282,25 @@ public:
 					sirenConfig.tileOffsets.push_back( ivec2( x, y ) );
 				}
 			}
+			// shuffle the generated array
+			std::random_device rd;
+			std::mt19937 rngen( rd() );
+			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
 		} else { // check if the offset needs to be reset, this means a full pass has been completed
 			if ( ++sirenConfig.tileOffset == sirenConfig.tileOffsets.size() ) {
 				sirenConfig.tileOffset = 0;
 				sirenConfig.numFullscreenPasses++;
 			}
 		}
-		// shuffle when listOffset is zero ( first iteration, and any subsequent resets )
-		if ( !sirenConfig.tileOffset ) {
-			std::random_device rd;
-			std::mt19937 rngen( rd() );
-			std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
-			// UpdateNoiseOffset(); // this pass's blue noise offset
-		}
+		// // shuffle when listOffset is zero ( first iteration, and any subsequent resets )
+		// // I like this, for some reason, but I think it would require having a barrier for cases where the reshuffle
+			// would have the same tiles at the start that had been right at the end of the previous shuffled result...
+		//if ( !sirenConfig.tileOffset ) {
+		//	std::random_device rd;
+		//	std::mt19937 rngen( rd() );
+		//	std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
+		//	// UpdateNoiseOffset(); // this pass's blue noise offset
+		//}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
 
