@@ -164,7 +164,15 @@ public:
 		}
 	}
 
-
+	GLuint64 SubmitTimerAndWait ( GLuint timer ) {
+		glQueryCounter( timer, GL_TIMESTAMP );
+		GLint available = 0;
+		while ( !available )
+			glGetQueryObjectiv( timer, GL_QUERY_RESULT_AVAILABLE, &available );
+		GLuint64 t;
+		glGetQueryObjectui64v( timer, GL_QUERY_RESULT, &t );
+		return t;
+	}
 
 	void ComputePasses () {
 		ZoneScoped;
@@ -199,14 +207,10 @@ public:
 			glGenQueries( 2, t );
 
 			// submit the first timer query, to determine t0, outside the loop
-			glQueryCounter( t[ 0 ], GL_TIMESTAMP );
-			GLint available = 0;
-			while ( !available )
-				glGetQueryObjectiv( t[ 0 ], GL_QUERY_RESULT_AVAILABLE, &available );
-			glGetQueryObjectui64v( t[ 0 ], GL_QUERY_RESULT, &t0 );
+			t0 = SubmitTimerAndWait( t[ 0 ] );
 
+			// loop runs until time is exceeded
 			while ( 1 ) {
-
 				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
 					const ivec2 tileOffset = GetTile(); // send uniforms ( unique per loop iteration )
@@ -218,11 +222,7 @@ public:
 				}
 
 				// submit the second timer query, to determine tCheck, inside the loop
-				glQueryCounter( t[ 1 ], GL_TIMESTAMP );
-				available = 0;
-				while ( !available )
-					glGetQueryObjectiv( t[ 1 ], GL_QUERY_RESULT_AVAILABLE, &available );
-				glGetQueryObjectui64v( t[ 1 ], GL_QUERY_RESULT, &tCheck );
+				tCheck = SubmitTimerAndWait( t[ 1 ] );
 
 				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
 				if ( ( ( tCheck - t0 ) / 1e6f ) > 16.6f ) {
