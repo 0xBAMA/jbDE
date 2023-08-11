@@ -14,7 +14,7 @@ struct sirenConfig_t {
 	uint32_t tileSize;
 	uint32_t targetWidth;
 	uint32_t targetHeight;
-	uint32_t tilePerFrameCap;
+	uint32_t tilesBetweenQueries;
 	// I think it would make sense to dispatch some N tiles between timer queries, to make better use of the GPU
 		// probably configure that here
 
@@ -68,7 +68,7 @@ public:
 			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
 			sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
 			sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
-			sirenConfig.tilePerFrameCap				= j[ "app" ][ "Siren" ][ "tilePerFrameCap" ];
+			sirenConfig.tilesBetweenQueries			= j[ "app" ][ "Siren" ][ "tilesBetweenQueries" ];
 			sirenConfig.performanceHistorySamples	= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
 			sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
 			sirenConfig.raymarchMaxBounces			= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];

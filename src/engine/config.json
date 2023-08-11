@@ -131,7 +131,7 @@
 			"targetWidth": 1920,
 			"targetHeight": 1080,
 			"tileSize":128,
-			"tilePerFrameCap":128,
+			"tilesBetweenQueries":5,
 			"performanceHistorySamples":250,
 			"raymarchMaxSteps":100,
 			"raymarchMaxBounces":10,
