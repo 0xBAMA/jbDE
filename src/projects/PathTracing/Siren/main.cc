@@ -148,8 +148,7 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
-		QuitConf( &quitConfirm ); // show quit confirm window, ief triggered
-
+		QuitConf( &quitConfirm ); // show quit confirm modal window, if triggered
 	}
 
 	void ScreenShots ( const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {

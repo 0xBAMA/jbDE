@@ -367,27 +367,27 @@ vec2 subpixelOffset () {
 }
 
 // organic shape
-// float de ( vec3 p ) {
-// 	float S = 1.0f;
-// 	float R, e;
-// 	float time = 0.0f;
-// 	p.y += p.z;
-// 	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-// 	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
-// 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
-// 	}
-// 	return e * R * 0.1f;
-// }
-
-// basic apollonian
-float de ( vec3 p0 ) {
-	vec4 p = vec4( p0, 1.0f );
-	for ( int i = 0; i < 8; i++ ) {
-		p.xyz = mod( p.xyz - 1.0f, 2.0f ) - 1.0f;
-		p *= 1.4f / dot( p.xyz, p.xyz );
+float de ( vec3 p ) {
+	float S = 1.0f;
+	float R, e;
+	float time = 0.0f;
+	p.y += p.z;
+	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
+		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
 	}
-	return ( length( p.xz / p.w ) * 0.25f );
+	return e * R * 0.1f;
 }
+
+// // basic apollonian
+// float de ( vec3 p0 ) {
+// 	vec4 p = vec4( p0, 1.0f );
+// 	for ( int i = 0; i < 8; i++ ) {
+// 		p.xyz = mod( p.xyz - 1.0f, 2.0f ) - 1.0f;
+// 		p *= 1.4f / dot( p.xyz, p.xyz );
+// 	}
+// 	return ( length( p.xz / p.w ) * 0.25f );
+// }
 
 // raymarches to the next hit
 float raymarch ( vec3 origin, vec3 direction ) {
@@ -448,10 +448,14 @@ void main () {
 		const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
 		const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
 
+		const float hitDistance = raymarch( rayOrigin, rayDirection );
+		const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
+
 		// mix it
-		const vec4 newColor = vec4( raymarch( rayOrigin, rayDirection ), 0.0f, 0.0f, 1.0f );
+		// const vec4 newColor = vec4( normal( rayOrigin + hitDistance * rayDirection ), 1.0f );
+		const vec4 newColor = vec4( vec3( calcAO( hitPoint, normal( hitPoint ) ) ), 1.0f );
 		const vec4 oldColor = imageLoad( accumulatorColor, ivec2( location ) );
-		const float sampleCount = oldColor.a + 1;
+		const float sampleCount = oldColor.a + 1; // increment the sample count
 		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
 
 		// store back
