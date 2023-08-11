@@ -262,7 +262,7 @@ public:
 		}
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-			// potentially add stuff like SSAO, depth fog, etc
+			// potentially add stuff like dithering, SSAO, depth fog, etc
 			scopedTimer Start( "Postprocess" );
 			const GLuint shader = shaders[ "Postprocess" ];
 			glUseProgram( shader );
@@ -270,16 +270,34 @@ public:
 			textureManager.BindTexForShader( "Color Accumulator", "source", shader, 0 );
 			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 1 );
 
-			// eventually more will be going on with this pass ( dither, depth fog, SSAO, etc )
+			// make sure we're sending the updated color temp every frame
 			static float prevColorTemperature = 0.0f;
 			static vec3 temperatureColor;
 			if ( tonemap.colorTemp != prevColorTemperature ) {
 				prevColorTemperature = tonemap.colorTemp;
 				temperatureColor = GetColorForTemperature( tonemap.colorTemp );
 			}
+
+			// precompute the 3x3 matrix for the saturation adjustment
+			static float prevSaturationValue = -1.0f;
+			static mat3 saturationMatrix;
+			if ( tonemap.saturation != prevSaturationValue ) {
+				// https://www.graficaobscura.com/matrix/index.html
+				const float s = tonemap.saturation;
+				const float oms = 1.0f - s;
+
+				// vec3 weights = vec3( 0.2990f, 0.5870f, 0.1140f ); // NTSC weights
+				vec3 weights = vec3( 0.3086f, 0.6094f, 0.0820f ); // "improved" luminance vector
+				saturationMatrix = mat3(
+					oms * weights.r + s,	oms * weights.r,		oms * weights.r,
+					oms * weights.g,		oms * weights.g + s,	oms * weights.g,
+					oms * weights.b,		oms * weights.b,		oms * weights.b + s
+				);
+			}
+
 			glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1, glm::value_ptr( temperatureColor ) );
 			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ), tonemap.tonemapMode );
-			glUniform1f( glGetUniformLocation( shader, "saturation" ), tonemap.saturation );
+			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false, glm::value_ptr( saturationMatrix ) );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
 			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 
