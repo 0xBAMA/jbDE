@@ -164,6 +164,8 @@ public:
 		}
 	}
 
+
+
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -181,23 +183,33 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), sirenConfig.raymarchUnderstep );
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
-			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( sirenConfig.viewerPosition ) );
 			// would it make more sense to invert these? I think it's kind of perceptually backwards, somehow
 			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( trident.basisX ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( trident.basisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( trident.basisZ ) );
+			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( sirenConfig.viewerPosition ) );
 			// color, depth, normal targets, blue noise source data
 			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
 			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
 			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 
+			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory
+			GLuint t[ 2 ];
+			GLuint64 t0, tCheck;
+			glGenQueries( 2, t );
+
+			// submit the first timer query, to determine t0, outside the loop
+			glQueryCounter( t[ 0 ], GL_TIMESTAMP );
+			GLint available = 0;
+			while ( !available )
+				glGetQueryObjectiv( t[ 0 ], GL_QUERY_RESULT_AVAILABLE, &available );
+			glGetQueryObjectui64v( t[ 0 ], GL_QUERY_RESULT, &t0 );
+
 			while ( 1 ) {
 
-				// submit the first query
-
+				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
-					// send uniforms ( per loop iteration )
-					const ivec2 tileOffset = GetTile();
+					const ivec2 tileOffset = GetTile(); // send uniforms ( unique per loop iteration )
 					glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
 					glUniform1i( glGetUniformLocation( shader, "wangSeed" ), sirenConfig.wangSeeder() );
 
@@ -205,10 +217,17 @@ public:
 					glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
 				}
 
-				// submit the second query
+				// submit the second timer query, to determine tCheck, inside the loop
+				glQueryCounter( t[ 1 ], GL_TIMESTAMP );
+				available = 0;
+				while ( !available )
+					glGetQueryObjectiv( t[ 1 ], GL_QUERY_RESULT_AVAILABLE, &available );
+				glGetQueryObjectui64v( t[ 1 ], GL_QUERY_RESULT, &tCheck );
 
-				// evaluate how long it takes, break if 16.6ms is exceeded
-
+				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
+				if ( ( ( tCheck - t0 ) / 1e6f ) > 16.6f ) {
+					break;
+				}
 			}
 		}
 
