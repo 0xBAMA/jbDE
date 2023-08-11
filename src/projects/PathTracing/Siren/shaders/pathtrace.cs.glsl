@@ -28,10 +28,10 @@ uniform float raymarchEpsilon;
 uniform float raymarchUnderstep;
 
 mat3 Rotate3D ( float angle, vec3 axis ) {
-	vec3 a = normalize( axis );
-	float s = sin( angle );
-	float c = cos( angle );
-	float r = 1.0f - c;
+	const vec3 a = normalize( axis );
+	const float s = sin( angle );
+	const float c = cos( angle );
+	const float r = 1.0f - c;
 	return mat3(
 		a.x * a.x * r + c,
 		a.y * a.x * r + a.z * s,
@@ -61,11 +61,11 @@ float NormalizedRandomFloat () {
 }
 
 vec3 RandomUnitVector () {
-	float z = NormalizedRandomFloat() * 2.0f - 1.0f;
-	float a = NormalizedRandomFloat() * 2.0f * PI;
-	float r = sqrt( 1.0f - z * z );
-	float x = r * cos( a );
-	float y = r * sin( a );
+	const float z = NormalizedRandomFloat() * 2.0f - 1.0f;
+	const float a = NormalizedRandomFloat() * 2.0f * PI;
+	const float r = sqrt( 1.0f - z * z );
+	const float x = r * cos( a );
+	const float y = r * sin( a );
 	return vec3( x, y, z );
 }
 
@@ -90,7 +90,7 @@ uvec4 BlueNoiseReference ( ivec2 location ) {
 
 bool BoundsCheck ( ivec2 loc ) {
 	// used to abort off-image samples
-	ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
+	const ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
@@ -187,6 +187,7 @@ void main () {
 		const float sampleCount = oldColor.a + 1;
 
 		// new values - color is currently placeholder
+		// const vec4 newColor = vec4( Normal( hitPoint ), 1.0f );
 		const vec4 newColor = vec4( vec3( CalcAO( hitPoint, Normal( hitPoint ) ) ), 1.0f );
 		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
 
