@@ -191,10 +191,11 @@ public:
 			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
 			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 
-			// the loop
-			{
-				// run some N tiles ( currently N == 1 )
-				{
+			while ( 1 ) {
+
+				// submit the first query
+
+				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
 					// send uniforms ( per loop iteration )
 					const ivec2 tileOffset = GetTile();
 					glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
@@ -204,8 +205,13 @@ public:
 					glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
 				}
 
-				// after N tiles have run, put a barrier, check timing, break if greater than 16.6ms
+				// after N tiles have run, put a barrier - how important is this, actually?
 				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+				// submit the second query
+
+				// evaluate how long it takes, break if 16.6ms is exceeded
+
 			}
 
 		}
@@ -296,7 +302,6 @@ public:
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
-
 
 	void OnRender () {
 		ZoneScoped;
