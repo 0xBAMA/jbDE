@@ -160,6 +160,28 @@ float CalcAO ( in vec3 position, in vec3 normal ) {
 	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
 }
 
+vec3 colorSample ( const vec2 uvIn ) {
+
+	// compute initial ray origin, direction
+	// const vec3 rayOrigin_initial = ;
+	// const vec3 rayDirection_initial = ;
+
+	// variables for current and previous ray origin, direction
+	vec3 rayOrigin, rayOriginPrevious;
+	vec3 rayDirection, rayDirectionPrevious;
+
+	// pathtracing accumulators
+	vec3 finalColor = vec3( 0.0f );
+	vec3 throughput = vec3( 1.0f );
+
+	// loop over bounces
+	for ( int bounce = 0; bounce < raymarchMaxBounces; bounce++ ) {
+
+	}
+
+	return finalColor * exposure;
+}
+
 void main () {
 	// tiled offset
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
