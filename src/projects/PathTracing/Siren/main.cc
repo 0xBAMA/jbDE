@@ -105,9 +105,11 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
-		// testing - probably put this on T or R later or something, tbd
-			// R for buffer reset, T for take screenshot? sounds good
-		if ( state[ SDL_SCANCODE_F ] ) {
+		if ( state[ SDL_SCANCODE_R ] ) {
+			ResetAccumulators();
+		}
+
+		if ( state[ SDL_SCANCODE_T ] ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 			ScreenShots( true, true, true );
 		}
