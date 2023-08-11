@@ -6,12 +6,6 @@
 // // eventually, probably define a list of materials, and index into that - that will allow for
 // 	// e.g. refractive materials of multiple different indices of refraction
 
-// float reflectance ( float cosTheta, float IoR ) {
-// 	// Use Schlick's approximation for reflectance
-// 	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
-// 	r0 = r0 * r0;
-// 	return r0 + ( 1.0f - r0 ) * pow( ( 1.0f - cosTheta ), 5.0f );
-// }
 
 // ivec2 location = ivec2( 0, 0 );	// 2d location, pixel coords
 // vec3 colorSample ( vec3 rayOrigin_in, vec3 rayDirection_in ) {
@@ -100,7 +94,7 @@
 
 // 				// accounting for TIR effects
 // 				bool cannotRefract = ( IoR * sinTheta ) > 1.0f;
-// 				if ( cannotRefract || reflectance( cosTheta, IoR ) > normalizedRandomFloat() ) {
+// 				if ( cannotRefract || reflectance( cosTheta, IoR ) > NormalizedRandomFloat() ) {
 // 					rayDirection = reflect( normalize( rayDirection ), lensNorm );
 // 				} else {
 // 					rayDirection = refract( normalize( rayDirection ), lensNorm, IoR );
@@ -112,7 +106,7 @@
 // 				float roughnessValue = 0.01f;
 
 // 				rayDirection = randomVectorDiffuse;
-// 				if( normalizedRandomFloat() < specularProbability ){
+// 				if( NormalizedRandomFloat() < specularProbability ){
 // 					rayDirection = ggx_S( reflect( previousRayDirection, hitNormal ), roughnessValue );
 // 				}
 
@@ -140,7 +134,7 @@
 // 		// if ( hitpointSurfaceType_cache != REFRACTIVE ) {
 // 		// 	// russian roulette termination - chance for ray to quit early
 // 		// 	float maxChannel = max( throughput.r, max( throughput.g, throughput.b ) );
-// 		// 	if ( normalizedRandomFloat() > maxChannel ) { break; }
+// 		// 	if ( NormalizedRandomFloat() > maxChannel ) { break; }
 // 		// 	// russian roulette compensation term
 // 		// 	throughput *= 1.0f / maxChannel;
 // 		// }
@@ -162,10 +156,10 @@
 // #endif
 
 // 			// pixel offset + mapped position
-// 			// vec2 offset = vec2( x + normalizedRandomFloat(), y + normalizedRandomFloat() ) / float( AA ) - 0.5; // previous method
-// 			vec2 subpixelOffset  = getRandomOffset( n );
+// 			// vec2 offset = vec2( x + NormalizedRandomFloat(), y + NormalizedRandomFloat() ) / float( AA ) - 0.5; // previous method
+// 			vec2 SubpixelOffset  = getRandomOffset( n );
 // 			vec2 halfScreenCoord = vec2( imageSize( accumulatorColor ) / 2.0f );
-// 			vec2 mappedPosition  = ( vec2( location + subpixelOffset ) - halfScreenCoord ) / halfScreenCoord;
+// 			vec2 mappedPosition  = ( vec2( location + SubpixelOffset ) - halfScreenCoord ) / halfScreenCoord;
 
 // 			vec3 rayDirection = normalize( aspectRatio * mappedPosition.x * basisX + mappedPosition.y * basisY + ( 1.0f / FoV ) * basisZ );
 // 			vec3 rayOrigin    = viewerPosition;
@@ -196,7 +190,7 @@
 
 // void main () {
 // 	location = ivec2( gl_GlobalInvocationID.xy ) + tileOffset;
-// 	if ( !boundsCheck( location ) ) return; // abort on out of bounds
+// 	if ( !BoundsCheck( location ) ) return; // abort on out of bounds
 
 // 	switch ( modeSelect ) {
 // 		case PATHTRACE:
@@ -249,7 +243,7 @@ uniform float raymarchMaxDistance;
 uniform float raymarchEpsilon;
 uniform float raymarchUnderstep;
 
-mat3 rotate3D ( float angle, vec3 axis ) {
+mat3 Rotate3D ( float angle, vec3 axis ) {
 	vec3 a = normalize( axis );
 	float s = sin( angle );
 	float c = cos( angle );
@@ -269,7 +263,7 @@ mat3 rotate3D ( float angle, vec3 axis ) {
 
 // random utilites
 uint seed = 0;
-uint wangHash () {
+uint WangHash () {
 	seed = uint( seed ^ uint( 61 ) ) ^ uint( seed >> uint( 16 ) );
 	seed *= uint( 9 );
 	seed = seed ^ ( seed >> 4 );
@@ -278,31 +272,39 @@ uint wangHash () {
 	return seed;
 }
 
-float normalizedRandomFloat () {
-	return float( wangHash() ) / 4294967296.0f;
+float NormalizedRandomFloat () {
+	return float( WangHash() ) / 4294967296.0f;
 }
 
-vec3 randomUnitVector () {
-	float z = normalizedRandomFloat() * 2.0f - 1.0f;
-	float a = normalizedRandomFloat() * 2.0f * PI;
+vec3 RandomUnitVector () {
+	float z = NormalizedRandomFloat() * 2.0f - 1.0f;
+	float a = NormalizedRandomFloat() * 2.0f * PI;
 	float r = sqrt( 1.0f - z * z );
 	float x = r * cos( a );
 	float y = r * sin( a );
 	return vec3( x, y, z );
 }
 
-vec2 randomInUnitDisk () {
-	return randomUnitVector().xy;
+vec2 RandomInUnitDisk () {
+	return RandomUnitVector().xy;
 }
 
-uvec4 blueNoiseReference ( ivec2 location ) {
+
+float Reflectance ( float cosTheta, float IoR ) {
+	// Use Schlick's approximation for reflectance
+	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
+	r0 = r0 * r0;
+	return r0 + ( 1.0f - r0 ) * pow( ( 1.0f - cosTheta ), 5.0f );
+}
+
+uvec4 BlueNoiseReference ( ivec2 location ) {
 	location += noiseOffset;
 	location.x = location.x % imageSize( blueNoise ).x;
 	location.y = location.y % imageSize( blueNoise ).y;
 	return imageLoad( blueNoise, location );
 }
 
-bool boundsCheck ( ivec2 loc ) {
+bool BoundsCheck ( ivec2 loc ) {
 	// used to abort off-image samples
 	ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
@@ -313,9 +315,9 @@ bool boundsCheck ( ivec2 loc ) {
 // 	return vec3( uv, 1.0f );
 // }
 
-vec2 subpixelOffset () {
+vec2 SubpixelOffset () {
 	// tbd, probably blue noise
-	return vec2( normalizedRandomFloat(), normalizedRandomFloat() );
+	return vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
 
 // organic shape
@@ -332,7 +334,7 @@ float de ( vec3 p ) {
 }
 
 // raymarches to the next hit
-float raymarch ( vec3 origin, vec3 direction ) {
+float Raymarch ( vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
 	for ( int steps = 0; steps < raymarchMaxSteps; steps++ ) {
@@ -343,14 +345,14 @@ float raymarch ( vec3 origin, vec3 direction ) {
 			break;
 		}
 		// // certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
-		// if ( normalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
+		// if ( NormalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
 		// 	direction = normalize( direction + 0.4f * randomUnitVector() );
 		// }
 	}
 	return dTotal;
 }
 
-vec3 normal ( in vec3 position ) {
+vec3 Normal ( in vec3 position ) {
 	vec2 e = vec2( raymarchEpsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 
@@ -362,7 +364,7 @@ vec3 normal ( in vec3 position ) {
 }
 
 // fake AO, computed from SDF
-float calcAO ( in vec3 position, in vec3 normal ) {
+float CalcAO ( in vec3 position, in vec3 normal ) {
 	float occ = 0.0f;
 	float sca = 1.0f;
 	for( int i = 0; i < 5; i++ ) {
@@ -378,19 +380,19 @@ void main () {
 	// tiled offset
 	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
 
-	if ( boundsCheck( ivec2( location ) ) ) {
+	if ( BoundsCheck( ivec2( location ) ) ) {
 		// wang hash seeded uniquely for every pixel
 		seed = wangSeed + 42069 * location.x + 451 * location.y;
 
 		// subpixel offset, remap uv, etc
-		const vec2 uv = ( vec2( location ) + subpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
+		const vec2 uv = ( vec2( location ) + SubpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
 		const vec2 uvRemapped = 2.0f * ( uv - vec2( 0.5f ) );
 		const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
 		const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
 		const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
 
-		const float hitDistance = raymarch( rayOrigin, rayDirection );
+		const float hitDistance = Raymarch( rayOrigin, rayDirection );
 		const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
 
 		// existing values from the buffers
@@ -401,8 +403,8 @@ void main () {
 		const float sampleCount = oldColor.a + 1;
 
 		// new values - color is currently placeholder
-		const vec4 newColor = vec4( vec3( calcAO( hitPoint, normal( hitPoint ) ) ), 1.0f );
-		const vec4 newNormalD = vec4( normal( hitPoint ), hitDistance );
+		const vec4 newColor = vec4( vec3( CalcAO( hitPoint, Normal( hitPoint ) ) ), 1.0f );
+		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
 
 		// blended with history based on sampleCount
 		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
