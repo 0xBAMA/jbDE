@@ -286,8 +286,10 @@ public:
 				const float s = tonemap.saturation;
 				const float oms = 1.0f - s;
 
-				// vec3 weights = vec3( 0.2990f, 0.5870f, 0.1140f ); // NTSC weights
-				vec3 weights = vec3( 0.3086f, 0.6094f, 0.0820f ); // "improved" luminance vector
+				vec3 weights = tonemap.saturationImprovedWeights ?
+					vec3( 0.3086f, 0.6094f, 0.0820f ) :	// "improved" luminance vector
+					vec3( 0.2990f, 0.5870f, 0.1140f );	// NTSC weights
+
 				saturationMatrix = mat3(
 					oms * weights.r + s,	oms * weights.r,		oms * weights.r,
 					oms * weights.g,		oms * weights.g + s,	oms * weights.g,

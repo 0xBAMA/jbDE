@@ -53,6 +53,7 @@ void engineBase::LoadConfig () {
 		tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
 		tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
 		tonemap.saturation				= j[ "colorGrade" ][ "saturation" ];
+		tonemap.saturationImprovedWeights = j[ "colorGrade" ][ "saturationImprovedWeights" ];
 		tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];
 	}
 }
