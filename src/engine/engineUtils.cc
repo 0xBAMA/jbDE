@@ -19,10 +19,28 @@ void engineBase::SendTonemappingParameters () {
 		temperatureColor = GetColorForTemperature( tonemap.colorTemp );
 	}
 
+	// precompute the 3x3 matrix for the saturation adjustment
+	static float prevSaturationValue = -1.0f;
+	static mat3 saturationMatrix;
+	if ( tonemap.saturation != prevSaturationValue ) {
+		// https://www.graficaobscura.com/matrix/index.html
+		const float s = tonemap.saturation;
+		const float oms = 1.0f - s;
+
+		// vec3 weights = vec3( 0.2990f, 0.5870f, 0.1140f ); // NTSC weights
+		vec3 weights = vec3( 0.3086f, 0.6094f, 0.0820f ); // "improved" luminance vector
+		saturationMatrix = mat3(
+			oms * weights.r + s,	oms * weights.r,		oms * weights.r,
+			oms * weights.g,		oms * weights.g + s,	oms * weights.g,
+			oms * weights.b,		oms * weights.b,		oms * weights.b + s
+		);
+	}
+
 	const GLuint shader = shaders[ "Tonemap" ];
 	glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1, glm::value_ptr( temperatureColor ) );
 	glUniform1i( glGetUniformLocation( shader, "tonemapMode" ), tonemap.tonemapMode );
 	glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
+	glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false, glm::value_ptr( saturationMatrix ) );
 }
 
 void engineBase::BlitToScreen () {
