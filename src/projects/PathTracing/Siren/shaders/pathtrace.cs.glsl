@@ -409,14 +409,14 @@ float raymarch ( vec3 origin, vec3 direction ) {
 }
 
 vec3 normal ( in vec3 position ) {
-	e = vec2( raymarchEpsilon, 0.0f );
-	return normalize( vec3( de( p ) ) - vec3( de( p - e.xyy ), de( p - e.yxy ), de( p - e.yyx ) ) );
+	vec2 e = vec2( raymarchEpsilon, 0.0f );
+	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 
-	// e = vec2( 1.0f, -1.0f ) * raymarchEpsilon;
-	// return normalize( e.xyy * de( p + e.xyy ) + e.yyx * de( p + e.yyx ) + e.yxy * de( p + e.yxy ) + e.xxx * de( p + e.xxx ) );
+	// vec2 e = vec2( 1.0f, -1.0f ) * raymarchEpsilon;
+	// return normalize( e.xyy * de( position + e.xyy ) + e.yyx * de( position + e.yyx ) + e.yxy * de( position + e.yxy ) + e.xxx * de( position + e.xxx ) );
 
-	// e = vec2( raymarchEpsilon, 0.0f );
-	// return normalize( vec3( de( p + e.xyy ) - de( p - e.xyy ), de( p + e.yxy ) - de( p - e.yxy ), de( p + e.yyx ) - de( p - e.yyx ) ) );
+	// vec2 e = vec2( raymarchEpsilon, 0.0f );
+	// return normalize( vec3( de( position + e.xyy ) - de( position - e.xyy ), de( position + e.yxy ) - de( position - e.yxy ), de( position + e.yyx ) - de( position - e.yyx ) ) );
 }
 
 // fake AO, computed from SDF
