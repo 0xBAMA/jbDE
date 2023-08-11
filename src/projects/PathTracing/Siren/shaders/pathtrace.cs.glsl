@@ -6,30 +6,6 @@
 // // eventually, probably define a list of materials, and index into that - that will allow for
 // 	// e.g. refractive materials of multiple different indices of refraction
 
-// // normalized gradient of the SDF - 3 different methods
-// vec3 normal ( vec3 p ) {
-// 	vec2 e;
-// 	switch( normalMethod ) {
-// 		case 0: // tetrahedron version, unknown original source - 4 DE evaluations
-// 			e = vec2( 1.0f, -1.0f ) * epsilon;
-// 			return normalize( e.xyy * de( p + e.xyy ) + e.yyx * de( p + e.yyx ) + e.yxy * de( p + e.yxy ) + e.xxx * de( p + e.xxx ) );
-// 			break;
-
-// 		case 1: // from iq = more efficient, 4 DE evaluations
-// 			e = vec2( epsilon, 0.0f );
-// 			return normalize( vec3( de( p ) ) - vec3( de( p - e.xyy ), de( p - e.yxy ), de( p - e.yyx ) ) );
-// 			break;
-
-// 		case 2: // from iq - less efficient, 6 DE evaluations
-// 			e = vec2( epsilon, 0.0f );
-// 			return normalize( vec3( de( p + e.xyy ) - de( p - e.xyy ), de( p + e.yxy ) - de( p - e.yxy ), de( p + e.yyx ) - de( p - e.yyx ) ) );
-// 			break;
-
-// 		default:
-// 			break;
-// 	}
-// }
-
 // float reflectance ( float cosTheta, float IoR ) {
 // 	// Use Schlick's approximation for reflectance
 // 	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
@@ -170,30 +146,6 @@
 // 		// }
 // 	}
 // 	return finalColor;
-// }
-
-// #define BLUE
-// vec2 getRandomOffset ( int n ) {
-// 	// weyl sequence from http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/ and https://www.shadertoy.com/view/4dtBWH
-// 	#ifdef UNIFORM
-// 		return fract( vec2( 0.0f ) + vec2( n * 12664745, n * 9560333 ) / exp2( 24.0f ) );	// integer mul to avoid round-off
-// 	#endif
-// 	#ifdef UNIFORM2
-// 		return fract( vec2( 0.0f ) + float( n ) * vec2( 0.754877669f, 0.569840296f ) );
-// 	#endif
-// 	#ifdef RANDOM // wang hash random offsets
-// 		return vec2( normalizedRandomFloat(), normalizedRandomFloat() );
-// 	#endif
-// 	#ifdef BLUE
-// 		return blueNoiseReference( ivec2( gl_GlobalInvocationID.xy ) ).xy;
-// 	#endif
-// }
-
-// void storeNormalAndDepth ( vec3 normal, float depth ) {
-// 	// blend with history and imageStore
-// 	vec4 prevResult = imageLoad( accumulatorNormalsAndDepth, location );
-// 	vec4 blendResult = mix( prevResult, vec4( normal, depth ), 1.0f / sampleCount );
-// 	imageStore( accumulatorNormalsAndDepth, location, blendResult );
 // }
 
 // vec3 pathtraceSample ( ivec2 location, int n ) {
