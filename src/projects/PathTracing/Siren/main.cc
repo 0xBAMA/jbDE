@@ -122,6 +122,23 @@ public:
 	void ImguiPass () {
 		ZoneScoped;
 
+		{
+			// controls, perf monitoring window
+			ImGui::Begin( "Controls Window", NULL, 0 );
+
+			// timing history
+			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
+			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ) + string( "ms" );
+			ImGui::PlotLines( " ", timeVector.data(), sirenConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 60.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
+
+			// tiling history
+			const std::vector< float > tileVector = { sirenConfig.tileHistory.begin(), sirenConfig.tileHistory.end() };
+			const string tileLabel = string( "Average: " ) + std::to_string( std::reduce( tileVector.begin(), tileVector.end() ) / tileVector.size() ) + string( " tiles/update" );
+			ImGui::PlotLines( " ", tileVector.data(), sirenConfig.performanceHistorySamples, 0, tileLabel.c_str(), -10.0f, 200.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
+
+			ImGui::End();
+		}
+
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
 			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
@@ -214,7 +231,7 @@ public:
 			// for monitoring number of completed tiles
 			uint32_t tilesThisFrame = 0;
 
-			while ( 1 ) { // loop runs until time limit is exceeded
+			while ( 1 ) {
 				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
 					const ivec2 tileOffset = GetTile(); // send uniforms ( unique per loop iteration )
@@ -230,7 +247,7 @@ public:
 				tCheck = SubmitTimerAndWait( t[ 1 ] );
 
 				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
-				float loopTime = ( tCheck - t0 ) / 1e6f;
+				float loopTime = ( tCheck - t0 ) / 1e6f; // convert ns -> ms
 				if ( loopTime > sirenConfig.tilesMSLimit ) {
 					// update performance monitors with latest data
 					UpdatePerfMonitors( loopTime, tilesThisFrame );
