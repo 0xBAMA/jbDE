@@ -408,6 +408,17 @@ float raymarch ( vec3 origin, vec3 direction ) {
 	return dTotal;
 }
 
+vec3 normal ( in vec3 position ) {
+	e = vec2( raymarchEpsilon, 0.0f );
+	return normalize( vec3( de( p ) ) - vec3( de( p - e.xyy ), de( p - e.yxy ), de( p - e.yyx ) ) );
+
+	// e = vec2( 1.0f, -1.0f ) * raymarchEpsilon;
+	// return normalize( e.xyy * de( p + e.xyy ) + e.yyx * de( p + e.yyx ) + e.yxy * de( p + e.yxy ) + e.xxx * de( p + e.xxx ) );
+
+	// e = vec2( raymarchEpsilon, 0.0f );
+	// return normalize( vec3( de( p + e.xyy ) - de( p - e.xyy ), de( p + e.yxy ) - de( p - e.yxy ), de( p + e.yyx ) - de( p - e.yyx ) ) );
+}
+
 // fake AO, computed from SDF
 float calcAO ( in vec3 position, in vec3 normal ) {
 	float occ = 0.0f;
