@@ -22,6 +22,7 @@ struct sirenConfig_t {
 
 	ivec2 blueNoiseOffset;
 	float exposure;
+	float saturation;
 	float renderFoV;
 	vec3 viewerPosition;				// orientation will come from the trident, I think
 	rngi wangSeeder = rngi( 0, 100000000 );	// initial value for the wang ( +x,y offset per invocation )
@@ -75,6 +76,7 @@ public:
 			sirenConfig.raymarchEpsilon				= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
 			sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
 			sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
+			sirenConfig.saturation					= j[ "app" ][ "Siren" ][ "saturation" ];
 			sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
 			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
 			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
@@ -275,6 +277,7 @@ public:
 			}
 			glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1, glm::value_ptr( temperatureColor ) );
 			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ), tonemap.tonemapMode );
+			glUniform1f( glGetUniformLocation( shader, "saturation" ), sirenConfig.saturation );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
 			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
 

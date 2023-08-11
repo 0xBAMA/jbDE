@@ -9,6 +9,7 @@ layout( rgba8 ) uniform image2D displayTexture;
 
 uniform int tonemapMode;
 uniform float gamma;
+uniform float contrast;
 uniform vec3 colorTempAdjust;
 uniform vec2 resolution;
 
