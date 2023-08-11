@@ -437,6 +437,13 @@ void main () {
 		const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
 		const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
 
-		imageStore( accumulatorColor, ivec2( location ), vec4( raymarch( rayOrigin, rayDirection ), 0.0f, 0.0f, 1.0f ) );
+		// mix it
+		const vec4 newColor = vec4( raymarch( rayOrigin, rayDirection ), 0.0f, 0.0f, 1.0f );
+		const vec4 oldColor = imageLoad( accumulatorColor, ivec2( location ) );
+		const float sampleCount = oldColor.a + 1;
+		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
+
+		// store back
+		imageStore( accumulatorColor, ivec2( location ), mixedColor );
 	}
 }
