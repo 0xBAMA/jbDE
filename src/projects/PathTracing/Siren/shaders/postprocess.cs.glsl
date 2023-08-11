@@ -39,8 +39,5 @@ void main () {
 	originalValue.rgb = tonemap( tonemapMode, originalValue.rgb );
 	originalValue.rgb = gammaCorrect( gamma, originalValue.rgb );
 
-	// keeping sample count in the alpha channel
-	uvec4 tonemappedValue = uvec4( uvec3( originalValue.rgb * 255.0f ), 255 );
-
 	imageStore( displayTexture, loc, originalValue );
 }
