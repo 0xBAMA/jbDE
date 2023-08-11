@@ -5,8 +5,8 @@ struct sirenConfig_t {
 
 	// performance settings / monitoring
 	uint32_t performanceHistorySamples;
-	std::deque< float > fpsHistory;
-	std::deque< float > tileHistory;
+	std::deque< float > timeHistory;	// ms per frame
+	std::deque< float > tileHistory;	// completed tiles per frame
 	uint32_t numFullscreenPasses = 0;
 	int32_t sampleCountCap;				// -1 for unlimited
 
@@ -92,9 +92,12 @@ public:
 			opts.minFilter		= GL_LINEAR;
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
-
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
+
+			// setup performance monitors
+			sirenConfig.timeHistory.resize( sirenConfig.performanceHistorySamples );
+			sirenConfig.tileHistory.resize( sirenConfig.performanceHistorySamples );
 		}
 	}
 
@@ -209,7 +212,10 @@ public:
 			// submit the first timer query, to determine t0, outside the loop
 			t0 = SubmitTimerAndWait( t[ 0 ] );
 
-			// loop runs until time is exceeded
+			// for monitoring number of completed tiles
+			uint32_t tilesThisFrame = 0;
+
+			// loop runs until time limit is exceeded
 			while ( 1 ) {
 				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
@@ -219,13 +225,17 @@ public:
 
 					// going to basically say that tilesizes are multiples of 16, to match the group size
 					glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
+					tilesThisFrame++;
 				}
 
 				// submit the second timer query, to determine tCheck, inside the loop
 				tCheck = SubmitTimerAndWait( t[ 1 ] );
 
 				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
-				if ( ( ( tCheck - t0 ) / 1e6f ) > 16.6f ) {
+				float loopTime = ( tCheck - t0 ) / 1e6f;
+				if ( loopTime > 16.6f ) {
+					// update performance monitors with latest data
+					UpdatePerfMonitors( loopTime, tilesThisFrame );
 					break;
 				}
 			}
@@ -269,6 +279,13 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
+	}
+
+	void UpdatePerfMonitors ( float loopTime, float tilesThisFrame ) {
+		sirenConfig.timeHistory.push_back( loopTime );
+		sirenConfig.tileHistory.push_back( tilesThisFrame );
+		sirenConfig.timeHistory.pop_front();
+		sirenConfig.tileHistory.pop_front();
 	}
 
 	void ResetAccumulators () {
