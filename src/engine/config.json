@@ -132,6 +132,7 @@
 			"targetHeight": 1080,
 			"tileSize":128,
 			"tilesBetweenQueries":5,
+			"tilesMSLimit":16.6,
 			"performanceHistorySamples":250,
 			"raymarchMaxSteps":100,
 			"raymarchMaxBounces":10,

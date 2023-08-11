@@ -15,9 +15,7 @@ struct sirenConfig_t {
 	uint32_t targetWidth;
 	uint32_t targetHeight;
 	uint32_t tilesBetweenQueries;
-	// I think it would make sense to dispatch some N tiles between timer queries, to make better use of the GPU
-		// probably configure that here
-
+	float tilesMSLimit;
 	bool tileListNeedsUpdate = true;	// need to generate new tile list ( if e.g. tile size changes )
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset = 0;			// offset into tile list - start at first element
@@ -45,7 +43,7 @@ struct sirenConfig_t {
 		// will probably add this in
 		// additionally, with depth + normals stored, SSAO? might add something, but will have to evaluate
 	// display mode ( preview depth, normals, colors, pathtrace )
-	// thin lens parameters ( focus distance, disk offset jitter )
+	// thin lens parameters ( focus distance, disk offset jitter scale )
 	// normal mode - I think this doesn't really make sense to include, because only one really worked correctly last time
 
 };
@@ -69,6 +67,7 @@ public:
 			sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
 			sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
 			sirenConfig.tilesBetweenQueries			= j[ "app" ][ "Siren" ][ "tilesBetweenQueries" ];
+			sirenConfig.tilesMSLimit				= j[ "app" ][ "Siren" ][ "tilesMSLimit" ];
 			sirenConfig.performanceHistorySamples	= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
 			sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
 			sirenConfig.raymarchMaxBounces			= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
@@ -215,8 +214,7 @@ public:
 			// for monitoring number of completed tiles
 			uint32_t tilesThisFrame = 0;
 
-			// loop runs until time limit is exceeded
-			while ( 1 ) {
+			while ( 1 ) { // loop runs until time limit is exceeded
 				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
 					const ivec2 tileOffset = GetTile(); // send uniforms ( unique per loop iteration )
@@ -233,7 +231,7 @@ public:
 
 				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
 				float loopTime = ( tCheck - t0 ) / 1e6f;
-				if ( loopTime > 16.6f ) {
+				if ( loopTime > sirenConfig.tilesMSLimit ) {
 					// update performance monitors with latest data
 					UpdatePerfMonitors( loopTime, tilesThisFrame );
 					break;
@@ -281,6 +279,11 @@ public:
 
 	}
 
+	void UpdateNoiseOffset () {
+		static rng offsetGenerator = rng( 0, 512 );
+		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
+	}
+
 	void UpdatePerfMonitors ( float loopTime, float tilesThisFrame ) {
 		sirenConfig.timeHistory.push_back( loopTime );
 		sirenConfig.tileHistory.push_back( tilesThisFrame );
@@ -302,11 +305,6 @@ public:
 	void ReloadShaders () {
 		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
-	}
-
-	void UpdateNoiseOffset () {
-		static rng offsetGenerator = rng( 0, 512 );
-		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
 	}
 
 	ivec2 GetTile () {
