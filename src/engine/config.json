@@ -34,9 +34,10 @@
 	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
-		"showTonemapWindow":false,
+		"showTonemapWindow":true,
 		"tonemapMode":6,
 		"gamma":1.337,
+		"saturation":1.0,
 		"colorTemp":6500.0
 	},
 	"app":{
@@ -139,7 +140,6 @@
 			"raymarchEpsilon":0.001,
 			"raymarchUnderstep":0.618,
 			"exposure":1.0,
-			"saturation":1.0,
 			"renderFoV":0.618,
 			"viewerPosition":{
 				"x":2.2,

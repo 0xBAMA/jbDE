@@ -52,6 +52,7 @@ void engineBase::LoadConfig () {
 		tonemap.showTonemapWindow		= j[ "colorGrade" ][ "showTonemapWindow" ];
 		tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
 		tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
+		tonemap.saturation				= j[ "colorGrade" ][ "saturation" ];
 		tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];
 	}
 }
@@ -260,8 +261,6 @@ void engineBase::SetupTextureData () {
 	{
 		Block Start( "Setting Up Bindsets" );
 
-		// this will need some work
-
 		bindSets[ "Drawing" ] = bindSet( {
 			binding( 0, textureManager.Get( "Blue Noise" ), GL_RGBA8UI ),
 			binding( 1, textureManager.Get( "Accumulator" ), GL_RGBA16F )
@@ -306,7 +305,7 @@ void engineBase::LoadData () {
 			LoadColorWords( colorWords );
 			// cout << "loaded " << colorWords.size() << " color words" << newline;
 
-			/* plantWords, animalWords, etc? tbd */
+			/* plantWords, animalWords, toolWords, etc? tbd */
 		}
 	}
 }

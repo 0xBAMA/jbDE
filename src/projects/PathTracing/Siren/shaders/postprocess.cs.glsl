@@ -35,7 +35,8 @@ void main () {
 	vec4 originalValue = texture( sourceC, sampleLoc );
 
 	originalValue.rgb = ApplySaturation( originalValue.rgb );
-	vec3 color = tonemap( tonemapMode, colorTempAdjust * originalValue.rgb );
+	originalValue.rgb = colorTempAdjust * originalValue.rgb;
+	vec3 color = tonemap( tonemapMode, originalValue.rgb );
 	color = gammaCorrect( gamma, color );
 
 	// keeping sample count in the alpha channel
