@@ -15,8 +15,8 @@ void main () {
 	// temporary hack for inverted image
 	vec4 originalValue = imageLoad( source, ivec2( loc.x, imageSize( source ).y - loc.y - 1 ) );
 
-	vec3 color = tonemap( tonemapMode, colorTempAdjust * vec3( originalValue.rgb ) );
-	color = gammaCorrect( gamma, color );
+	vec3 color = Tonemap( tonemapMode, colorTempAdjust * vec3( originalValue.rgb ) );
+	color = GammaCorrect( gamma, color );
 	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), originalValue.a * 255.0f );
 
 	// dithering?

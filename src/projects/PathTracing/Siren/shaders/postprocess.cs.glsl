@@ -36,8 +36,8 @@ void main () {
 
 	originalValue.rgb = ApplySaturation( originalValue.rgb );
 	originalValue.rgb = colorTempAdjust * originalValue.rgb;
-	originalValue.rgb = tonemap( tonemapMode, originalValue.rgb );
-	originalValue.rgb = gammaCorrect( gamma, originalValue.rgb );
+	originalValue.rgb = Tonemap( tonemapMode, originalValue.rgb );
+	originalValue.rgb = GammaCorrect( gamma, originalValue.rgb );
 
 	imageStore( displayTexture, loc, originalValue );
 }

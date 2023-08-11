@@ -237,7 +237,7 @@ vec3 jodieReinhard2ElectricBoogaloo(const vec3 color){
 	return mix( clampedColor, white, x );
 }
 
-vec3 tonemap( int tonemapMode, vec3 col ) {
+vec3 Tonemap( int tonemapMode, vec3 col ) {
 	switch ( tonemapMode ) {
 			case 0: // None (Linear)
 					break;
@@ -290,6 +290,6 @@ vec3 tonemap( int tonemapMode, vec3 col ) {
 	return col;
 }
 
-vec3 gammaCorrect ( float gammaValue, vec3 col ) {
+vec3 GammaCorrect ( float gammaValue, vec3 col ) {
 	return pow( col, vec3( 1.0 / gammaValue ) );
 }
