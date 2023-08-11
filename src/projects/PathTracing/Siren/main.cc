@@ -217,8 +217,8 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( trident.basisZ ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( sirenConfig.viewerPosition ) );
 			// color, depth, normal targets, blue noise source data
-			textureManager.BindImageForShader( "Color Accumulator", "colorAccumulator", shader, 0 );
-			textureManager.BindImageForShader( "Depth/Normals Accumulator", "depthAccumulator", shader, 1 );
+			textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
+			textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
 			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 
 			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory

@@ -379,16 +379,6 @@ float de ( vec3 p ) {
 	return e * R * 0.1f;
 }
 
-// // basic apollonian
-// float de ( vec3 p0 ) {
-// 	vec4 p = vec4( p0, 1.0f );
-// 	for ( int i = 0; i < 8; i++ ) {
-// 		p.xyz = mod( p.xyz - 1.0f, 2.0f ) - 1.0f;
-// 		p *= 1.4f / dot( p.xyz, p.xyz );
-// 	}
-// 	return ( length( p.xz / p.w ) * 0.25f );
-// }
-
 // raymarches to the next hit
 float raymarch ( vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
@@ -441,7 +431,7 @@ void main () {
 		seed = wangSeed + 42069 * location.x + 451 * location.y;
 
 		// subpixel offset, remap uv, etc
-		const vec2 uv = ( vec2( location ) + vec2( 0.5f ) + subpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
+		const vec2 uv = ( vec2( location ) + subpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
 		const vec2 uvRemapped = 2.0f * ( uv - vec2( 0.5f ) );
 		const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
@@ -451,14 +441,23 @@ void main () {
 		const float hitDistance = raymarch( rayOrigin, rayDirection );
 		const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
 
-		// mix it
-		// const vec4 newColor = vec4( normal( rayOrigin + hitDistance * rayDirection ), 1.0f );
-		const vec4 newColor = vec4( vec3( calcAO( hitPoint, normal( hitPoint ) ) ), 1.0f );
+		// existing values from the buffers
 		const vec4 oldColor = imageLoad( accumulatorColor, ivec2( location ) );
-		const float sampleCount = oldColor.a + 1; // increment the sample count
-		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
+		const vec4 oldNormalD = imageLoad( accumulatorNormalsAndDepth, ivec2( location ) );
 
-		// store back
+		// increment the sample count
+		const float sampleCount = oldColor.a + 1;
+
+		// new values - color is currently placeholder
+		const vec4 newColor = vec4( vec3( calcAO( hitPoint, normal( hitPoint ) ) ), 1.0f );
+		const vec4 newNormalD = vec4( normal( hitPoint ), hitDistance );
+
+		// blended with history based on sampleCount
+		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
+		const vec4 mixedNormalD = vec4( mix( oldNormalD, newNormalD, 1.0f / sampleCount ) );
+
+		// store the values back
 		imageStore( accumulatorColor, ivec2( location ), mixedColor );
+		imageStore( accumulatorNormalsAndDepth, ivec2( location ), mixedNormalD );
 	}
 }
