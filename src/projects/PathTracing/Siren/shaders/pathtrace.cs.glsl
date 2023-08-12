@@ -105,7 +105,7 @@ vec2 SubpixelOffset () {
 }
 
 // organic shape
-float de ( vec3 p ) {
+float deOrganic ( vec3 p ) {
 	float S = 1.0f;
 	float R, e;
 	float time = 0.0f;
@@ -115,6 +115,46 @@ float de ( vec3 p ) {
 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
 	}
 	return e * R * 0.1f;
+}
+
+float deOrganic2 ( vec3 p ) {
+	float S = 1.0f;
+	float R, e;
+	float time = 0.1f;
+	p.y += p.z;
+	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
+		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+	}
+	return e * R * 0.1f;
+}
+
+#define NOHIT		0
+#define EMISSIVE	1
+#define DIFFUSE		2
+
+int hitPointSurfaceType = NOHIT;
+
+// overal distance estimate function
+float de ( vec3 p ) {
+	hitPointSurfaceType = NOHIT;
+	float sceneDist = 1000.0f;
+
+	const float dOrganic = deOrganic( p );
+	const float dOrganic2 = deOrganic2( p );
+
+	sceneDist = min( dOrganic, sceneDist );
+	sceneDist = min( dOrganic2, sceneDist );
+
+	if ( sceneDist == dOrganic ) {
+		hitPointSurfaceType = DIFFUSE;
+	}
+
+	if ( sceneDist == dOrganic2 ) {
+		hitPointSurfaceType = EMISSIVE;
+	}
+
+	return sceneDist;
 }
 
 // raymarches to the next hit
@@ -185,7 +225,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		float dHit = Raymarch( rayOrigin, rayDirection );
 
 		// cache surface type, hitpoint color so it's not overwritten by normal calcs
-			// not critical right now
+		int hitPointSurfaceType_cache = hitPointSurfaceType;
 
 		// get previous direction, origin
 		rayOriginPrevious = rayOrigin;
@@ -207,20 +247,21 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 		// material specific behavior
 			// what if, just to simplify the initial setup, just consider distance==max as emissive
-		if ( dHit >= raymarchMaxDistance ) {
 
-			// constant white emissive
-			finalColor += throughput * vec3( 1.0f );
-
-			// also, not bouncing here, so just break
+		switch ( hitPointSurfaceType_cache ) {
+		case NOHIT:
 			break;
 
-		} else {
+		case EMISSIVE:
+			// constant white emissive
+			finalColor += throughput * vec3( 1.0f, 0.5f, 0.5f );
+			break;
 
+		case DIFFUSE:
 			// darker grey diffuse material
-			throughput *= vec3( 0.18f );
+			throughput *= vec3( 0.48f, 0.4f, 0.2f );
 			rayDirection = randomVectorDiffuse;
-
+			break;
 		}
 
 		// russian roulette termination
