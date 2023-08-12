@@ -136,7 +136,7 @@ float Raymarch ( vec3 origin, vec3 direction ) {
 	return dTotal;
 }
 
-vec3 Normal ( in vec3 position ) {
+vec3 Normal ( in vec3 position ) { // three methods - first one seems most practical
 	vec2 e = vec2( raymarchEpsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 
@@ -160,15 +160,20 @@ float CalcAO ( in vec3 position, in vec3 normal ) {
 	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
 }
 
-vec3 colorSample ( const vec2 uvIn ) {
+vec3 ColorSample ( const vec2 uvIn ) {
+	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
 	// compute initial ray origin, direction
-	// const vec3 rayOrigin_initial = ;
-	// const vec3 rayDirection_initial = ;
+	const vec3 rayOrigin_initial = viewerPosition;
+	const vec3 rayDirection_initial = normalize( aspectRatio * uvIn.x * basisX + uvIn.y * basisY + ( 1.0f / FoV ) * basisZ );
 
 	// variables for current and previous ray origin, direction
 	vec3 rayOrigin, rayOriginPrevious;
 	vec3 rayDirection, rayDirectionPrevious;
+
+	// intial values
+	rayOrigin = rayOrigin_initial;
+	rayDirection = rayDirection_initial;
 
 	// pathtracing accumulators
 	vec3 finalColor = vec3( 0.0f );
@@ -176,6 +181,50 @@ vec3 colorSample ( const vec2 uvIn ) {
 
 	// loop over bounces
 	for ( int bounce = 0; bounce < raymarchMaxBounces; bounce++ ) {
+		// get the hit point
+		float dHit = Raymarch( rayOrigin, rayDirection );
+
+		// cache surface type, hitpoint color so it's not overwritten by normal calcs
+			// not critical right now
+
+		// get previous direction, origin
+		rayOriginPrevious = rayOrigin;
+		rayDirectionPrevious = rayDirection;
+
+		// update new ray origin ( at hit point )
+		rayOrigin = rayOriginPrevious + dHit * rayDirectionPrevious;
+
+		// get the normal vector
+		const vec3 hitNormal = Normal( rayOrigin );
+
+		// epsilon bump, along the normal vector
+		rayOrigin += 2.0f * raymarchEpsilon * hitNormal;
+
+		// precalculate reflected vector, random diffuse vector, random specular vector
+		vec3 reflectedVector = reflect( rayDirectionPrevious, hitNormal );
+		vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
+		vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
+
+		// material specific behavior
+			// what if, just to simplify the initial setup, just consider distance==max as emissive
+		if ( dHit >= raymarchMaxDistance ) {
+
+			// constant white emissive
+			finalColor += throughput * vec3( 1.0f );
+
+			// also, not bouncing here, so just break
+			break;
+
+		} else {
+
+			// darker grey diffuse material
+			throughput *= vec3( 0.18f );
+			rayDirection = randomVectorDiffuse;
+
+		}
+
+		// russian roulette termination
+			// also not super critical right now
 
 	}
 
@@ -193,13 +242,13 @@ void main () {
 		// subpixel offset, remap uv, etc
 		const vec2 uv = ( vec2( location ) + SubpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
 		const vec2 uvRemapped = 2.0f * ( uv - vec2( 0.5f ) );
-		const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
-		const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
-		const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
-
-		const float hitDistance = Raymarch( rayOrigin, rayDirection );
-		const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
+			// this is redundant, need to revisit at some point
+			const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
+			const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
+			const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
+			const float hitDistance = Raymarch( rayOrigin, rayDirection );
+			const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
 
 		// existing values from the buffers
 		const vec4 oldColor = imageLoad( accumulatorColor, ivec2( location ) );
@@ -209,8 +258,8 @@ void main () {
 		const float sampleCount = oldColor.a + 1;
 
 		// new values - color is currently placeholder
-		// const vec4 newColor = vec4( Normal( hitPoint ), 1.0f );
-		const vec4 newColor = vec4( vec3( CalcAO( hitPoint, Normal( hitPoint ) ) ), 1.0f );
+		// const vec4 newColor = vec4( vec3( pow( CalcAO( hitPoint, Normal( hitPoint ) ), 5.0f ) ), 1.0f );
+		const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
 		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
 
 		// blended with history based on sampleCount

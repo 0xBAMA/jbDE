@@ -11,7 +11,7 @@ protected:
 	orientTrident trident;				// orientation gizmo from Voraldo13
 	textureManager_t textureManager;	// simplified texture interface
 
-	// shaderManager_t shaderManager;	// shader compilation + management would be nice
+	// shaderManager_t shaderManager;	// shader compilation + management of uniforms + texture/image bindings would be nice
 
 //====== OpenGL ===============================================================
 	GLuint displayVAO;

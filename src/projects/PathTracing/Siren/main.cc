@@ -1,8 +1,7 @@
 #include "../../../engine/engine.h"
 
-struct sirenConfig_t {
 // program parameters and state
-
+struct sirenConfig_t {
 	// performance settings / monitoring
 	uint32_t performanceHistorySamples;
 	std::deque< float > timeHistory;	// ms per frame
@@ -36,15 +35,14 @@ struct sirenConfig_t {
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
-// questionable need:
-	// dither parameters ( mode, colorspace, pattern )
-		// dithering the pathtrace result, seems, questionable - tbd
-	// depth fog parameters ( mode, scalar )
-		// will probably add this in
-		// additionally, with depth + normals stored, SSAO? might add something, but will have to evaluate
-	// display mode ( preview depth, normals, colors, pathtrace )
-	// thin lens parameters ( focus distance, disk offset jitter scale )
-	// normal mode - I think this doesn't really make sense to include, because only one really worked correctly last time
+	// questionable need:
+		// dither parameters ( mode, colorspace, pattern )
+			// dithering the pathtrace result, seems, questionable - tbd
+		// depth fog parameters ( mode, scalar )
+			// will probably add this in
+			// additionally, with depth + normals stored, SSAO? might add something, but will have to evaluate
+		// display mode ( preview depth, normals, colors, pathtrace )
+		// thin lens parameters ( focus distance, disk offset jitter scale )
 
 };
 
@@ -105,11 +103,14 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
-		if ( state[ SDL_SCANCODE_R ] ) {
+		// require shift for some operations so you don't do it accidentally
+		const bool shift = ( SDL_GetModState() & KMOD_SHIFT );
+
+		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
 		}
 
-		if ( state[ SDL_SCANCODE_T ] ) {
+		if ( state[ SDL_SCANCODE_T ] && shift ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 			ScreenShots( true, true, true );
 		}

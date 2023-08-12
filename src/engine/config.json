@@ -132,8 +132,8 @@
 		"Siren":{
 			"targetWidth": 1920,
 			"targetHeight": 1080,
-			"tileSize":128,
-			"tilesBetweenQueries":5,
+			"tileSize":64,
+			"tilesBetweenQueries":1,
 			"tilesMSLimit":1.0,"performanceHistorySamples":250,
 			"raymarchMaxSteps":100,
 			"raymarchMaxBounces":10,
