@@ -128,10 +128,10 @@ float Raymarch ( vec3 origin, vec3 direction ) {
 		if ( dTotal > raymarchMaxDistance || abs( dQuery ) < raymarchEpsilon ) {
 			break;
 		}
-		// // certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
-		// if ( NormalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
-		// 	direction = normalize( direction + 0.4f * randomUnitVector() );
-		// }
+		// certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
+		if ( NormalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
+			direction = normalize( direction + 0.4f * RandomUnitVector() );
+		}
 	}
 	return dTotal;
 }
