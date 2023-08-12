@@ -16,7 +16,7 @@
 	"SDLDisplayModeDump":false,
 	"reportPlatformInfo":true,
 	"depthTesting":true,
-	"SRGBFramebuffer":true,
+	"SRGBFramebuffer":false,
 	"SDL_WINDOW_FULLSCREEN":false,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,
@@ -132,9 +132,10 @@
 		"Siren":{
 			"targetWidth": 1920,
 			"targetHeight": 1080,
-			"tileSize":64,
-			"tilesBetweenQueries":1,
-			"tilesMSLimit":1.0,"performanceHistorySamples":250,
+			"tileSize":128,
+			"tilesBetweenQueries":5,
+			"tilesMSLimit":1.0,
+			"performanceHistorySamples":250,
 			"raymarchMaxSteps":100,
 			"raymarchMaxBounces":10,
 			"raymarchMaxDistance":100.0,
@@ -144,7 +145,7 @@
 			"renderFoV":0.618,
 			"viewerPosition":{
 				"x":2.2,
-				"y":1.4,
+				"y":25.4,
 				"z":0.0
 			}
 		}
