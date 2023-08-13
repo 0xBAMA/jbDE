@@ -16,6 +16,7 @@ struct sirenConfig_t {
 	uint32_t tilesBetweenQueries;
 	float tilesMSLimit;
 	bool tileListNeedsUpdate = true;	// need to generate new tile list ( if e.g. tile size changes )
+	bool rendererNeedsUpdate = true;	// eventually to allow for the preview modes to render once between orientation etc changes
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset = 0;			// offset into tile list - start at first element
 
@@ -123,6 +124,81 @@ public:
 		// reload shaders
 		if ( state[ SDL_SCANCODE_Y ] ) {
 			ReloadShaders();
+		}
+
+		// quaternion based rotation via retained state in the basis vectors - much easier to use than euler angles or the trident
+		const float scalar = SDL_GetModState() & KMOD_SHIFT ? 0.02f : 0.0005f;
+		if ( state[ SDL_SCANCODE_W ] ) {
+			glm::quat rot = glm::angleAxis( -scalar, sirenConfig.basisX ); // basisX is the axis, therefore remains untransformed
+			sirenConfig.basisY = ( rot * vec4( sirenConfig.basisY, 0.0f ) ).xyz();
+			sirenConfig.basisZ = ( rot * vec4( sirenConfig.basisZ, 0.0f ) ).xyz();
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_S ] ) {
+			glm::quat rot = glm::angleAxis( scalar, sirenConfig.basisX );
+			sirenConfig.basisY = ( rot * vec4( sirenConfig.basisY, 0.0f ) ).xyz();
+			sirenConfig.basisZ = ( rot * vec4( sirenConfig.basisZ, 0.0f ) ).xyz();
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_A ] ) {
+			glm::quat rot = glm::angleAxis( -scalar, sirenConfig.basisY ); // same as above, but basisY is the axis
+			sirenConfig.basisX = ( rot * vec4( sirenConfig.basisX, 0.0f ) ).xyz();
+			sirenConfig.basisZ = ( rot * vec4( sirenConfig.basisZ, 0.0f ) ).xyz();
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_D ] ) {
+			glm::quat rot = glm::angleAxis( scalar, sirenConfig.basisY );
+			sirenConfig.basisX = ( rot * vec4( sirenConfig.basisX, 0.0f ) ).xyz();
+			sirenConfig.basisZ = ( rot * vec4( sirenConfig.basisZ, 0.0f ) ).xyz();
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_Q ] ) {
+			glm::quat rot = glm::angleAxis( -scalar, sirenConfig.basisZ ); // and again for basisZ
+			sirenConfig.basisX = ( rot * vec4( sirenConfig.basisX, 0.0f ) ).xyz();
+			sirenConfig.basisY = ( rot * vec4( sirenConfig.basisY, 0.0f ) ).xyz();
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_E ] ) {
+			glm::quat rot = glm::angleAxis( scalar, sirenConfig.basisZ );
+			sirenConfig.basisX = ( rot * vec4( sirenConfig.basisX, 0.0f ) ).xyz();
+			sirenConfig.basisY = ( rot * vec4( sirenConfig.basisY, 0.0f ) ).xyz();
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+
+		// f to reset basis, shift + f to reset basis and home to origin
+		if ( state[ SDL_SCANCODE_F ] ) {
+			if ( SDL_GetModState() & KMOD_SHIFT ) {
+				sirenConfig.viewerPosition = vec3( 0.0f, 0.0f, 0.0f );
+			}
+			// reset to default basis
+			sirenConfig.basisX = vec3( 1.0f, 0.0f, 0.0f );
+			sirenConfig.basisY = vec3( 0.0f, 1.0f, 0.0f );
+			sirenConfig.basisZ = vec3( 0.0f, 0.0f, 1.0f );
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_UP ] ) {
+			sirenConfig.viewerPosition += scalar * sirenConfig.basisZ;
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_DOWN ] ) {
+			sirenConfig.viewerPosition -= scalar * sirenConfig.basisZ;
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_RIGHT ] ) {
+			sirenConfig.viewerPosition += scalar * sirenConfig.basisX;
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_LEFT ] ) {
+			sirenConfig.viewerPosition -= scalar * sirenConfig.basisX;
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_PAGEUP ] ) {
+			sirenConfig.viewerPosition += scalar * sirenConfig.basisY;
+			sirenConfig.rendererNeedsUpdate = true;
+		}
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {
+			sirenConfig.viewerPosition -= scalar * sirenConfig.basisY;
+			sirenConfig.rendererNeedsUpdate = true;
 		}
 
 	}
