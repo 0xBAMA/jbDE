@@ -22,8 +22,13 @@ struct sirenConfig_t {
 	ivec2 blueNoiseOffset;
 	float exposure;
 	float renderFoV;
-	vec3 viewerPosition;				// orientation will come from the trident, I think
 	rngi wangSeeder = rngi( 0, 100000000 );	// initial value for the wang ( +x,y offset per invocation )
+
+	// viewer position, orientation
+	vec3 viewerPosition;
+	vec3 basisX = vec3( 1.0f, 0.0f, 0.0f );
+	vec3 basisY = vec3( 0.0f, 1.0f, 0.0f );
+	vec3 basisZ = vec3( 0.0f, 0.0f, 1.0f );
 
 	// enhanced sphere tracing paper - potential for some optimizations - over-relaxation, refraction, dynamic epsilon
 		// https://erleuchtet.org/~cupe/permanent/enhanced_sphere_tracing.pdf
@@ -217,9 +222,9 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
 			// would it make more sense to invert these? I think it's kind of perceptually backwards, somehow
-			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( trident.basisX ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( trident.basisY ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( trident.basisZ ) );
+			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( sirenConfig.basisX ) );
+			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( sirenConfig.basisY ) );
+			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( sirenConfig.basisZ ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( sirenConfig.viewerPosition ) );
 			// color, depth, normal targets, blue noise source data
 			textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
@@ -314,13 +319,6 @@ public:
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		{ // show trident with current orientation
-			scopedTimer Start( "Trident" );
-			trident.Update( textureManager.Get( "Display Texture" ) );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
-
 	}
 
 	void UpdateNoiseOffset () {
@@ -391,7 +389,6 @@ public:
 		ZoneScoped;
 
 		// event handling
-		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
 
