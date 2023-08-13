@@ -201,7 +201,7 @@ float de ( vec3 p ) {
 	}
 
 	if ( sceneDist == deG ) {
-		hitPointSurfaceType = DIFFUSE;
+		hitPointSurfaceType = SPECULAR;
 		hitPointColor = vec3( 0.24f, 0.09f, 0.3f );
 	}
 
@@ -320,6 +320,12 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				// diffuse material
 				throughput *= hitPointColor_cache;
 				rayDirection = randomVectorDiffuse;
+				break;
+
+			case SPECULAR:
+				// specular material
+				throughput *= hitPointColor_cache;
+				rayDirection = randomVectorSpecular;
 				break;
 			}
 		}
