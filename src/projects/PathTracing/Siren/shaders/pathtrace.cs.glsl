@@ -299,14 +299,14 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
 		vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
 
-		// material specific behavior
-			// what if, just to simplify the initial setup, just consider distance==max as emissive
+		// add a check for points that are not within epsilon? just ran out the steps?
 
 		if ( dHit >= raymarchMaxDistance ) {
 			// ray escaped
 			finalColor += throughput * skylightColor;
 			break;
 		} else {
+			// material specific behavior
 			switch ( hitPointSurfaceType_cache ) {
 			case NOHIT:
 				break;

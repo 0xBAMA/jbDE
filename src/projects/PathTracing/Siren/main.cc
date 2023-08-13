@@ -115,10 +115,10 @@ public:
 		// modifier keys state
 		const SDL_Keymod k	= SDL_GetModState();
 		const bool shift	= ( k & KMOD_SHIFT );
-		const bool alt		= ( k & KMOD_ALT );
-		const bool control	= ( k & KMOD_CTRL );
-		const bool caps		= ( k & KMOD_CAPS );
-		const bool super	= ( k & KMOD_GUI );
+		// const bool alt		= ( k & KMOD_ALT );
+		// const bool control	= ( k & KMOD_CTRL );
+		// const bool caps		= ( k & KMOD_CAPS );
+		// const bool super		= ( k & KMOD_GUI );
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
@@ -218,6 +218,25 @@ public:
 			// controls, perf monitoring window
 			ImGui::Begin( "Controls Window", NULL, 0 );
 
+			// rendering parameters
+				// view position
+				// basis vectors? not sure
+				// tile size
+				// tiles between queries
+				// tiles ms limit
+				// render FoV
+				// exposure
+
+			// raymarch parameters
+				// max steps
+				// max bounces
+				// max distance
+				// epsilon
+				// understep
+
+			// scene parameters
+				// skylight color
+
 			// timing history
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
 			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
@@ -227,6 +246,8 @@ public:
 			const std::vector< float > tileVector = { sirenConfig.tileHistory.begin(), sirenConfig.tileHistory.end() };
 			const string tileLabel = string( "Average: " ) + std::to_string( std::reduce( tileVector.begin(), tileVector.end() ) / tileVector.size() ).substr( 0, 5 ) + string( " tiles/update" );
 			ImGui::PlotLines( " ", tileVector.data(), sirenConfig.performanceHistorySamples, 0, tileLabel.c_str(), -10.0f, 200.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
+
+			// report number of complete passes, average tiles per second, average effective rays per second
 
 			ImGui::End();
 		}
