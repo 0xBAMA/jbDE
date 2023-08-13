@@ -370,15 +370,6 @@ public:
 				sirenConfig.numFullscreenPasses++;
 			}
 		}
-		// // shuffle when listOffset is zero ( first iteration, and any subsequent resets )
-		// // I like this, for some reason, but I think it would require having a barrier for cases where the reshuffle
-			// would have the same tiles at the start that had been right at the end of the previous shuffled result...
-		//if ( !sirenConfig.tileOffset ) {
-		//	std::random_device rd;
-		//	std::mt19937 rngen( rd() );
-		//	std::shuffle( sirenConfig.tileOffsets.begin(), sirenConfig.tileOffsets.end(), rngen );
-		//	// UpdateNoiseOffset(); // this pass's blue noise offset
-		//}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
 
