@@ -118,7 +118,7 @@ public:
 
 		if ( state[ SDL_SCANCODE_T ] && shift ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
-			ScreenShots( true, true, true );
+			ScreenShots( false, false, true );
 		}
 
 		// reload shaders
