@@ -122,55 +122,62 @@ float deOrganic ( vec3 p ) {
 	return e * R * 0.1f;
 }
 
-float deC(vec3 p) {
-	const vec3 va = vec3(  0.0,  0.57735,  0.0 );
-	const vec3 vb = vec3(  0.0, -1.0,  1.15470 );
-	const vec3 vc = vec3(  1.0, -1.0, -0.57735 );
-	const vec3 vd = vec3( -1.0, -1.0, -0.57735 );
-	float a = 0.0;
-	float s = 1.0;
-	float r = 1.0;
+float deC ( vec3 p ) {
+	const vec3 va = vec3(  0.0f,  0.57735f,  0.0f );
+	const vec3 vb = vec3(  0.0f, -1.0f,  1.15470f );
+	const vec3 vc = vec3(  1.0f, -1.0f, -0.57735f );
+	const vec3 vd = vec3( -1.0f, -1.0f, -0.57735f );
+	float a = 0.0f;
+	float s = 1.0f;
+	float r = 1.0f;
 	float dm;
 	vec3 v;
-	for(int i=0; i<16; i++) {
+	for ( int i = 0; i < 16; i++ ) {
 		float d, t;
-		d = dot(p-va,p-va);              v=va; dm=d; t=0.0;
-		d = dot(p-vb,p-vb); if( d < dm ) { v=vb; dm=d; t=1.0; }
-		d = dot(p-vc,p-vc); if( d < dm ) { v=vc; dm=d; t=2.0; }
-		d = dot(p-vd,p-vd); if( d < dm ) { v=vd; dm=d; t=3.0; }
-		p = v + 2.0*(p - v); r*= 2.0;
-		a = t + 4.0*a; s*= 4.0;
+		d = dot( p - va, p - va );                v = va; dm = d; t = 0.0f;
+		d = dot( p - vb, p - vb ); if( d < dm ) { v = vb; dm = d; t = 1.0f; }
+		d = dot( p - vc, p - vc ); if( d < dm ) { v = vc; dm = d; t = 2.0f; }
+		d = dot( p - vd, p - vd ); if( d < dm ) { v = vd; dm = d; t = 3.0f; }
+		p = v + 2.0f * ( p - v ); r *= 2.0f;
+		a = t + 4.0f * a;
+		s*= 4.0f;
 	}
-	return (sqrt(dm)-1.0)/r;
+	return ( sqrt( dm ) - 1.0f ) / r;
 }
 
 
-float deG(vec3 p0){
-	vec4 p = vec4(p0,3.);
-	// escape = 0.;
-	p*= 2./min(dot(p.xyz,p.xyz),30.);
-	for(int i = 0; i < 14; i++){
-		p.xyz = vec3(2.,4.,2.)-(abs(p.xyz)-vec3(2.,4.,2.));
-		p.xyz = mod(p.xyz-4., 8.)-4.;
-		p *= 9./min(dot(p.xyz,p.xyz),12.);
-		// escape += exp(-0.2*dot(p.xyz,p.xyz));
+float deG ( vec3 p0 ) {
+	vec4 p = vec4( p0, 3.0f );
+	// escape = 0.0f;
+	p*= 2.0f / min( dot( p.xyz, p.xyz ), 30.0f );
+	for ( int i = 0; i < 14; i++ ) {
+		p.xyz = vec3( 2.0f, 4.0f, 2.0f ) - ( abs( p.xyz ) - vec3( 2.0f, 4.0f, 2.0f ) );
+		p.xyz = mod( p.xyz - 4.0f, 8.0f ) - 4.0f;
+		p *= 9.0f / min( dot( p.xyz, p.xyz ), 12.0f );
+		// escape += exp( -0.2f * dot( p.xyz, p.xyz ) );
 	}
-	p.xyz -= clamp(p.xyz, -1.2,1.2);
-	return length(p.xyz)/p.w;
+	p.xyz -= clamp( p.xyz, -1.2f, 1.2f );
+	return length( p.xyz ) / p.w;
 }
+
 // ==============================================================================================
 
 #define NOHIT		0
 #define EMISSIVE	1
 #define DIFFUSE		2
+#define SPECULAR	3
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
 
 // ==============================================================================================
 
-// overal distance estimate function
+// overal distance estimate function - the "scene"
+	// hitPointSurfaceType gives the type of material
+	// hitPointColor gives the albedo of the material
+
 float de ( vec3 p ) {
+
 	hitPointSurfaceType = NOHIT;
 	hitPointColor = vec3( 0.0f );
 	float sceneDist = 1000.0f;
