@@ -119,18 +119,42 @@ float deOrganic ( vec3 p ) {
 	return e * R * 0.1f;
 }
 
-float deC ( vec3 p ) {
-	#define V vec2(.7,-.7)
-	#define G(p)dot(p,V)
-	float i=0.,g=0.,e=1.;
-	float t = 0.34; // change to see different behavior
-	for(int j=0;j++<8;){
-		p=abs(Rotate3D(0.34,vec3(1,-3,5))*p*2.)-1.,
-		p.xz-=(G(p.xz)-sqrt(G(p.xz)*G(p.xz)+.05))*V;
+float deC(vec3 p) {
+	const vec3 va = vec3(  0.0,  0.57735,  0.0 );
+	const vec3 vb = vec3(  0.0, -1.0,  1.15470 );
+	const vec3 vc = vec3(  1.0, -1.0, -0.57735 );
+	const vec3 vd = vec3( -1.0, -1.0, -0.57735 );
+	float a = 0.0;
+	float s = 1.0;
+	float r = 1.0;
+	float dm;
+	vec3 v;
+	for(int i=0; i<16; i++) {
+		float d, t;
+		d = dot(p-va,p-va);              v=va; dm=d; t=0.0;
+		d = dot(p-vb,p-vb); if( d < dm ) { v=vb; dm=d; t=1.0; }
+		d = dot(p-vc,p-vc); if( d < dm ) { v=vc; dm=d; t=2.0; }
+		d = dot(p-vd,p-vd); if( d < dm ) { v=vd; dm=d; t=3.0; }
+		p = v + 2.0*(p - v); r*= 2.0;
+		a = t + 4.0*a; s*= 4.0;
 	}
-	return length(p.xz)/3e2;
+	return (sqrt(dm)-1.0)/r;
 }
 
+
+float deG(vec3 p0){
+	vec4 p = vec4(p0,3.);
+	// escape = 0.;
+	p*= 2./min(dot(p.xyz,p.xyz),30.);
+	for(int i = 0; i < 14; i++){
+		p.xyz = vec3(2.,4.,2.)-(abs(p.xyz)-vec3(2.,4.,2.));
+		p.xyz = mod(p.xyz-4., 8.)-4.;
+		p *= 9./min(dot(p.xyz,p.xyz),12.);
+		// escape += exp(-0.2*dot(p.xyz,p.xyz));
+	}
+	p.xyz -= clamp(p.xyz, -1.2,1.2);
+	return length(p.xyz)/p.w;
+}
 // ==============================================================================================
 
 #define NOHIT		0
@@ -150,9 +174,11 @@ float de ( vec3 p ) {
 
 	const float dOrganic = deOrganic( p );
 	const float deC = deC( p );
+	const float deG = deG( p );
 
 	sceneDist = min( dOrganic, sceneDist );
 	sceneDist = min( deC, sceneDist );
+	sceneDist = min( deG, sceneDist );
 
 	if ( sceneDist == dOrganic ) {
 		hitPointSurfaceType = DIFFUSE;
@@ -162,6 +188,11 @@ float de ( vec3 p ) {
 	if ( sceneDist == deC ) {
 		hitPointSurfaceType = EMISSIVE;
 		hitPointColor = vec3( 0.2f, 0.3f, 0.7f );
+	}
+
+	if ( sceneDist == deG ) {
+		hitPointSurfaceType = DIFFUSE;
+		hitPointColor = vec3( 0.24f, 0.09f, 0.3f );
 	}
 
 	return sceneDist;
