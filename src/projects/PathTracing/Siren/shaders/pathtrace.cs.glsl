@@ -104,6 +104,8 @@ vec2 SubpixelOffset () {
 	return vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
 
+// ==============================================================================================
+
 // organic shape
 float deOrganic ( vec3 p ) {
 	float S = 1.0f;
@@ -117,45 +119,55 @@ float deOrganic ( vec3 p ) {
 	return e * R * 0.1f;
 }
 
-float deOrganic2 ( vec3 p ) {
-	float S = 1.0f;
-	float R, e;
-	float time = 0.1f;
-	p.y += p.z;
-	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
-		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+float deC ( vec3 p ) {
+	#define V vec2(.7,-.7)
+	#define G(p)dot(p,V)
+	float i=0.,g=0.,e=1.;
+	float t = 0.34; // change to see different behavior
+	for(int j=0;j++<8;){
+		p=abs(Rotate3D(0.34,vec3(1,-3,5))*p*2.)-1.,
+		p.xz-=(G(p.xz)-sqrt(G(p.xz)*G(p.xz)+.05))*V;
 	}
-	return e * R * 0.1f;
+	return length(p.xz)/3e2;
 }
+
+// ==============================================================================================
 
 #define NOHIT		0
 #define EMISSIVE	1
 #define DIFFUSE		2
 
 int hitPointSurfaceType = NOHIT;
+vec3 hitPointColor = vec3( 0.0f );
+
+// ==============================================================================================
 
 // overal distance estimate function
 float de ( vec3 p ) {
 	hitPointSurfaceType = NOHIT;
+	hitPointColor = vec3( 0.0f );
 	float sceneDist = 1000.0f;
 
 	const float dOrganic = deOrganic( p );
-	const float dOrganic2 = deOrganic2( p );
+	const float deC = deC( p );
 
 	sceneDist = min( dOrganic, sceneDist );
-	sceneDist = min( dOrganic2, sceneDist );
+	sceneDist = min( deC, sceneDist );
 
 	if ( sceneDist == dOrganic ) {
 		hitPointSurfaceType = DIFFUSE;
+		hitPointColor = vec3( 1.0f, 0.5f, 0.2f );
 	}
 
-	if ( sceneDist == dOrganic2 ) {
+	if ( sceneDist == deC ) {
 		hitPointSurfaceType = EMISSIVE;
+		hitPointColor = vec3( 0.2f, 0.3f, 0.7f );
 	}
 
 	return sceneDist;
 }
+
+// ==============================================================================================
 
 // raymarches to the next hit
 float Raymarch ( vec3 origin, vec3 direction ) {
@@ -224,8 +236,9 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		// get the hit point
 		float dHit = Raymarch( rayOrigin, rayDirection );
 
-		// cache surface type, hitpoint color so it's not overwritten by normal calcs
+		// cache surface type, color so it's not overwritten by normal calcs
 		int hitPointSurfaceType_cache = hitPointSurfaceType;
+		vec3 hitPointColor_cache = hitPointColor;
 
 		// get previous direction, origin
 		rayOriginPrevious = rayOrigin;
@@ -248,20 +261,26 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		// material specific behavior
 			// what if, just to simplify the initial setup, just consider distance==max as emissive
 
-		switch ( hitPointSurfaceType_cache ) {
-		case NOHIT:
+		if ( dHit >= raymarchMaxDistance ) {
+			// ray escaped
+			// finalColor += throughput * vec3( 0.5f );
 			break;
+		} else {
+			switch ( hitPointSurfaceType_cache ) {
+			case NOHIT:
+				break;
 
-		case EMISSIVE:
-			// constant white emissive
-			finalColor += throughput * vec3( 1.0f, 0.5f, 0.5f );
-			break;
+			case EMISSIVE:
+				// light emitting material
+				finalColor += throughput * hitPointColor_cache;
+				break;
 
-		case DIFFUSE:
-			// darker grey diffuse material
-			throughput *= vec3( 0.48f, 0.4f, 0.2f );
-			rayDirection = randomVectorDiffuse;
-			break;
+			case DIFFUSE:
+				// diffuse material
+				throughput *= hitPointColor_cache;
+				rayDirection = randomVectorDiffuse;
+				break;
+			}
 		}
 
 		// russian roulette termination
