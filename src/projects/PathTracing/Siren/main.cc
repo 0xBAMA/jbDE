@@ -41,6 +41,9 @@ struct sirenConfig_t {
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
+	// scene parameters
+	vec3 skylightColor = vec3( 0.4f );
+
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
 			// dithering the pathtrace result, seems, questionable - tbd
@@ -302,7 +305,7 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), sirenConfig.raymarchUnderstep );
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
-			// would it make more sense to invert these? I think it's kind of perceptually backwards, somehow
+			glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1, glm::value_ptr( sirenConfig.skylightColor ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( sirenConfig.basisX ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( sirenConfig.basisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( sirenConfig.basisZ ) );

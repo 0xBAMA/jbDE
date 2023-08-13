@@ -27,6 +27,9 @@ uniform float raymarchMaxDistance;
 uniform float raymarchEpsilon;
 uniform float raymarchUnderstep;
 
+// scene parameters
+uniform vec3 skylightColor;
+
 mat3 Rotate3D ( float angle, vec3 axis ) {
 	const vec3 a = normalize( axis );
 	const float s = sin( angle );
@@ -294,7 +297,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 		if ( dHit >= raymarchMaxDistance ) {
 			// ray escaped
-			// finalColor += throughput * vec3( 0.5f );
+			finalColor += throughput * skylightColor;
 			break;
 		} else {
 			switch ( hitPointSurfaceType_cache ) {
