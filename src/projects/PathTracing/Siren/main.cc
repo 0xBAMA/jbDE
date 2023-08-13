@@ -109,8 +109,13 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
-		// require shift for some operations so you don't do it accidentally
-		const bool shift = ( SDL_GetModState() & KMOD_SHIFT );
+		// modifier keys state
+		const SDL_Keymod k	= SDL_GetModState();
+		const bool shift	= ( k & KMOD_SHIFT );
+		const bool alt		= ( k & KMOD_ALT );
+		const bool control	= ( k & KMOD_CTRL );
+		const bool caps		= ( k & KMOD_CAPS );
+		const bool super	= ( k & KMOD_GUI );
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
@@ -127,7 +132,7 @@ public:
 		}
 
 		// quaternion based rotation via retained state in the basis vectors - much easier to use than euler angles or the trident
-		const float scalar = SDL_GetModState() & KMOD_SHIFT ? 0.02f : 0.0005f;
+		const float scalar = shift ? 0.02f : 0.0005f;
 		if ( state[ SDL_SCANCODE_W ] ) {
 			glm::quat rot = glm::angleAxis( -scalar, sirenConfig.basisX ); // basisX is the axis, therefore remains untransformed
 			sirenConfig.basisY = ( rot * vec4( sirenConfig.basisY, 0.0f ) ).xyz();
@@ -167,7 +172,7 @@ public:
 
 		// f to reset basis, shift + f to reset basis and home to origin
 		if ( state[ SDL_SCANCODE_F ] ) {
-			if ( SDL_GetModState() & KMOD_SHIFT ) {
+			if ( shift ) {
 				sirenConfig.viewerPosition = vec3( 0.0f, 0.0f, 0.0f );
 			}
 			// reset to default basis
