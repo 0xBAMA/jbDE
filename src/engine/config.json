@@ -141,7 +141,7 @@
 			"raymarchMaxDistance":100.0,
 			"raymarchEpsilon":0.001,
 			"raymarchUnderstep":0.618,
-			"exposure":1.0,
+			"exposure":0.5,
 			"renderFoV":0.618,
 			"viewerPosition":{
 				"x":1.2,

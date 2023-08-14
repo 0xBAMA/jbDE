@@ -193,8 +193,8 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
-	const vec3 whiteWallColor = vec3( 0.514 );
-	const vec3 floorCielingColor = vec3( 0.3 );
+	const vec3 whiteWallColor = vec3( 0.618 );
+	const vec3 floorCielingColor = vec3( 0.9 );
 
 	// North, South, East, West walls
 	float dNorthWall = fPlane( p, vec3(  0.0f, 0.0f, -1.0f ), 48.0f );
