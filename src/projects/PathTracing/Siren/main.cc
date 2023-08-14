@@ -458,8 +458,8 @@ public:
 		if ( sirenConfig.tileListNeedsUpdate == true ) {
 			// construct the tile list ( runs at frame 0 and again any time the tilesize changes )
 			sirenConfig.tileListNeedsUpdate = false;
-			for ( int x = 0; x <= config.width; x += sirenConfig.tileSize ) {
-				for ( int y = 0; y <= config.height; y += sirenConfig.tileSize ) {
+			for ( uint32_t x = 0; x <= sirenConfig.targetWidth; x += sirenConfig.tileSize ) {
+				for ( uint32_t y = 0; y <= sirenConfig.targetHeight; y += sirenConfig.tileSize ) {
 					sirenConfig.tileOffsets.push_back( ivec2( x, y ) );
 				}
 			}
