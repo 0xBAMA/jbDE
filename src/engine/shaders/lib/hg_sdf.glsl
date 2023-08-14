@@ -341,7 +341,7 @@ float fCone(vec3 p, float radius, float height) {
 	return d;
 }
 
-float deRoundedBox ( vec3 p, vec3 boxDims, float radius ) {
+float fRoundedBox ( vec3 p, vec3 boxDims, float radius ) {
 	return length( max( abs( p ) - boxDims, 0.0f ) ) - radius;
 }
 
