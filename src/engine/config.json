@@ -142,7 +142,7 @@
 			"raymarchEpsilon":0.001,
 			"raymarchUnderstep":0.618,
 			"exposure":0.5,
-			"renderFoV":0.618,
+			"renderFoV":0.9,
 			"viewerPosition":{
 				"x":1.2,
 				"y":1.4,

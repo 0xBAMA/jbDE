@@ -219,7 +219,7 @@ public:
 			ImGui::Begin( "Controls Window", NULL, 0 );
 
 		// controls
-			ImGui::Text( "Screenshots" );
+			ImGui::SeparatorText( "Screenshots" );
 			if ( ImGui::Button( "Linear Color EXR" ) ) {
 			// EXR screenshot for linear color
 				ScreenShots( true, false, false );
@@ -237,7 +237,8 @@ public:
 				ScreenShots( false, false, true );
 			}
 
-			ImGui::Text( "Renderer Controls" );
+			ImGui::Text( " " );
+			ImGui::SeparatorText( "Renderer Controls" );
 			// reset accumulators
 			if ( ImGui::Button( "Reset Accumulators" ) ) {
 				ResetAccumulators();
@@ -250,29 +251,42 @@ public:
 			}
 
 		// rendering parameters
-			// view position
-			// basis vectors? not sure
+			ImGui::Text( " " );
+			ImGui::SeparatorText( "Rendering Parameters" );
+			// view position - consider adding 3 component float input SliderFloat3
+			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
+			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
+			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -20.0f, 20.0f );
 			// tile size
-			// tiles between queries
-			// tiles ms limit
-			// render FoV
-			// exposure
+				// update will require that we rebuild the tile offset list
+			// powers of two... tbd
+			ImGui::SliderInt( "Tiles Between Queries", ( int * ) &sirenConfig.tilesBetweenQueries, 0, 20 );
+			ImGui::SliderFloat( "Frame Time Limit (ms)", &sirenConfig.tilesMSLimit, 1.0f, 100.0f );
+			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.1f, 3.0f );
+			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 
 		// raymarch parameters
-			// max steps
-			// max bounces
-			// max distance
-			// epsilon
-			// understep
+			ImGui::Text( " " );
+			ImGui::SeparatorText( "Raymarch Parameters" );
+			ImGui::SliderInt( "Max Steps", ( int * ) &sirenConfig.raymarchMaxSteps, 10, 500 );
+			ImGui::SliderInt( "Max Bounces", ( int * ) &sirenConfig.raymarchMaxBounces, 0, 50 );
+			ImGui::SliderFloat( "Max Distance", &sirenConfig.raymarchMaxDistance, 1.0f, 500.0f );
+			ImGui::SliderFloat( "Epsilon", &sirenConfig.raymarchEpsilon, 0.0001f, 0.5f, "%.5f", ImGuiSliderFlags_Logarithmic );
+			ImGui::SliderFloat( "Understep", &sirenConfig.raymarchUnderstep, 0.1, 1.0f );
 
 		// scene parameters
+			ImGui::Text( " " );
+			ImGui::SeparatorText( "Scene Parameters" );
 			// skylight color
 
+			ImGui::Text( " " );
+			ImGui::SeparatorText( "Time" );
 			// timing history
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
 			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
 			ImGui::PlotLines( " ", timeVector.data(), sirenConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 60.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
 
+			ImGui::SeparatorText( "Tiles" );
 			// tiling history
 			const std::vector< float > tileVector = { sirenConfig.tileHistory.begin(), sirenConfig.tileHistory.end() };
 			const string tileLabel = string( "Average: " ) + std::to_string( std::reduce( tileVector.begin(), tileVector.end() ) / tileVector.size() ).substr( 0, 5 ) + string( " tiles/update" );
