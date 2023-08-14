@@ -188,7 +188,6 @@ vec3 hitPointColor = vec3( 0.0f );
 	// hitPointColor gives the albedo of the material
 
 float de ( vec3 p ) {
-
 	// init nohit, far from surface, no diffuse color
 	hitPointSurfaceType = NOHIT;
 	float sceneDist = 1000.0f;
@@ -301,6 +300,20 @@ float de ( vec3 p ) {
 
 // ==============================================================================================
 
+vec3 HenyeyGreensteinSampleSphere ( vec3 n, float g ) {
+	float t = ( 1.0f - g * g ) / (1.0f - g + 2.0f * g * NormalizedRandomFloat() );
+	float cosTheta = ( 1.0f + g * g - t ) / ( 2.0f * g );
+	float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+	float phi = 2.0f * 3.14159f * NormalizedRandomFloat();
+
+	vec3 xyz = vec3( cos( phi ) * sinTheta, sin( phi ) * sinTheta, cosTheta );
+	vec3 W = ( abs(n.x) > 0.99f ) ? vec3( 0.0f, 1.0f, 0.0f ) : vec3( 1.0f, 0.0f, 0.0f );
+	vec3 N = n;
+	vec3 T = normalize( cross( N, W ) );
+	vec3 B = cross( T, N );
+	return normalize( xyz.x * T + xyz.y * B + xyz.z * N );
+}
+
 // raymarches to the next hit
 float Raymarch ( vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
@@ -312,10 +325,14 @@ float Raymarch ( vec3 origin, vec3 direction ) {
 		if ( dTotal > raymarchMaxDistance || abs( dQuery ) < raymarchEpsilon ) {
 			break;
 		}
+
 		// // certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
 		// if ( NormalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
 		// 	direction = normalize( direction + 0.4f * RandomUnitVector() );
 		// }
+
+		// another method for volumetrics, using a phase function - doesn't work right now because of how pQuery is calculated
+		// direction = HenyeyGreensteinSampleSphere( direction.xzy, 0.1f ).xzy;
 	}
 	return dTotal;
 }
