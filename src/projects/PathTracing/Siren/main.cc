@@ -218,24 +218,55 @@ public:
 			// controls, perf monitoring window
 			ImGui::Begin( "Controls Window", NULL, 0 );
 
-			// rendering parameters
-				// view position
-				// basis vectors? not sure
-				// tile size
-				// tiles between queries
-				// tiles ms limit
-				// render FoV
-				// exposure
+		// controls
+			ImGui::Text( "Screenshots" );
+			if ( ImGui::Button( "Linear Color EXR" ) ) {
+			// EXR screenshot for linear color
+				ScreenShots( true, false, false );
+			}
 
-			// raymarch parameters
-				// max steps
-				// max bounces
-				// max distance
-				// epsilon
-				// understep
+			ImGui::SameLine();
+			if ( ImGui::Button( "Normal/Depth EXR" ) ) {
+			// EXR screenshot for normals/depth
+				ScreenShots( false, true, false );
+			}
 
-			// scene parameters
-				// skylight color
+			ImGui::SameLine();
+			if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
+			// PNG screenshot for tonemapped result
+				ScreenShots( false, false, true );
+			}
+
+			ImGui::Text( "Renderer Controls" );
+			// reset accumulators
+			if ( ImGui::Button( "Reset Accumulators" ) ) {
+				ResetAccumulators();
+			}
+
+			// reload shaders
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reload Shaders" ) ) {
+				ReloadShaders();
+			}
+
+		// rendering parameters
+			// view position
+			// basis vectors? not sure
+			// tile size
+			// tiles between queries
+			// tiles ms limit
+			// render FoV
+			// exposure
+
+		// raymarch parameters
+			// max steps
+			// max bounces
+			// max distance
+			// epsilon
+			// understep
+
+		// scene parameters
+			// skylight color
 
 			// timing history
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
