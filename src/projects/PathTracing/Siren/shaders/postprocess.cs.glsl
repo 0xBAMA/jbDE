@@ -16,7 +16,6 @@ uniform vec2 resolution;
 void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
-	sampleLoc.y = 1.0f - sampleLoc.y;
 	vec4 originalValue = texture( sourceC, sampleLoc );
 
 	originalValue.rgb = saturation * originalValue.rgb;
