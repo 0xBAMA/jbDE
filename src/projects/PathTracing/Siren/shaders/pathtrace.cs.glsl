@@ -108,10 +108,10 @@ bool BoundsCheck ( ivec2 loc ) {
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
-// vec3 getCameraRayForUV ( vec2 uv ) {
-// 	// placeholder for switchable cameras ( fisheye, etc )
-// 	return vec3( uv, 1.0f );
-// }
+vec3 getCameraRayForUV ( vec2 uv ) {
+	// placeholder for switchable cameras ( fisheye, etc )
+	return vec3( uv, 1.0f );
+}
 
 vec2 SubpixelOffset () {
 	// tbd, probably blue noise
@@ -172,6 +172,7 @@ float deG ( vec3 p0 ) {
 }
 
 // ==============================================================================================
+// ==============================================================================================
 
 #define NOHIT		0
 #define EMISSIVE	1
@@ -181,6 +182,7 @@ float deG ( vec3 p0 ) {
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
 
+// ==============================================================================================
 // ==============================================================================================
 
 // overal distance estimate function - the "scene"
@@ -299,6 +301,7 @@ float de ( vec3 p ) {
 }
 
 // ==============================================================================================
+// ray scattering functions
 
 vec3 HenyeyGreensteinSampleSphere ( vec3 n, float g ) {
 	float t = ( 1.0f - g * g ) / (1.0f - g + 2.0f * g * NormalizedRandomFloat() );
@@ -314,7 +317,15 @@ vec3 HenyeyGreensteinSampleSphere ( vec3 n, float g ) {
 	return normalize( xyz.x * T + xyz.y * B + xyz.z * N );
 }
 
+vec3 SimpleRayScatter ( vec3 n ) {
+	if ( NormalizedRandomFloat() < 0.005f ) {
+		return normalize( n + 0.4f * RandomUnitVector() );
+	}
+}
+
+// ==============================================================================================
 // raymarches to the next hit
+
 float Raymarch ( vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
@@ -326,16 +337,16 @@ float Raymarch ( vec3 origin, vec3 direction ) {
 			break;
 		}
 
-		// // certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
-		// if ( NormalizedRandomFloat() < 0.005f ) { // massive slowdown doing this
-		// 	direction = normalize( direction + 0.4f * RandomUnitVector() );
-		// }
+		// certain chance to scatter in a random direction, per step - one of Nameless' methods for fog
+		// direction = SimpleRayScatter( direction );
 
 		// another method for volumetrics, using a phase function - doesn't work right now because of how pQuery is calculated
 		// direction = HenyeyGreensteinSampleSphere( direction.xzy, 0.1f ).xzy;
 	}
 	return dTotal;
 }
+
+// ==============================================================================================
 
 vec3 Normal ( in vec3 position ) { // three methods - first one seems most practical
 	vec2 e = vec2( raymarchEpsilon, 0.0f );
@@ -348,7 +359,9 @@ vec3 Normal ( in vec3 position ) { // three methods - first one seems most pract
 	// return normalize( vec3( de( position + e.xyy ) - de( position - e.xyy ), de( position + e.yxy ) - de( position - e.yxy ), de( position + e.yyx ) - de( position - e.yyx ) ) );
 }
 
+// ==============================================================================================
 // fake AO, computed from SDF
+
 float CalcAO ( in vec3 position, in vec3 normal ) {
 	float occ = 0.0f;
 	float sca = 1.0f;
@@ -360,6 +373,8 @@ float CalcAO ( in vec3 position, in vec3 normal ) {
 	}
 	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
 }
+
+// ==============================================================================================
 
 vec3 ColorSample ( const vec2 uvIn ) {
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
@@ -445,6 +460,8 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 	return finalColor * exposure;
 }
+
+// ==============================================================================================
 
 void main () {
 	// tiled offset
