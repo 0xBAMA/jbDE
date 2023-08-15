@@ -8,6 +8,7 @@ struct sirenConfig_t {
 	std::deque< float > tileHistory;	// completed tiles per frame
 	uint32_t numFullscreenPasses = 0;
 	int32_t sampleCountCap;				// -1 for unlimited
+	bool showTimeStamp = false;
 
 	// renderer state
 	uint32_t tileSize;
@@ -86,6 +87,7 @@ public:
 			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
 			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
 			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
+			sirenConfig.showTimeStamp				= j[ "app" ][ "Siren" ][ "showTimeStamp" ];
 
 			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
@@ -264,6 +266,7 @@ public:
 			ImGui::SliderFloat( "Frame Time Limit (ms)", &sirenConfig.tilesMSLimit, 1.0f, 100.0f );
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.1f, 3.0f );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
+			ImGui::Checkbox( "Show Timestamp", &sirenConfig.showTimeStamp );
 
 		// raymarch parameters
 			ImGui::Text( " " );
@@ -464,10 +467,12 @@ public:
 		}
 
 		{ // text rendering timestamp - required texture binds are handled internally
-			scopedTimer Start( "Text Rendering" );
-			textRenderer.Update( ImGui::GetIO().DeltaTime );
-			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			if ( sirenConfig.showTimeStamp == true ) {
+				scopedTimer Start( "Text Rendering" );
+				textRenderer.Update( ImGui::GetIO().DeltaTime );
+				textRenderer.Draw( textureManager.Get( "Display Texture" ) );
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
 		}
 	}
 
