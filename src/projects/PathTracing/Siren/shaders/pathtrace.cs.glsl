@@ -195,8 +195,8 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
-	const vec3 whiteWallColor = vec3( 0.618 );
-	const vec3 floorCielingColor = vec3( 0.9 );
+	const vec3 whiteWallColor = vec3( 0.618f );
+	const vec3 floorCielingColor = vec3( 0.9f );
 
 	// North, South, East, West walls
 	float dNorthWall = fPlane( p, vec3(  0.0f, 0.0f, -1.0f ), 48.0f );
@@ -205,14 +205,14 @@ float de ( vec3 p ) {
 	float dWestWall = fPlane( p, vec3( 1.0f,  0.0f, 0.0f ), 10.0f );
 	float dWalls = fOpUnionRound( fOpUnionRound( fOpUnionRound( dNorthWall, dSouthWall, 0.5f ), dEastWall, 0.5f ), dWestWall, 0.5f );
 	sceneDist = min( dWalls, sceneDist );
-	if ( sceneDist == dWalls && dWalls <raymarchEpsilon ) {
+	if ( sceneDist == dWalls && dWalls < raymarchEpsilon ) {
 		hitPointColor = whiteWallColor;
 		hitPointSurfaceType = DIFFUSE;
 	}
 
 	float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
 	sceneDist = min( dFloor, sceneDist );
-	if ( sceneDist == dFloor && dFloor <raymarchEpsilon ) {
+	if ( sceneDist == dFloor && dFloor < raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
 		hitPointSurfaceType = DIFFUSE;
 	}
@@ -222,7 +222,7 @@ float de ( vec3 p ) {
 	float dWestBalcony = fBox( p - vec3( -10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
 	float dBalconies = min( dEastBalcony, dWestBalcony );
 	sceneDist = min( dBalconies, sceneDist );
-	if ( sceneDist == dBalconies && dBalconies <raymarchEpsilon ) {
+	if ( sceneDist == dBalconies && dBalconies < raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
 		hitPointSurfaceType = DIFFUSE;
 	}
@@ -236,14 +236,14 @@ float de ( vec3 p ) {
 
 	// if railing bounding box is true
 	float dRails;
-	if ( dRailBounds < 0.0f )  {
+	if ( dRailBounds < 0.0f ) {
 		// railings - probably use some instancing on them, also want to use a bounding volume
 		dRails = fCapsule( p, vec3( 7.0f, 2.4f, 48.0f ), vec3( 7.0f, 2.4f, -48.0f ), 0.3f );
 		dRails = min( dRails, fCapsule( p, vec3( 7.0f, 0.6f, 48.0f ), vec3( 7.0f, 0.6f, -48.0f ), 0.1f ) );
 		dRails = min( dRails, fCapsule( p, vec3( 7.0f, 1.1f, 48.0f ), vec3( 7.0f, 1.1f, -48.0f ), 0.1f ) );
 		dRails = min( dRails, fCapsule( p, vec3( 7.0f, 1.6f, 48.0f ), vec3( 7.0f, 1.6f, -48.0f ), 0.1f ) );
 		sceneDist = min( dRails, sceneDist );
-		if ( sceneDist == dRails && dRails <=raymarchEpsilon ) {
+		if ( sceneDist == dRails && dRails <= raymarchEpsilon ) {
 			hitPointColor = vec3( 0.618f );
 			hitPointSurfaceType = METALLIC;
 		}
@@ -260,12 +260,12 @@ float de ( vec3 p ) {
 	dArches = fOpDifferenceRound( dArches, fRoundedBox( p, vec3( 3.0f, 4.5f, 10.0f ), 3.0f ), 0.2f );
 
 	// if railing bounding box is true
-	if ( dRailBounds < 0.0f )  {
+	if ( dRailBounds < 0.0f ) {
 		dArches = fOpDifferenceRound( dArches, dRails - 0.05f, 0.1f );
 	} // end railing bounding box
 
 	sceneDist = min( dArches, sceneDist );
-	if ( sceneDist == dArches && dArches <raymarchEpsilon ) {
+	if ( sceneDist == dArches && dArches < raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
 		hitPointSurfaceType = DIFFUSE;
 	}
@@ -285,14 +285,14 @@ float de ( vec3 p ) {
 
 	float dSideLightBar1 = fBox( p - vec3( 7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
 	sceneDist = min( dSideLightBar1, sceneDist );
-	if ( sceneDist == dSideLightBar1 && dSideLightBar1 <=raymarchEpsilon ) {
+	if ( sceneDist == dSideLightBar1 && dSideLightBar1 <= raymarchEpsilon ) {
 		hitPointColor = coolColor;
 		hitPointSurfaceType = EMISSIVE;
 	}
 
 	float dSideLightBar2 = fBox( p - vec3( -7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
 	sceneDist = min( dSideLightBar2, sceneDist );
-	if ( sceneDist == dSideLightBar2 && dSideLightBar2 <=raymarchEpsilon ) {
+	if ( sceneDist == dSideLightBar2 && dSideLightBar2 <= raymarchEpsilon ) {
 		hitPointColor = warmColor;
 		hitPointSurfaceType = EMISSIVE;
 	}
@@ -423,12 +423,16 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
 
 		// add a check for points that are not within epsilon? just ran out the steps?
+			// this is much less likely with a 0.9 understep, rather than 0.618
 
 		if ( dHit >= raymarchMaxDistance ) {
-			// ray escaped
+
+			// ray escaped - break out of loop, since you will not bounce
 			finalColor += throughput * skylightColor;
 			break;
+
 		} else {
+
 			// material specific behavior
 			switch ( hitPointSurfaceType_cache ) {
 			case NOHIT:
@@ -487,10 +491,9 @@ void main () {
 		const vec4 oldNormalD = imageLoad( accumulatorNormalsAndDepth, ivec2( location ) );
 
 		// increment the sample count
-		const float sampleCount = oldColor.a + 1;
+		const float sampleCount = oldColor.a + 1.0f;
 
 		// new values - color is currently placeholder
-		// const vec4 newColor = vec4( vec3( pow( CalcAO( hitPoint, Normal( hitPoint ) ), 5.0f ) ), 1.0f );
 		const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
 		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
 
