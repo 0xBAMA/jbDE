@@ -30,7 +30,7 @@ uniform float raymarchUnderstep;
 // scene parameters
 uniform vec3 skylightColor;
 
-mat3 Rotate3D ( float angle, vec3 axis ) {
+mat3 Rotate3D ( const float angle, const vec3 axis ) {
 	const vec3 a = normalize( axis );
 	const float s = sin( angle );
 	const float c = cos( angle );
@@ -76,7 +76,7 @@ vec2 RandomInUnitDisk () {
 	return RandomUnitVector().xy;
 }
 
-vec3 GetColorForTemperature ( float temperature ) {
+vec3 GetColorForTemperature ( const float temperature ) {
 	mat3 m = ( temperature <= 6500.0f )
 		? mat3( vec3( 0.0f, -2902.1955373783176f, -8257.7997278925690f ),
 				vec3( 0.0f, 1669.5803561666639f, 2575.2827530017594f ),
@@ -88,7 +88,7 @@ vec3 GetColorForTemperature ( float temperature ) {
 		+ m[ 2 ] ), vec3( 0.0f ), vec3( 1.0f ) ), vec3( 1.0f ), smoothstep( 1000.0f, 0.0f, temperature ) );
 }
 
-float Reflectance ( float cosTheta, float IoR ) {
+float Reflectance ( const float cosTheta, const float IoR ) {
 	// Use Schlick's approximation for reflectance
 	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
 	r0 = r0 * r0;
@@ -102,13 +102,13 @@ uvec4 BlueNoiseReference ( ivec2 location ) {
 	return imageLoad( blueNoise, location );
 }
 
-bool BoundsCheck ( ivec2 loc ) {
+bool BoundsCheck ( const ivec2 loc ) {
 	// used to abort off-image samples
 	const ivec2 bounds = ivec2( imageSize( accumulatorColor ) ).xy;
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
-vec3 getCameraRayForUV ( vec2 uv ) {
+vec3 getCameraRayForUV ( const vec2 uv ) {
 	// placeholder for switchable cameras ( fisheye, etc )
 	return vec3( uv, 1.0f );
 }
@@ -127,7 +127,7 @@ float deOrganic ( vec3 p ) {
 	float time = 0.0f;
 	p.y += p.z;
 	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-	for ( e = p.y - 1.5f; S < 6e2; S += S ) {
+	for ( e = p.y - 1.5f; S < 6e2f; S += S ) {
 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
 	}
 	return e * R * 0.1f;
@@ -157,10 +157,10 @@ float deC ( vec3 p ) {
 }
 
 
-float deG ( vec3 p0 ) {
+float deG ( const vec3 p0 ) {
 	vec4 p = vec4( p0, 3.0f );
 	// escape = 0.0f;
-	p*= 2.0f / min( dot( p.xyz, p.xyz ), 30.0f );
+	p *= 2.0f / min( dot( p.xyz, p.xyz ), 30.0f );
 	for ( int i = 0; i < 14; i++ ) {
 		p.xyz = vec3( 2.0f, 4.0f, 2.0f ) - ( abs( p.xyz ) - vec3( 2.0f, 4.0f, 2.0f ) );
 		p.xyz = mod( p.xyz - 4.0f, 8.0f ) - 4.0f;
@@ -199,18 +199,18 @@ float de ( vec3 p ) {
 	const vec3 floorCielingColor = vec3( 0.9f );
 
 	// North, South, East, West walls
-	float dNorthWall = fPlane( p, vec3(  0.0f, 0.0f, -1.0f ), 48.0f );
-	float dSouthWall = fPlane( p, vec3(  0.0f, 0.0f, 1.0f ), 48.0f );
-	float dEastWall = fPlane( p, vec3( -1.0f,  0.0f, 0.0f ), 10.0f );
-	float dWestWall = fPlane( p, vec3( 1.0f,  0.0f, 0.0f ), 10.0f );
-	float dWalls = fOpUnionRound( fOpUnionRound( fOpUnionRound( dNorthWall, dSouthWall, 0.5f ), dEastWall, 0.5f ), dWestWall, 0.5f );
+	const float dNorthWall = fPlane( p, vec3( 0.0f, 0.0f, -1.0f ), 48.0f );
+	const float dSouthWall = fPlane( p, vec3( 0.0f, 0.0f, 1.0f ), 48.0f );
+	const float dEastWall = fPlane( p, vec3( -1.0f, 0.0f, 0.0f ), 10.0f );
+	const float dWestWall = fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 10.0f );
+	const float dWalls = fOpUnionRound( fOpUnionRound( fOpUnionRound( dNorthWall, dSouthWall, 0.5f ), dEastWall, 0.5f ), dWestWall, 0.5f );
 	sceneDist = min( dWalls, sceneDist );
 	if ( sceneDist == dWalls && dWalls < raymarchEpsilon ) {
 		hitPointColor = whiteWallColor;
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
+	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
 	sceneDist = min( dFloor, sceneDist );
 	if ( sceneDist == dFloor && dFloor < raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
@@ -218,9 +218,9 @@ float de ( vec3 p ) {
 	}
 
 	// balcony floor
-	float dEastBalcony = fBox( p - vec3( 10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
-	float dWestBalcony = fBox( p - vec3( -10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
-	float dBalconies = min( dEastBalcony, dWestBalcony );
+	const float dEastBalcony = fBox( p - vec3( 10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
+	const float dWestBalcony = fBox( p - vec3( -10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
+	const float dBalconies = min( dEastBalcony, dWestBalcony );
 	sceneDist = min( dBalconies, sceneDist );
 	if ( sceneDist == dBalconies && dBalconies < raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
@@ -228,11 +228,11 @@ float de ( vec3 p ) {
 	}
 
 	// store point value before applying repeat
-	vec3 pCache = p;
+	const vec3 pCache = p;
 	pMirror( p.x, 0.0f );
 
 	// compute bounding box for the rails on both sides, using the mirrored point
-	float dRailBounds = fBox( p - vec3( 7.0f, 1.625f, 0.0f ), vec3( 1.0f, 1.2f, 48.0f ) );
+	const float dRailBounds = fBox( p - vec3( 7.0f, 1.625f, 0.0f ), vec3( 1.0f, 1.2f, 48.0f ) );
 
 	// if railing bounding box is true
 	float dRails;
@@ -273,7 +273,7 @@ float de ( vec3 p ) {
 	p = pCache;
 
 	// the bar lights are the primary source of light in the scene
-	float dCenterLightBar = fBox( p - vec3( 0.0f, 7.4f, 0.0f ), vec3( 1.0f, 0.1f, 48.0f ) );
+	const float dCenterLightBar = fBox( p - vec3( 0.0f, 7.4f, 0.0f ), vec3( 1.0f, 0.1f, 48.0f ) );
 	sceneDist = min( dCenterLightBar, sceneDist );
 	if ( sceneDist == dCenterLightBar && dCenterLightBar <=raymarchEpsilon ) {
 		hitPointColor = 0.6f * GetColorForTemperature( 6500.0f );
@@ -283,14 +283,14 @@ float de ( vec3 p ) {
 	const vec3 coolColor = 0.8f * pow( GetColorForTemperature( 1000000.0f ), vec3( 3.0f ) );
 	const vec3 warmColor = 0.8f * pow( GetColorForTemperature( 1000.0f ), vec3( 1.2f ) );
 
-	float dSideLightBar1 = fBox( p - vec3( 7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
+	const float dSideLightBar1 = fBox( p - vec3( 7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
 	sceneDist = min( dSideLightBar1, sceneDist );
 	if ( sceneDist == dSideLightBar1 && dSideLightBar1 <= raymarchEpsilon ) {
 		hitPointColor = coolColor;
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	float dSideLightBar2 = fBox( p - vec3( -7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
+	const float dSideLightBar2 = fBox( p - vec3( -7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
 	sceneDist = min( dSideLightBar2, sceneDist );
 	if ( sceneDist == dSideLightBar2 && dSideLightBar2 <= raymarchEpsilon ) {
 		hitPointColor = warmColor;
@@ -303,7 +303,7 @@ float de ( vec3 p ) {
 // ==============================================================================================
 // ray scattering functions
 
-vec3 HenyeyGreensteinSampleSphere ( vec3 n, float g ) {
+vec3 HenyeyGreensteinSampleSphere ( const vec3 n, const float g ) {
 	float t = ( 1.0f - g * g ) / (1.0f - g + 2.0f * g * NormalizedRandomFloat() );
 	float cosTheta = ( 1.0f + g * g - t ) / ( 2.0f * g );
 	float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
@@ -317,7 +317,7 @@ vec3 HenyeyGreensteinSampleSphere ( vec3 n, float g ) {
 	return normalize( xyz.x * T + xyz.y * B + xyz.z * N );
 }
 
-vec3 SimpleRayScatter ( vec3 n ) {
+vec3 SimpleRayScatter ( const vec3 n ) {
 	if ( NormalizedRandomFloat() < 0.005f ) {
 		return normalize( n + 0.4f * RandomUnitVector() );
 	}
@@ -326,7 +326,7 @@ vec3 SimpleRayScatter ( vec3 n ) {
 // ==============================================================================================
 // raymarches to the next hit
 
-float Raymarch ( vec3 origin, vec3 direction ) {
+float Raymarch ( const vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
 	for ( int steps = 0; steps < raymarchMaxSteps; steps++ ) {
@@ -348,7 +348,7 @@ float Raymarch ( vec3 origin, vec3 direction ) {
 
 // ==============================================================================================
 
-vec3 Normal ( in vec3 position ) { // three methods - first one seems most practical
+vec3 Normal ( const vec3 position ) { // three methods - first one seems most practical
 	vec2 e = vec2( raymarchEpsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 
@@ -362,7 +362,7 @@ vec3 Normal ( in vec3 position ) { // three methods - first one seems most pract
 // ==============================================================================================
 // fake AO, computed from SDF
 
-float CalcAO ( in vec3 position, in vec3 normal ) {
+float CalcAO ( const vec3 position, const vec3 normal ) {
 	float occ = 0.0f;
 	float sca = 1.0f;
 	for( int i = 0; i < 5; i++ ) {
@@ -397,12 +397,13 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 	// loop over bounces
 	for ( int bounce = 0; bounce < raymarchMaxBounces; bounce++ ) {
+
 		// get the hit point
 		float dHit = Raymarch( rayOrigin, rayDirection );
 
 		// cache surface type, color so it's not overwritten by normal calcs
-		int hitPointSurfaceType_cache = hitPointSurfaceType;
-		vec3 hitPointColor_cache = hitPointColor;
+		const int hitPointSurfaceType_cache = hitPointSurfaceType;
+		const vec3 hitPointColor_cache = hitPointColor;
 
 		// get previous direction, origin
 		rayOriginPrevious = rayOrigin;
@@ -418,9 +419,9 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		rayOrigin += 2.0f * raymarchEpsilon * hitNormal;
 
 		// precalculate reflected vector, random diffuse vector, random specular vector
-		vec3 reflectedVector = reflect( rayDirectionPrevious, hitNormal );
-		vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
-		vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
+		const vec3 reflectedVector = reflect( rayDirectionPrevious, hitNormal );
+		const vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
+		const vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
 
 		// add a check for points that are not within epsilon? just ran out the steps?
 			// this is much less likely with a 0.9 understep, rather than 0.618
@@ -469,7 +470,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 void main () {
 	// tiled offset
-	uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
+	const uvec2 location = gl_GlobalInvocationID.xy + tileOffset.xy;
 
 	if ( BoundsCheck( ivec2( location ) ) ) {
 		// wang hash seeded uniquely for every pixel

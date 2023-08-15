@@ -130,9 +130,9 @@
 			"writeBack":false
 		},
 		"Siren":{
-			"targetWidth": 1920,
-			"targetHeight": 1080,
-			"tileSize":128,
+			"targetWidth": 640,
+			"targetHeight": 320,
+			"tileSize":32,
 			"tilesBetweenQueries":5,
 			"tilesMSLimit":1.0,
 			"performanceHistorySamples":250,
