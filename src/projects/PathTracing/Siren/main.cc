@@ -20,10 +20,15 @@ struct sirenConfig_t {
 	bool rendererNeedsUpdate = true;	// eventually to allow for the preview modes to render once between orientation etc changes
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset = 0;			// offset into tile list - start at first element
-
-	ivec2 blueNoiseOffset;
 	float exposure;
 	float renderFoV;
+
+	// thin lens parameters
+	float thinLensFocusDistance;
+	float thinLensJitterRadius;
+
+	// noise, rng
+	ivec2 blueNoiseOffset;
 	rngi wangSeeder = rngi( 0, 100000000 );	// initial value for the wang ( +x,y offset per invocation )
 
 	// viewer position, orientation
@@ -52,7 +57,6 @@ struct sirenConfig_t {
 			// will probably add this in
 			// additionally, with depth + normals stored, SSAO? might add something, but will have to evaluate
 		// display mode ( preview depth, normals, colors, pathtrace )
-		// thin lens parameters ( focus distance, disk offset jitter scale )
 
 };
 
@@ -84,6 +88,8 @@ public:
 			sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
 			sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
 			sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
+			sirenConfig.thinLensFocusDistance		= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
+			sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];
 			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
 			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
 			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];

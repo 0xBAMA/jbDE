@@ -144,6 +144,8 @@
 			"raymarchUnderstep":0.9,
 			"exposure":0.5,
 			"renderFoV":0.618,
+			"thinLensFocusDistance":10.0,
+			"thinLensJitterRadius":1.0,
 			"viewerPosition":{
 				"x":1.2,
 				"y":1.4,

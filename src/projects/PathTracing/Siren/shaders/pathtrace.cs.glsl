@@ -20,6 +20,10 @@ uniform vec3 basisX;
 uniform vec3 basisY;
 uniform vec3 basisZ;
 
+// thin lens parameters
+uniform float thinLensFocusDistance;
+uniform float thinLensJitterRadius;
+
 // raymarch parameters
 uniform int raymarchMaxSteps;
 uniform int raymarchMaxBounces;
@@ -304,7 +308,7 @@ float de ( vec3 p ) {
 // ray scattering functions
 
 vec3 HenyeyGreensteinSampleSphere ( const vec3 n, const float g ) {
-	float t = ( 1.0f - g * g ) / (1.0f - g + 2.0f * g * NormalizedRandomFloat() );
+	float t = ( 1.0f - g * g ) / ( 1.0f - g + 2.0f * g * NormalizedRandomFloat() );
 	float cosTheta = ( 1.0f + g * g - t ) / ( 2.0f * g );
 	float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 	float phi = 2.0f * 3.14159f * NormalizedRandomFloat();
@@ -329,8 +333,9 @@ vec3 SimpleRayScatter ( const vec3 n ) {
 float Raymarch ( const vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
+	vec3 pQuery = origin;
 	for ( int steps = 0; steps < raymarchMaxSteps; steps++ ) {
-		vec3 pQuery = origin + dTotal * direction;
+		pQuery = origin + dTotal * direction;
 		dQuery = de( pQuery );
 		dTotal += dQuery * raymarchUnderstep;
 		if ( dTotal > raymarchMaxDistance || abs( dQuery ) < raymarchEpsilon ) {
@@ -342,6 +347,7 @@ float Raymarch ( const vec3 origin, vec3 direction ) {
 
 		// another method for volumetrics, using a phase function - doesn't work right now because of how pQuery is calculated
 		// direction = HenyeyGreensteinSampleSphere( direction.xzy, 0.1f ).xzy;
+
 	}
 	return dTotal;
 }
