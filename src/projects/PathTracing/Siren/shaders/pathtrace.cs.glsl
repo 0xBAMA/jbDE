@@ -118,8 +118,8 @@ vec3 getCameraRayForUV ( const vec2 uv ) {
 }
 
 vec2 SubpixelOffset () {
-	// tbd, probably blue noise
-	return vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
+	// return vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
+	return BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).xy / 255.0f;
 }
 
 // ==============================================================================================
