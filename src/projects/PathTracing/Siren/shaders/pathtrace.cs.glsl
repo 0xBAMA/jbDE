@@ -386,8 +386,14 @@ vec3 ColorSample ( const vec2 uvIn ) {
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
 	// compute initial ray origin, direction
-	const vec3 rayOrigin_initial = viewerPosition;
-	const vec3 rayDirection_initial = normalize( aspectRatio * uvIn.x * basisX + uvIn.y * basisY + ( 1.0f / FoV ) * basisZ );
+	vec3 rayOrigin_initial = viewerPosition;
+	vec3 rayDirection_initial = normalize( aspectRatio * uvIn.x * basisX + uvIn.y * basisY + ( 1.0f / FoV ) * basisZ );
+
+	// thin lens adjustment
+	vec3 focuspoint = rayOrigin_initial + ( ( rayDirection_initial * thinLensFocusDistance ) / dot( rayDirection_initial, basisZ ) );
+	vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
+	rayOrigin_initial += diskOffset.x * basisX + diskOffset.y * basisY;
+	rayDirection_initial = normalize( focuspoint - rayOrigin_initial );
 
 	// variables for current and previous ray origin, direction
 	vec3 rayOrigin, rayOriginPrevious;
