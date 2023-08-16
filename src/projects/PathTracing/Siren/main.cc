@@ -523,6 +523,9 @@ public:
 				sirenConfig.numFullscreenPasses++;
 			}
 		}
+		if ( !sirenConfig.tileOffset ) {
+			UpdateNoiseOffset();
+		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
 
