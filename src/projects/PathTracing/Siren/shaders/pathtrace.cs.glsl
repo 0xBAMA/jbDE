@@ -124,56 +124,18 @@ vec2 SubpixelOffset () {
 
 // ==============================================================================================
 
-// organic shape
-float deOrganic ( vec3 p ) {
-	float S = 1.0f;
-	float R, e;
-	float time = 0.0f;
-	p.y += p.z;
-	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-	for ( e = p.y - 1.5f; S < 6e2f; S += S ) {
-		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
-	}
-	return e * R * 0.1f;
-}
-
-float deC ( vec3 p ) {
-	const vec3 va = vec3(  0.0f,  0.57735f,  0.0f );
-	const vec3 vb = vec3(  0.0f, -1.0f,  1.15470f );
-	const vec3 vc = vec3(  1.0f, -1.0f, -0.57735f );
-	const vec3 vd = vec3( -1.0f, -1.0f, -0.57735f );
-	float a = 0.0f;
-	float s = 1.0f;
-	float r = 1.0f;
-	float dm;
-	vec3 v;
-	for ( int i = 0; i < 16; i++ ) {
-		float d, t;
-		d = dot( p - va, p - va );                v = va; dm = d; t = 0.0f;
-		d = dot( p - vb, p - vb ); if( d < dm ) { v = vb; dm = d; t = 1.0f; }
-		d = dot( p - vc, p - vc ); if( d < dm ) { v = vc; dm = d; t = 2.0f; }
-		d = dot( p - vd, p - vd ); if( d < dm ) { v = vd; dm = d; t = 3.0f; }
-		p = v + 2.0f * ( p - v ); r *= 2.0f;
-		a = t + 4.0f * a;
-		s*= 4.0f;
-	}
-	return ( sqrt( dm ) - 1.0f ) / r;
-}
-
-
-float deG ( const vec3 p0 ) {
-	vec4 p = vec4( p0, 3.0f );
-	// escape = 0.0f;
-	p *= 2.0f / min( dot( p.xyz, p.xyz ), 30.0f );
-	for ( int i = 0; i < 14; i++ ) {
-		p.xyz = vec3( 2.0f, 4.0f, 2.0f ) - ( abs( p.xyz ) - vec3( 2.0f, 4.0f, 2.0f ) );
-		p.xyz = mod( p.xyz - 4.0f, 8.0f ) - 4.0f;
-		p *= 9.0f / min( dot( p.xyz, p.xyz ), 12.0f );
-		// escape += exp( -0.2f * dot( p.xyz, p.xyz ) );
-	}
-	p.xyz -= clamp( p.xyz, -1.2f, 1.2f );
-	return length( p.xyz ) / p.w;
-}
+// // organic shape
+// float deOrganic ( vec3 p ) {
+// 	float S = 1.0f;
+// 	float R, e;
+// 	float time = 0.0f;
+// 	p.y += p.z;
+// 	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+// 	for ( e = p.y - 1.5f; S < 6e2f; S += S ) {
+// 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+// 	}
+// 	return e * R * 0.1f;
+// }
 
 // ==============================================================================================
 // ==============================================================================================
