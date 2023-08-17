@@ -161,6 +161,7 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
+	const vec3 pCache = p;
 	const vec3 floorCielingColor = vec3( 0.9f );
 
 	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
@@ -173,11 +174,25 @@ float de ( vec3 p ) {
 	// hexagonal symmetry
 	pModPolar( p.xz, 6.0f );
 
-	const float dBalls = distance( p, vec3( 5.0f, 0.0f, 0.0f ) ) - 0.3f;
-	sceneDist = min( dBalls, sceneDist );
-	if ( sceneDist == dBalls && dBalls <= raymarchEpsilon ) {
-		hitPointColor = vec3( 1.0f, 0.3f, 0.1f );
+	const float dWall = fPlane( p, vec3( -1.0f, 0.0f, 0.0f ), 45.0f );
+	sceneDist = min( dWall, sceneDist );
+	if ( sceneDist == dWall && dWall <= raymarchEpsilon ) {
+		hitPointColor = floorCielingColor * 0.7f;
 		hitPointSurfaceType = DIFFUSE;
+	}
+
+	const float dBall = distance( p, vec3( 15.0f, 0.0f, 0.0f ) ) - 0.3f;
+	sceneDist = min( dBall, sceneDist );
+	if ( sceneDist == dBall && dBall <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.4f, 0.5f, 0.6f ) * 20.0f;
+		hitPointSurfaceType = EMISSIVE;
+	}
+
+	const float dRails = fTorus( p, 0.2f, 33.0f );
+	sceneDist = min( dRails, sceneDist );
+	if ( sceneDist == dRails && dRails <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.7f, 0.4f, 0.2f );
+		hitPointSurfaceType = METALLIC;
 	}
 
 	return sceneDist;

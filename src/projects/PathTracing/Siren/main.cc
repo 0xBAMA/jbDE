@@ -285,7 +285,7 @@ public:
 			ImGui::SliderInt( "Max Bounces", ( int * ) &sirenConfig.raymarchMaxBounces, 0, 50 );
 			ImGui::SliderFloat( "Max Distance", &sirenConfig.raymarchMaxDistance, 1.0f, 500.0f );
 			ImGui::SliderFloat( "Epsilon", &sirenConfig.raymarchEpsilon, 0.0001f, 0.5f, "%.5f", ImGuiSliderFlags_Logarithmic );
-			ImGui::SliderFloat( "Understep", &sirenConfig.raymarchUnderstep, 0.1, 1.0f );
+			ImGui::SliderFloat( "Understep", &sirenConfig.raymarchUnderstep, 0.1f, 1.0f );
 
 		// scene parameters
 			ImGui::Text( " " );
