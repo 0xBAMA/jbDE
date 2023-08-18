@@ -283,13 +283,13 @@ public:
 				sirenConfig.tileListNeedsUpdate = true;
 			}
 
-			ImGui::SliderInt( "Tiles Between Queries", ( int * ) &sirenConfig.tilesBetweenQueries, 0, 45, "%d", ImGuiSliderFlags_Logarithmic );
+			ImGui::SliderInt( "Tiles Between Queries", ( int * ) &sirenConfig.tilesBetweenQueries, 0, 45, "%d" );
 			ImGui::SliderFloat( "Frame Time Limit (ms)", &sirenConfig.tilesMSLimit, 1.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.1f, 3.0f );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 			ImGui::Text( " " );
-			ImGui::SliderFloat( "Thin Lens Focus Distance", &sirenConfig.thinLensFocusDistance, 0.0f, 40.0f );
-			ImGui::SliderFloat( "Thin Lens Jitter Radius", &sirenConfig.thinLensJitterRadius, 0.0f, 10.0f );
+			ImGui::SliderFloat( "Thin Lens Focus Distance", &sirenConfig.thinLensFocusDistance, 0.0f, 40.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+			ImGui::SliderFloat( "Thin Lens Jitter Radius", &sirenConfig.thinLensJitterRadius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::Text( " " );
 			ImGui::Checkbox( "Show Timestamp", &sirenConfig.showTimeStamp );
 
