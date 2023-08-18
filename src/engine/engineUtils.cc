@@ -6,7 +6,12 @@ void engineBase::ClearColorAndDepth () {
 	// clear the screen
 	glClearColor( config.clearColor.x, config.clearColor.y, config.clearColor.z, config.clearColor.w );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	glViewport( 0, 0, config.width, config.height );
+
+	// shows black bars when resized
+	// glViewport( 0, 0, config.width, config.height );
+
+	ivec2 windowSize = window.GetWindowSize();
+	glViewport( 0, 0, windowSize.x, windowSize.y );
 }
 
 void engineBase::SendTonemappingParameters () {
@@ -52,7 +57,12 @@ void engineBase::BlitToScreen () {
 	glBindVertexArray( displayVAO );
 
 	textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
-	glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+	
+	// glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+
+	ivec2 windowSize = window.GetWindowSize();
+	glUniform2f( glGetUniformLocation( shader, "resolution" ), windowSize.x, windowSize.y );
+
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 }
 

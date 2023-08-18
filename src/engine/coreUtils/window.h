@@ -77,6 +77,12 @@ public:
 		}
 	}
 
+	ivec2 GetWindowSize () {
+		int x, y;
+		SDL_GetWindowSize( window, &x, &y );
+		return ivec2( x, y );
+	}
+
 	void ToggleVSync () {
 		vsyncState = !vsyncState;
 		SDL_GL_SetSwapInterval( vsyncState ? 1 : 0 );
