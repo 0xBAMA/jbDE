@@ -137,6 +137,23 @@ vec2 SubpixelOffset () {
 // 	return e * R * 0.1f;
 // }
 
+// trellis type structure
+float deFractal ( vec3 p ) {
+	vec3 k = vec3( 5.0f, 2.0f, 1.0f );
+	p.y += 5.5f;
+	for ( int j = 0; ++j < 8; ) {
+		p.xz = abs( p.xz );
+		p.xz = p.z > p.x ? p.zx : p.xz;
+		p.z = 0.9f - abs( p.z - 0.9f );
+		p.xy = p.y > p.x ? p.yx : p.xy;
+		p.x -= 2.3f;
+		p.xy = p.y > p.x ? p.yx : p.xy;
+		p.y += 0.1f;
+		p = k + ( p - k ) * 3.2f;
+	}
+	return length( p ) / 6e3f - 0.001f;
+}
+
 // ==============================================================================================
 // ====== Old Test Chamber ======================================================================
 
@@ -295,19 +312,26 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float dBalls = distance( p, vec3( 15.0f, 10.0f, 0.0f ) ) - 0.618f;
-	sceneDist = min( dBalls, sceneDist );
-	if ( sceneDist == dBalls && dBalls <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.4f, 0.5f, 0.6f ) * 5.0f;
+	const float dLightBars = fBoxCheap( p - vec3( 0.0f, 10.0f, 0.0f ), vec3( 10.0f, 0.1f, 1.0f ) );
+	sceneDist = min( dLightBars, sceneDist );
+	if ( sceneDist == dLightBars && dLightBars <= raymarchEpsilon ) {
+		hitPointColor = GetColorForTemperature( 4800.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float dRails = fTorus( p, 0.2f, 33.0f );
-	sceneDist = min( dRails, sceneDist );
-	if ( sceneDist == dRails && dRails <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.7f, 0.4f, 0.2f );
+	const float dFractal = deFractal( pCache );
+	sceneDist = min( dFractal, sceneDist );
+	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.9f, 0.5f, 0.3f );
 		hitPointSurfaceType = METALLIC;
 	}
+
+	// const float dRails = min( min( fTorus( p, 0.2f, 28.0f ), fTorus( p + vec3( 0.0f, 1.0f, 0.0f ), 0.1f, 28.0f ) ), fTorus( p + vec3( 0.0f, 2.0f, 0.0f ), 0.1f, 28.0f ) );
+	// sceneDist = min( dRails, sceneDist );
+	// if ( sceneDist == dRails && dRails <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.7f, 0.4f, 0.2f );
+	// 	hitPointSurfaceType = METALLIC;
+	// }
 
 	return sceneDist;
 }
