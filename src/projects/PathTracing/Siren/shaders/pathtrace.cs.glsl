@@ -305,10 +305,17 @@ float de ( vec3 p ) {
 	// hexagonal symmetry
 	pModPolar( p.xz, 6.0f );
 
-	const float dWall = fPlane( p, vec3( -1.0f, 0.0f, 0.0f ), 45.0f );
+	const float dWall = fPlane( p, vec3( -1.0f, 0.0f, 0.0f ), 35.0f );
 	sceneDist = min( dWall, sceneDist );
 	if ( sceneDist == dWall && dWall <= raymarchEpsilon ) {
 		hitPointColor = floorCielingColor * 0.7f;
+		hitPointSurfaceType = DIFFUSE;
+	}
+
+	const float dUpperWall = fPlane( p, vec3( -1.0f, -1.0f, 0.0f ), 40.0f );
+	sceneDist = min( dUpperWall, sceneDist );
+	if ( sceneDist == dUpperWall && dUpperWall <= raymarchEpsilon ) {
+		hitPointColor = vec3( 1.0f );
 		hitPointSurfaceType = DIFFUSE;
 	}
 
@@ -318,6 +325,14 @@ float de ( vec3 p ) {
 		hitPointColor = GetColorForTemperature( 4800.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
+
+	const float dLightBarHousing = fBoxCheap( p - vec3( 0.0f, 10.5f, 0.0f ), vec3( 11.0f, 0.4f, 1.1f ) );
+	sceneDist = min( dLightBarHousing, sceneDist );
+	if ( sceneDist == dLightBarHousing && dLightBarHousing <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.618f );
+		hitPointSurfaceType = DIFFUSE;
+	}
+
 
 	const float dFractal = deFractal( pCache );
 	sceneDist = min( dFractal, sceneDist );

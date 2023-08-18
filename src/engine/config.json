@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":640,
-	"screenHeight":350,
+	"screenWidth":1920,
+	"screenHeight":1080,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -132,8 +132,8 @@
 		"Siren":{
 			"targetWidth": 640,
 			"targetHeight": 320,
-			"tileSize":32,
-			"tilesBetweenQueries":5,
+			"tileSize":16,
+			"tilesBetweenQueries":1,
 			"tilesMSLimit":1.0,
 			"performanceHistorySamples":250,
 			"showTimeStamp":false,
