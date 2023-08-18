@@ -271,12 +271,12 @@ public:
 			ImGui::SameLine();
 			// update will require that we rebuild the tile offset list
 			if ( ImGui::Button( " - " ) ) {
-				sirenConfig.tileSize = std::clamp( sirenConfig.tileSize >> 1, 0u, 4096u );
+				sirenConfig.tileSize = std::clamp( sirenConfig.tileSize >> 1, 16u, 4096u );
 				sirenConfig.tileListNeedsUpdate = true;
 			}
 			ImGui::SameLine();
 			if ( ImGui::Button( " + " ) ) {
-				sirenConfig.tileSize = std::clamp( sirenConfig.tileSize << 1, 0u, 4096u );
+				sirenConfig.tileSize = std::clamp( sirenConfig.tileSize << 1, 16u, 4096u );
 				sirenConfig.tileListNeedsUpdate = true;
 			}
 
