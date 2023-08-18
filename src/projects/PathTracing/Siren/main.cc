@@ -553,10 +553,8 @@ public:
 			if ( ++sirenConfig.tileOffset == sirenConfig.tileOffsets.size() ) {
 				sirenConfig.tileOffset = 0;
 				sirenConfig.numFullscreenPasses++;
+				UpdateNoiseOffset();
 			}
-		}
-		if ( !sirenConfig.tileOffset ) {
-			UpdateNoiseOffset();
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
