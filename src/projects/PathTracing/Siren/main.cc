@@ -521,6 +521,10 @@ public:
 		handle = textureManager.Get( "Depth/Normals Accumulator" );
 		glBindTexture( GL_TEXTURE_2D, handle );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, zeroes.Width(), zeroes.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+
+		// reset number of samples + tile offset
+		sirenConfig.numFullscreenPasses = 0;
+		sirenConfig.tileOffset = 0;
 	}
 
 	void ReloadShaders () {
