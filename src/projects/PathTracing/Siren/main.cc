@@ -265,9 +265,21 @@ public:
 			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
 			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
 			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -20.0f, 20.0f );
+
 			// tile size
-				// update will require that we rebuild the tile offset list
-			// powers of two... tbd
+			ImGui::Text( "Tile Size: %d", sirenConfig.tileSize );
+			ImGui::SameLine();
+			// update will require that we rebuild the tile offset list
+			if ( ImGui::Button( " - " ) ) {
+				sirenConfig.tileSize = std::clamp( sirenConfig.tileSize >> 1, 0u, 4096u );
+				sirenConfig.tileListNeedsUpdate = true;
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " + " ) ) {
+				sirenConfig.tileSize = std::clamp( sirenConfig.tileSize << 1, 0u, 4096u );
+				sirenConfig.tileListNeedsUpdate = true;
+			}
+
 			ImGui::SliderInt( "Tiles Between Queries", ( int * ) &sirenConfig.tilesBetweenQueries, 0, 45, "%d", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Frame Time Limit (ms)", &sirenConfig.tilesMSLimit, 1.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.1f, 3.0f );
@@ -520,6 +532,8 @@ public:
 		if ( sirenConfig.tileListNeedsUpdate == true ) {
 			// construct the tile list ( runs at frame 0 and again any time the tilesize changes )
 			sirenConfig.tileListNeedsUpdate = false;
+			sirenConfig.tileOffset = 0;
+			sirenConfig.tileOffsets.resize( 0 );
 			for ( uint32_t x = 0; x <= sirenConfig.targetWidth; x += sirenConfig.tileSize ) {
 				for ( uint32_t y = 0; y <= sirenConfig.targetHeight; y += sirenConfig.tileSize ) {
 					sirenConfig.tileOffsets.push_back( ivec2( x, y ) );
