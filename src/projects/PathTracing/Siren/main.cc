@@ -10,6 +10,9 @@ struct sirenConfig_t {
 	int32_t sampleCountCap;				// -1 for unlimited
 	bool showTimeStamp = false;
 
+	// add time since last reset ( + report avg time per fullscreen pass )
+	std::chrono::time_point< std::chrono::steady_clock > tLastReset = std::chrono::steady_clock::now();
+
 	// renderer state
 	uint32_t tileSize;
 	uint32_t targetWidth;
@@ -306,7 +309,8 @@ public:
 
 			ImGui::Text( " " );
 			ImGui::SeparatorText( "Performance" );
-			ImGui::Text( "Fullscreen Passes: %d", sirenConfig.numFullscreenPasses );
+			float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - sirenConfig.tLastReset ).count() / 1000.0f;
+			ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", sirenConfig.numFullscreenPasses, ts, sirenConfig.numFullscreenPasses / ts );
 			ImGui::SeparatorText( "Time History" );
 			// timing history
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
@@ -527,6 +531,9 @@ public:
 		// reset number of samples + tile offset
 		sirenConfig.numFullscreenPasses = 0;
 		sirenConfig.tileOffset = 0;
+
+		// reset time since last reset
+		sirenConfig.tLastReset = std::chrono::steady_clock::now();
 	}
 
 	void ReloadShaders () {
