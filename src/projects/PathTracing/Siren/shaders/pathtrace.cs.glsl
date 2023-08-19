@@ -112,8 +112,24 @@ bool BoundsCheck ( const ivec2 loc ) {
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
+#define NORMAL		0
+#define SPHERICAL	1
+
 vec3 getCameraRayForUV ( const vec2 uv ) {
-	// placeholder for switchable cameras ( fisheye, etc )
+	// switchable cameras ( fisheye, etc )
+	const int cameraMode = NORMAL;
+	switch ( cameraMode ) {
+	case NORMAL:
+		const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
+		return normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
+		break;
+
+	case SPHERICAL:
+		break;
+
+	default:
+		break;
+	}
 	return vec3( uv, 1.0f );
 }
 
@@ -430,11 +446,10 @@ float CalcAO ( const vec3 position, const vec3 normal ) {
 // ==============================================================================================
 
 vec3 ColorSample ( const vec2 uvIn ) {
-	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
 	// compute initial ray origin, direction
 	vec3 rayOrigin_initial = viewerPosition;
-	vec3 rayDirection_initial = normalize( aspectRatio * uvIn.x * basisX + uvIn.y * basisY + ( 1.0f / FoV ) * basisZ );
+	vec3 rayDirection_initial = getCameraRayForUV( uvIn );
 
 	// thin lens adjustment
 	vec3 focuspoint = rayOrigin_initial + ( ( rayDirection_initial * thinLensFocusDistance ) / dot( rayDirection_initial, basisZ ) );
@@ -547,7 +562,7 @@ void main () {
 
 			// this is redundant, need to revisit at some point
 			const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
-			vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
+			vec3 rayDirection = getCameraRayForUV( uvRemapped );
 			vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
 
 			// thin lens adjustment
