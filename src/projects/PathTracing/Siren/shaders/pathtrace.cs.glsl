@@ -275,6 +275,7 @@ float deFractal ( vec3 p ) {
 #define EMISSIVE	1
 #define DIFFUSE		2
 #define METALLIC	3
+#define MIRROR		4
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -512,6 +513,12 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				// specular material
 				throughput *= hitPointColor_cache;
 				rayDirection = randomVectorSpecular;
+				break;
+
+			case MIRROR:
+				// perfect mirror ( slight attenuation )
+				throughput *= 0.95f;
+				rayDirection = reflectedVector;
 				break;
 			}
 		}
