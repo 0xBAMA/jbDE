@@ -333,7 +333,6 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-
 	const float dFractal = deFractal( pCache );
 	sceneDist = min( dFractal, sceneDist );
 	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
@@ -541,8 +540,15 @@ void main () {
 
 			// this is redundant, need to revisit at some point
 			const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
-			const vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
-			const vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
+			vec3 rayDirection = normalize( aspectRatio * uvRemapped.x * basisX + uvRemapped.y * basisY + ( 1.0f / FoV ) * basisZ );
+			vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
+
+			// thin lens adjustment
+			vec3 focuspoint = rayDirection + ( ( rayDirection * thinLensFocusDistance ) / dot( rayDirection, basisZ ) );
+			vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
+			rayOrigin += diskOffset.x * basisX + diskOffset.y * basisY;
+			rayDirection = normalize( focuspoint - rayDirection );
+
 			const float hitDistance = Raymarch( rayOrigin, rayDirection );
 			const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
 
