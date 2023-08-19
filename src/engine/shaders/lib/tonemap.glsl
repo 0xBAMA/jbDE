@@ -286,6 +286,9 @@ vec3 Tonemap( int tonemapMode, vec3 col ) {
 			case 15: // jodieReinhard2
 					col.xyz = jodieReinhard2ElectricBoogaloo( col.xyz );
 					break;
+			case 16: // AgX from https://www.shadertoy.com/view/ctffRr
+					// todo
+					break;
 	}
 	return col;
 }
