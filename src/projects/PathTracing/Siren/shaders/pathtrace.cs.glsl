@@ -197,7 +197,7 @@ float deFractal2 ( vec3 p ) {
 	return length( p ) / 6e3f - 0.001f;
 }
 
-// // second trellis type structure
+// second trellis type structure
 float deFractal ( vec3 p ) {
 	#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
 	for ( int j = 0; ++j < 8; )
@@ -208,6 +208,32 @@ float deFractal ( vec3 p ) {
 		p.z = 1.0f - abs( p.z - 1.0f ),
 		p = p * 3.0f - vec3( 10.0f, 4.0f, 2.0f );
 	return length( p ) / 6e3f - 0.001f;
+}
+
+
+// third trellis type structure
+#define fold45(p)(p.y>p.x)?p.yx:p
+float deFractal3 ( vec3 p ) {
+	float s = 1.0f;
+	float scale = 2.1f, off0 = 0.8f, off1 = 0.3f, off2 = 0.83f;
+	vec3 off = vec3( 2.0f, 0.2f, 0.1f );
+	for ( int i = 0; ++i < 20; ) {
+		p.xy = abs( p.xy );
+		p.xy = fold45( p.xy );
+		p.y -= off0;
+		p.y = -abs( p.y );
+		p.y += off0;
+		p.x += off1;
+		p.xz = fold45( p.xz );
+		p.x -= off2;
+		p.xz = fold45( p.xz );
+		p.x += off1;
+		p -= off;
+		p *= scale;
+		p += off;
+		s *= scale;
+	}
+	return length( p ) / s;
 }
 
 
@@ -391,30 +417,30 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
-	sceneDist = min( dFractal, sceneDist );
-	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 0.9f, 0.7f, 0.5f );
-		// hitPointSurfaceType = DIFFUSE;
-		hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
-		hitPointSurfaceType = METALLIC;
-	}
+	// const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
+	// sceneDist = min( dFractal, sceneDist );
+	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+	// 	// hitPointColor = vec3( 0.9f, 0.7f, 0.5f );
+	// 	// hitPointSurfaceType = DIFFUSE;
+	// 	hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
+	// 	hitPointSurfaceType = METALLIC;
+	// }
 
-	const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
-	sceneDist = min( dFractal2, sceneDist );
-	if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
-		// hitPointSurfaceType = METALLIC;
-		hitPointColor = vec3( 0.45f, 0.42f, 0.05f );
-		hitPointSurfaceType = DIFFUSE;
-	}
-
-	// const float dFractal3 = deOrganic( pCache * 0.5f ) / 0.5f;
-	// sceneDist = min( dFractal3, sceneDist );
-	// if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.9f, 0.4f, 0.1f );
+	// const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
+	// sceneDist = min( dFractal2, sceneDist );
+	// if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
+	// 	// hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
+	// 	// hitPointSurfaceType = METALLIC;
+	// 	hitPointColor = vec3( 0.45f, 0.42f, 0.05f );
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
+
+	const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
+	sceneDist = min( dFractal3, sceneDist );
+	if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.9f, 0.1f, 0.2f );
+		hitPointSurfaceType = DIFFUSE;
+	}
 
 	// const float dRails = min( min( fTorus( p, 0.2f, 28.0f ), fTorus( p + vec3( 0.0f, 1.0f, 0.0f ), 0.1f, 28.0f ) ), fTorus( p + vec3( 0.0f, 2.0f, 0.0f ), 0.1f, 28.0f ) );
 	// sceneDist = min( dRails, sceneDist );
@@ -534,7 +560,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		// get the hit point
 		float dHit = Raymarch( rayOrigin, rayDirection );
 
-		// cache surface type, color so it's not overwritten by normal calcs
+		// cache surface type, color, so it's not overwritten by calls to de() in normal vector calcs
 		const int hitPointSurfaceType_cache = hitPointSurfaceType;
 		const vec3 hitPointColor_cache = hitPointColor;
 
