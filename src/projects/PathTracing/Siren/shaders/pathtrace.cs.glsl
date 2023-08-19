@@ -167,21 +167,21 @@ vec2 SubpixelOffset () {
 
 // ==============================================================================================
 
-// // organic shape
-// float deOrganic ( vec3 p ) {
-// 	float S = 1.0f;
-// 	float R, e;
-// 	float time = 0.0f;
-// 	p.y += p.z;
-// 	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-// 	for ( e = p.y - 1.5f; S < 6e2f; S += S ) {
-// 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
-// 	}
-// 	return e * R * 0.1f;
-// }
+// organic shape
+float deOrganic ( vec3 p ) {
+	float S = 1.0f;
+	float R, e;
+	float time = 0.0f;
+	p.y += p.z;
+	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+	for ( e = p.y - 1.5f; S < 6e2f; S += S ) {
+		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+	}
+	return e * R * 0.1f;
+}
 
 // trellis type structure
-float deFractal ( vec3 p ) {
+float deFractal2 ( vec3 p ) {
 	vec3 k = vec3( 5.0f, 2.0f, 1.0f );
 	p.y += 5.5f;
 	for ( int j = 0; ++j < 8; ) {
@@ -196,6 +196,20 @@ float deFractal ( vec3 p ) {
 	}
 	return length( p ) / 6e3f - 0.001f;
 }
+
+// // second trellis type structure
+float deFractal ( vec3 p ) {
+	#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+	for ( int j = 0; ++j < 8; )
+		p.z -= 0.3f,
+		p.xz = abs( p.xz ),
+		p.xz = ( p.z > p.x ) ? p.zx : p.xz,
+		p.xy = ( p.y > p.x ) ? p.yx : p.xy,
+		p.z = 1.0f - abs( p.z - 1.0f ),
+		p = p * 3.0f - vec3( 10.0f, 4.0f, 2.0f );
+	return length( p ) / 6e3f - 0.001f;
+}
+
 
 // ==============================================================================================
 // ====== Old Test Chamber ======================================================================
@@ -370,19 +384,37 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float dLightBarHousing = fBoxCheap( p - vec3( 0.0f, 10.5f, 0.0f ), vec3( 11.0f, 0.4f, 1.1f ) );
+	const float dLightBarHousing = fBoxCheap( p - vec3( 0.0f, 10.15f, 0.0f ), vec3( 11.0f, 0.2f, 1.1f ) );
 	sceneDist = min( dLightBarHousing, sceneDist );
 	if ( sceneDist == dLightBarHousing && dLightBarHousing <= raymarchEpsilon ) {
 		hitPointColor = vec3( 0.618f );
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float dFractal = deFractal( pCache );
+	const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
 	sceneDist = min( dFractal, sceneDist );
 	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.9f, 0.5f, 0.3f );
+		// hitPointColor = vec3( 0.9f, 0.7f, 0.5f );
+		// hitPointSurfaceType = DIFFUSE;
+		hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
 		hitPointSurfaceType = METALLIC;
 	}
+
+	const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
+	sceneDist = min( dFractal2, sceneDist );
+	if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
+		// hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
+		// hitPointSurfaceType = METALLIC;
+		hitPointColor = vec3( 0.45f, 0.42f, 0.05f );
+		hitPointSurfaceType = DIFFUSE;
+	}
+
+	// const float dFractal3 = deOrganic( pCache * 0.5f ) / 0.5f;
+	// sceneDist = min( dFractal3, sceneDist );
+	// if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.9f, 0.4f, 0.1f );
+	// 	hitPointSurfaceType = DIFFUSE;
+	// }
 
 	// const float dRails = min( min( fTorus( p, 0.2f, 28.0f ), fTorus( p + vec3( 0.0f, 1.0f, 0.0f ), 0.1f, 28.0f ) ), fTorus( p + vec3( 0.0f, 2.0f, 0.0f ), 0.1f, 28.0f ) );
 	// sceneDist = min( dRails, sceneDist );
