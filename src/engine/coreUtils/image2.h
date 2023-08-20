@@ -119,6 +119,7 @@ public:
 		// we're going to basically bake in the assumption that it has 3 color channels
 			// because this luma calculation is basically just valid for the RGB color situation
 			const bool isUint = std::is_same< uint8_t, imageType >::value;
+			// NTSC saturation weights
 			const float scaleFactors[] = { 0.299f, 0.587f, 0.114f };
 			float sum = 0.0f;
 			for ( int c { 0 }; c < numChannels && c < 3; c++ ) {
