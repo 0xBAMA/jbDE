@@ -113,18 +113,29 @@ bool BoundsCheck ( const ivec2 loc ) {
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
+struct ray {
+	vec3 origin;
+	vec3 direction;
+};
+
 #define NORMAL		0
 #define SPHERICAL	1
-#define ORTHO		2
+#define SIMPLEORTHO	2
+#define ORTHO		3
 
-const int cameraMode = ORTHO;
-vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
+const int cameraMode = SPHERICAL;
+ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
+
+	ray r;
+	r.origin	= vec3( 0.0f );
+	r.direction	= vec3( 0.0f );
 
 	switch ( cameraMode ) {
 	case NORMAL:
 	{
-		return normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
+		r.origin = viewerPosition;
+		r.direction = normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
 		break;
 	}
 
@@ -138,15 +149,26 @@ vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - As
 		vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
 		// derived via experimentation, pretty close to matching the orientation of the normal camera
 		baseVec = Rotate3D( PI / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec;
-		return normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
+
+		r.origin = viewerPosition;
+		r.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
+		break;
+	}
+
+	case SIMPLEORTHO: // basically a long focal length, not quite orthographic
+	{	// this isn't correct - need to adjust ray origin with basisX and basisY, and set ray direction equal to basisZ
+		uv.y /= aspectRatio;
+		vec3 baseVec = vec3( uv * FoV, 1.0f );
+		r.origin = viewerPosition;
+		r.direction = normalize( basisX * baseVec.x + basisY * baseVec.y + basisZ * baseVec.z );
 		break;
 	}
 
 	case ORTHO:
 	{
-		// this isn't correct - need to adjust ray origin with basisX and basisY, and set ray direction equal to basisZ
-		vec3 baseVec = vec3( uv * FoV, 1.0f );
-		return normalize( basisX * baseVec.x + basisY * baseVec.y + basisZ * baseVec.z );
+		uv.y /= aspectRatio;
+		r.origin = viewerPosition + basisX * FoV * uv.x + basisY * FoV * uv.y;
+		r.direction = basisZ;
 		break;
 	}
 
@@ -154,6 +176,8 @@ vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - As
 		break;
 	}
 	return vec3( uv, 1.0f );
+
+	return r;
 }
 
 vec2 SubpixelOffset () {
@@ -526,14 +550,11 @@ float CalcAO ( const vec3 position, const vec3 normal ) {
 vec3 ColorSample ( const vec2 uvIn ) {
 
 	// compute initial ray origin, direction
-	vec3 rayOrigin_initial = viewerPosition;
-	vec3 rayDirection_initial = getCameraRayForUV( uvIn );
+	const ray r = getCameraRayForUV( uvIn );
+	const vec3 rayOrigin_initial = r.origin;
+	const vec3 rayDirection_initial = r.direction;
 
-	// thin lens adjustment
-	vec3 focuspoint = rayOrigin_initial + ( ( rayDirection_initial * thinLensFocusDistance ) / dot( rayDirection_initial, basisZ ) );
-	vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
-	rayOrigin_initial += diskOffset.x * basisX + diskOffset.y * basisY;
-	rayDirection_initial = normalize( focuspoint - rayOrigin_initial );
+	// use this to get first hit depth/normal here? tbd
 
 	// variables for current and previous ray origin, direction
 	vec3 rayOrigin, rayOriginPrevious;
@@ -638,19 +659,11 @@ void main () {
 		const vec2 uv = ( vec2( location ) + SubpixelOffset() ) / vec2( imageSize( accumulatorColor ).xy );
 		const vec2 uvRemapped = 2.0f * ( uv - vec2( 0.5f ) );
 
-			// this is redundant, need to revisit at some point
-			const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
-			vec3 rayDirection = getCameraRayForUV( uvRemapped );
-			vec3 rayOrigin = viewerPosition; // potentially expand to enable orthographic, etc
+		ray r = getCameraRayForUV( uvRemapped );
 
-			// thin lens adjustment
-			vec3 focuspoint = rayDirection + ( ( rayDirection * thinLensFocusDistance ) / dot( rayDirection, basisZ ) );
-			vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
-			rayOrigin += diskOffset.x * basisX + diskOffset.y * basisY;
-			rayDirection = normalize( focuspoint - rayDirection );
-
-			const float hitDistance = Raymarch( rayOrigin, rayDirection );
-			const vec3 hitPoint = rayOrigin + hitDistance * rayDirection;
+		// this is a little bit redundant, need to maybe revisit at some point
+		const float hitDistance = Raymarch( r.origin, r.direction );
+		const vec3 hitPoint = r.origin + hitDistance * r.direction;
 
 		// existing values from the buffers
 		const vec4 oldColor = imageLoad( accumulatorColor, ivec2( location ) );
