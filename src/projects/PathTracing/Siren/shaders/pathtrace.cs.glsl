@@ -21,6 +21,7 @@ uniform vec3 basisY;
 uniform vec3 basisZ;
 
 // thin lens parameters
+uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
 uniform float thinLensJitterRadius;
 

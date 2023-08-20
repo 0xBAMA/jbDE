@@ -27,6 +27,7 @@ struct sirenConfig_t {
 	float renderFoV;
 
 	// thin lens parameters
+	bool thinLensEnable;
 	float thinLensFocusDistance;
 	float thinLensJitterRadius;
 
@@ -91,6 +92,7 @@ public:
 			sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
 			sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
 			sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
+			sirenConfig.thinLensEnable				= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
 			sirenConfig.thinLensFocusDistance		= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
 			sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];
 			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
@@ -288,6 +290,7 @@ public:
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 			ImGui::Text( " " );
+			ImGui::Checkbox( "Enable Thin Lens DoF", &sirenConfig.thinLensEnable );
 			ImGui::SliderFloat( "Thin Lens Focus Distance", &sirenConfig.thinLensFocusDistance, 0.0f, 40.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Thin Lens Jitter Radius", &sirenConfig.thinLensJitterRadius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::Text( " " );
@@ -402,6 +405,7 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), sirenConfig.raymarchUnderstep );
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
+			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), sirenConfig.thinLensEnable );
 			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), sirenConfig.thinLensFocusDistance );
 			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), sirenConfig.thinLensJitterRadius );
 			glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1, glm::value_ptr( sirenConfig.skylightColor ) );
