@@ -138,33 +138,6 @@ vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - As
 		return normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
 		break;
 
-// From AirplaneMode:
-	// 	// vec3 getRdSpherical ( vec2 uv ){
-	// // 	// polar coords
-	// // 	uv = vec2(atan(uv.y,uv.x),length(uv));
-	// // 	uv += 0.5;
-	// // 	uv.y *= PI;
-	// // 	// parametrized sphere
-	// // 	return normalize(vec3(cos(uv.y)*cos(uv.x),sin(uv.y),cos(uv.y)*sin(uv.x)));
-	// // }
-
-	// ray sampleSphericalCamera( const vec2 p ) const {
-	// 	ray r;
-	// 	r.origin = position;
-	// 	// remap [0, dimension] indexing to [-dimension/2., dimension/2.]
-	// 	baseType lx = ( p.values[ 0 ] - baseType( x / 2.0 ) ) / baseType( x / 2.0 );
-	// 	baseType ly = ( p.values[ 1 ] - baseType( y / 2.0 ) ) / baseType( y / 2.0 );
-	// 	baseType aspect_ratio = baseType( x ) / baseType( y );            // calculate pixel offset
-	// 	lx *= aspect_ratio;
-	// 	// scaling down the input reduces the effect of the spherical warping
-	// 	lx *= 0.75;
-	// 	ly *= 0.75;
-	// 	// r.direction = normalize( lx * bx + ly * by + ( 1.0 / FoV ) * bz ); // construct from basis
-	// 	vec2 polarCoords = vec2( atan2( ly, lx ) + 0.5, ( length( vec2( lx, ly ) ) + 0.5 ) * pi );
-	// 	r.direction = normalize( vec3( cos( polarCoords.y() ) * cos( polarCoords.x() ), sin( polarCoords.y() ), cos( polarCoords.y() ) * sin( polarCoords.x() ) ) );
-	// 	return r;
-	// }
-
 	default:
 		break;
 	}
