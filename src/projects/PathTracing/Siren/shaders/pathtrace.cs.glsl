@@ -263,6 +263,34 @@ float deFractal3 ( vec3 p ) {
 	return length( p ) / s;
 }
 
+float deFractal4 ( vec3 pos ) {
+	vec3 tpos = pos;
+	tpos.xz = abs( 0.5f - mod( tpos.xz, 1.0f ) );
+	vec4 p = vec4( tpos, 1.0f );
+	float y = max( 0.0f, 0.35f - abs( pos.y - 3.35f ) ) / 0.35f;
+	for ( int i = 0; i < 7; i++ ) {
+		p.xyz = abs( p.xyz ) - vec3( -0.02f, 1.98f, -0.02f );
+		p = p * ( 2.0f + 0.0f * y ) / clamp( dot( p.xyz, p.xyz ), 0.4f, 1.0f ) - vec4( 0.5f, 1.0f, 0.4f, 0.0f );
+		p.xz *= mat2( -0.416f, -0.91f, 0.91f, -0.416f );
+	}
+	return ( length( max( abs( p.xyz ) - vec3( 0.1f, 5.0f, 0.1f ), vec3( 0.0f ) ) ) - 0.05f ) / p.w;
+}
+
+mat2 rotate2D( float r ) {
+	return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) );
+}
+float deFractal5 ( vec3 p ) {
+	float d, a;
+	d = a = 1.0f;
+	for ( int j = 0; j++ < 9; )
+		p.xz = abs( p.xz ) * rotate2D( PI / 4.0f ),
+		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a ),
+		p.yx *= rotate2D( 0.5f ),
+		p.y -= 3.0f,
+		p *= 1.8f,
+		a *= 1.8f;
+	return d;
+}
 
 // ==============================================================================================
 // ====== Old Test Chamber ======================================================================
@@ -458,12 +486,26 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
-	sceneDist = min( dFractal3, sceneDist );
-	if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
-		// hitPointColor = vec3( 0.618f );
-		hitPointSurfaceType = METALLIC;
+	// const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
+	// sceneDist = min( dFractal3, sceneDist );
+	// if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
+	// 	// hitPointColor = vec3( 0.618f );
+	// 	hitPointSurfaceType = METALLIC;
+	// }
+
+	// const float dFractal4 = deFractal4( ( pCache * 0.2f ) ) / 0.2f;
+	// sceneDist = min( dFractal4, sceneDist );
+	// if ( sceneDist == dFractal4 && dFractal4 <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.45f );
+	// 	hitPointSurfaceType = DIFFUSE;
+	// }
+
+	const float dFractal5 = deFractal5( ( pCache * 2.0f ) ) / 2.0f;
+	sceneDist = min( dFractal5, sceneDist );
+	if ( sceneDist == dFractal5 && dFractal5 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.45f );
+		hitPointSurfaceType = DIFFUSE;
 	}
 
 	// const float dRails = min( min( fTorus( p, 0.2f, 28.0f ), fTorus( p + vec3( 0.0f, 1.0f, 0.0f ), 0.1f, 28.0f ) ), fTorus( p + vec3( 0.0f, 2.0f, 0.0f ), 0.1f, 28.0f ) );
