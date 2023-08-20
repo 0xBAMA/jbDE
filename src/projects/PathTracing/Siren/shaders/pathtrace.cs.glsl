@@ -175,7 +175,14 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	default:
 		break;
 	}
-	return vec3( uv, 1.0f );
+
+	if ( thinLensEnable ) {
+		// thin lens adjustment
+		vec3 focuspoint = r.origin + ( ( r.direction * thinLensFocusDistance ) / dot( r.direction, basisZ ) );
+		vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
+		r.origin += diskOffset.x * basisX + diskOffset.y * basisY;
+		r.direction = normalize( focuspoint - r.origin );
+	}
 
 	return r;
 }
