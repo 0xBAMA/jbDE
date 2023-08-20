@@ -114,19 +114,22 @@ bool BoundsCheck ( const ivec2 loc ) {
 
 #define NORMAL		0
 #define SPHERICAL	1
+#define ORTHO		2
 
-const int cameraMode = SPHERICAL;
-// const int cameraMode = NORMAL;
+const int cameraMode = ORTHO;
 vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
 	switch ( cameraMode ) {
 	case NORMAL:
+	{
 		return normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
 		break;
+	}
 
 	case SPHERICAL:
-		const float uvScalar = 0.4; // can look at shrinking the span, or expanding
+	{
+		const float uvScalar = 0.4f; // can look at shrinking the span, or expanding
 		uv *= uvScalar;
 		uv.y /= aspectRatio;
 		uv.x -= 0.05f;
@@ -134,9 +137,17 @@ vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - As
 		vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
 		// derived via experimentation, pretty close to matching the orientation of the normal camera
 		baseVec = Rotate3D( PI / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec;
-		// return normalize( -baseVec.x * basisX + baseVec.y * basisY + baseVec.z * basisZ );
 		return normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
 		break;
+	}
+
+	case ORTHO:
+	{
+		// this isn't correct - need to adjust ray origin with basisX and basisY, and set ray direction equal to basisZ
+		vec3 baseVec = vec3( uv * FoV, 1.0f );
+		return normalize( basisX * baseVec.x + basisY * baseVec.y + basisZ * baseVec.z );
+		break;
+	}
 
 	default:
 		break;
@@ -419,7 +430,8 @@ float de ( vec3 p ) {
 	sceneDist = min( dFractal3, sceneDist );
 	if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
 		hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
-		hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = vec3( 0.618f );
+		hitPointSurfaceType = METALLIC;
 	}
 
 	// const float dRails = min( min( fTorus( p, 0.2f, 28.0f ), fTorus( p + vec3( 0.0f, 1.0f, 0.0f ), 0.1f, 28.0f ) ), fTorus( p + vec3( 0.0f, 2.0f, 0.0f ), 0.1f, 28.0f ) );
