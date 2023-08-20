@@ -133,6 +133,10 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+		// https://wiki.libsdl.org/SDL2/SDL_GetMouseState
+			// want to pick depth at mouse location, map the position and then take data from the depth buffer, on click
+				// maybe the basis for some kind of autofocus feature for the thin lens? I really like this idea
+
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
 		}
