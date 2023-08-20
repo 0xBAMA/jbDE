@@ -427,19 +427,19 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	// const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
-	// sceneDist = min( dFractal, sceneDist );
-	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.9f, 0.5f, 0.2f ); // copper-gold
-	// 	hitPointSurfaceType = METALLIC;
-	// }
+	const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
+	sceneDist = min( dFractal, sceneDist );
+	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.9f, 0.5f, 0.2f ); // copper-gold
+		hitPointSurfaceType = METALLIC;
+	}
 
-	// const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
-	// sceneDist = min( dFractal2, sceneDist );
-	// if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.45f, 0.42f, 0.05f ); // circuit board green
-	// 	hitPointSurfaceType = DIFFUSE;
-	// }
+	const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
+	sceneDist = min( dFractal2, sceneDist );
+	if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.45f, 0.42f, 0.05f ); // circuit board green
+		hitPointSurfaceType = DIFFUSE;
+	}
 
 	const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
 	sceneDist = min( dFractal3, sceneDist );
