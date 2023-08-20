@@ -645,7 +645,14 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		}
 
 		// russian roulette termination
-			// also not super critical right now
+		// if ( hitpointSurfaceType_cache != REFRACTIVE ) {
+			// russian roulette termination - chance for ray to quit early
+			float maxChannel = max( throughput.r, max( throughput.g, throughput.b ) );
+			if ( NormalizedRandomFloat() > maxChannel ) {
+				break;
+			}
+			throughput *= 1.0f / maxChannel; // russian roulette compensation term
+		// }
 
 	}
 
