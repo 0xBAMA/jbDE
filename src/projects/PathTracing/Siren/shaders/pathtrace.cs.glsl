@@ -125,11 +125,15 @@ vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - As
 		break;
 
 	case SPHERICAL:
-		const float uvScalar = 0.75f; // can look at shrinking the span, or expanding
-		// uv.x *= aspectRatio;
+		const float uvScalar = 0.618f; // can look at shrinking the span, or expanding
 		uv *= uvScalar;
+		uv.x *= aspectRatio;
 		const vec2 polarCoords = vec2( atan( uv.y, uv.x ) + 0.5f, ( length( uv ) + 0.5f ) * PI );
-		const vec3 baseVec = normalize( vec3( cos( polarCoords.y ) * cos( polarCoords.x ), sin( polarCoords.y ), cos( polarCoords.y ) * sin( polarCoords.x ) ) );
+		const float cx = cos( polarCoords.x );
+		const float cy = cos( polarCoords.y );
+		const float sx = sin( polarCoords.x );
+		const float sy = sin( polarCoords.y );
+		const vec3 baseVec = normalize( vec3( cy * cx, sy, cy * sx ) );
 		return baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ;
 		break;
 
