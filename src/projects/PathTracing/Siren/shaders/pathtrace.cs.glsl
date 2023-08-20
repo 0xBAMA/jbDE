@@ -115,16 +115,22 @@ bool BoundsCheck ( const ivec2 loc ) {
 #define NORMAL		0
 #define SPHERICAL	1
 
-vec3 getCameraRayForUV ( const vec2 uv ) {
-	// switchable cameras ( fisheye, etc )
-	const int cameraMode = NORMAL;
+const int cameraMode = SPHERICAL;
+vec3 getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
+	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
+
 	switch ( cameraMode ) {
 	case NORMAL:
-		const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 		return normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
 		break;
 
 	case SPHERICAL:
+		const float uvScalar = 0.75f; // can look at shrinking the span, or expanding
+		// uv.x *= aspectRatio;
+		uv *= uvScalar;
+		const vec2 polarCoords = vec2( atan( uv.y, uv.x ) + 0.5f, ( length( uv ) + 0.5f ) * PI );
+		const vec3 baseVec = normalize( vec3( cos( polarCoords.y ) * cos( polarCoords.x ), sin( polarCoords.y ), cos( polarCoords.y ) * sin( polarCoords.x ) ) );
+		return baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ;
 		break;
 
 // From AirplaneMode:
@@ -420,25 +426,21 @@ float de ( vec3 p ) {
 	// const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
 	// sceneDist = min( dFractal, sceneDist );
 	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-	// 	// hitPointColor = vec3( 0.9f, 0.7f, 0.5f );
-	// 	// hitPointSurfaceType = DIFFUSE;
-	// 	hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
+	// 	hitPointColor = vec3( 0.9f, 0.5f, 0.2f ); // copper-gold
 	// 	hitPointSurfaceType = METALLIC;
 	// }
 
 	// const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
 	// sceneDist = min( dFractal2, sceneDist );
 	// if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
-	// 	// hitPointColor = vec3( 0.9f, 0.5f, 0.2f );
-	// 	// hitPointSurfaceType = METALLIC;
-	// 	hitPointColor = vec3( 0.45f, 0.42f, 0.05f );
+	// 	hitPointColor = vec3( 0.45f, 0.42f, 0.05f ); // circuit board green
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
 	const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
 	sceneDist = min( dFractal3, sceneDist );
 	if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.9f, 0.1f, 0.2f );
+		hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
 		hitPointSurfaceType = DIFFUSE;
 	}
 
