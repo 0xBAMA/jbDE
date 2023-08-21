@@ -33,6 +33,7 @@ protected:
 	void PostInit ();
 	void StartMessage ();
 	void LoadConfig ();
+	void TonemapDefaults ();
 	void CreateWindowAndContext ();
 	void DisplaySetup ();
 	void SetupVertexData ();

@@ -48,14 +48,19 @@ void engineBase::LoadConfig () {
 		showDemoWindow					= j[ "showImGUIDemoWindow" ];
 		showProfiler					= j[ "showProfiler" ];
 
-		// color grading stuff
-		tonemap.showTonemapWindow		= j[ "colorGrade" ][ "showTonemapWindow" ];
-		tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
-		tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
-		tonemap.saturation				= j[ "colorGrade" ][ "saturation" ];
-		tonemap.saturationImprovedWeights = j[ "colorGrade" ][ "saturationImprovedWeights" ];
-		tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];
+		TonemapDefaults();
 	}
+}
+
+void engineBase::TonemapDefaults () {
+	// color grading stuff
+	json j; ifstream i( "src/engine/config.json" ); i >> j; i.close();
+	tonemap.showTonemapWindow		= j[ "colorGrade" ][ "showTonemapWindow" ];
+	tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
+	tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
+	tonemap.saturation				= j[ "colorGrade" ][ "saturation" ];
+	tonemap.saturationImprovedWeights = j[ "colorGrade" ][ "saturationImprovedWeights" ];
+	tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];
 }
 
 void engineBase::CreateWindowAndContext () {
