@@ -428,7 +428,7 @@ public:
 			// for monitoring number of completed tiles
 			uint32_t tilesThisFrame = 0;
 
-			while ( 1 ) {
+			while ( 1 && !quitConfirm ) {
 				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
 					const ivec2 tileOffset = GetTile(); // send uniforms ( unique per loop iteration )
