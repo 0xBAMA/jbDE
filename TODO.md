@@ -454,6 +454,9 @@ This is a planning document for work on this project and in general, about the t
 	- Probabalistic picking of transforms, points in compute shaders
 		- [Draves Paper](https://flam3.com/flame_draves.pdf)
 		- [Lawlor Paper](https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf)
+		- [Cuburn Paper](https://www.ece.ucf.edu/seniordesign/su2011fa2011/g12/Cuburn.pdf)
+		- [Paper on Optimizations](https://www.ece.ucf.edu/seniordesign/su2011fa2011/g12/report.pdf)
+		- [Mapping Square to Circle](https://mathproofs.blogspot.com/2005/07/mapping-square-to-circle.html)
 	- [Fong "Analytical methods for Squaring the Disc"](https://arxiv.org/ftp/arxiv/papers/1509/1509.06344.pdf) - circle<->square mappings
 
 - Bokeh Stuff
