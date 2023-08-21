@@ -78,27 +78,7 @@ public:
 
 			ReloadShaders();
 
-			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
-			sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
-			sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
-			sirenConfig.tilesBetweenQueries			= j[ "app" ][ "Siren" ][ "tilesBetweenQueries" ];
-			sirenConfig.tilesMSLimit				= j[ "app" ][ "Siren" ][ "tilesMSLimit" ];
-			sirenConfig.performanceHistorySamples	= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
-			sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
-			sirenConfig.raymarchMaxBounces			= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
-			sirenConfig.raymarchMaxDistance			= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
-			sirenConfig.raymarchEpsilon				= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
-			sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
-			sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
-			sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
-			sirenConfig.thinLensEnable				= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
-			sirenConfig.thinLensFocusDistance		= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
-			sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];
-			sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
-			sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
-			sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
-			sirenConfig.showTimeStamp				= j[ "app" ][ "Siren" ][ "showTimeStamp" ];
+			ReloadConfig();
 
 			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
@@ -137,11 +117,14 @@ public:
 			// want to pick depth at mouse location, map the position and then take data from the depth buffer, on click
 				// maybe the basis for some kind of autofocus feature for the thin lens? I really like this idea
 
-		int mouseX, mouseY;
-		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
-		if ( mouseState != 0 ) {
-			cout << "Mouse at " << mouseX << " " << mouseY << " with bitmask " << std::bitset<32>( mouseState ) << endl;
-		}
+		// https://wiki.libsdl.org/SDL2/SDL_GetRelativeMouseState
+			// I believe this is related to clicking and dragging
+
+		// int mouseX, mouseY;
+		// uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+		// if ( mouseState != 0 ) {
+		// 	cout << "Mouse at " << mouseX << " " << mouseY << " with bitmask " << std::bitset<32>( mouseState ) << endl;
+		// }
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
@@ -271,6 +254,12 @@ public:
 			ImGui::SameLine();
 			if ( ImGui::Button( "Reload Shaders" ) ) {
 				ReloadShaders();
+			}
+
+			// reload default config
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reload Config" ) ) {
+				ReloadConfig();
 			}
 
 		// rendering parameters
@@ -553,6 +542,30 @@ public:
 	void ReloadShaders () {
 		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
+	}
+
+	void ReloadConfig () {
+		json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+		sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
+		sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
+		sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
+		sirenConfig.tilesBetweenQueries			= j[ "app" ][ "Siren" ][ "tilesBetweenQueries" ];
+		sirenConfig.tilesMSLimit				= j[ "app" ][ "Siren" ][ "tilesMSLimit" ];
+		sirenConfig.performanceHistorySamples	= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
+		sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
+		sirenConfig.raymarchMaxBounces			= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
+		sirenConfig.raymarchMaxDistance			= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
+		sirenConfig.raymarchEpsilon				= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
+		sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
+		sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
+		sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
+		sirenConfig.thinLensEnable				= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
+		sirenConfig.thinLensFocusDistance		= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
+		sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];
+		sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
+		sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
+		sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
+		sirenConfig.showTimeStamp				= j[ "app" ][ "Siren" ][ "showTimeStamp" ];
 	}
 
 	ivec2 GetTile () {
