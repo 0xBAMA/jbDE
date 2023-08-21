@@ -137,6 +137,12 @@ public:
 			// want to pick depth at mouse location, map the position and then take data from the depth buffer, on click
 				// maybe the basis for some kind of autofocus feature for the thin lens? I really like this idea
 
+		int mouseX, mouseY;
+		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+		if ( mouseState != 0 ) {
+			cout << "Mouse at " << mouseX << " " << mouseY << " with bitmask " << std::bitset<32>( mouseState ) << endl;
+		}
+
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
 		}

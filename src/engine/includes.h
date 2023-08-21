@@ -4,6 +4,7 @@
 //====== General STL Stuff ====================================================
 #include <stdio.h>
 #include <algorithm>
+#include <bitset>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
