@@ -565,6 +565,15 @@ public:
 		sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
 		sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
 		sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
+		sirenConfig.basisX.x					= j[ "app" ][ "Siren" ][ "basisX" ][ "x" ];
+		sirenConfig.basisX.y					= j[ "app" ][ "Siren" ][ "basisX" ][ "y" ];
+		sirenConfig.basisX.z					= j[ "app" ][ "Siren" ][ "basisX" ][ "z" ];
+		sirenConfig.basisY.x					= j[ "app" ][ "Siren" ][ "basisY" ][ "x" ];
+		sirenConfig.basisY.y					= j[ "app" ][ "Siren" ][ "basisY" ][ "y" ];
+		sirenConfig.basisY.z					= j[ "app" ][ "Siren" ][ "basisY" ][ "z" ];
+		sirenConfig.basisZ.x					= j[ "app" ][ "Siren" ][ "basisZ" ][ "x" ];
+		sirenConfig.basisZ.y					= j[ "app" ][ "Siren" ][ "basisZ" ][ "y" ];
+		sirenConfig.basisZ.z					= j[ "app" ][ "Siren" ][ "basisZ" ][ "z" ];
 		sirenConfig.showTimeStamp				= j[ "app" ][ "Siren" ][ "showTimeStamp" ];
 	}
 
