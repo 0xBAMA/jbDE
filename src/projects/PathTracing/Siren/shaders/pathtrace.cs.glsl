@@ -237,7 +237,6 @@ float deFractal ( vec3 p ) {
 	return length( p ) / 6e3f - 0.001f;
 }
 
-
 // third trellis type structure
 #define fold45(p)(p.y>p.x)?p.yx:p
 float deFractal3 ( vec3 p ) {
@@ -282,13 +281,23 @@ mat2 rotate2D( float r ) {
 float deFractal5 ( vec3 p ) {
 	float d, a;
 	d = a = 1.0f;
-	for ( int j = 0; j++ < 9; )
-		p.xz = abs( p.xz ) * rotate2D( PI / 4.0f ),
+	for ( int j = 0; j++ < 16; )
+		p.xz = abs( p.xz ) * rotate2D( PI / 3.0f ),
 		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a ),
 		p.yx *= rotate2D( 0.5f ),
 		p.y -= 3.0f,
-		p *= 1.8f,
-		a *= 1.8f;
+		p *= 1.6f,
+		a *= 1.6f;
+	return d;
+}
+
+float deStairs ( vec3 P ) {
+	vec3 Q;
+	float a, d = min( ( P.y - abs( fract( P.z ) - 0.5f ) ) * 0.7f, 1.5f - abs( P.x ) );
+	for ( a = 2.0f; a < 6e2f; a += a )
+		Q = P * a,
+		Q.xz *= rotate2D( a ),
+		d += abs( dot( sin( Q ), Q - Q + 1.0f ) ) / a / 7.0f;
 	return d;
 }
 
@@ -472,26 +481,27 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
-	sceneDist = min( dFractal, sceneDist );
-	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.9f, 0.5f, 0.2f ); // copper-gold
-		hitPointSurfaceType = METALLIC;
-	}
+	// const float dFractal = deFractal( pCache * 0.5f + vec3( 0.0f, 1.5f, 0.0f ) ) / 0.5f;
+	// sceneDist = min( dFractal, sceneDist );
+	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.9f, 0.5f, 0.2f ); // copper-gold
+	// 	hitPointSurfaceType = METALLIC;
+	// }
 
-	const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
-	sceneDist = min( dFractal2, sceneDist );
-	if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.45f, 0.42f, 0.05f ); // circuit board green
-		hitPointSurfaceType = DIFFUSE;
-	}
+	// const float dFractal2 = deFractal2( pCache * 0.5f ) / 0.5f;
+	// sceneDist = min( dFractal2, sceneDist );
+	// if ( sceneDist == dFractal2 && dFractal2 <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.45f, 0.42f, 0.05f ); // circuit board green
+	// 	hitPointSurfaceType = DIFFUSE;
+	// }
 
-	// const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
+	// // const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
+	// const float dFractal3 = deFractal3( pCache * 0.5f ) / 0.5f;
 	// sceneDist = min( dFractal3, sceneDist );
 	// if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
 	// 	hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
 	// 	// hitPointColor = vec3( 0.618f );
-	// 	hitPointSurfaceType = METALLIC;
+	// 	hitPointSurfaceType = EMISSIVE;
 	// }
 
 	// const float dFractal4 = deFractal4( ( pCache * 0.2f ) ) / 0.2f;
@@ -501,11 +511,11 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	const float dFractal5 = deFractal5( ( pCache * 2.0f ) ) / 2.0f;
-	sceneDist = min( dFractal5, sceneDist );
-	if ( sceneDist == dFractal5 && dFractal5 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.45f );
-		hitPointSurfaceType = DIFFUSE;
+	const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
+	sceneDist = min( dStairs, sceneDist );
+	if ( sceneDist == dStairs && dStairs <= raymarchEpsilon ) {
+		hitPointColor = ( NormalizedRandomFloat() < 0.25f ) ? vec3( 0.45f ) : vec3( 0.6f, 0.4f, 0.1f );
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.25f ) ? METALLIC : DIFFUSE;
 	}
 
 	// const float dRails = min( min( fTorus( p, 0.2f, 28.0f ), fTorus( p + vec3( 0.0f, 1.0f, 0.0f ), 0.1f, 28.0f ) ), fTorus( p + vec3( 0.0f, 2.0f, 0.0f ), 0.1f, 28.0f ) );
@@ -536,7 +546,7 @@ vec3 HenyeyGreensteinSampleSphere ( const vec3 n, const float g ) {
 }
 
 vec3 SimpleRayScatter ( const vec3 n ) {
-	if ( NormalizedRandomFloat() < 0.005f ) {
+	if ( NormalizedRandomFloat() < 0.001f ) {
 		return normalize( n + 0.4f * RandomUnitVector() );
 	}
 }
