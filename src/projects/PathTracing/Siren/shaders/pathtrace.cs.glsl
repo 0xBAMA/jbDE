@@ -120,10 +120,11 @@ struct ray {
 
 #define NORMAL		0
 #define SPHERICAL	1
-#define SIMPLEORTHO	2
-#define ORTHO		3
+#define SPHERICAL2	2
+#define SIMPLEORTHO	3
+#define ORTHO		4
 
-const int cameraMode = SPHERICAL;
+const int cameraMode = SPHERICAL2;
 ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
@@ -152,6 +153,23 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 
 		r.origin = viewerPosition;
 		r.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
+		break;
+	}
+
+	case SPHERICAL2:
+	{
+		const float uvScalar = 3.0f;
+		uv *= uvScalar;
+		// uv.y /= aspectRatio;
+
+		// rotate up/down by uv.y
+		mat3 rotY = Rotate3D( uv.y, basisX );
+		// rotate left/right by uv.x
+		mat3 rotX = Rotate3D( uv.x, basisY );
+
+		r.origin = viewerPosition;
+		r.direction = rotX * rotY * basisZ;
+
 		break;
 	}
 
@@ -495,21 +513,21 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	// // const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
-	// const float dFractal3 = deFractal3( pCache * 0.5f ) / 0.5f;
-	// sceneDist = min( dFractal3, sceneDist );
-	// if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
-	// 	// hitPointColor = vec3( 0.618f );
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
+	// const float dFractal3 = deFractal3( Rotate3D( -PI / 2.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * ( pCache * 0.5f ) ) / 0.5f;
+	const float dFractal3 = deFractal3( pCache * 0.5f ) / 0.5f;
+	sceneDist = min( dFractal3, sceneDist );
+	if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
+		// hitPointColor = vec3( 0.618f );
+		hitPointSurfaceType = EMISSIVE;
+	}
 
-	// const float dFractal4 = deFractal4( ( pCache * 0.2f ) ) / 0.2f;
-	// sceneDist = min( dFractal4, sceneDist );
-	// if ( sceneDist == dFractal4 && dFractal4 <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.45f );
-	// 	hitPointSurfaceType = DIFFUSE;
-	// }
+	const float dFractal4 = deFractal4( ( pCache * 0.2f ) ) / 0.2f;
+	sceneDist = min( dFractal4, sceneDist );
+	if ( sceneDist == dFractal4 && dFractal4 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.45f );
+		hitPointSurfaceType = DIFFUSE;
+	}
 
 	const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
 	sceneDist = min( dStairs, sceneDist );
