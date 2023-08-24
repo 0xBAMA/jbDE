@@ -20,6 +20,7 @@ uniform vec3 viewerPosition;
 uniform vec3 basisX;
 uniform vec3 basisY;
 uniform vec3 basisZ;
+uniform int cameraSelect;
 
 // thin lens parameters
 uniform bool thinLensEnable;
@@ -125,7 +126,6 @@ struct ray {
 #define SIMPLEORTHO	3
 #define ORTHO		4
 
-const int cameraMode = ORTHO;
 ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
@@ -133,7 +133,7 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	r.origin	= vec3( 0.0f );
 	r.direction	= vec3( 0.0f );
 
-	switch ( cameraMode ) {
+	switch ( cameraSelect ) {
 	case NORMAL:
 	{
 		r.origin = viewerPosition;
@@ -193,7 +193,7 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 		break;
 	}
 
-	if ( thinLensEnable ) {
+	if ( thinLensEnable ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
 		// thin lens adjustment
 		vec3 focuspoint = r.origin + ( ( r.direction * thinLensFocusDistance ) / dot( r.direction, basisZ ) );
 		vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
