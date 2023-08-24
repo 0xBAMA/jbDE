@@ -25,6 +25,7 @@ struct sirenConfig_t {
 	uint32_t tileOffset = 0;			// offset into tile list - start at first element
 	float exposure;
 	float renderFoV;
+	float uvScalar;
 
 	// thin lens parameters
 	bool thinLensEnable;
@@ -404,6 +405,7 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), sirenConfig.raymarchUnderstep );
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
+			glUniform1f( glGetUniformLocation( shader, "uvScalar" ), sirenConfig.uvScalar );
 			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), sirenConfig.thinLensEnable );
 			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), sirenConfig.thinLensFocusDistance );
 			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), sirenConfig.thinLensJitterRadius );
@@ -559,6 +561,7 @@ public:
 		sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
 		sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
 		sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
+		sirenConfig.uvScalar					= j[ "app" ][ "Siren" ][ "uvScalar" ];
 		sirenConfig.thinLensEnable				= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
 		sirenConfig.thinLensFocusDistance		= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
 		sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];

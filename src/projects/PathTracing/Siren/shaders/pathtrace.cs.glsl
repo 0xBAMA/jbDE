@@ -15,6 +15,7 @@ uniform ivec2 noiseOffset;
 uniform int wangSeed;
 uniform float exposure;
 uniform float FoV;
+uniform float uvScalar;
 uniform vec3 viewerPosition;
 uniform vec3 basisX;
 uniform vec3 basisY;
@@ -124,7 +125,7 @@ struct ray {
 #define SIMPLEORTHO	3
 #define ORTHO		4
 
-const int cameraMode = SPHERICAL2;
+const int cameraMode = ORTHO;
 ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
@@ -142,7 +143,6 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 
 	case SPHERICAL:
 	{
-		const float uvScalar = 0.4f; // can look at shrinking the span, or expanding
 		uv *= uvScalar;
 		uv.y /= aspectRatio;
 		uv.x -= 0.05f;
@@ -158,7 +158,6 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 
 	case SPHERICAL2:
 	{
-		const float uvScalar = 3.0f;
 		uv *= uvScalar;
 		// uv.y /= aspectRatio;
 
