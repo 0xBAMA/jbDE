@@ -145,7 +145,7 @@
 			"exposure":0.5,
 			"renderFoV":0.618,
 			"uvScalar":1.0,
-			"cameraSelect":0,
+			"cameraType":0,
 			"thinLensEnable":false,
 			"thinLensFocusDistance":10.0,
 			"thinLensJitterRadius":0.0,

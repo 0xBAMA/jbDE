@@ -23,10 +23,10 @@ struct sirenConfig_t {
 	bool rendererNeedsUpdate = true;	// eventually to allow for the preview modes to render once between orientation etc changes
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset = 0;			// offset into tile list - start at first element
-	int cameraSelect;
 	float exposure;
 	float renderFoV;
 	float uvScalar;
+	int cameraType;
 
 	// thin lens parameters
 	bool thinLensEnable;
@@ -293,7 +293,8 @@ public:
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 			ImGui::Text( " " );
 
-			// todo: add camera selector dropdown
+			const char * cameraNames[] = { "NORMAL", "SPHERICAL", "SPHERICAL2", "SPHEREBUG", "SIMPLEORTHO", "ORTHO" };
+			ImGui::Combo( "Camera Type", &sirenConfig.cameraType, cameraNames, IM_ARRAYSIZE( cameraNames ) );
 
 			ImGui::Text( " " );
 			ImGui::Checkbox( "Enable Thin Lens DoF", &sirenConfig.thinLensEnable );
@@ -412,7 +413,7 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
 			glUniform1f( glGetUniformLocation( shader, "uvScalar" ), sirenConfig.uvScalar );
-			glUniform1i( glGetUniformLocation( shader, "cameraSelect" ), sirenConfig.cameraSelect );
+			glUniform1i( glGetUniformLocation( shader, "cameraType" ), sirenConfig.cameraType );
 			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), sirenConfig.thinLensEnable );
 			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), sirenConfig.thinLensFocusDistance );
 			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), sirenConfig.thinLensJitterRadius );
@@ -569,7 +570,7 @@ public:
 		sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
 		sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
 		sirenConfig.uvScalar					= j[ "app" ][ "Siren" ][ "uvScalar" ];
-		sirenConfig.cameraSelect				= j[ "app" ][ "Siren" ][ "cameraSelect" ];
+		sirenConfig.cameraType					= j[ "app" ][ "Siren" ][ "cameraType" ];
 		sirenConfig.thinLensEnable				= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
 		sirenConfig.thinLensFocusDistance		= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
 		sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];

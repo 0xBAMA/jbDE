@@ -20,7 +20,7 @@ uniform vec3 viewerPosition;
 uniform vec3 basisX;
 uniform vec3 basisY;
 uniform vec3 basisZ;
-uniform int cameraSelect;
+uniform int cameraType;
 
 // thin lens parameters
 uniform bool thinLensEnable;
@@ -123,8 +123,9 @@ struct ray {
 #define NORMAL		0
 #define SPHERICAL	1
 #define SPHERICAL2	2
-#define SIMPLEORTHO	3
-#define ORTHO		4
+#define SPHEREBUG	3
+#define SIMPLEORTHO	4
+#define ORTHO		5
 
 ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
@@ -133,7 +134,7 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	r.origin	= vec3( 0.0f );
 	r.direction	= vec3( 0.0f );
 
-	switch ( cameraSelect ) {
+	switch ( cameraType ) {
 	case NORMAL:
 	{
 		r.origin = viewerPosition;
@@ -172,6 +173,18 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 		break;
 	}
 
+	case SPHEREBUG:
+	{
+		uv *= uvScalar;
+		uv.y /= aspectRatio;
+		uv = vec2( atan( uv.y, uv.x ) + 0.5f, ( length( uv ) + 0.5f ) * acos( -1.0f ) );
+		vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
+
+		r.origin = viewerPosition;
+		r.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
+		break;
+	}
+
 	case SIMPLEORTHO: // basically a long focal length, not quite orthographic
 	{	// this isn't correct - need to adjust ray origin with basisX and basisY, and set ray direction equal to basisZ
 		uv.y /= aspectRatio;
@@ -193,7 +206,7 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 		break;
 	}
 
-	if ( thinLensEnable ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
+	if ( thinLensEnable || cameraType == SPHEREBUG ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
 		// thin lens adjustment
 		vec3 focuspoint = r.origin + ( ( r.direction * thinLensFocusDistance ) / dot( r.direction, basisZ ) );
 		vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
