@@ -226,42 +226,45 @@ public:
 			// controls, perf monitoring window
 			ImGui::Begin( "Controls Window", NULL, 0 );
 
-		// controls
-			ImGui::SeparatorText( "Screenshots" );
-			if ( ImGui::Button( "Linear Color EXR" ) ) {
-			// EXR screenshot for linear color
-				ScreenShots( true, false, false );
-			}
+			if ( ImGui::CollapsingHeader( "Controls" ) ) {
 
-			ImGui::SameLine();
-			if ( ImGui::Button( "Normal/Depth EXR" ) ) {
-			// EXR screenshot for normals/depth
-				ScreenShots( false, true, false );
-			}
+			// controls
+				ImGui::SeparatorText( "Screenshots" );
+				if ( ImGui::Button( "Linear Color EXR" ) ) {
+				// EXR screenshot for linear color
+					ScreenShots( true, false, false );
+				}
 
-			ImGui::SameLine();
-			if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
-			// PNG screenshot for tonemapped result
-				ScreenShots( false, false, true );
-			}
+				ImGui::SameLine();
+				if ( ImGui::Button( "Normal/Depth EXR" ) ) {
+				// EXR screenshot for normals/depth
+					ScreenShots( false, true, false );
+				}
 
-			ImGui::Text( " " );
-			ImGui::SeparatorText( "Renderer Controls" );
-			// reset accumulators
-			if ( ImGui::Button( "Reset Accumulators" ) ) {
-				ResetAccumulators();
-			}
+				ImGui::SameLine();
+				if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
+				// PNG screenshot for tonemapped result
+					ScreenShots( false, false, true );
+				}
 
-			// reload shaders
-			ImGui::SameLine();
-			if ( ImGui::Button( "Reload Shaders" ) ) {
-				ReloadShaders();
-			}
+				ImGui::Text( " " );
+				ImGui::SeparatorText( "Renderer Controls" );
+				// reset accumulators
+				if ( ImGui::Button( "Reset Accumulators" ) ) {
+					ResetAccumulators();
+				}
 
-			// reload default config
-			ImGui::SameLine();
-			if ( ImGui::Button( "Reload Config" ) ) {
-				ReloadConfig();
+				// reload shaders
+				ImGui::SameLine();
+				if ( ImGui::Button( "Reload Shaders" ) ) {
+					ReloadShaders();
+				}
+
+				// reload default config
+				ImGui::SameLine();
+				if ( ImGui::Button( "Reload Config" ) ) {
+					ReloadConfig();
+				}
 			}
 
 		// rendering parameters
