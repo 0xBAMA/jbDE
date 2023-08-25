@@ -529,7 +529,8 @@ float de ( vec3 p ) {
 	const float dFractal3 = deFractal3( pCache * 0.5f ) / 0.5f;
 	sceneDist = min( dFractal3, sceneDist );
 	if ( sceneDist == dFractal3 && dFractal3 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
+		// hitPointColor = vec3( 0.9f, 0.1f, 0.05f );
+		hitPointColor = vec3( 0.6f, 0.4f, 0.25f ) * 1.8f;
 		// hitPointColor = vec3( 0.618f );
 		hitPointSurfaceType = EMISSIVE;
 	}
@@ -537,14 +538,16 @@ float de ( vec3 p ) {
 	const float dFractal4 = deFractal4( ( pCache * 0.2f ) ) / 0.2f;
 	sceneDist = min( dFractal4, sceneDist );
 	if ( sceneDist == dFractal4 && dFractal4 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.45f );
+		// hitPointColor = vec3( 0.618f );
+		hitPointColor = vec3( 0.793f, 0.793f, 0.664f );
 		hitPointSurfaceType = DIFFUSE;
 	}
 
 	const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
 	sceneDist = min( dStairs, sceneDist );
 	if ( sceneDist == dStairs && dStairs <= raymarchEpsilon ) {
-		hitPointColor = ( NormalizedRandomFloat() < 0.25f ) ? vec3( 0.45f ) : vec3( 0.6f, 0.4f, 0.1f );
+		// hitPointColor = ( NormalizedRandomFloat() < 0.25f ) ? vec3( 0.45f ) : vec3( 0.6f, 0.4f, 0.1f );
+		hitPointColor = ( NormalizedRandomFloat() < 0.25f ) ? vec3( 0.45f ) : vec3( 0.1f, 0.4f, 0.6f );
 		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.25f ) ? METALLIC : DIFFUSE;
 	}
 
