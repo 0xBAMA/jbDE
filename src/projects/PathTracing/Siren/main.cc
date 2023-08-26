@@ -23,6 +23,7 @@ struct sirenConfig_t {
 	bool rendererNeedsUpdate = true;	// eventually to allow for the preview modes to render once between orientation etc changes
 	std::vector< ivec2 > tileOffsets;	// shuffled list of tiles
 	uint32_t tileOffset = 0;			// offset into tile list - start at first element
+	int subpixelJitterMethod;
 	float exposure;
 	float renderFoV;
 	float uvScalar;
@@ -355,6 +356,9 @@ public:
 			const char * cameraNames[] = { "NORMAL", "SPHERICAL", "SPHERICAL2", "SPHEREBUG", "SIMPLEORTHO", "ORTHO" };
 			ImGui::Combo( "Camera Type", &sirenConfig.cameraType, cameraNames, IM_ARRAYSIZE( cameraNames ) );
 
+			const char * subpixelJitterModes[] = { "NONE", "BLUE", "UNIFORM", "WEYL", "WEYL INTEGER" };
+			ImGui::Combo( "Subpixel Jitter", &sirenConfig.subpixelJitterMethod, subpixelJitterModes, IM_ARRAYSIZE( subpixelJitterModes ) );
+
 			ImGui::Text( " " );
 			ImGui::Checkbox( "Enable Thin Lens DoF", &sirenConfig.thinLensEnable );
 			ImGui::SliderFloat( "Thin Lens Focus Distance", &sirenConfig.thinLensFocusDistance, 0.0f, 40.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
@@ -473,6 +477,8 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
 			glUniform1f( glGetUniformLocation( shader, "uvScalar" ), sirenConfig.uvScalar );
 			glUniform1i( glGetUniformLocation( shader, "cameraType" ), sirenConfig.cameraType );
+			glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ), sirenConfig.subpixelJitterMethod );
+			glUniform1i( glGetUniformLocation( shader, "frameNumber" ), sirenConfig.numFullscreenPasses );
 			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), sirenConfig.thinLensEnable );
 			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), sirenConfig.thinLensFocusDistance );
 			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), sirenConfig.thinLensJitterRadius );
@@ -626,6 +632,7 @@ public:
 		sirenConfig.raymarchMaxDistance			= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
 		sirenConfig.raymarchEpsilon				= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
 		sirenConfig.raymarchUnderstep			= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
+		sirenConfig.subpixelJitterMethod		= j[ "app" ][ "Siren" ][ "subpixelJitterMethod" ];
 		sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
 		sirenConfig.renderFoV					= j[ "app" ][ "Siren" ][ "renderFoV" ];
 		sirenConfig.uvScalar					= j[ "app" ][ "Siren" ][ "uvScalar" ];

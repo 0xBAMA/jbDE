@@ -137,6 +137,7 @@
 			"tilesMSLimit":1.0,
 			"performanceHistorySamples":250,
 			"showTimeStamp":false,
+			"subpixelJitterMethod":1,
 			"raymarchMaxSteps":100,
 			"raymarchMaxBounces":10,
 			"raymarchMaxDistance":100.0,

@@ -13,6 +13,8 @@ uniform ivec2 noiseOffset;
 
 // more general parameters
 uniform int wangSeed;
+uniform int subpixelJitterMethod;
+uniform int frameNumber;
 uniform float exposure;
 uniform float FoV;
 uniform float uvScalar;
@@ -217,9 +219,42 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	return r;
 }
 
+#define NONE	0
+#define BLUE	1
+#define UNIFORM	2
+#define WEYL	3
+#define WEYLINT	4
+
 vec2 SubpixelOffset () {
-	// return vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
-	return BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).xy / 255.0f;
+	vec2 offset = vec2( 0.0f );
+	switch ( subpixelJitterMethod ) {
+		case NONE:
+			offset = vec2( 0.5f );
+			break;
+
+		case BLUE:
+			bool oddFrame = ( frameNumber % 2 == 0 );
+			offset = ( oddFrame ?
+				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).xy :
+				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).zw ) / 255.0f;
+			break;
+
+		case UNIFORM:
+			offset = vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
+			break;
+
+		case WEYL:
+			offset = fract( float( frameNumber ) * vec2( 0.754877669f, 0.569840296f ) );
+			break;
+
+		case WEYLINT:
+			offset = fract( vec2( frameNumber * 12664745, frameNumber * 9560333 ) / exp2( 24.0f ) );	// integer mul to avoid round-off
+			break;
+
+		default:
+			break;
+	}
+	return offset;
 }
 
 // ==============================================================================================
