@@ -131,7 +131,7 @@
 		},
 		"Siren":{
 			"targetWidth": 640,
-			"targetHeight": 320,
+			"targetHeight": 360,
 			"tileSize":16,
 			"tilesBetweenQueries":1,
 			"tilesMSLimit":1.0,

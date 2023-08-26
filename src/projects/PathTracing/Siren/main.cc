@@ -278,6 +278,30 @@ public:
 				if ( ImGui::Button( "Resize" ) ) {
 					ResizeAccumulators( x, y );
 				}
+				ImGui::SameLine();
+				if ( ImGui::Button( " 640x360 " ) ) {
+					x = 640;
+					y = 360;
+					ResizeAccumulators( 640, 360 );
+				}
+				ImGui::SameLine();
+				if ( ImGui::Button( " 720p " ) ) {
+					x = 1280;
+					y = 720;
+					ResizeAccumulators( 1280, 720 );
+				}
+				ImGui::SameLine();
+				if ( ImGui::Button( " 1080p " ) ) {
+					x = 1920;
+					y = 1080;
+					ResizeAccumulators( 1920, 1080 );
+				}
+				ImGui::SameLine();
+				if ( ImGui::Button( " 4K " ) ) {
+					x = 3840;
+					y = 2160;
+					ResizeAccumulators( 3840, 2160 );
+				}
 
 				// // I don't like this
 				// ImGui::SeparatorText( "Waypoints" );
