@@ -66,6 +66,9 @@ struct sirenConfig_t {
 
 };
 
+// something to interpolate between - proof of concept
+std::vector< sirenConfig_t > wayPoints;
+
 class Siren : public engineBase {	// example derived class
 public:
 	Siren () { Init(); OnInit(); PostInit(); }
@@ -226,7 +229,7 @@ public:
 			// controls, perf monitoring window
 			ImGui::Begin( "Controls Window", NULL, 0 );
 
-			if ( ImGui::CollapsingHeader( "Controls" ) ) {
+			// if ( ImGui::CollapsingHeader( "Controls" ) ) {
 
 			// controls
 				ImGui::SeparatorText( "Screenshots" );
@@ -265,7 +268,60 @@ public:
 				if ( ImGui::Button( "Reload Config" ) ) {
 					ReloadConfig();
 				}
-			}
+
+
+				ImGui::SeparatorText( "Waypoints" );
+				if ( ImGui::Button( "Add Current Config to Waypoints" ) ) {
+					// add the current state of sirenConfig to the waypoints vector
+					waypoints.push_back( sirenConfig );
+				}
+
+				if ( ImGui::Button( "Dump Waypoints" ) ) {
+					// write the waypoints out to a file
+						// plus some stuff shared across all frames
+							// stuff like targetWidth, targetHeight, tileSize
+
+
+					string filename = string( "waypoints" ) + timeDateString() + string( ".json" );
+					json j;
+					for ( int i = 0; i < waypoints.size(); i++ ) {
+						string iStr = to_string( i );
+						// j[ iStr ][  ] = sirenConfig.;
+
+						// sirenConfig.targetWidth				= j[ "app" ][ "Siren" ][ "targetWidth" ];
+						// sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
+						// sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
+						// sirenConfig.tilesBetweenQueries		= j[ "app" ][ "Siren" ][ "tilesBetweenQueries" ];
+						// sirenConfig.tilesMSLimit				= j[ "app" ][ "Siren" ][ "tilesMSLimit" ];
+						// sirenConfig.performanceHistorySamples= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
+						// sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
+						// sirenConfig.raymarchMaxBounces		= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
+						// sirenConfig.raymarchMaxDistance		= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
+						// sirenConfig.raymarchEpsilon			= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
+						// sirenConfig.raymarchUnderstep		= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
+						// sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
+						// sirenConfig.renderFoV				= j[ "app" ][ "Siren" ][ "renderFoV" ];
+						// sirenConfig.uvScalar					= j[ "app" ][ "Siren" ][ "uvScalar" ];
+						// sirenConfig.cameraType				= j[ "app" ][ "Siren" ][ "cameraType" ];
+						// sirenConfig.thinLensEnable			= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
+						// sirenConfig.thinLensFocusDistance	= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
+						// sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];
+						// sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
+						// sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
+						// sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
+						// sirenConfig.basisX.x					= j[ "app" ][ "Siren" ][ "basisX" ][ "x" ];
+						// sirenConfig.basisX.y					= j[ "app" ][ "Siren" ][ "basisX" ][ "y" ];
+						// sirenConfig.basisX.z					= j[ "app" ][ "Siren" ][ "basisX" ][ "z" ];
+						// sirenConfig.basisY.x					= j[ "app" ][ "Siren" ][ "basisY" ][ "x" ];
+						// sirenConfig.basisY.y					= j[ "app" ][ "Siren" ][ "basisY" ][ "y" ];
+						// sirenConfig.basisY.z					= j[ "app" ][ "Siren" ][ "basisY" ][ "z" ];
+						// sirenConfig.basisZ.x					= j[ "app" ][ "Siren" ][ "basisZ" ][ "x" ];
+						// sirenConfig.basisZ.y					= j[ "app" ][ "Siren" ][ "basisZ" ][ "y" ];
+						// sirenConfig.basisZ.z					= j[ "app" ][ "Siren" ][ "basisZ" ][ "z" ];
+					}
+				}
+
+			// }
 
 		// rendering parameters
 			ImGui::Text( " " );
