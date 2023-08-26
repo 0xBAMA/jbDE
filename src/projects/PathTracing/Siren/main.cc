@@ -67,9 +67,6 @@ struct sirenConfig_t {
 
 };
 
-// something to interpolate between - proof of concept
-std::vector< sirenConfig_t > wayPoints;
-
 class Siren : public engineBase {	// example derived class
 public:
 	Siren () { Init(); OnInit(); PostInit(); }
@@ -302,44 +299,6 @@ public:
 					y = 2160;
 					ResizeAccumulators( 3840, 2160 );
 				}
-
-				// // I don't like this
-				// ImGui::SeparatorText( "Waypoints" );
-				// if ( ImGui::Button( "Add Current Config to Waypoints" ) ) {
-				// 	// add the current state of sirenConfig to the waypoints vector
-				// 	wayPoints.push_back( sirenConfig );
-				// }
-
-				// if ( ImGui::Button( "Dump Waypoints" ) ) {
-
-				// 	string filename = string( "animation" ) + timeDateString() + string( ".json" );
-				// 	json j;
-
-				// 	// stuff shared across all frames
-				// 		// resolution, tilesize
-				// 		// perf scalars
-				// 		// number of frames
-
-				// 	for ( uint i = 0; i < wayPoints.size(); i++ ) {
-				// 		string iStr = to_string( i );
-				// 		// j[ iStr ][  ] = sirenConfig.;
-
-				// 		// stuff that varies per frame
-				// 			// # of samples
-				// 			// position, basis vectors
-				// 			// exposure
-				// 			// raymarch parameters
-				// 			// thin lens parameters
-				// 			// FoV
-				// 			// uvScalar
-				// 			// skylight color
-				// 			// postprocess parameters
-				// 			// list of optional CPU-side postprocess operations
-
-				// 	}
-				// }
-
-			// }
 
 		// rendering parameters
 			ImGui::Text( " " );
