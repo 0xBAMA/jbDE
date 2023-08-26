@@ -650,9 +650,8 @@ public:
 	void LookAt ( const vec3 eye, const vec3 at, const vec3 up ) {
 		sirenConfig.viewerPosition = eye;
 		sirenConfig.basisZ = normalize( at - eye );
-		sirenConfig.basisX = normalize( glm::cross( sirenConfig.basisZ, up ) );
-		sirenConfig.basisY = normalize( glm::cross( sirenConfig.basisX, sirenConfig.basisZ ) );
-		sirenConfig.basisZ = -sirenConfig.basisZ;
+		sirenConfig.basisX = normalize( glm::cross( up, sirenConfig.basisZ ) );
+		sirenConfig.basisY = normalize( glm::cross( sirenConfig.basisZ, sirenConfig.basisX ) );
 	}
 
 	ivec2 GetTile () {
