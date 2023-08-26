@@ -270,57 +270,50 @@ public:
 					ReloadConfig();
 				}
 
-
-				ImGui::SeparatorText( "Waypoints" );
-				if ( ImGui::Button( "Add Current Config to Waypoints" ) ) {
-					// add the current state of sirenConfig to the waypoints vector
-					waypoints.push_back( sirenConfig );
+				ImGui::Text( "Resolution" );
+				static int x = sirenConfig.targetWidth;
+				static int y = sirenConfig.targetHeight;
+				ImGui::SliderInt( "Accumulator X", &x, 0, 5000 );
+				ImGui::SliderInt( "Accumulator Y", &y, 0, 5000 );
+				if ( ImGui::Button( "Resize" ) ) {
+					ResizeAccumulators( x, y );
 				}
 
-				if ( ImGui::Button( "Dump Waypoints" ) ) {
-					// write the waypoints out to a file
-						// plus some stuff shared across all frames
-							// stuff like targetWidth, targetHeight, tileSize
+				// // I don't like this
+				// ImGui::SeparatorText( "Waypoints" );
+				// if ( ImGui::Button( "Add Current Config to Waypoints" ) ) {
+				// 	// add the current state of sirenConfig to the waypoints vector
+				// 	wayPoints.push_back( sirenConfig );
+				// }
 
+				// if ( ImGui::Button( "Dump Waypoints" ) ) {
 
-					string filename = string( "waypoints" ) + timeDateString() + string( ".json" );
-					json j;
-					for ( int i = 0; i < waypoints.size(); i++ ) {
-						string iStr = to_string( i );
-						// j[ iStr ][  ] = sirenConfig.;
+				// 	string filename = string( "animation" ) + timeDateString() + string( ".json" );
+				// 	json j;
 
-						// sirenConfig.targetWidth				= j[ "app" ][ "Siren" ][ "targetWidth" ];
-						// sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
-						// sirenConfig.tileSize					= j[ "app" ][ "Siren" ][ "tileSize" ];
-						// sirenConfig.tilesBetweenQueries		= j[ "app" ][ "Siren" ][ "tilesBetweenQueries" ];
-						// sirenConfig.tilesMSLimit				= j[ "app" ][ "Siren" ][ "tilesMSLimit" ];
-						// sirenConfig.performanceHistorySamples= j[ "app" ][ "Siren" ][ "performanceHistorySamples" ];
-						// sirenConfig.raymarchMaxSteps			= j[ "app" ][ "Siren" ][ "raymarchMaxSteps" ];
-						// sirenConfig.raymarchMaxBounces		= j[ "app" ][ "Siren" ][ "raymarchMaxBounces" ];
-						// sirenConfig.raymarchMaxDistance		= j[ "app" ][ "Siren" ][ "raymarchMaxDistance" ];
-						// sirenConfig.raymarchEpsilon			= j[ "app" ][ "Siren" ][ "raymarchEpsilon" ];
-						// sirenConfig.raymarchUnderstep		= j[ "app" ][ "Siren" ][ "raymarchUnderstep" ];
-						// sirenConfig.exposure					= j[ "app" ][ "Siren" ][ "exposure" ];
-						// sirenConfig.renderFoV				= j[ "app" ][ "Siren" ][ "renderFoV" ];
-						// sirenConfig.uvScalar					= j[ "app" ][ "Siren" ][ "uvScalar" ];
-						// sirenConfig.cameraType				= j[ "app" ][ "Siren" ][ "cameraType" ];
-						// sirenConfig.thinLensEnable			= j[ "app" ][ "Siren" ][ "thinLensEnable" ];
-						// sirenConfig.thinLensFocusDistance	= j[ "app" ][ "Siren" ][ "thinLensFocusDistance" ];
-						// sirenConfig.thinLensJitterRadius		= j[ "app" ][ "Siren" ][ "thinLensJitterRadius" ];
-						// sirenConfig.viewerPosition.x			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "x" ];
-						// sirenConfig.viewerPosition.y			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "y" ];
-						// sirenConfig.viewerPosition.z			= j[ "app" ][ "Siren" ][ "viewerPosition" ][ "z" ];
-						// sirenConfig.basisX.x					= j[ "app" ][ "Siren" ][ "basisX" ][ "x" ];
-						// sirenConfig.basisX.y					= j[ "app" ][ "Siren" ][ "basisX" ][ "y" ];
-						// sirenConfig.basisX.z					= j[ "app" ][ "Siren" ][ "basisX" ][ "z" ];
-						// sirenConfig.basisY.x					= j[ "app" ][ "Siren" ][ "basisY" ][ "x" ];
-						// sirenConfig.basisY.y					= j[ "app" ][ "Siren" ][ "basisY" ][ "y" ];
-						// sirenConfig.basisY.z					= j[ "app" ][ "Siren" ][ "basisY" ][ "z" ];
-						// sirenConfig.basisZ.x					= j[ "app" ][ "Siren" ][ "basisZ" ][ "x" ];
-						// sirenConfig.basisZ.y					= j[ "app" ][ "Siren" ][ "basisZ" ][ "y" ];
-						// sirenConfig.basisZ.z					= j[ "app" ][ "Siren" ][ "basisZ" ][ "z" ];
-					}
-				}
+				// 	// stuff shared across all frames
+				// 		// resolution, tilesize
+				// 		// perf scalars
+				// 		// number of frames
+
+				// 	for ( uint i = 0; i < wayPoints.size(); i++ ) {
+				// 		string iStr = to_string( i );
+				// 		// j[ iStr ][  ] = sirenConfig.;
+
+				// 		// stuff that varies per frame
+				// 			// # of samples
+				// 			// position, basis vectors
+				// 			// exposure
+				// 			// raymarch parameters
+				// 			// thin lens parameters
+				// 			// FoV
+				// 			// uvScalar
+				// 			// skylight color
+				// 			// postprocess parameters
+				// 			// list of optional CPU-side postprocess operations
+
+				// 	}
+				// }
 
 			// }
 
@@ -612,6 +605,27 @@ public:
 
 		// reset time since last reset
 		sirenConfig.tLastReset = std::chrono::steady_clock::now();
+	}
+
+	void ResizeAccumulators ( uint32_t x, uint32_t y ) {
+		// destroy the existing textures
+		textureManager.Remove( "Depth/Normals Accumulator" );
+		textureManager.Remove( "Color Accumulator" );
+
+		// create the new ones
+		textureOptions_t opts;
+		opts.dataType		= GL_RGBA32F;
+		opts.width			= sirenConfig.targetWidth = x;
+		opts.height			= sirenConfig.targetHeight = y;
+		opts.minFilter		= GL_LINEAR;
+		opts.magFilter		= GL_LINEAR;
+		opts.textureType	= GL_TEXTURE_2D;
+		textureManager.Add( "Depth/Normals Accumulator", opts );
+		textureManager.Add( "Color Accumulator", opts );
+
+		// rebuild tile list next frame
+		sirenConfig.tileListNeedsUpdate = true;
+		sirenConfig.numFullscreenPasses = 0;
 	}
 
 	void ReloadShaders () {
