@@ -227,78 +227,73 @@ public:
 			// controls, perf monitoring window
 			ImGui::Begin( "Controls Window", NULL, 0 );
 
-			// if ( ImGui::CollapsingHeader( "Controls" ) ) {
-
 			// controls
-				ImGui::SeparatorText( "Screenshots" );
-				if ( ImGui::Button( "Linear Color EXR" ) ) {
-				// EXR screenshot for linear color
-					ScreenShots( true, false, false );
-				}
+			ImGui::SeparatorText( "Screenshots" );
+			if ( ImGui::Button( "Linear Color EXR" ) ) {
+			// EXR screenshot for linear color
+				ScreenShots( true, false, false );
+			}
 
-				ImGui::SameLine();
-				if ( ImGui::Button( "Normal/Depth EXR" ) ) {
-				// EXR screenshot for normals/depth
-					ScreenShots( false, true, false );
-				}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Normal/Depth EXR" ) ) {
+			// EXR screenshot for normals/depth
+				ScreenShots( false, true, false );
+			}
 
-				ImGui::SameLine();
-				if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
-				// PNG screenshot for tonemapped result
-					ScreenShots( false, false, true );
-				}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
+			// PNG screenshot for tonemapped result
+				ScreenShots( false, false, true );
+			}
 
-				ImGui::Text( " " );
-				ImGui::SeparatorText( "Renderer Controls" );
-				// reset accumulators
-				if ( ImGui::Button( "Reset Accumulators" ) ) {
-					ResetAccumulators();
-				}
+			ImGui::Text( " " );
+			ImGui::SeparatorText( "Renderer Controls" );
+			if ( ImGui::Button( "Reset Accumulators" ) ) {
+				ResetAccumulators();
+			}
 
-				// reload shaders
-				ImGui::SameLine();
-				if ( ImGui::Button( "Reload Shaders" ) ) {
-					ReloadShaders();
-				}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reload Shaders" ) ) {
+				ReloadShaders();
+			}
 
-				// reload default config
-				ImGui::SameLine();
-				if ( ImGui::Button( "Reload Config" ) ) {
-					ReloadConfig();
-				}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reload Config" ) ) {
+				ReloadConfig();
+			}
 
-				ImGui::Text( "Resolution" );
-				static int x = sirenConfig.targetWidth;
-				static int y = sirenConfig.targetHeight;
-				ImGui::SliderInt( "Accumulator X", &x, 0, 5000 );
-				ImGui::SliderInt( "Accumulator Y", &y, 0, 5000 );
-				if ( ImGui::Button( "Resize" ) ) {
-					ResizeAccumulators( x, y );
-				}
-				ImGui::SameLine();
-				if ( ImGui::Button( " 640x360 " ) ) {
-					x = 640;
-					y = 360;
-					ResizeAccumulators( 640, 360 );
-				}
-				ImGui::SameLine();
-				if ( ImGui::Button( " 720p " ) ) {
-					x = 1280;
-					y = 720;
-					ResizeAccumulators( 1280, 720 );
-				}
-				ImGui::SameLine();
-				if ( ImGui::Button( " 1080p " ) ) {
-					x = 1920;
-					y = 1080;
-					ResizeAccumulators( 1920, 1080 );
-				}
-				ImGui::SameLine();
-				if ( ImGui::Button( " 4K " ) ) {
-					x = 3840;
-					y = 2160;
-					ResizeAccumulators( 3840, 2160 );
-				}
+			ImGui::Text( "Resolution" );
+			static int x = sirenConfig.targetWidth;
+			static int y = sirenConfig.targetHeight;
+			ImGui::SliderInt( "Accumulator X", &x, 0, 5000 );
+			ImGui::SliderInt( "Accumulator Y", &y, 0, 5000 );
+			if ( ImGui::Button( "Resize" ) ) {
+				ResizeAccumulators( x, y );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 360p " ) ) {
+				x = 640;
+				y = 360;
+				ResizeAccumulators( 640, 360 );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 720p " ) ) {
+				x = 1280;
+				y = 720;
+				ResizeAccumulators( 1280, 720 );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 1080p " ) ) {
+				x = 1920;
+				y = 1080;
+				ResizeAccumulators( 1920, 1080 );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 4K " ) ) {
+				x = 3840;
+				y = 2160;
+				ResizeAccumulators( 3840, 2160 );
+			}
 
 		// rendering parameters
 			ImGui::Text( " " );
