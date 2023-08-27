@@ -149,12 +149,31 @@ public:
 
 		if ( state[ SDL_SCANCODE_T ] && shift ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
-			// ScreenShots( false, false, true );
+			ScreenShots( false, false, true );
 		}
 
 		// reload shaders
 		if ( state[ SDL_SCANCODE_Y ] ) {
 			ReloadShaders();
+		}
+
+		// testing
+		if ( state[ SDL_SCANCODE_U ] ) {
+			float value = -1.8f; // start of the range
+			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
+			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+		}
+
+		if ( state[ SDL_SCANCODE_I ] ) {
+			float value = -0.8f; // middle of the range
+			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
+			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+		}
+
+		if ( state[ SDL_SCANCODE_O ] ) {
+			float value = 0.2f; // end of the range
+			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
+			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 		}
 
 		// quaternion based rotation via retained state in the basis vectors - much easier to use than euler angles or the trident
@@ -400,7 +419,9 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm modal window, if triggered
 	}
 
-	void ScreenShots ( int frameNumber, const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {
+	int frameNumber = 5;
+
+	void ScreenShots ( const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {
 		if ( colorEXR == true ) {
 			std::vector< float > imageBytesToSave;
 			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * sizeof( float ) * 4, 0 );
@@ -431,8 +452,8 @@ public:
 
 			const int width = 4;
 			string numberString = string( width - std::min( width, ( int ) to_string( frameNumber ).length() ), '0' ) + to_string( frameNumber );
-
 			const string filename = string( "frames/" ) + numberString + string( ".png" );
+
 			screenshot.FlipVertical(); // whatever
 			screenshot.Save( filename );
 		}
@@ -456,31 +477,28 @@ public:
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-			static float inputScalar = 1.5f;
-			static int frameNumber = 0;
-			vec3 position = vec3( 20.0f * cos( inputScalar ), 15.0f, 20.0f * sin( inputScalar ) );
-			LookAt( position, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+			const float value = RemapRange( glm::smoothstep( -1.8f, 0.2f, RemapRange( frameNumber / 600.0f, 0.0f, 1.0f, -1.9f, 0.3f ) ), 0.0f, 1.0f, -1.8f, 0.2f );
 
-			if ( sirenConfig.numFullscreenPasses > 1000 ) { // end of this frame
-				// informs new camera position, fractal params
-				inputScalar += 0.01f;
-				frameNumber ++;
+			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
+			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+
+			if ( sirenConfig.numFullscreenPasses > 256 ) { // end of this frame
+				// informs new camera position
+				frameNumber++;
 
 				// save the image
 				glMemoryBarrier( GL_ALL_BARRIER_BITS );
-				ScreenShots( frameNumber, false, false, true );
+				ScreenShots( false, false, true );
 
 				// reset the buffers
 				ResetAccumulators();
 
 				// render out several seconds' worth of 60fps video
-				if ( frameNumber == 2000 ) abort();
+				if ( frameNumber == 600 ) abort();
 
 				// corresponding ffmpeg command
 				// ffmpeg -framerate 60 -pattern_type glob -i 'frames/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4
 			}
-
-			// glUniform1f( glGetUniformLocation( shader, "inputScalar" ), inputScalar );
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );

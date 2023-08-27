@@ -24,9 +24,6 @@ uniform vec3 basisY;
 uniform vec3 basisZ;
 uniform int cameraType;
 
-// scene parameter
-uniform float inputScalar;
-
 // thin lens parameters
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
@@ -308,13 +305,13 @@ mat3 rotY ( float t ) {
 	return mat3 (c, 0., -s, 0., 1., 0, s, 0, c);
 }
 float deFractal ( vec3 p ) {
-	// const int iterations = 18;
-	// const float scale = 1.21f;
-	// vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
-
-	const int iterations = 22;
+	const int iterations = 18;
 	const float scale = 1.21f;
-	vec2 rm = radians( 360.0 ) * vec2( 0.6 + 0.2 * sin( inputScalar ), 0.65 - 0.3 * cos( inputScalar * 0.33f ) );
+	vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
+
+	// const int iterations = 22;
+	// const float scale = 1.21f;
+	// vec2 rm = radians( 360.0 ) * vec2( 0.6 + 0.2 * sin( inputScalar ), 0.65 - 0.3 * cos( inputScalar * 0.33f ) );
 
 	mat3 scene_mtx = rotX( rm.x ) * rotY( rm.x ) * rotZ( rm.x ) * rotX( rm.y );
 	float scaleAccum = 1.;
