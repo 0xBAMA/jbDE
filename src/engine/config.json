@@ -132,9 +132,9 @@
 		"Siren":{
 			"targetWidth": 640,
 			"targetHeight": 360,
-			"tileSize":16,
+			"tileSize":64,
 			"tilesBetweenQueries":1,
-			"tilesMSLimit":1.0,
+			"tilesMSLimit":16.0,
 			"performanceHistorySamples":250,
 			"showTimeStamp":false,
 			"subpixelJitterMethod":1,

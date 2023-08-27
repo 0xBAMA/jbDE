@@ -55,7 +55,7 @@ struct sirenConfig_t {
 	float raymarchUnderstep;
 
 	// scene parameters
-	vec3 skylightColor = vec3( 0.4f );
+	vec3 skylightColor = vec3( 0.1f );
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
@@ -135,10 +135,9 @@ public:
 				float value[ 4 ];
 				const GLuint texture = textureManager.Get( "Depth/Normals Accumulator" );
 				glGetTextureSubImage( texture, 0, pickPosition.x, pickPosition.y, 0, 1, 1, 1, GL_RGBA, GL_FLOAT, 16, &value );
-				cout << "Picked depth at " << config.width << " " << config.height << " is " << value[ 3 ] << endl;
+				// cout << "Picked depth at " << config.width << " " << config.height << " is " << value[ 3 ] << endl;
 				if ( shift == true ) {
 					sirenConfig.thinLensFocusDistance = value[ 3 ];
-					// SDL_Delay( 100 );
 				}
 			}
 		}
