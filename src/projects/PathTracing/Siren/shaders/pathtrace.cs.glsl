@@ -24,6 +24,9 @@ uniform vec3 basisY;
 uniform vec3 basisZ;
 uniform int cameraType;
 
+// scene parameter
+uniform float inputScalar;
+
 // thin lens parameters
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
@@ -272,78 +275,11 @@ float deOrganic ( vec3 p ) {
 	return e * R * 0.1f;
 }
 
-// trellis type structure
-float deFractal2 ( vec3 p ) {
-	vec3 k = vec3( 5.0f, 2.0f, 1.0f );
-	p.y += 5.5f;
-	for ( int j = 0; ++j < 8; ) {
-		p.xz = abs( p.xz );
-		p.xz = p.z > p.x ? p.zx : p.xz;
-		p.z = 0.9f - abs( p.z - 0.9f );
-		p.xy = p.y > p.x ? p.yx : p.xy;
-		p.x -= 2.3f;
-		p.xy = p.y > p.x ? p.yx : p.xy;
-		p.y += 0.1f;
-		p = k + ( p - k ) * 3.2f;
-	}
-	return length( p ) / 6e3f - 0.001f;
-}
-
-// second trellis type structure
-float deFractal ( vec3 p ) {
-	#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
-	for ( int j = 0; ++j < 8; )
-		p.z -= 0.3f,
-		p.xz = abs( p.xz ),
-		p.xz = ( p.z > p.x ) ? p.zx : p.xz,
-		p.xy = ( p.y > p.x ) ? p.yx : p.xy,
-		p.z = 1.0f - abs( p.z - 1.0f ),
-		p = p * 3.0f - vec3( 10.0f, 4.0f, 2.0f );
-	return length( p ) / 6e3f - 0.001f;
-}
-
-// third trellis type structure
-#define fold45(p)(p.y>p.x)?p.yx:p
-float deFractal3 ( vec3 p ) {
-	float s = 1.0f;
-	float scale = 2.1f, off0 = 0.8f, off1 = 0.3f, off2 = 0.83f;
-	vec3 off = vec3( 2.0f, 0.2f, 0.1f );
-	for ( int i = 0; ++i < 20; ) {
-		p.xy = abs( p.xy );
-		p.xy = fold45( p.xy );
-		p.y -= off0;
-		p.y = -abs( p.y );
-		p.y += off0;
-		p.x += off1;
-		p.xz = fold45( p.xz );
-		p.x -= off2;
-		p.xz = fold45( p.xz );
-		p.x += off1;
-		p -= off;
-		p *= scale;
-		p += off;
-		s *= scale;
-	}
-	return length( p ) / s;
-}
-
-float deFractal4 ( vec3 pos ) {
-	vec3 tpos = pos;
-	tpos.xz = abs( 0.5f - mod( tpos.xz, 1.0f ) );
-	vec4 p = vec4( tpos, 1.0f );
-	float y = max( 0.0f, 0.35f - abs( pos.y - 3.35f ) ) / 0.35f;
-	for ( int i = 0; i < 7; i++ ) {
-		p.xyz = abs( p.xyz ) - vec3( -0.02f, 1.98f, -0.02f );
-		p = p * ( 2.0f + 0.0f * y ) / clamp( dot( p.xyz, p.xyz ), 0.4f, 1.0f ) - vec4( 0.5f, 1.0f, 0.4f, 0.0f );
-		p.xz *= mat2( -0.416f, -0.91f, 0.91f, -0.416f );
-	}
-	return ( length( max( abs( p.xyz ) - vec3( 0.1f, 5.0f, 0.1f ), vec3( 0.0f ) ) ) - 0.05f ) / p.w;
-}
-
+// tree shape
 mat2 rotate2D( float r ) {
 	return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) );
 }
-float deFractal5 ( vec3 p ) {
+float deTree ( vec3 p ) {
 	float d, a;
 	d = a = 1.0f;
 	for ( int j = 0; j++ < 16; )
@@ -354,6 +290,42 @@ float deFractal5 ( vec3 p ) {
 		p *= 1.6f,
 		a *= 1.6f;
 	return d;
+}
+
+mat3 rotZ ( float t ) {
+	float s = sin( t );
+	float c = cos( t );
+	return mat3( c, s, 0., -s, c, 0., 0., 0., 1. );
+}
+mat3 rotX ( float t ) {
+	float s = sin( t );
+	float c = cos( t );
+	return mat3( 1., 0., 0., 0., c, s, 0., -s, c );
+}
+mat3 rotY ( float t ) {
+	float s = sin( t );
+	float c = cos( t );
+	return mat3 (c, 0., -s, 0., 1., 0, s, 0, c);
+}
+float deFractal ( vec3 p ) {
+	// const int iterations = 18;
+	// const float scale = 1.21f;
+	// vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
+
+	const int iterations = 22;
+	const float scale = 1.21f;
+	vec2 rm = radians( 360.0 ) * vec2( 0.6 + 0.2 * sin( inputScalar ), 0.65 - 0.3 * cos( inputScalar * 0.33f ) );
+
+	mat3 scene_mtx = rotX( rm.x ) * rotY( rm.x ) * rotZ( rm.x ) * rotX( rm.y );
+	float scaleAccum = 1.;
+	for( int i = 0; i < iterations; ++i ) {
+		p.yz = sqrt( p.yz * p.yz + 0.16406 );
+		p *= scale;
+		scaleAccum *= scale;
+		p -= vec3( 2.43307, 5.28488, 0.9685 );
+		p = scene_mtx * p;
+	}
+	return length( p ) / scaleAccum - 0.15;
 }
 
 float deStairs ( vec3 P ) {
@@ -487,7 +459,8 @@ float deStairs ( vec3 P ) {
 #define EMISSIVE	1
 #define DIFFUSE		2
 #define METALLIC	3
-#define MIRROR		4
+#define RAINBOW		4
+#define MIRROR		5
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -506,12 +479,13 @@ float de ( vec3 p ) {
 	hitPointColor = vec3( 0.0f );
 
 	const vec3 pCache = p;
-	const vec3 floorCielingColor = vec3( 0.9f, 0.4f, 0.1f );
+	const vec3 floorCielingColor = vec3( 0.9f );
 
 	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
 	sceneDist = min( dFloor, sceneDist );
 	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
+		// hitPointSurfaceType = MIRROR;
 		hitPointSurfaceType = DIFFUSE;
 	}
 
@@ -521,7 +495,8 @@ float de ( vec3 p ) {
 	const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		hitPointColor = GetColorForTemperature( 4800.0f ) * 5.0f;
+		// hitPointColor = GetColorForTemperature( 4800.0f ) * 5.0f;
+		hitPointColor = GetColorForTemperature( 4800.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
@@ -542,9 +517,16 @@ float de ( vec3 p ) {
 	const float dOrganic = deOrganic( ( pCache * 2.0f ) ) / 2.0f;
 	sceneDist = min( dOrganic, sceneDist );
 	if ( sceneDist == dOrganic && dOrganic <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.618f );
-		hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = vec3( 0.618f );
+		hitPointSurfaceType = RAINBOW;
 	}
+
+	// const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 2.0f ) ) / 2.0f;
+	// sceneDist = min( dFractal, sceneDist );
+	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.618f );
+	// 	hitPointSurfaceType = DIFFUSE;
+	// }
 
 	return sceneDist;
 }
@@ -709,16 +691,16 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				rayDirection = randomVectorSpecular;
 				break;
 
+			case RAINBOW:
+				throughput *= ( hitNormal + 1.0f ) / 2.0f;
+				rayDirection = randomVectorDiffuse;
+				break;
+
 			case MIRROR:
-				// if ( NormalizedRandomFloat() < 0.5f ) {
-					// perfect mirror ( slight attenuation )
-					throughput *= 0.95f;
-					rayDirection = reflectedVector;
-				// } else {
-					// throughput *= ( hitNormal + 1.0f ) / 2.0f;
-					// rayDirection = randomVectorDiffuse;
-					// break;
-				// }
+				// perfect mirror ( slight attenuation )
+				throughput *= 0.95f;
+				rayDirection = reflectedVector;
+				break;
 			}
 		}
 

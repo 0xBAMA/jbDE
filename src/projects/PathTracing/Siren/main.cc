@@ -56,6 +56,7 @@ struct sirenConfig_t {
 
 	// scene parameters
 	vec3 skylightColor = vec3( 0.1f );
+	float mainLightTemperature = 6500.0f;
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
@@ -148,7 +149,7 @@ public:
 
 		if ( state[ SDL_SCANCODE_T ] && shift ) {
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
-			ScreenShots( false, false, true );
+			// ScreenShots( false, false, true );
 		}
 
 		// reload shaders
@@ -367,7 +368,7 @@ public:
 			ImGui::Text( " " );
 			ImGui::SeparatorText( "Performance" );
 			float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - sirenConfig.tLastReset ).count() / 1000.0f;
-			ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", sirenConfig.numFullscreenPasses, ts, sirenConfig.numFullscreenPasses / ts );
+			ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", sirenConfig.numFullscreenPasses, ts, ( float ) sirenConfig.numFullscreenPasses / ts );
 			ImGui::SeparatorText( "Time History" );
 			// timing history
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
@@ -399,7 +400,7 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm modal window, if triggered
 	}
 
-	void ScreenShots ( const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {
+	void ScreenShots ( int frameNumber, const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {
 		if ( colorEXR == true ) {
 			std::vector< float > imageBytesToSave;
 			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * sizeof( float ) * 4, 0 );
@@ -426,7 +427,12 @@ public:
 			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
 			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
 			Image_4U screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
-			const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
+			// const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
+
+			const int width = 4;
+			string numberString = string( width - std::min( width, ( int ) to_string( frameNumber ).length() ), '0' ) + to_string( frameNumber );
+
+			const string filename = string( "frames/" ) + numberString + string( ".png" );
 			screenshot.FlipVertical(); // whatever
 			screenshot.Save( filename );
 		}
@@ -449,6 +455,32 @@ public:
 			scopedTimer Start( "Tiled Update" );
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
+
+			static float inputScalar = 1.5f;
+			static int frameNumber = 0;
+			vec3 position = vec3( 20.0f * cos( inputScalar ), 15.0f, 20.0f * sin( inputScalar ) );
+			LookAt( position, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+
+			if ( sirenConfig.numFullscreenPasses > 1000 ) { // end of this frame
+				// informs new camera position, fractal params
+				inputScalar += 0.01f;
+				frameNumber ++;
+
+				// save the image
+				glMemoryBarrier( GL_ALL_BARRIER_BITS );
+				ScreenShots( frameNumber, false, false, true );
+
+				// reset the buffers
+				ResetAccumulators();
+
+				// render out several seconds' worth of 60fps video
+				if ( frameNumber == 2000 ) abort();
+
+				// corresponding ffmpeg command
+				// ffmpeg -framerate 60 -pattern_type glob -i 'frames/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4
+			}
+
+			// glUniform1f( glGetUniformLocation( shader, "inputScalar" ), inputScalar );
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
