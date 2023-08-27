@@ -123,11 +123,25 @@ public:
 		// https://wiki.libsdl.org/SDL2/SDL_GetRelativeMouseState
 			// I believe this is related to clicking and dragging
 
-		// int mouseX, mouseY;
-		// uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
-		// if ( mouseState != 0 ) {
-		// 	cout << "Mouse at " << mouseX << " " << mouseY << " with bitmask " << std::bitset<32>( mouseState ) << endl;
-		// }
+		int mouseX, mouseY;
+		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+		if ( mouseState != 0 ) {
+			// cout << "Mouse at " << mouseX << " " << mouseY << " with bitmask " << std::bitset<32>( mouseState ) << endl;
+			vec2 fractionalPosition = vec2( float( mouseX ) / float( config.width ), 1.0f - ( float( mouseY ) / float( config.height ) ) );
+			ivec2 pickPosition = ivec2( fractionalPosition.x * sirenConfig.targetWidth, fractionalPosition.y * sirenConfig.targetHeight );
+
+			if ( pickPosition.x >= 0 && pickPosition.y >= 0 && pickPosition.x < config.width && pickPosition.y < config.height ) {
+				// get the value from the depth buffer - helps determine where to set the focal plane for the DoF
+				float value[ 4 ];
+				const GLuint texture = textureManager.Get( "Depth/Normals Accumulator" );
+				glGetTextureSubImage( texture, 0, pickPosition.x, pickPosition.y, 0, 1, 1, 1, GL_RGBA, GL_FLOAT, 16, &value );
+				cout << "Picked depth at " << config.width << " " << config.height << " is " << value[ 3 ] << endl;
+				if ( shift == true ) {
+					sirenConfig.thinLensFocusDistance = value[ 3 ];
+					// SDL_Delay( 100 );
+				}
+			}
+		}
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
