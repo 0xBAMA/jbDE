@@ -35,11 +35,11 @@
 	"vSyncEnable":true,
 	"colorGrade":{
 		"showTonemapWindow":true,
-		"tonemapMode":9,
-		"gamma":1.572,
+		"tonemapMode":6,
+		"gamma":1.337,
 		"saturation":1.0,
 		"saturationImprovedWeights":true,
-		"colorTemp":4500.0
+		"colorTemp":6500.0
 	},
 	"app":{
 		"VertextureClassic":{
@@ -130,26 +130,26 @@
 			"writeBack":false
 		},
 		"Siren":{
-			"targetWidth": 1920,
-			"targetHeight": 1080,
-			"tileSize":512,
-			"tilesBetweenQueries":6,
+			"targetWidth": 640,
+			"targetHeight": 360,
+			"tileSize":64,
+			"tilesBetweenQueries":1,
 			"tilesMSLimit":16.0,
 			"performanceHistorySamples":250,
 			"showTimeStamp":false,
 			"subpixelJitterMethod":1,
 			"raymarchMaxSteps":100,
-			"raymarchMaxBounces":28,
+			"raymarchMaxBounces":10,
 			"raymarchMaxDistance":100.0,
 			"raymarchEpsilon":0.001,
 			"raymarchUnderstep":0.9,
-			"exposure":0.2,
-			"renderFoV":1.0,
-			"uvScalar":0.346,
-			"cameraType":1,
-			"thinLensEnable":true,
-			"thinLensFocusDistance":15.243,
-			"thinLensJitterRadius":0.350,
+			"exposure":0.5,
+			"renderFoV":0.618,
+			"uvScalar":1.0,
+			"cameraType":0,
+			"thinLensEnable":false,
+			"thinLensFocusDistance":10.0,
+			"thinLensJitterRadius":0.0,
 			"viewerPosition":{
 				"x":1.2,
 				"y":1.4,
