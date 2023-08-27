@@ -264,19 +264,19 @@ public:
 			ImGui::SeparatorText( "Screenshots" );
 			if ( ImGui::Button( "Linear Color EXR" ) ) {
 			// EXR screenshot for linear color
-				ScreenShots( true, false, false );
+				ScreenShots( true, false, false, false );
 			}
 
 			ImGui::SameLine();
 			if ( ImGui::Button( "Normal/Depth EXR" ) ) {
 			// EXR screenshot for normals/depth
-				ScreenShots( false, true, false );
+				ScreenShots( false, true, false, false );
 			}
 
 			ImGui::SameLine();
 			if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
 			// PNG screenshot for tonemapped result
-				ScreenShots( false, false, true );
+				ScreenShots( false, false, true, false );
 			}
 
 			ImGui::Text( " " );
@@ -421,7 +421,12 @@ public:
 
 	int frameNumber = 5;
 
-	void ScreenShots ( const bool colorEXR = false, const bool normalEXR = false, const bool tonemappedResult = false ) {
+	void ScreenShots (
+		const bool colorEXR = false,
+		const bool normalEXR = false,
+		const bool tonemappedResult = false,
+		const bool tonemappedFullRes = false ) {
+
 		if ( colorEXR == true ) {
 			std::vector< float > imageBytesToSave;
 			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * sizeof( float ) * 4, 0 );
@@ -448,14 +453,20 @@ public:
 			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
 			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
 			Image_4U screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
-			// const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
+			const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
 
-			const int width = 4;
-			string numberString = string( width - std::min( width, ( int ) to_string( frameNumber ).length() ), '0' ) + to_string( frameNumber );
-			const string filename = string( "frames/" ) + numberString + string( ".png" );
+		// for animations
+			// const int width = 4;
+			// string numberString = string( width - std::min( width, ( int ) to_string( frameNumber ).length() ), '0' ) + to_string( frameNumber );
+			// const string filename = string( "frames/" ) + numberString + string( ".png" );
 
 			screenshot.FlipVertical(); // whatever
 			screenshot.Save( filename );
+		}
+
+		if ( tonemappedFullRes == true ) {
+			// need to have another buffer, at the corresponding resolution - tonemap into this, rather than the display texture
+				// another tile-based thing here, so that it will scale with the rest of the pipeline up to the driver limits on texture resolution
 		}
 	}
 
@@ -488,7 +499,7 @@ public:
 
 				// save the image
 				glMemoryBarrier( GL_ALL_BARRIER_BITS );
-				ScreenShots( false, false, true );
+				ScreenShots( false, false, true, false );
 
 				// reset the buffers
 				ResetAccumulators();
