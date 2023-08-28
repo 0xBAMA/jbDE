@@ -469,6 +469,29 @@ public:
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
+		// for animations
+			static int frameNumber = 0;
+			const int maxFrames = 1200;
+
+			// focus pull - 13.0 to 6.81
+			sirenConfig.thinLensFocusDistance = RemapRange( glm::smoothstep( 0.0f, 1.0f, RemapRange( frameNumber, 0, maxFrames, -0.1f, 1.1f ) ), 0.0f, 1.0f, 13.0f, 6.81f );
+
+			if ( sirenConfig.numFullscreenPasses > 420 ) {
+				// increment frame number
+				frameNumber++;
+
+				// ...
+
+				// save out this frame's image + reset the accumulators
+				ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( frameNumber ) + string( ".png" ) );
+				ResetAccumulators();
+
+				if ( frameNumber == maxFrames ) {
+					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
+					abort();
+				}
+			}
+
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
 			glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), sirenConfig.raymarchMaxSteps );
