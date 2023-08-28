@@ -316,6 +316,10 @@ public:
 			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
 			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
 			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -20.0f, 20.0f );
+			ImGui::Text( "Basis Vectors:" );
+			ImGui::Text( " X: %.3f %.3f %.3f", sirenConfig.basisX.x, sirenConfig.basisX.y, sirenConfig.basisX.z );
+			ImGui::Text( " Y: %.3f %.3f %.3f", sirenConfig.basisY.x, sirenConfig.basisY.y, sirenConfig.basisY.z );
+			ImGui::Text( " Z: %.3f %.3f %.3f", sirenConfig.basisZ.x, sirenConfig.basisZ.y, sirenConfig.basisZ.z );
 
 			// tile size
 			ImGui::Text( "Tile Size: %d", sirenConfig.tileSize );
