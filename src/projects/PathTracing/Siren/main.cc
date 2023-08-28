@@ -400,6 +400,16 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm modal window, if triggered
 	}
 
+	void ColorScreenShotWithFilename ( const string filename ) {
+		std::vector< uint8_t > imageBytesToSave;
+		imageBytesToSave.resize( config.width * config.height * 4, 0 );
+		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
+		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+		Image_4U screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
+		screenshot.FlipVertical(); // whatever
+		screenshot.Save( filename );
+	}
+
 	void ScreenShots (
 		const bool colorEXR = false,
 		const bool normalEXR = false,
@@ -427,20 +437,8 @@ public:
 		}
 
 		if ( tonemappedResult == true ) {
-			std::vector< uint8_t > imageBytesToSave;
-			imageBytesToSave.resize( config.width * config.height * 4, 0 );
-			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
-			glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-			Image_4U screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
 			const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
-
-		// for animations
-			// const int width = 4;
-			// string numberString = string( width - std::min( width, ( int ) to_string( frameNumber ).length() ), '0' ) + to_string( frameNumber );
-			// const string filename = string( "frames/" ) + numberString + string( ".png" );
-
-			screenshot.FlipVertical(); // whatever
-			screenshot.Save( filename );
+			ColorScreenShotWithFilename( filename );
 		}
 
 		if ( tonemappedFullRes == true ) {
