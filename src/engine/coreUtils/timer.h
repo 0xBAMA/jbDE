@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <sstream>
+#include <algorithm>
 
 inline std::string timeDateString () {
 	auto now = std::chrono::system_clock::now();
@@ -10,6 +11,10 @@ inline std::string timeDateString () {
 	std::stringstream ssA;
 	ssA << std::put_time( std::localtime( &inTime_t ), "-%Y-%m-%d at %H-%M-%S" );
 	return ssA.str();
+}
+
+inline std::string fixedWidthNumberString ( int32_t value, uint32_t width = 5 ) {
+	return string( width - std::min( width, ( int ) to_string( value ).length() ), '0' ) + to_string( value );
 }
 
 //=============================================================================
