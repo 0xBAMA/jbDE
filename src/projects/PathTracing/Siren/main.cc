@@ -157,25 +157,6 @@ public:
 			ReloadShaders();
 		}
 
-		// testing
-		if ( state[ SDL_SCANCODE_U ] ) {
-			float value = -1.8f; // start of the range
-			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
-			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
-		}
-
-		if ( state[ SDL_SCANCODE_I ] ) {
-			float value = -0.8f; // middle of the range
-			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
-			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
-		}
-
-		if ( state[ SDL_SCANCODE_O ] ) {
-			float value = 0.2f; // end of the range
-			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
-			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
-		}
-
 		// quaternion based rotation via retained state in the basis vectors - much easier to use than euler angles or the trident
 		const float scalar = shift ? 0.02f : 0.0005f;
 		if ( state[ SDL_SCANCODE_W ] ) {
@@ -419,8 +400,6 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm modal window, if triggered
 	}
 
-	int frameNumber = 5;
-
 	void ScreenShots (
 		const bool colorEXR = false,
 		const bool normalEXR = false,
@@ -487,43 +466,6 @@ public:
 			scopedTimer Start( "Tiled Update" );
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
-
-			const float value = RemapRange( glm::smoothstep( -1.8f, 0.2f, RemapRange( frameNumber / 600.0f, 0.0f, 1.0f, -1.9f, 0.3f ) ), 0.0f, 1.0f, -1.8f, 0.2f );
-
-			vec3 position = vec3( 20.0f * cos( value ), 25.0f, 20.0f * sin( value ) );
-			LookAt( position, vec3( 0.0f, 13.0f, 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
-
-			if ( sirenConfig.numFullscreenPasses > 256 ) { // end of this frame
-				// informs new camera position
-				frameNumber++;
-
-				// save the image
-				glMemoryBarrier( GL_ALL_BARRIER_BITS );
-				ScreenShots( false, false, true, false );
-
-				// reset the buffers
-				ResetAccumulators();
-
-				// render out several seconds' worth of 60fps video
-				if ( frameNumber == 600 ) abort();
-
-				// corresponding ffmpeg command
-				// ffmpeg -framerate 60 -pattern_type glob -i 'frames/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4
-
-				// to reverse the video
-				// ffmpeg -i originalVideo.mp4 -vf reverse reversedVideo.mp4
-
-				// to stitch together
-				// put the following into a text file e.g. videos.txt
-					// file 'outStitched.mp4'
-					// file 'outStitched.mp4'
-					// file 'outStitched.mp4'
-					// file 'outStitched.mp4'
-
-				// then run the command
-					// ffmpeg -f concat -i videos.txt -c copy outStitched4.mp4
-
-			}
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
