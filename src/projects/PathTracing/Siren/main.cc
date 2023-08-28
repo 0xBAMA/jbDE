@@ -101,30 +101,6 @@ public:
 			// setup performance monitors
 			sirenConfig.timeHistory.resize( sirenConfig.performanceHistorySamples );
 			sirenConfig.tileHistory.resize( sirenConfig.performanceHistorySamples );
-
-			for ( int i = 1; i <= 600; i++ ) {
-				int index = 2 * i;
-				Image_4F first( string( "frames/" ) + fixedWidthNumberString( index ) + string( ".png" ) );
-				Image_4F second( string( "frames/" ) + fixedWidthNumberString( index - 1 ) + string( ".png" ) );
-
-				Image_4F out( first.Width(), first.Height() );
-				for ( uint32_t y = 0; y < out.Height(); y++ ) {
-					for ( uint32_t x = 0; x < out.Width(); x++ ) {
-						color_4F firstRead = first.GetAtXY( x, y );
-						color_4F secondRead = second.GetAtXY( x, y );
-
-						color_4F toWrite;
-						toWrite[ red ] = ( firstRead[ red ] + secondRead[ red ] ) / 2.0f;
-						toWrite[ green ] = ( firstRead[ green ] + secondRead[ green ] ) / 2.0f;
-						toWrite[ blue ] = ( firstRead[ blue ] + secondRead[ blue ] ) / 2.0f;
-						toWrite[ alpha ] = 1.0f;
-
-						out.SetAtXY( x, y, toWrite );
-					}
-				}
-
-				out.Save( string( "processed/" ) + fixedWidthNumberString( i ) + string( ".png" ) );
-			}
 		}
 	}
 
@@ -493,28 +469,28 @@ public:
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-		// for animations
-			static int frameNumber = 0;
-			const int maxFrames = 1200;
+			// // for animations
+			// 	static int frameNumber = 0;
+			// 	const int maxFrames = 1200;
 
-			// focus pull - 13.0 to 6.81
-			sirenConfig.thinLensFocusDistance = RemapRange( glm::smoothstep( 0.0f, 1.0f, RemapRange( frameNumber, 0, maxFrames, -0.1f, 1.1f ) ), 0.0f, 1.0f, 13.0f, 6.81f );
+			// 	// focus pull - 13.0 to 6.81
+			// 	sirenConfig.thinLensFocusDistance = RemapRange( glm::smoothstep( 0.0f, 1.0f, RemapRange( frameNumber, 0, maxFrames, -0.1f, 1.1f ) ), 0.0f, 1.0f, 13.0f, 6.81f );
 
-			if ( sirenConfig.numFullscreenPasses > 420 ) {
-				// increment frame number
-				frameNumber++;
+			// 	if ( sirenConfig.numFullscreenPasses > 420 ) {
+			// 		// increment frame number
+			// 		frameNumber++;
 
-				// ...
+			// 		// ...
 
-				// save out this frame's image + reset the accumulators
-				ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( frameNumber ) + string( ".png" ) );
-				ResetAccumulators();
+			// 		// save out this frame's image + reset the accumulators
+			// 		ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( frameNumber ) + string( ".png" ) );
+			// 		ResetAccumulators();
 
-				if ( frameNumber == maxFrames ) {
-					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
-					abort();
-				}
-			}
+			// 		if ( frameNumber == maxFrames ) {
+			// 			cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
+			// 			abort();
+			// 		}
+			// 	}
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
