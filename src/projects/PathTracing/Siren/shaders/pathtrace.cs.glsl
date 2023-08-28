@@ -289,40 +289,58 @@ float deTree ( vec3 p ) {
 	return d;
 }
 
-mat3 rotZ ( float t ) {
-	float s = sin( t );
-	float c = cos( t );
-	return mat3( c, s, 0., -s, c, 0., 0., 0., 1. );
-}
-mat3 rotX ( float t ) {
-	float s = sin( t );
-	float c = cos( t );
-	return mat3( 1., 0., 0., 0., c, s, 0., -s, c );
-}
-mat3 rotY ( float t ) {
-	float s = sin( t );
-	float c = cos( t );
-	return mat3 (c, 0., -s, 0., 1., 0, s, 0, c);
-}
-float deFractal ( vec3 p ) {
-	const int iterations = 18;
-	const float scale = 1.21f;
-	vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
+// mat3 rotZ ( float t ) {
+// 	float s = sin( t );
+// 	float c = cos( t );
+// 	return mat3( c, s, 0., -s, c, 0., 0., 0., 1. );
+// }
+// mat3 rotX ( float t ) {
+// 	float s = sin( t );
+// 	float c = cos( t );
+// 	return mat3( 1., 0., 0., 0., c, s, 0., -s, c );
+// }
+// mat3 rotY ( float t ) {
+// 	float s = sin( t );
+// 	float c = cos( t );
+// 	return mat3 (c, 0., -s, 0., 1., 0, s, 0, c);
+// }
+// float deFractal ( vec3 p ) {
+// 	const int iterations = 18;
+// 	const float scale = 1.21f;
+// 	vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
 
-	// const int iterations = 22;
-	// const float scale = 1.21f;
-	// vec2 rm = radians( 360.0 ) * vec2( 0.6 + 0.2 * sin( inputScalar ), 0.65 - 0.3 * cos( inputScalar * 0.33f ) );
+// 	// const int iterations = 22;
+// 	// const float scale = 1.21f;
+// 	// vec2 rm = radians( 360.0 ) * vec2( 0.6 + 0.2 * sin( inputScalar ), 0.65 - 0.3 * cos( inputScalar * 0.33f ) );
 
-	mat3 scene_mtx = rotX( rm.x ) * rotY( rm.x ) * rotZ( rm.x ) * rotX( rm.y );
-	float scaleAccum = 1.;
-	for( int i = 0; i < iterations; ++i ) {
-		p.yz = sqrt( p.yz * p.yz + 0.16406 );
-		p *= scale;
-		scaleAccum *= scale;
-		p -= vec3( 2.43307, 5.28488, 0.9685 );
-		p = scene_mtx * p;
+// 	mat3 scene_mtx = rotX( rm.x ) * rotY( rm.x ) * rotZ( rm.x ) * rotX( rm.y );
+// 	float scaleAccum = 1.;
+// 	for( int i = 0; i < iterations; ++i ) {
+// 		p.yz = sqrt( p.yz * p.yz + 0.16406 );
+// 		p *= scale;
+// 		scaleAccum *= scale;
+// 		p -= vec3( 2.43307, 5.28488, 0.9685 );
+// 		p = scene_mtx * p;
+// 	}
+// 	return length( p ) / scaleAccum - 0.15;
+// }
+
+#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+float deFractal(vec3 p){
+	p=abs(p)-3.;
+	if(p.x < p.z)p.xz=p.zx;
+	if(p.y < p.z)p.yz=p.zy;
+	if(p.x < p.y)p.xy=p.yx;
+	float s=2.; vec3 off=p*.5;
+	for(int i=0;i<12;i++){
+		p=1.-abs(p-1.);
+		float k=-1.1*max(1.5/dot(p,p),1.5);
+		s*=abs(k); p*=k; p+=off;
+		p.zx*=rot(-1.2);
 	}
-	return length( p ) / scaleAccum - 0.15;
+	float a=2.5;
+	p-=clamp(p,-a,a);
+	return length(p)/s;
 }
 
 float deStairs ( vec3 P ) {
@@ -511,19 +529,19 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	const float dOrganic = deOrganic( ( pCache * 2.0f ) ) / 2.0f;
-	sceneDist = min( dOrganic, sceneDist );
-	if ( sceneDist == dOrganic && dOrganic <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 0.618f );
-		hitPointSurfaceType = RAINBOW;
-	}
-
-	// const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 2.0f ) ) / 2.0f;
-	// sceneDist = min( dFractal, sceneDist );
-	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.618f );
-	// 	hitPointSurfaceType = DIFFUSE;
+	// const float dOrganic = deOrganic( ( pCache * 2.0f ) ) / 2.0f;
+	// sceneDist = min( dOrganic, sceneDist );
+	// if ( sceneDist == dOrganic && dOrganic <= raymarchEpsilon ) {
+	// 	// hitPointColor = vec3( 0.618f );
+	// 	hitPointSurfaceType = RAINBOW;
 	// }
+
+	const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	sceneDist = min( dFractal, sceneDist );
+	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.618f );
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? MIRROR : DIFFUSE;
+	}
 
 	return sceneDist;
 }
