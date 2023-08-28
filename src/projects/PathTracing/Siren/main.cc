@@ -677,6 +677,11 @@ public:
 		sirenConfig.basisZ.y					= j[ "app" ][ "Siren" ][ "basisZ" ][ "y" ];
 		sirenConfig.basisZ.z					= j[ "app" ][ "Siren" ][ "basisZ" ][ "z" ];
 		sirenConfig.showTimeStamp				= j[ "app" ][ "Siren" ][ "showTimeStamp" ];
+
+		// normalize the loaded basis vectors
+		sirenConfig.basisX = glm::normalize( sirenConfig.basisX );
+		sirenConfig.basisY = glm::normalize( sirenConfig.basisY );
+		sirenConfig.basisZ = glm::normalize( sirenConfig.basisZ );
 	}
 
 	void LookAt ( const vec3 eye, const vec3 at, const vec3 up ) {
