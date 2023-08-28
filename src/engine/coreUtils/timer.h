@@ -13,7 +13,7 @@ inline std::string timeDateString () {
 	return ssA.str();
 }
 
-inline std::string fixedWidthNumberString ( int32_t value, uint32_t width = 5 ) {
+inline std::string fixedWidthNumberString ( int32_t value, int32_t width = 5 ) {
 	return string( width - std::min( width, ( int ) to_string( value ).length() ), '0' ) + to_string( value );
 }
 
