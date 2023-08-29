@@ -91,7 +91,7 @@ public:
 
 			ReloadShaders();
 
-			ReloadConfig();
+			ReloadDefaultConfig();
 
 			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
@@ -282,7 +282,7 @@ public:
 
 			ImGui::SameLine();
 			if ( ImGui::Button( "Reload Config" ) ) {
-				ReloadConfig();
+				ReloadDefaultConfig();
 			}
 
 			ImGui::Text( "Resolution" );
@@ -695,7 +695,7 @@ public:
 		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 	}
 
-	void ReloadConfig () {
+	void ReloadDefaultConfig () {
 		json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 		sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
 		sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
