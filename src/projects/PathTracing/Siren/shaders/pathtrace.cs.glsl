@@ -118,6 +118,44 @@ bool BoundsCheck ( const ivec2 loc ) {
 	return ( loc.x < bounds.x && loc.y < bounds.y && loc.x >= 0 && loc.y >= 0 );
 }
 
+#define NONE	0
+#define BLUE	1
+#define UNIFORM	2
+#define WEYL	3
+#define WEYLINT	4
+
+vec2 SubpixelOffset () {
+	vec2 offset = vec2( 0.0f );
+	switch ( subpixelJitterMethod ) {
+		case NONE:
+			offset = vec2( 0.5f );
+			break;
+
+		case BLUE:
+			bool oddFrame = ( sampleNumber % 2 == 0 );
+			offset = ( oddFrame ?
+				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).xy :
+				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).zw ) / 255.0f;
+			break;
+
+		case UNIFORM:
+			offset = vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
+			break;
+
+		case WEYL:
+			offset = fract( float( sampleNumber ) * vec2( 0.754877669f, 0.569840296f ) );
+			break;
+
+		case WEYLINT:
+			offset = fract( vec2( sampleNumber * 12664745, sampleNumber * 9560333 ) / exp2( 24.0f ) );	// integer mul to avoid round-off
+			break;
+
+		default:
+			break;
+	}
+	return offset;
+}
+
 struct ray {
 	vec3 origin;
 	vec3 direction;
@@ -218,44 +256,6 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	}
 
 	return r;
-}
-
-#define NONE	0
-#define BLUE	1
-#define UNIFORM	2
-#define WEYL	3
-#define WEYLINT	4
-
-vec2 SubpixelOffset () {
-	vec2 offset = vec2( 0.0f );
-	switch ( subpixelJitterMethod ) {
-		case NONE:
-			offset = vec2( 0.5f );
-			break;
-
-		case BLUE:
-			bool oddFrame = ( sampleNumber % 2 == 0 );
-			offset = ( oddFrame ?
-				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).xy :
-				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).zw ) / 255.0f;
-			break;
-
-		case UNIFORM:
-			offset = vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
-			break;
-
-		case WEYL:
-			offset = fract( float( sampleNumber ) * vec2( 0.754877669f, 0.569840296f ) );
-			break;
-
-		case WEYLINT:
-			offset = fract( vec2( sampleNumber * 12664745, sampleNumber * 9560333 ) / exp2( 24.0f ) );	// integer mul to avoid round-off
-			break;
-
-		default:
-			break;
-	}
-	return offset;
 }
 
 // ==============================================================================================
@@ -676,6 +676,36 @@ float CalcAO ( const vec3 position, const vec3 normal ) {
 }
 
 // ==============================================================================================
+// explicit intersection primitives
+// https://www.shadertoy.com/view/mlfGRM
+struct Intersection {
+	vec4 a;  // distance and normal at entry
+	vec4 b;  // distance and normal at exit
+};
+
+// false intersection
+const Intersection kEmpty = Intersection(
+	vec4( 1e20f, 0.0f, 0.0f, 0.0f ),
+	vec4( -1e20f, 0.0f, 0.0f, 0.0f )
+);
+
+bool IsEmpty ( Intersection i ) {
+	return i.b.x < i.a.x;
+}
+
+Intersection IntersectSphere ( in vec3 ro, in vec3 rd, float r ) {
+	float b = dot( ro, rd );
+	float c = dot( ro, ro ) - r * r;
+	float h = b * b - c;
+	if ( h < 0.0f ) // no hit
+		return kEmpty;
+	h = sqrt( h );
+	float ta = -b - h; vec3 na = ( ro + ta * rd ) / r;
+	float tb = -b + h; vec3 nb = ( ro + tb * rd ) / r;
+	return Intersection( vec4( ta, na ), vec4( tb, nb ) );
+}
+
+// ==============================================================================================
 
 vec3 ColorSample ( const vec2 uvIn ) {
 
@@ -814,9 +844,16 @@ void main () {
 		// increment the sample count
 		const float sampleCount = oldColor.a + 1.0f;
 
-		// new values - color is currently placeholder
-		const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
-		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
+		// new values - raymarch pathtrace
+		// const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
+		// const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
+
+		// testing ray-sphere intersection
+		const Intersection raySphereHit = IntersectSphere( r.origin, r.direction, 1.0f );
+
+		// const vec4 newColor = vec4( raySphereHit.a.yzw, 1.0f );
+		const vec4 newColor = vec4( vec3( 1.0f / raySphereHit.a.x ), 1.0f );
+		const vec4 newNormalD = vec4( 0.0f );
 
 		// blended with history based on sampleCount
 		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
