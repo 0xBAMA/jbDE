@@ -756,6 +756,23 @@ public:
 			// 	// do the operation
 			// }
 
+		// operations
+			// number of samples, dynamic per frame if desired
+			// viewer position
+			// basis vectors
+				// also support basis, position via LookAt()
+			// clear the buffer... partial clears, as well, via setting sample count lower than the existing values ( color accumulator alpha )
+			// exposure adjustment
+			// raymarch parameters
+			// postprocess parameters ( GPU stuff )
+			// thin lens parameters
+				// autofocus - take one sample, then set thin lens parameters... implementation tbd
+			// render FoV
+			// uv scalar
+			// camera type
+			// skylight color
+			// ...
+
 		}
 	}
 
