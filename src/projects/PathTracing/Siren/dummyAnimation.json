@@ -1,0 +1,10 @@
+{
+	"setup":{
+		"setupTest":0,
+		"setupTest2":1
+	},
+	"0":{
+		"perFrameTest":0,
+		"perFrameTest2":1
+	}
+}

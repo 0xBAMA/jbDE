@@ -2,13 +2,18 @@
 
 // current state of the animation
 struct animation_t {
+	// config flags
 	bool animationRunning = false;
 	bool saveFrames = false;
 	bool resetAccumulatorsOnFrameComplete = false;
 
+	// configured quality settings + state tracking
 	uint32_t samplesPerFrame = 256;
 	uint32_t maxFrames = 720 * 2;
 	uint32_t frameNumber = 0;
+
+	// setup operations, then per-frame operations
+	json animationData;
 };
 
 // program parameters and state
@@ -114,6 +119,9 @@ public:
 			// setup performance monitors
 			sirenConfig.timeHistory.resize( sirenConfig.performanceHistorySamples );
 			sirenConfig.tileHistory.resize( sirenConfig.performanceHistorySamples );
+
+			// initialize the animation
+			InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
 		}
 	}
 
@@ -433,6 +441,8 @@ public:
 		const bool tonemappedResult = false,
 		const bool tonemappedFullRes = false ) {
 
+		// consider spawning a worker thread for this
+
 		if ( colorEXR == true ) {
 			std::vector< float > imageBytesToSave;
 			imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * sizeof( float ) * 4, 0 );
@@ -732,18 +742,38 @@ public:
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
 	}
 
+	void ProcessAnimationJson ( json j ) {
+		// use this for parsing setup ops + per-frame ops
+		for ( auto& element : j.items() ) {
+			string label = element.key();
+
+			// this is where any settings will change, based on the label of the operation
+			// cout << "got an operation: " << label << " with value " << element.value() << endl;
+
+		}
+	}
+
+	void InitiailizeAnimation ( string filename ) {
+		// load the json from the specified file
+		json j; ifstream i ( filename ); i >> j; i.close();
+		sirenConfig.animation.animationData = j;
+
+		// do any desired setup operations
+		ProcessAnimationJson( sirenConfig.animation.animationData[ "setup" ] );
+	}
+
 	void AnimationUpdate () {
 		if ( sirenConfig.animation.animationRunning ) {
 
-			// update any desired parameters
+			// update any desired operations for this frame
+			ProcessAnimationJson( sirenConfig.animation.animationData[ to_string( sirenConfig.animation.frameNumber ) ] );
 
 			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.samplesPerFrame ) {
 				// increment frame number
 				sirenConfig.animation.frameNumber++;
 
-				// ...
-
-				// save out this frame's image + reset the accumulators
+				// save out this frame's image + reset the accumulators if configured to do so
+					// disabling one or both of these flags and setting to 2-5 samples gives an easy preview mode
 				if ( sirenConfig.animation.saveFrames ) {
 					ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( sirenConfig.animation.frameNumber ) + string( ".png" ) );
 				}
@@ -754,11 +784,10 @@ public:
 
 				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.maxFrames ) {
 					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
-					abort();
+					abort(); // maybe do this in a nicer way
 				}
 			}
 		}
-
 	}
 
 	void OnRender () {
