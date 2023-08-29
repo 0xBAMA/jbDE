@@ -14,6 +14,7 @@ uniform ivec2 noiseOffset;
 // more general parameters
 uniform int wangSeed;
 uniform int subpixelJitterMethod;
+uniform int sampleNumber;
 uniform int frameNumber;
 uniform float exposure;
 uniform float FoV;
@@ -233,7 +234,7 @@ vec2 SubpixelOffset () {
 			break;
 
 		case BLUE:
-			bool oddFrame = ( frameNumber % 2 == 0 );
+			bool oddFrame = ( sampleNumber % 2 == 0 );
 			offset = ( oddFrame ?
 				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).xy :
 				BlueNoiseReference( ivec2( gl_GlobalInvocationID.xy + tileOffset ) ).zw ) / 255.0f;
@@ -244,11 +245,11 @@ vec2 SubpixelOffset () {
 			break;
 
 		case WEYL:
-			offset = fract( float( frameNumber ) * vec2( 0.754877669f, 0.569840296f ) );
+			offset = fract( float( sampleNumber ) * vec2( 0.754877669f, 0.569840296f ) );
 			break;
 
 		case WEYLINT:
-			offset = fract( vec2( frameNumber * 12664745, frameNumber * 9560333 ) / exp2( 24.0f ) );	// integer mul to avoid round-off
+			offset = fract( vec2( sampleNumber * 12664745, sampleNumber * 9560333 ) / exp2( 24.0f ) );	// integer mul to avoid round-off
 			break;
 
 		default:

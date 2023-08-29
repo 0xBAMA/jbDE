@@ -504,7 +504,8 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "uvScalar" ), sirenConfig.uvScalar );
 			glUniform1i( glGetUniformLocation( shader, "cameraType" ), sirenConfig.cameraType );
 			glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ), sirenConfig.subpixelJitterMethod );
-			glUniform1i( glGetUniformLocation( shader, "frameNumber" ), sirenConfig.numFullscreenPasses );
+			glUniform1i( glGetUniformLocation( shader, "sampleNumber" ), sirenConfig.numFullscreenPasses );
+			glUniform1i( glGetUniformLocation( shader, "frameNumber" ), sirenConfig.animation.frameNumber );
 			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), sirenConfig.thinLensEnable );
 			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), sirenConfig.thinLensFocusDistance );
 			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), sirenConfig.thinLensJitterRadius );
