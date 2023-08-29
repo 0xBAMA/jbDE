@@ -2,8 +2,12 @@
 
 // current state of the animation
 struct animation_t {
-	const uint32_t samplesPerFrame = 256;
-	const uint32_t maxFrames = 720 * 2;
+	bool animationRunning = false;
+	bool saveFrames = false;
+	bool resetAccumulatorsOnFrameComplete = false;
+
+	uint32_t samplesPerFrame = 256;
+	uint32_t maxFrames = 720 * 2;
 	uint32_t frameNumber = 0;
 };
 
@@ -478,7 +482,7 @@ public:
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-			// compute the parameters for the LookAt()
+			AnimationUpdate();
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
@@ -726,6 +730,35 @@ public:
 			}
 		}
 		return sirenConfig.tileOffsets[ sirenConfig.tileOffset ];
+	}
+
+	void AnimationUpdate () {
+		if ( sirenConfig.animation.animationRunning ) {
+
+			// update any desired parameters
+
+			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.samplesPerFrame ) {
+				// increment frame number
+				sirenConfig.animation.frameNumber++;
+
+				// ...
+
+				// save out this frame's image + reset the accumulators
+				if ( sirenConfig.animation.saveFrames ) {
+					ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( sirenConfig.animation.frameNumber ) + string( ".png" ) );
+				}
+
+				if ( sirenConfig.animation.resetAccumulatorsOnFrameComplete ) {
+					ResetAccumulators();
+				}
+
+				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.maxFrames ) {
+					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
+					abort();
+				}
+			}
+		}
+
 	}
 
 	void OnRender () {
