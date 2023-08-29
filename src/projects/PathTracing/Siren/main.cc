@@ -794,8 +794,6 @@ public:
 	void AnimationUpdate () {
 		if ( sirenConfig.animation.animationRunning ) {
 
-			// update any desired operations for this frame
-			ProcessAnimationJson( sirenConfig.animation.animationData[ to_string( sirenConfig.animation.frameNumber ) ] );
 
 			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.numSamples ) {
 				// increment frame number
@@ -804,12 +802,16 @@ public:
 				// save out this frame's image + reset the accumulators if configured to do so
 					// disabling one or both of these flags and setting to 2-5 samples gives an easy preview mode
 				if ( sirenConfig.animation.saveFrames ) {
+					// may need to extend a bit, if I want to do the one-or-more-CPU-side-postprocess-ops thing
 					ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( sirenConfig.animation.frameNumber ) + string( ".png" ) );
 				}
 
 				if ( sirenConfig.animation.resetAccumulatorsOnFrameComplete ) {
 					ResetAccumulators();
 				}
+
+				// update any desired operations for this frame - run only once, at frame init
+				ProcessAnimationJson( sirenConfig.animation.animationData[ to_string( sirenConfig.animation.frameNumber ) ] );
 
 				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.numFrames ) {
 					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
