@@ -470,13 +470,6 @@ public:
 		return t;
 	}
 
-	const vec3 PositionInOrbit ( float frameNumber ) {
-		// two orbits in 720 frames - orbit tilted slightly
-		float valueInRadians = glm::radians( frameNumber );
-		return ( glm::rotate( mat4( 1.0f ), 0.3f, glm::normalize( vec3( 1.0f ) ) ) * vec4( cos( valueInRadians ), 0.0f, sin( valueInRadians ), 0.0f ) ).xyz();
-		// return ( glm::rotate( mat4( 1.0f ), 0.9f, vec3( 1.0f ) ) * vec4( cos( valueInRadians ), sin( valueInRadians ), 0.0f, 1.0f ) ).xyz();
-	}
-
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -486,39 +479,6 @@ public:
 			glUseProgram( shader );
 
 			// compute the parameters for the LookAt()
-			const vec3 focalPoint = vec3( 0.0f );
-
-			// tilted orbit
-			const vec3 cameraPosition = 3.0f * PositionInOrbit( sirenConfig.animation.frameNumber );
-			const vec3 OneStepCloserToTheEdge = 3.0f * PositionInOrbit( sirenConfig.animation.frameNumber + 1.0f ); // one step ahead on the orbit
-			const vec3 offset = glm::normalize( OneStepCloserToTheEdge - cameraPosition );
-
-			// rotating up vector by frameNumber / 2.0 degrees, full rotation in two orbits
-			const vec3 vectorToCenter = glm::normalize( -cameraPosition );
-
-			// compute the vector which represents up
-			const float rads = glm::radians( sirenConfig.animation.frameNumber / 2.0f );
-			const vec3 upVector = ( glm::rotate( mat4( 1.0f ), rads, vectorToCenter ) * vec4( glm::cross( vectorToCenter, offset ), 1.0f ) ).xyz();
-
-			sirenConfig.thinLensFocusDistance = 1.4f + 0.3f * sin( glm::radians( ( float ) sirenConfig.animation.frameNumber ) ) + 0.7f * cos( glm::radians( ( float ) sirenConfig.animation.frameNumber / 2.0f ) ) + 0.4f * sin( glm::radians( ( float ) sirenConfig.animation.frameNumber * 2.0f ) );
-
-			LookAt( cameraPosition, focalPoint, upVector );
-
-			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.samplesPerFrame ) {
-				// increment frame number
-				sirenConfig.animation.frameNumber++;
-
-				// ...
-
-				// save out this frame's image + reset the accumulators
-				ColorScreenShotWithFilename( string( "frames/" ) + fixedWidthNumberString( sirenConfig.animation.frameNumber ) + string( ".png" ) );
-				ResetAccumulators();
-
-				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.maxFrames ) {
-					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
-					abort();
-				}
-			}
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
 			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
