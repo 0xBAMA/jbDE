@@ -273,6 +273,38 @@ float deOrganic ( vec3 p ) {
 	return e * R * 0.1f;
 }
 
+float deOrganic2 ( vec3 p ) {
+	#define V vec2(.7,-.7)
+	#define G(p)dot(p,V)
+	float i=0.,g=0.,e=1.;
+	float t = 0.34; // change to see different behavior
+	for(int j=0;j++<8;){
+		p=abs(Rotate3D(0.34,vec3(1,-3,5))*p*2.)-1.,
+		p.xz-=(G(p.xz)-sqrt(G(p.xz)*G(p.xz)+.05))*V;
+	}
+	return length(p.xz)/3e2;
+	#undef V
+	#undef G
+}
+
+mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
+float deOrganic3 ( vec3 p ) {
+	float d = 1e5;
+	const int n = 3;
+	const float fn = float(n);
+	for(int i = 0; i < n; i++){
+		vec3 q = p;
+		float a = float(i)*fn*2.422; //*6.283/fn
+		a *= a;
+		q.z += float(i)*float(i)*1.67; //*3./fn
+		q.xy *= rot2(a);
+		float b = (length(length(sin(q.xy) + cos(q.yz))) - .15);
+		float f = max(0., 1. - abs(b - d));
+		d = min(d, b) - .25*f*f;
+	}
+	return d;
+}
+
 // tree shape
 mat2 rotate2D( float r ) {
 	return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) );
@@ -290,41 +322,41 @@ float deTree ( vec3 p ) {
 	return d;
 }
 
-// mat3 rotZ ( float t ) {
-// 	float s = sin( t );
-// 	float c = cos( t );
-// 	return mat3( c, s, 0., -s, c, 0., 0., 0., 1. );
-// }
-// mat3 rotX ( float t ) {
-// 	float s = sin( t );
-// 	float c = cos( t );
-// 	return mat3( 1., 0., 0., 0., c, s, 0., -s, c );
-// }
-// mat3 rotY ( float t ) {
-// 	float s = sin( t );
-// 	float c = cos( t );
-// 	return mat3 (c, 0., -s, 0., 1., 0, s, 0, c);
-// }
-// float deFractal ( vec3 p ) {
-// 	const int iterations = 18;
-// 	const float scale = 1.21f;
-// 	vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
+float deJenga ( vec3 p ){
+	vec3 P=p, Q, b=vec3( 4, 2.8, 15 );
+	float i, d=1., a;
+	Q = mod( P, b ) - b * 0.5;
+	d = P.z - 6.0;
+	a = 1.3;
+	for( int j = 0; j++ < 17; )
+		d = min( d, length( max( abs( Q ) - b.zyy / 13.0, 0.0 ) ) / a ),
+		Q = vec3( Q.y, abs( Q.x ) - 1.0, Q.z + 0.3 ) * 1.4,
+		a *= 1.4;
+	return d;
+}
 
-// 	// const int iterations = 22;
-// 	// const float scale = 1.21f;
-// 	// vec2 rm = radians( 360.0 ) * vec2( 0.6 + 0.2 * sin( inputScalar ), 0.65 - 0.3 * cos( inputScalar * 0.33f ) );
-
-// 	mat3 scene_mtx = rotX( rm.x ) * rotY( rm.x ) * rotZ( rm.x ) * rotX( rm.y );
-// 	float scaleAccum = 1.;
-// 	for( int i = 0; i < iterations; ++i ) {
-// 		p.yz = sqrt( p.yz * p.yz + 0.16406 );
-// 		p *= scale;
-// 		scaleAccum *= scale;
-// 		p -= vec3( 2.43307, 5.28488, 0.9685 );
-// 		p = scene_mtx * p;
-// 	}
-// 	return length( p ) / scaleAccum - 0.15;
-// }
+vec3 triangles ( vec3 p ) {
+	const float sqrt3 = sqrt( 3.0 );
+	float zm = 1.;
+	p.x = p.x-sqrt3*(p.y+.5)/3.;
+	p = vec3( mod( p.x + sqrt3 / 2.0, sqrt3 ) - sqrt3 / 2.0, mod( p.y + 0.5, 1.5 ) - 0.5, mod( p.z + 0.5 * zm, zm ) - 0.5 * zm );
+	p = vec3( p.x / sqrt3, ( p.y + 0.5 ) * 2.0 / 3.0 - 0.5, p.z );
+	p = p.y > -p.x ? vec3( -p.y, -p.x , p.z ) : p;
+	p = vec3( p.x * sqrt3, ( p.y + 0.5 ) * 3.0 / 2.0 - 0.5, p.z );
+	return vec3( p.x + sqrt3 * ( p.y + 0.5 ) / 3.0, p.y , p.z );
+}
+float deFractal2 ( vec3 p ) {
+	float scale = 1.0;
+	float s = 1.0 / 3.0;
+	for ( int i = 0; i < 10; i++ ) {
+		p = triangles( p );
+		float r2 = dot( p, p );
+		float k = s / r2;
+		p = p * k;
+		scale=scale * k;
+	}
+	return 0.3 * length( p ) / scale - 0.001 / sqrt( scale );
+}
 
 #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
 float deFractal(vec3 p){
@@ -495,28 +527,42 @@ float de ( vec3 p ) {
 	hitPointColor = vec3( 0.0f );
 
 	const vec3 pCache = p;
-	const vec3 floorCielingColor = vec3( 0.9f );
+	// const vec3 floorCielingColor = vec3( 0.9f );
 
-	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
-	sceneDist = min( dFloor, sceneDist );
-	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
-		hitPointColor = floorCielingColor;
-		// hitPointSurfaceType = MIRROR;
-		hitPointSurfaceType = DIFFUSE;
-	}
+	// const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
+	// sceneDist = min( dFloor, sceneDist );
+	// if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
+	// 	hitPointColor = floorCielingColor;
+	// 	// hitPointSurfaceType = MIRROR;
+	// 	hitPointSurfaceType = DIFFUSE;
+	// }
 
-	const float lightHeight = 24.0f;
-	const float lightDiameter = 10.0f;
+	const float sinTime = sin( frameNumber / 1440.0f );
+	const float cosTime = cos( frameNumber / 1440.0f );
+
+	const float lightHeight = 7.0f + 2.0f * sinTime;
+	const float lightDiameter = 7.0f;
 
 	const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		// hitPointColor = GetColorForTemperature( 4800.0f ) * 5.0f;
-		hitPointColor = GetColorForTemperature( 4800.0f );
+		// hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx;
+		hitPointColor = vec3( 0.9f + 0.1f * cosTime, 0.125f + 0.125f * sinTime, 0.1f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float dLightHousing = fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f );
+	const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
+	sceneDist = min( dLight2, sceneDist );
+	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
+		// hitPointColor = vec3( 0.2f, 0.5f, 0.9f );
+		hitPointColor = vec3( 0.1f, 0.9f + 0.1f * sinTime, 0.125f + 0.125f * cosTime );
+		hitPointSurfaceType = EMISSIVE;
+	}
+
+	const float dLightHousing = min(
+		fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ), // light 1
+		fCylinder( p - vec3( 0.0f, -lightHeight - 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ) // light 2
+	);
 	sceneDist = min( dLightHousing, sceneDist );
 	if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
 		hitPointColor = vec3( 0.618f );
@@ -537,11 +583,19 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = RAINBOW;
 	// }
 
-	const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	// const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	// const float dFractal = deJenga( pCache * 2.0f ) / 2.0f;
+	// const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
+	// const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
+	const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
 	sceneDist = min( dFractal, sceneDist );
 	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
 		hitPointColor = vec3( 0.618f );
+		// hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
+		// hitPointColor = vec3( 0.618f, 0.3f, 0.1f ).zyx;
 		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? MIRROR : DIFFUSE;
+		// hitPointSurfaceType = MIRROR;
+		// hitPointSurfaceType = DIFFUSE;
 	}
 
 	return sceneDist;
@@ -551,7 +605,7 @@ float de ( vec3 p ) {
 // ray scattering functions
 
 vec3 HenyeyGreensteinSampleSphere ( const vec3 n, const float g ) {
-	float t = ( 1.0f - g * g ) / ( 1.0f - g + 2.0f * g * NormalizedRandomFloat() );
+	float t = ( 0.5f - g *0.5) / ( 0.5f - g + 0.5f * g * NormalizedRandomFloat() );
 	float cosTheta = ( 1.0f + g * g - t ) / ( 2.0f * g );
 	float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 	float phi = 2.0f * 3.14159f * NormalizedRandomFloat();
