@@ -546,16 +546,14 @@ float de ( vec3 p ) {
 	const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx;
-		hitPointColor = vec3( 0.9f + 0.1f * cosTime, 0.125f + 0.125f * sinTime, 0.1f );
+		hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx;
 		hitPointSurfaceType = EMISSIVE;
 	}
 
 	const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
 	sceneDist = min( dLight2, sceneDist );
 	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 0.2f, 0.5f, 0.9f );
-		hitPointColor = vec3( 0.1f, 0.9f + 0.1f * sinTime, 0.125f + 0.125f * cosTime );
+		hitPointColor = vec3( 0.2f, 0.5f, 0.9f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 

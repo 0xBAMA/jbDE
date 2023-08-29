@@ -8,8 +8,8 @@ struct animation_t {
 	bool resetAccumulatorsOnFrameComplete = false;
 
 	// configured quality settings + state tracking
-	uint32_t samplesPerFrame = 256;
-	uint32_t maxFrames = 720 * 2;
+	uint32_t numSamples = 256;
+	uint32_t numFrames = 720 * 2;
 	uint32_t frameNumber = 0;
 
 	// setup operations, then per-frame operations
@@ -750,6 +750,12 @@ public:
 			// this is where any settings will change, based on the label of the operation
 			// cout << "got an operation: " << label << " with value " << element.value() << endl;
 
+			// basically, a number of these
+			// if ( label == "operation" ) {
+			// 	// get the operation parameters
+			// 	// do the operation
+			// }
+
 		}
 	}
 
@@ -757,6 +763,12 @@ public:
 		// load the json from the specified file
 		json j; ifstream i ( filename ); i >> j; i.close();
 		sirenConfig.animation.animationData = j;
+
+		// initial setup
+		sirenConfig.animation.numFrames = j[ "setup" ][ "numFrames" ];
+		sirenConfig.animation.numSamples = j[ "setup" ][ "numSamples" ];
+
+		// resolution, perf scalars are configured through the default config or on the menus
 
 		// do any desired setup operations
 		ProcessAnimationJson( sirenConfig.animation.animationData[ "setup" ] );
@@ -768,7 +780,7 @@ public:
 			// update any desired operations for this frame
 			ProcessAnimationJson( sirenConfig.animation.animationData[ to_string( sirenConfig.animation.frameNumber ) ] );
 
-			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.samplesPerFrame ) {
+			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.numSamples ) {
 				// increment frame number
 				sirenConfig.animation.frameNumber++;
 
@@ -782,7 +794,7 @@ public:
 					ResetAccumulators();
 				}
 
-				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.maxFrames ) {
+				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.numFrames ) {
 					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
 					abort(); // maybe do this in a nicer way
 				}

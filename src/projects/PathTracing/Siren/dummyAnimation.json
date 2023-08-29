@@ -1,7 +1,7 @@
 {
 	"setup":{
-		"setupTest":0,
-		"setupTest2":1
+		"numFrames":1,
+		"numSamples":100
 	},
 	"0":{
 		"perFrameTest":0,
