@@ -440,6 +440,7 @@ public:
 		const bool normalEXR = false,
 		const bool tonemappedResult = false,
 		const bool tonemappedFullRes = false ) {
+		ZoneScoped;
 
 		// consider spawning a worker thread for this
 
@@ -475,6 +476,8 @@ public:
 	}
 
 	GLuint64 SubmitTimerAndWait ( GLuint timer ) {
+		ZoneScoped;
+
 		glQueryCounter( timer, GL_TIMESTAMP );
 		GLint available = 0;
 		while ( !available )
@@ -614,11 +617,15 @@ public:
 	}
 
 	void UpdateNoiseOffset () {
+		ZoneScoped;
+
 		static rng offsetGenerator = rng( 0, 512 );
 		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
 	}
 
 	void UpdatePerfMonitors ( float loopTime, float tilesThisFrame ) {
+		ZoneScoped;
+
 		sirenConfig.timeHistory.push_back( loopTime );
 		sirenConfig.tileHistory.push_back( tilesThisFrame );
 		sirenConfig.timeHistory.pop_front();
@@ -626,6 +633,8 @@ public:
 	}
 
 	void ResetAccumulators () {
+		ZoneScoped;
+
 		// clear the buffers
 		Image_4U zeroes( sirenConfig.targetWidth, sirenConfig.targetHeight );
 		GLuint handle = textureManager.Get( "Color Accumulator" );
@@ -644,6 +653,8 @@ public:
 	}
 
 	void ResizeAccumulators ( uint32_t x, uint32_t y ) {
+		ZoneScoped;
+
 		// destroy the existing textures
 		textureManager.Remove( "Depth/Normals Accumulator" );
 		textureManager.Remove( "Color Accumulator" );
@@ -665,11 +676,13 @@ public:
 	}
 
 	void ReloadShaders () {
+		ZoneScoped;
 		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 	}
 
 	void ReloadDefaultConfig () {
+		ZoneScoped;
 		json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
 		sirenConfig.targetWidth					= j[ "app" ][ "Siren" ][ "targetWidth" ];
 		sirenConfig.targetHeight				= j[ "app" ][ "Siren" ][ "targetHeight" ];
@@ -711,6 +724,7 @@ public:
 	}
 
 	void LookAt ( const vec3 eye, const vec3 at, const vec3 up ) {
+		ZoneScoped;
 		sirenConfig.viewerPosition = eye;
 		sirenConfig.basisZ = normalize( at - eye );
 		sirenConfig.basisX = normalize( glm::cross( up, sirenConfig.basisZ ) );
@@ -718,6 +732,7 @@ public:
 	}
 
 	ivec2 GetTile () {
+		ZoneScoped;
 		if ( sirenConfig.tileListNeedsUpdate == true ) {
 			// construct the tile list ( runs at frame 0 and again any time the tilesize changes )
 			sirenConfig.tileListNeedsUpdate = false;
@@ -743,6 +758,7 @@ public:
 	}
 
 	void ProcessAnimationJson ( json j ) {
+		ZoneScoped;
 
 		// use this for parsing setup ops + per-frame ops
 		for ( auto& element : j.items() ) {
@@ -822,6 +838,8 @@ public:
 	}
 
 	void InitiailizeAnimation ( string filename ) {
+		ZoneScoped;
+
 		// load the json from the specified file
 		json j; ifstream i ( filename ); i >> j; i.close();
 		sirenConfig.animation.animationData = j;
@@ -837,6 +855,7 @@ public:
 	}
 
 	void AnimationUpdate () {
+		ZoneScoped;
 		if ( sirenConfig.animation.animationRunning ) {
 
 			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.numSamples ) {
