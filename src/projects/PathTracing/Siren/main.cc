@@ -795,8 +795,12 @@ public:
 				vec3 up = vec3( element.value()[ "up" ][ "x" ], element.value()[ "up" ][ "y" ], element.value()[ "up" ][ "x" ] );
 				LookAt( eye, at, up );
 			} else if ( label == "clear" ) {
-				// clear the buffer... partial clears, as well, via setting sample count lower than the existing values ( color accumulator alpha )
-					// tbd semantics on this one
+				// when this works, will need to remove the default clear in the loop
+
+				// clear the buffer... partial clears, as well, via setting sample count lower than
+					// the existing values ( color accumulator alpha )- tbd semantics on this one, to support partial clears
+
+				// eventually maybe get into some kind of reprojection of the data in the buffer, tbd
 
 			} else if ( label == "exposure" ) { // exposure adjustment
 				sirenConfig.exposure = element.value();
@@ -810,9 +814,14 @@ public:
 				sirenConfig.raymarchEpsilon = element.value();
 			} else if ( label == "raymarchUnderstep" ) {
 				sirenConfig.raymarchUnderstep = element.value();
-			} else if ( label == "postprocess" ) {
-				// postprocess parameters ( GPU stuff ) - todo
-
+			} else if ( label == "tonemapMode" ) {
+				tonemap.tonemapMode = element.value();
+			} else if ( label == "gamma" ) {
+				tonemap.gamma = element.value();
+			} else if ( label == "saturation" ) {
+				tonemap.saturation = element.value();
+			} else if ( label == "colorTemperature" ) {
+				tonemap.colorTemp = element.value();
 			} else if ( label == "thinLensEnable" ) { // thin lens enable
 				sirenConfig.thinLensEnable = element.value();
 			} else if ( label == "thinLensFocusDistance" ) { // thin lens focus distance
