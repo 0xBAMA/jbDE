@@ -596,7 +596,7 @@ float de ( vec3 p ) {
 	// const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
 	// const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
 	// const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
-	const float dFractal = deOrganic3( p );
+	const float dFractal = deOrganic3( p * 0.2f ) / 0.2f;
 	sceneDist = min( dFractal, sceneDist );
 	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
 		// hitPointColor = vec3( 0.618f );
@@ -704,16 +704,37 @@ bool IsEmpty ( Intersection i ) {
 	return i.b.x < i.a.x;
 }
 
-Intersection IntersectSphere ( in vec3 ro, in vec3 rd, float r ) {
-	float b = dot( ro, rd );
-	float c = dot( ro, ro ) - r * r;
+// Intersection IntersectSphere ( in vec3 ro, in vec3 rd, float r ) {
+// 	float b = dot( ro, rd );
+// 	float c = dot( ro, ro ) - r * r;
+// 	float h = b * b - c;
+// 	if ( h < 0.0f ) // no hit
+// 		return kEmpty;
+// 	h = sqrt( h );
+// 	float ta = -b - h; vec3 na = ( ro + ta * rd ) / r;
+// 	float tb = -b + h; vec3 nb = ( ro + tb * rd ) / r;
+// 	return Intersection( vec4( ta, na ), vec4( tb, nb ) );
+// }
+
+Intersection IntersectSphere ( in vec3 ro, in vec3 rd, in vec3 center, float radius ) {
+	// https://iquilezles.org/articles/intersectors/
+	vec3 oc = ro - center;
+	float b = dot( oc, rd );
+	float c = dot( oc, oc ) - radius * radius;
 	float h = b * b - c;
-	if ( h < 0.0f ) // no hit
-		return kEmpty;
+	if ( h < 0.0f )
+		return kEmpty; // no intersection
 	h = sqrt( h );
-	float ta = -b - h; vec3 na = ( ro + ta * rd ) / r;
-	float tb = -b + h; vec3 nb = ( ro + tb * rd ) / r;
-	return Intersection( vec4( ta, na ), vec4( tb, nb ) );
+	// return vec2( -b - h, -b + h );
+
+	// h is known to be positive at this point, b+h > b-h
+	float nearHit = -b - h;
+	vec3 nearNormal = ( ro + rd * nearHit ) - center;
+
+	float farHit = -b + h;
+	vec3 farNormal = ( ro + rd * farHit ) - center;
+
+	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
 }
 
 // ==============================================================================================
@@ -856,19 +877,26 @@ void main () {
 		const float sampleCount = oldColor.a + 1.0f;
 
 		// new values - raymarch pathtrace
-		// const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
-		// const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
+		vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
+		vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
 
-		// testing ray-sphere intersection
-		const Intersection raySphereHit = IntersectSphere( r.origin, r.direction, 1.0f );
+		// testing ray-sphere intersection - now working
+		const Intersection raySphereHit = IntersectSphere( r.origin, r.direction, vec3( 1.0f ), 1.0f );
+		if ( raySphereHit != kEmpty && raySphereHit.a.x < hitDistance && raySphereHit.a.x >= 0.0f ) {
+			newColor = vec4( raySphereHit.a.yzw, 1.0f );
+			newNormalD = vec4( raySphereHit.a.yzw, raySphereHit.a.x );
+		}
 
 		// const vec4 newColor = vec4( raySphereHit.a.yzw, 1.0f );
-		const vec4 newColor = vec4( vec3( 1.0f / raySphereHit.a.x ), 1.0f );
-		const vec4 newNormalD = vec4( 0.0f );
+		// const vec4 newNormalD = vec4( 0.0f );
 
 		// blended with history based on sampleCount
-		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, 1.0f / sampleCount ), sampleCount );
-		const vec4 mixedNormalD = vec4( mix( oldNormalD, newNormalD, 1.0f / sampleCount ) );
+		const float mixFactor = 1.0f / sampleCount;
+		const vec4 mixedColor = vec4( mix( oldColor.rgb, newColor.rgb, mixFactor ), sampleCount );
+		const vec4 mixedNormalD = vec4(
+			clamp( mix( oldNormalD.xyz, newNormalD.xyz, mixFactor ), -1.0f, 1.0f ), // normals need to be -1..1
+			mix( oldNormalD.w, newNormalD.w, mixFactor )
+		);
 
 		// store the values back
 		imageStore( accumulatorColor, ivec2( location ), mixedColor );
