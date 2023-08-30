@@ -17,6 +17,7 @@ void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
 	vec4 originalValue = texture( sourceC, sampleLoc );
+	vec4 originalDepth = texture( sourceDN, sampleLoc );
 
 	originalValue.rgb = saturation * originalValue.rgb;
 	originalValue.rgb = colorTempAdjust * originalValue.rgb;
@@ -24,4 +25,5 @@ void main () {
 	originalValue.rgb = GammaCorrect( gamma, originalValue.rgb );
 
 	imageStore( displayTexture, loc, originalValue );
+	// imageStore( displayTexture, loc, originalDepth );
 }

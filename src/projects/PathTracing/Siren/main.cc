@@ -566,8 +566,9 @@ public:
 			const GLuint shader = shaders[ "Postprocess" ];
 			glUseProgram( shader );
 
-			textureManager.BindTexForShader( "Color Accumulator", "source", shader, 0 );
-			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 1 );
+			textureManager.BindTexForShader( "Color Accumulator", "sourceC", shader, 0 );
+			textureManager.BindTexForShader( "Depth/Normals Accumulator", "sourceDN", shader, 1 );
+			textureManager.BindImageForShader( "Display Texture", "displayTexture", shader, 2 );
 
 			// make sure we're sending the updated color temp every frame
 			static float prevColorTemperature = 0.0f;
