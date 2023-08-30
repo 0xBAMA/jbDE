@@ -495,27 +495,27 @@ public:
 			AnimationUpdate();
 
 			// send uniforms ( initial, shared across all tiles dispatched this frame )
-			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
-			glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), sirenConfig.raymarchMaxSteps );
-			glUniform1i( glGetUniformLocation( shader, "raymarchMaxBounces" ), sirenConfig.raymarchMaxBounces );
-			glUniform1f( glGetUniformLocation( shader, "raymarchMaxDistance" ), sirenConfig.raymarchMaxDistance );
-			glUniform1f( glGetUniformLocation( shader, "raymarchEpsilon" ), sirenConfig.raymarchEpsilon );
-			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), sirenConfig.raymarchUnderstep );
-			glUniform1f( glGetUniformLocation( shader, "exposure" ), sirenConfig.exposure );
-			glUniform1f( glGetUniformLocation( shader, "FoV" ), sirenConfig.renderFoV );
-			glUniform1f( glGetUniformLocation( shader, "uvScalar" ), sirenConfig.uvScalar );
-			glUniform1i( glGetUniformLocation( shader, "cameraType" ), sirenConfig.cameraType );
-			glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ), sirenConfig.subpixelJitterMethod );
-			glUniform1i( glGetUniformLocation( shader, "sampleNumber" ), sirenConfig.numFullscreenPasses );
-			glUniform1i( glGetUniformLocation( shader, "frameNumber" ), sirenConfig.animation.frameNumber );
-			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), sirenConfig.thinLensEnable );
-			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), sirenConfig.thinLensFocusDistance );
-			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), sirenConfig.thinLensJitterRadius );
-			glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1, glm::value_ptr( sirenConfig.skylightColor ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( sirenConfig.basisX ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( sirenConfig.basisY ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( sirenConfig.basisZ ) );
-			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( sirenConfig.viewerPosition ) );
+			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ),				sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
+			glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ),		sirenConfig.raymarchMaxSteps );
+			glUniform1i( glGetUniformLocation( shader, "raymarchMaxBounces" ),		sirenConfig.raymarchMaxBounces );
+			glUniform1f( glGetUniformLocation( shader, "raymarchMaxDistance" ),		sirenConfig.raymarchMaxDistance );
+			glUniform1f( glGetUniformLocation( shader, "raymarchEpsilon" ),			sirenConfig.raymarchEpsilon );
+			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ),		sirenConfig.raymarchUnderstep );
+			glUniform1f( glGetUniformLocation( shader, "exposure" ),				sirenConfig.exposure );
+			glUniform1f( glGetUniformLocation( shader, "FoV" ),						sirenConfig.renderFoV );
+			glUniform1f( glGetUniformLocation( shader, "uvScalar" ),				sirenConfig.uvScalar );
+			glUniform1i( glGetUniformLocation( shader, "cameraType" ),				sirenConfig.cameraType );
+			glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ),	sirenConfig.subpixelJitterMethod );
+			glUniform1i( glGetUniformLocation( shader, "sampleNumber" ),			sirenConfig.numFullscreenPasses );
+			glUniform1i( glGetUniformLocation( shader, "frameNumber" ),				sirenConfig.animation.frameNumber );
+			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ),			sirenConfig.thinLensEnable );
+			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ),	sirenConfig.thinLensFocusDistance );
+			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ),	sirenConfig.thinLensJitterRadius );
+			glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1,		glm::value_ptr( sirenConfig.skylightColor ) );
+			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1,				glm::value_ptr( sirenConfig.basisX ) );
+			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1,				glm::value_ptr( sirenConfig.basisY ) );
+			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1,				glm::value_ptr( sirenConfig.basisZ ) );
+			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1,		glm::value_ptr( sirenConfig.viewerPosition ) );
 			// color, depth, normal targets, blue noise source data
 			textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
 			textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
@@ -536,8 +536,8 @@ public:
 				// run some N tiles out of the list
 				for ( uint32_t tile = 0; tile < sirenConfig.tilesBetweenQueries; tile++ ) {
 					const ivec2 tileOffset = GetTile(); // send uniforms ( unique per loop iteration )
-					glUniform2i( glGetUniformLocation( shader, "tileOffset" ), tileOffset.x, tileOffset.y );
-					glUniform1i( glGetUniformLocation( shader, "wangSeed" ), sirenConfig.wangSeeder() );
+					glUniform2i( glGetUniformLocation( shader, "tileOffset" ),		tileOffset.x, tileOffset.y );
+					glUniform1i( glGetUniformLocation( shader, "wangSeed" ),		sirenConfig.wangSeeder() );
 
 					// going to basically say that tilesizes are multiples of 16, to match the group size
 					glDispatchCompute( sirenConfig.tileSize / 16, sirenConfig.tileSize / 16, 1 );
@@ -593,11 +593,11 @@ public:
 				);
 			}
 
-			glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1, glm::value_ptr( temperatureColor ) );
-			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ), tonemap.tonemapMode );
-			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false, glm::value_ptr( saturationMatrix ) );
-			glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
-			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+			glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1,			glm::value_ptr( temperatureColor ) );
+			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ),					tonemap.tonemapMode );
+			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
+			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
+			glUniform2f( glGetUniformLocation( shader, "resolution" ),					config.width, config.height );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -827,8 +827,8 @@ public:
 		sirenConfig.animation.animationData = j;
 
 		// initial setup
-		sirenConfig.animation.numFrames = j[ "setup" ][ "numFrames" ];
-		sirenConfig.animation.numSamples = j[ "setup" ][ "numSamples" ];
+		sirenConfig.animation.numFrames		= j[ "setup" ][ "numFrames" ];
+		sirenConfig.animation.numSamples	= j[ "setup" ][ "numSamples" ];
 
 		// resolution, perf scalars are configured through the default config or on the menus
 
