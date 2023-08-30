@@ -540,35 +540,40 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	const float sinTime = sin( frameNumber / 1440.0f );
-	const float cosTime = cos( frameNumber / 1440.0f );
+	// const float lightHeight = 7.0f + 2.0f * sinTime;
+	// const float lightDiameter = 7.0f;
 
-	const float lightHeight = 7.0f + 2.0f * sinTime;
-	const float lightDiameter = 7.0f;
+	// const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
+	// sceneDist = min( dLight, sceneDist );
+	// if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx;
+	// 	hitPointSurfaceType = EMISSIVE;
+	// }
 
-	const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
+	// const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
+	// sceneDist = min( dLight2, sceneDist );
+	// if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.2f, 0.5f, 0.9f );
+	// 	hitPointSurfaceType = EMISSIVE;
+	// }
+
+	// const float dLightHousing = min(
+	// 	fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ), // light 1
+	// 	fCylinder( p - vec3( 0.0f, -lightHeight - 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ) // light 2
+	// );
+	// sceneDist = min( dLightHousing, sceneDist );
+	// if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.618f );
+	// 	hitPointSurfaceType = DIFFUSE;
+	// }
+
+	const float dLight = fCapsule( p, vec3( 100.0f, 0.0f, 100.0f ), vec3( -100.0f, 0.0f, -100.0f ), 0.3f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx;
+		hitPointColor = vec3( 1.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
-	sceneDist = min( dLight2, sceneDist );
-	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.2f, 0.5f, 0.9f );
-		hitPointSurfaceType = EMISSIVE;
-	}
-
-	const float dLightHousing = min(
-		fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ), // light 1
-		fCylinder( p - vec3( 0.0f, -lightHeight - 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ) // light 2
-	);
-	sceneDist = min( dLightHousing, sceneDist );
-	if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.618f );
-		hitPointSurfaceType = DIFFUSE;
-	}
 
 	// const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
 	// sceneDist = min( dStairs, sceneDist );
@@ -588,13 +593,14 @@ float de ( vec3 p ) {
 	// const float dFractal = deJenga( pCache * 2.0f ) / 2.0f;
 	// const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
 	// const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
-	const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
+	// const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
+	const float dFractal = deOrganic3( p );
 	sceneDist = min( dFractal, sceneDist );
 	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.618f );
+		// hitPointColor = vec3( 0.618f );
 		// hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
-		// hitPointColor = vec3( 0.618f, 0.3f, 0.1f ).zyx;
-		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? MIRROR : DIFFUSE;
+		hitPointColor = vec3( 0.618f, 0.3f, 0.1f );
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
 		// hitPointSurfaceType = MIRROR;
 		// hitPointSurfaceType = DIFFUSE;
 	}
