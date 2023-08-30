@@ -10,6 +10,7 @@
 			"r":1.0,
 			"g":0.2,
 			"b":0.5
-		}
+		},
+		"thinLensEnable":true
 	}
 }

@@ -3,7 +3,7 @@
 // current state of the animation
 struct animation_t {
 	// config flags
-	bool animationRunning = true;
+	bool animationRunning = false;
 	bool saveFrames = false;
 	bool resetAccumulatorsOnFrameComplete = false;
 
