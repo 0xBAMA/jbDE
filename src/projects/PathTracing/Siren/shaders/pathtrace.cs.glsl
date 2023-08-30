@@ -703,22 +703,10 @@ bool IsEmpty ( Intersection i ) {
 	return i.b.x < i.a.x;
 }
 
-// Intersection IntersectSphere ( in vec3 ro, in vec3 rd, float r ) {
-// 	float b = dot( ro, rd );
-// 	float c = dot( ro, ro ) - r * r;
-// 	float h = b * b - c;
-// 	if ( h < 0.0f ) // no hit
-// 		return kEmpty;
-// 	h = sqrt( h );
-// 	float ta = -b - h; vec3 na = ( ro + ta * rd ) / r;
-// 	float tb = -b + h; vec3 nb = ( ro + tb * rd ) / r;
-// 	return Intersection( vec4( ta, na ), vec4( tb, nb ) );
-// }
-
-Intersection IntersectSphere ( in vec3 ro, in vec3 rd, in vec3 center, float radius ) {
+Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center, float radius ) {
 	// https://iquilezles.org/articles/intersectors/
-	vec3 oc = ro - center;
-	float b = dot( oc, rd );
+	vec3 oc = origin - center;
+	float b = dot( oc, direction );
 	float c = dot( oc, oc ) - radius * radius;
 	float h = b * b - c;
 	if ( h < 0.0f )
@@ -726,11 +714,27 @@ Intersection IntersectSphere ( in vec3 ro, in vec3 rd, in vec3 center, float rad
 	h = sqrt( h );
 
 	// h is known to be positive at this point, b+h > b-h
-	float nearHit = -b - h; vec3 nearNormal = normalize( ( ro + rd * nearHit ) - center );
-	float farHit  = -b + h; vec3 farNormal  = normalize( ( ro + rd * farHit ) - center );
+	float nearHit = -b - h; vec3 nearNormal = normalize( ( origin + direction * nearHit ) - center );
+	float farHit  = -b + h; vec3 farNormal  = normalize( ( origin + direction * farHit ) - center );
 
 	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
 }
+
+// ==============================================================================================
+// struct sceneIntersection {
+// 	float distance;
+// 	vec3 normal;
+// 	vec3 color;
+// 	int material;
+// };
+
+// float GetNearestSceneIntersection ( vec3 origin, vec3 direction ) {
+	// get the raymarch result
+	// get the explict intersection result
+		// invert the normal, if the angle between the direction and the normal is less than 90 degrees ( handles backface hits )
+	// compare distances
+	// return the struct with the latest data
+// }
 
 // ==============================================================================================
 
