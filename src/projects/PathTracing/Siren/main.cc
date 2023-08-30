@@ -121,7 +121,7 @@ public:
 			sirenConfig.tileHistory.resize( sirenConfig.performanceHistorySamples );
 
 			// initialize the animation
-			InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
+			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
 		}
 	}
 
