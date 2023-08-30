@@ -854,13 +854,13 @@ public:
 				// update any desired operations for this frame - run only once, at frame init
 				ProcessAnimationJson( sirenConfig.animation.animationData[ to_string( sirenConfig.animation.frameNumber ) ] );
 
+				// increment frame number - 0..numFrames-1, so this will hit numFrames for the check
+				sirenConfig.animation.frameNumber++;
 				if ( sirenConfig.animation.frameNumber == sirenConfig.animation.numFrames ) {
 					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
 					abort(); // maybe do this in a nicer way
 				}
 
-				// increment frame number
-				sirenConfig.animation.frameNumber++;
 			}
 		}
 	}
