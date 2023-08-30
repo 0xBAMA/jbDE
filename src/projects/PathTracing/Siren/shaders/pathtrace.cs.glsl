@@ -175,6 +175,8 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	r.origin	= vec3( 0.0f );
 	r.direction	= vec3( 0.0f );
 
+	// apply uvScalar here, probably
+
 	switch ( cameraType ) {
 	case NORMAL:
 	{

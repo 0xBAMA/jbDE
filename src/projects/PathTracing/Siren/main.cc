@@ -3,7 +3,7 @@
 // current state of the animation
 struct animation_t {
 	// config flags
-	bool animationRunning = false;
+	bool animationRunning = true;
 	bool saveFrames = false;
 	bool resetAccumulatorsOnFrameComplete = false;
 
@@ -743,6 +743,7 @@ public:
 	}
 
 	void ProcessAnimationJson ( json j ) {
+
 		// use this for parsing setup ops + per-frame ops
 		for ( auto& element : j.items() ) {
 			string label = element.key();
@@ -750,29 +751,73 @@ public:
 			// this is where any settings will change, based on the label of the operation
 			// cout << "got an operation: " << label << " with value " << element.value() << endl;
 
-			// basically, a number of these
-			// if ( label == "operation" ) {
-			// 	// get the operation parameters
-			// 	// do the operation
-			// }
+		// operations that can be specified
+			if ( label == "numSamples" ) { // number of samples, dynamic per frame if desired
+				sirenConfig.animation.numSamples = element.value();
+			} else if ( label == "viewerPosition" ) { // viewer position
+				sirenConfig.viewerPosition.x = element.value()[ "x" ];
+				sirenConfig.viewerPosition.y = element.value()[ "y" ];
+				sirenConfig.viewerPosition.z = element.value()[ "z" ];
+			} else if ( label == "basisX" ) { // basis vectors
+				sirenConfig.basisX.x = element.value()[ "x" ];
+				sirenConfig.basisX.y = element.value()[ "y" ];
+				sirenConfig.basisX.z = element.value()[ "z" ];
+				sirenConfig.basisX = glm::normalize( sirenConfig.basisX );
+			} else if ( label == "basisY" ) {
+				sirenConfig.basisY.x = element.value()[ "x" ];
+				sirenConfig.basisY.y = element.value()[ "y" ];
+				sirenConfig.basisY.z = element.value()[ "z" ];
+				sirenConfig.basisY = glm::normalize( sirenConfig.basisY );
+			} else if ( label == "basisZ" ) {
+				sirenConfig.basisZ.x = element.value()[ "x" ];
+				sirenConfig.basisZ.y = element.value()[ "y" ];
+				sirenConfig.basisZ.z = element.value()[ "z" ];
+				sirenConfig.basisZ = glm::normalize( sirenConfig.basisZ );
+			} else if ( label == "LookAt" ) { // also support basis, position via LookAt()
+				vec3 eye = vec3( element.value()[ "eye" ][ "x" ], element.value()[ "eye" ][ "y" ], element.value()[ "eye" ][ "x" ] );
+				vec3 at = vec3( element.value()[ "at" ][ "x" ], element.value()[ "at" ][ "y" ], element.value()[ "at" ][ "x" ] );
+				vec3 up = vec3( element.value()[ "up" ][ "x" ], element.value()[ "up" ][ "y" ], element.value()[ "up" ][ "x" ] );
+				LookAt( eye, at, up );
+			} else if ( label == "clear" ) {
+				// clear the buffer... partial clears, as well, via setting sample count lower than the existing values ( color accumulator alpha )
+					// tbd semantics on this one
 
-		// operations
-			// number of samples, dynamic per frame if desired
-			// viewer position
-			// basis vectors
-				// also support basis, position via LookAt()
-			// clear the buffer... partial clears, as well, via setting sample count lower than the existing values ( color accumulator alpha )
-			// exposure adjustment
-			// raymarch parameters
-			// postprocess parameters ( GPU stuff )
-			// thin lens parameters
+			} else if ( label == "exposure" ) { // exposure adjustment
+				sirenConfig.exposure = element.value();
+			} else if ( label == "raymarchMaxSteps" ) {
+				sirenConfig.raymarchMaxSteps = element.value();
+			} else if ( label == "raymarchMaxBounces" ) {
+				sirenConfig.raymarchMaxBounces = element.value();
+			} else if ( label == "raymarchMaxDistance" ) {
+				sirenConfig.raymarchMaxDistance = element.value();
+			} else if ( label == "raymarchEpsilon" ) {
+				sirenConfig.raymarchEpsilon = element.value();
+			} else if ( label == "raymarchUnderstep" ) {
+				sirenConfig.raymarchUnderstep = element.value();
+			} else if ( label == "postprocess" ) {
+				// postprocess parameters ( GPU stuff ) - todo
+
+			} else if ( label == "thinLensEnable" ) { // thin lens enable
+				sirenConfig.thinLensEnable = element.value();
+			} else if ( label == "thinLensFocusDistance" ) { // thin lens focus distance
+				sirenConfig.thinLensFocusDistance = element.value();
+			} else if ( label == "thinLensJitterRadius" ) { // thin lens focus effect intensity
+				sirenConfig.thinLensJitterRadius = element.value();
+			} else if ( label == "autofocus" ) {
 				// autofocus - take one sample, then set thin lens parameters... implementation tbd
-			// render FoV
-			// uv scalar
-			// camera type
-			// skylight color
-			// ...
+					// probably want to specify the x,y picking location
 
+			} else if ( label == "renderFoV" ) { // render field of view
+				sirenConfig.renderFoV = element.value();
+			} else if ( label == "uvScalar" ) { // uv scalar
+				sirenConfig.uvScalar = element.value();
+			} else if ( label == "cameraType" ) { // camera type
+				sirenConfig.cameraType = element.value();
+			} else if ( label == "skylightColor" ) { // skylight color - tbd if this is going to extend to handle skybox
+				sirenConfig.skylightColor.r = element.value()[ "r" ];
+				sirenConfig.skylightColor.g = element.value()[ "g" ];
+				sirenConfig.skylightColor.b = element.value()[ "b" ];
+			}
 		}
 	}
 
@@ -794,11 +839,7 @@ public:
 	void AnimationUpdate () {
 		if ( sirenConfig.animation.animationRunning ) {
 
-
 			if ( sirenConfig.numFullscreenPasses > sirenConfig.animation.numSamples ) {
-				// increment frame number
-				sirenConfig.animation.frameNumber++;
-
 				// save out this frame's image + reset the accumulators if configured to do so
 					// disabling one or both of these flags and setting to 2-5 samples gives an easy preview mode
 				if ( sirenConfig.animation.saveFrames ) {
@@ -817,6 +858,9 @@ public:
 					cout << "finished at " << timeDateString() << " after " << TotalTime() / 1000.0f << " seconds" << endl;
 					abort(); // maybe do this in a nicer way
 				}
+
+				// increment frame number
+				sirenConfig.animation.frameNumber++;
 			}
 		}
 	}
