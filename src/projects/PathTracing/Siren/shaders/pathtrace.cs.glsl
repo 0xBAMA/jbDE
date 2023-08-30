@@ -635,7 +635,7 @@ vec3 SimpleRayScatter ( const vec3 n ) {
 
 // ==============================================================================================
 // raymarches to the next hit
-
+// ==============================================================================================
 float Raymarch ( const vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
@@ -657,9 +657,10 @@ float Raymarch ( const vec3 origin, vec3 direction ) {
 	}
 	return dTotal;
 }
-
 // ==============================================================================================
-
+// raymarch-derived functions
+// ==============================================================================================
+// normal derived from the gradient of the SDF
 vec3 Normal ( const vec3 position ) { // three methods - first one seems most practical
 	vec2 e = vec2( raymarchEpsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
@@ -670,10 +671,9 @@ vec3 Normal ( const vec3 position ) { // three methods - first one seems most pr
 	// vec2 e = vec2( raymarchEpsilon, 0.0f );
 	// return normalize( vec3( de( position + e.xyy ) - de( position - e.xyy ), de( position + e.yxy ) - de( position - e.yxy ), de( position + e.yyx ) - de( position - e.yyx ) ) );
 }
-
 // ==============================================================================================
 // fake AO, computed from SDF
-
+// ==============================================================================================
 float CalcAO ( const vec3 position, const vec3 normal ) {
 	float occ = 0.0f;
 	float sca = 1.0f;
@@ -685,7 +685,6 @@ float CalcAO ( const vec3 position, const vec3 normal ) {
 	}
 	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
 }
-
 // ==============================================================================================
 // explicit intersection primitives
 // https://www.shadertoy.com/view/mlfGRM
@@ -725,14 +724,10 @@ Intersection IntersectSphere ( in vec3 ro, in vec3 rd, in vec3 center, float rad
 	if ( h < 0.0f )
 		return kEmpty; // no intersection
 	h = sqrt( h );
-	// return vec2( -b - h, -b + h );
 
 	// h is known to be positive at this point, b+h > b-h
-	float nearHit = -b - h;
-	vec3 nearNormal = ( ro + rd * nearHit ) - center;
-
-	float farHit = -b + h;
-	vec3 farNormal = ( ro + rd * farHit ) - center;
+	float nearHit = -b - h; vec3 nearNormal = normalize( ( ro + rd * nearHit ) - center );
+	float farHit  = -b + h; vec3 farNormal  = normalize( ( ro + rd * farHit ) - center );
 
 	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
 }
@@ -886,9 +881,6 @@ void main () {
 			newColor = vec4( raySphereHit.a.yzw, 1.0f );
 			newNormalD = vec4( raySphereHit.a.yzw, raySphereHit.a.x );
 		}
-
-		// const vec4 newColor = vec4( raySphereHit.a.yzw, 1.0f );
-		// const vec4 newNormalD = vec4( 0.0f );
 
 		// blended with history based on sampleCount
 		const float mixFactor = 1.0f / sampleCount;
