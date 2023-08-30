@@ -274,33 +274,33 @@ float deOrganic ( vec3 p ) {
 }
 
 float deOrganic2 ( vec3 p ) {
-	#define V vec2(.7,-.7)
-	#define G(p)dot(p,V)
-	float i=0.,g=0.,e=1.;
-	float t = 0.34; // change to see different behavior
-	for(int j=0;j++<8;){
-		p=abs(Rotate3D(0.34,vec3(1,-3,5))*p*2.)-1.,
-		p.xz-=(G(p.xz)-sqrt(G(p.xz)*G(p.xz)+.05))*V;
+	#define V vec2( 0.7f, -0.7f )
+	#define G(p) dot( p, V )
+	float i = 0.0f, g = 0.0f, e = 1.0f;
+	float t = 0.34f; // change to see different behavior
+	for ( int j = 0; j++ < 8;){
+		p = abs( Rotate3D( 0.34f, vec3( 1.0f, -3.0f, 5.0f ) ) * p * 2.0f ) - 1.0f,
+		p.xz -= ( G( p.xz ) - sqrt( G( p.xz ) * G( p.xz ) + 0.05f ) ) * V;
 	}
-	return length(p.xz)/3e2;
+	return length( p.xz ) / 3e2f;
 	#undef V
 	#undef G
 }
 
-mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
+mat2 rot2 ( in float a ) { float c = cos( a ), s = sin( a ); return mat2( c, s, -s, c ); }
 float deOrganic3 ( vec3 p ) {
-	float d = 1e5;
+	float d = 1e5f;
 	const int n = 3;
-	const float fn = float(n);
-	for(int i = 0; i < n; i++){
+	const float fn = float( n );
+	for ( int i = 0; i < n; i++ ) {
 		vec3 q = p;
-		float a = float(i)*fn*2.422; //*6.283/fn
+		float a = float( i ) * fn * 2.422f; //*6.283/fn
 		a *= a;
-		q.z += float(i)*float(i)*1.67; //*3./fn
-		q.xy *= rot2(a);
-		float b = (length(length(sin(q.xy) + cos(q.yz))) - .15);
-		float f = max(0., 1. - abs(b - d));
-		d = min(d, b) - .25*f*f;
+		q.z += float( i ) * float( i ) * 1.67f; //*3./fn
+		q.xy *= rot2( a );
+		float b = ( length( length( sin( q.xy ) + cos( q.yz ) ) ) - 0.15f );
+		float f = max( 0.0f, 1.0f - abs( b - d ) );
+		d = min( d, b ) - 0.25f * f * f;
 	}
 	return d;
 }
@@ -312,77 +312,80 @@ mat2 rotate2D( float r ) {
 float deTree ( vec3 p ) {
 	float d, a;
 	d = a = 1.0f;
-	for ( int j = 0; j++ < 16; )
-		p.xz = abs( p.xz ) * rotate2D( PI / 3.0f ),
-		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a ),
-		p.yx *= rotate2D( 0.5f ),
-		p.y -= 3.0f,
-		p *= 1.6f,
+	for ( int j = 0; j++ < 16; ) {
+		p.xz = abs( p.xz ) * rotate2D( PI / 3.0f );
+		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a );
+		p.yx *= rotate2D( 0.5f );
+		p.y -= 3.0f;
+		p *= 1.6f;
 		a *= 1.6f;
+	}
 	return d;
 }
 
 float deJenga ( vec3 p ){
-	vec3 P=p, Q, b=vec3( 4, 2.8, 15 );
-	float i, d=1., a;
-	Q = mod( P, b ) - b * 0.5;
-	d = P.z - 6.0;
-	a = 1.3;
-	for( int j = 0; j++ < 17; )
-		d = min( d, length( max( abs( Q ) - b.zyy / 13.0, 0.0 ) ) / a ),
-		Q = vec3( Q.y, abs( Q.x ) - 1.0, Q.z + 0.3 ) * 1.4,
-		a *= 1.4;
+	vec3 P = p, Q, b = vec3( 4.0f, 2.8f, 15.0f );
+	float i, d = 1.0f, a;
+	Q = mod( P, b ) - b * 0.5f;
+	d = P.z - 6.0f;
+	a = 1.3f;
+	for ( int j = 0; j++ < 17; ) {
+		d = min( d, length( max( abs( Q ) - b.zyy / 13.0f, 0.0f ) ) / a );
+		Q = vec3( Q.y, abs( Q.x ) - 1.0f, Q.z + 0.3f ) * 1.4f;
+		a *= 1.4f;
+	}
 	return d;
 }
 
 vec3 triangles ( vec3 p ) {
-	const float sqrt3 = sqrt( 3.0 );
-	float zm = 1.;
-	p.x = p.x-sqrt3*(p.y+.5)/3.;
-	p = vec3( mod( p.x + sqrt3 / 2.0, sqrt3 ) - sqrt3 / 2.0, mod( p.y + 0.5, 1.5 ) - 0.5, mod( p.z + 0.5 * zm, zm ) - 0.5 * zm );
-	p = vec3( p.x / sqrt3, ( p.y + 0.5 ) * 2.0 / 3.0 - 0.5, p.z );
+	const float sqrt3 = sqrt( 3.0f );
+	float zm = 1.0f;
+	p.x = p.x - sqrt3 * ( p.y + 0.5f ) / 3.0f;
+	p = vec3( mod( p.x + sqrt3 / 2.0f, sqrt3 ) - sqrt3 / 2.0f, mod( p.y + 0.5f, 1.5f ) - 0.5f, mod( p.z + 0.5f * zm, zm ) - 0.5f * zm );
+	p = vec3( p.x / sqrt3, ( p.y + 0.5f ) * 2.0f / 3.0f - 0.5f, p.z );
 	p = p.y > -p.x ? vec3( -p.y, -p.x , p.z ) : p;
-	p = vec3( p.x * sqrt3, ( p.y + 0.5 ) * 3.0 / 2.0 - 0.5, p.z );
-	return vec3( p.x + sqrt3 * ( p.y + 0.5 ) / 3.0, p.y , p.z );
+	p = vec3( p.x * sqrt3, ( p.y + 0.5f ) * 3.0f / 2.0f - 0.5f, p.z );
+	return vec3( p.x + sqrt3 * ( p.y + 0.5f ) / 3.0f, p.y , p.z );
 }
 float deFractal2 ( vec3 p ) {
-	float scale = 1.0;
-	float s = 1.0 / 3.0;
+	float scale = 1.0f;
+	float s = 1.0f / 3.0f;
 	for ( int i = 0; i < 10; i++ ) {
 		p = triangles( p );
 		float r2 = dot( p, p );
 		float k = s / r2;
 		p = p * k;
-		scale=scale * k;
+		scale = scale * k;
 	}
-	return 0.3 * length( p ) / scale - 0.001 / sqrt( scale );
+	return 0.3f * length( p ) / scale - 0.001f / sqrt( scale );
 }
 
-#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
-float deFractal(vec3 p){
-	p=abs(p)-3.;
-	if(p.x < p.z)p.xz=p.zx;
-	if(p.y < p.z)p.yz=p.zy;
-	if(p.x < p.y)p.xy=p.yx;
-	float s=2.; vec3 off=p*.5;
-	for(int i=0;i<12;i++){
-		p=1.-abs(p-1.);
-		float k=-1.1*max(1.5/dot(p,p),1.5);
-		s*=abs(k); p*=k; p+=off;
-		p.zx*=rot(-1.2);
+#define rot(a) mat2( cos( a ), sin( a ), -sin( a ), cos( a ) )
+float deFractal ( vec3 p ) {
+	p = abs( p ) - 3.0f;
+	if ( p.x < p.z ) p.xz = p.zx;
+	if ( p.y < p.z ) p.yz = p.zy;
+	if ( p.x < p.y ) p.xy = p.yx;
+	float s = 2.0f; vec3 off = p * 0.5f;
+	for ( int i = 0; i < 12; i++ ) {
+		p = 1.0f - abs( p - 1.0f );
+		float k = -1.1f * max( 1.5f / dot( p, p ), 1.5f );
+		s *= abs( k ); p *= k; p += off;
+		p.zx *= rot( -1.2f );
 	}
-	float a=2.5;
-	p-=clamp(p,-a,a);
-	return length(p)/s;
+	float a = 2.5f;
+	p -= clamp( p, -a, a );
+	return length( p ) / s;
 }
 
 float deStairs ( vec3 P ) {
 	vec3 Q;
 	float a, d = min( ( P.y - abs( fract( P.z ) - 0.5f ) ) * 0.7f, 1.5f - abs( P.x ) );
-	for ( a = 2.0f; a < 6e2f; a += a )
-		Q = P * a,
-		Q.xz *= rotate2D( a ),
+	for ( a = 2.0f; a < 6e2f; a += a ) {
+		Q = P * a;
+		Q.xz *= rotate2D( a );
 		d += abs( dot( sin( Q ), Q - Q + 1.0f ) ) / a / 7.0f;
+	}
 	return d;
 }
 
