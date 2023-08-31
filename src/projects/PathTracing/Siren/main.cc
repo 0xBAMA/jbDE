@@ -98,7 +98,7 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			ReloadShaders();
+			if ( !ReloadShaders() ) pQuit = true; // tired of struggling to quit through error spew
 
 			ReloadDefaultConfig();
 
@@ -676,10 +676,15 @@ public:
 		sirenConfig.numFullscreenPasses = 0;
 	}
 
-	void ReloadShaders () {
+	bool ReloadShaders () {
 		ZoneScoped;
-		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
-		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
+		computeShader ptShader = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" );
+		computeShader ppShader = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" );
+
+		if ( ptShader.success ) shaders[ "Pathtrace" ] = ptShader.shaderHandle;
+		if ( ppShader.success ) shaders[ "Postprocess" ] = ppShader.shaderHandle;
+
+		return ptShader.success && ppShader.success;
 	}
 
 	void ReloadDefaultConfig () {
