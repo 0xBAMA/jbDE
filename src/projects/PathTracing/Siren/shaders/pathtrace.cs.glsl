@@ -508,13 +508,16 @@ float deStairs ( vec3 P ) {
 // ==============================================================================================
 // ==============================================================================================
 
-#define NOHIT		0
-#define EMISSIVE	1
-#define DIFFUSE		2
-#define METALLIC	3
-#define RAINBOW		4
-#define MIRROR		5
-#define REFRACTIVE	6
+#define NOHIT				0
+#define EMISSIVE			1
+#define DIFFUSE				2
+#define METALLIC			3
+#define RAINBOW				4
+#define MIRROR				5
+
+// we're only going to do refraction on explicit intersections this time, to simplify the logic
+#define REFRACTIVE			6
+#define REFRACTIVE_BACKFACE	7
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -725,24 +728,61 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
 }
 
-// ==============================================================================================
-// struct sceneIntersection {
-// 	float distance;
-// 	vec3 normal;
-// 	vec3 color;
-// 	int material;
-// 	bool backface; // informs refraction behavior - maybe a second refractive material is better? tbd
-// 		// more materials probably better solution, because that can extend to materials of different IORs
-// };
+Intersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
+	// eventually, walk a list of primitives
+	return IntersectSphere( origin, direction, vec3( 0.0f ), 1.0f );
+}
 
-// sceneIntersection GetNearestSceneIntersection ( vec3 origin, vec3 direction ) {
-	// get the raymarch intersection result
+// ==============================================================================================
+struct sceneIntersection {
+	float dTravel;
+	vec3 normal;
+	vec3 color;
+	int material;
+};
+
+sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 direction ) {
+	sceneIntersection result;
+
 	// get the explict intersection result
-		// invert the normal, if the angle between the direction and the normal is less than 90 degrees ( handles backface hits )
-			// actually, this can just be if intersection.a.x ( distance ) is negative
-	// compare distances
+	Intersection explicitResult = ExplicitSceneIntersection( origin, direction );
+	if ( IsEmpty( explicitResult ) || ( explicitResult.a.x < 0.0f && explicitResult.b.x < 0.0f ) ) {
+		result.dTravel = raymarchMaxDistance + 1.0f;
+		result.normal = vec3( 0.0f );
+		result.color = vec3( 0.0f );
+		result.material = NOHIT;
+	} else if ( explicitResult.a.x < 0.0f && explicitResult.b.x > 0.0f ) {
+		result.dTravel = explicitResult.b.x;
+		result.normal = explicitResult.b.yzw;
+		result.color = vec3( 1.0f, 0.0f, 0.0f ); // red for inside hits, for testing
+		// result.material = REFRACTIVE_BACKFACE;
+		result.material = EMISSIVE;
+	} else {
+		result.dTravel = explicitResult.a.x;
+		result.normal = explicitResult.a.yzw;
+		result.color = vec3( 0.0f, 0.0f, 1.0f ); // blue for outside hits, for testing
+		// result.material = REFRACTIVE;
+		result.material = EMISSIVE;
+	}
+
+	// get the raymarch intersection result
+	const float raymarchDistance = Raymarch( origin, direction );
+
+	// compare distances and make a determination on what got hit first
+	if ( raymarchDistance < result.dTravel && raymarchDistance < raymarchMaxDistance ) {
+		// take the raymarch result, as it's closer
+		result.dTravel = raymarchDistance;
+		result.color = hitPointColor;
+		result.material = hitPointSurfaceType;
+		result.normal = Normal( origin + raymarchDistance * direction );
+	}
+
+	// if they both escape, we take the nohit result from the first if at the top of the function
+	// if the explicit result is closer than the raymarch result, we already have the correct information in the result struct
+
 	// return the struct with the correct data
-// }
+	return result;
+}
 
 // ==============================================================================================
 
@@ -770,35 +810,59 @@ vec3 ColorSample ( const vec2 uvIn ) {
 	// loop over bounces
 	for ( int bounce = 0; bounce < raymarchMaxBounces; bounce++ ) {
 
-		// get the hit point
-		float dHit = Raymarch( rayOrigin, rayDirection );
+		// ==== SDF ONLY ======================================================================
 
-		// cache surface type, color, so it's not overwritten by calls to de() in normal vector calcs
-		const int hitPointSurfaceType_cache = hitPointSurfaceType;
-		const vec3 hitPointColor_cache = hitPointColor;
+		// // get the hit point
+		// float dHit = Raymarch( rayOrigin, rayDirection );
+
+		// // cache surface type, color, so it's not overwritten by calls to de() in normal vector calcs
+		// const int hitPointSurfaceType_cache = hitPointSurfaceType;
+		// const vec3 hitPointColor_cache = hitPointColor;
+
+		// // get previous direction, origin
+		// rayOriginPrevious = rayOrigin;
+		// rayDirectionPrevious = rayDirection;
+
+		// // update new ray origin ( at hit point )
+		// rayOrigin = rayOriginPrevious + dHit * rayDirectionPrevious;
+
+		// // get the normal vector
+		// const vec3 hitNormal = Normal( rayOrigin );
+
+		// // epsilon bump, along the normal vector
+		// rayOrigin += 2.0f * raymarchEpsilon * hitNormal;
+
+		// // precalculate reflected vector, random diffuse vector, random specular vector
+		// const vec3 reflectedVector = reflect( rayDirectionPrevious, hitNormal );
+		// const vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
+		// const vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
+
+
+		// ==== SDF + EXPLICIT ===============================================================
+
+		sceneIntersection result = GetNearestSceneIntersection( rayOrigin, rayDirection );
 
 		// get previous direction, origin
 		rayOriginPrevious = rayOrigin;
 		rayDirectionPrevious = rayDirection;
 
 		// update new ray origin ( at hit point )
-		rayOrigin = rayOriginPrevious + dHit * rayDirectionPrevious;
-
-		// get the normal vector
-		const vec3 hitNormal = Normal( rayOrigin );
+		rayOrigin = rayOriginPrevious + result.dTravel * rayDirectionPrevious;
 
 		// epsilon bump, along the normal vector
-		rayOrigin += 2.0f * raymarchEpsilon * hitNormal;
+		rayOrigin += 2.0f * raymarchEpsilon * result.normal;
 
 		// precalculate reflected vector, random diffuse vector, random specular vector
-		const vec3 reflectedVector = reflect( rayDirectionPrevious, hitNormal );
-		const vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
-		const vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
+		const vec3 reflectedVector = reflect( rayDirectionPrevious, result.normal );
+		const vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * result.normal + RandomUnitVector() );
+		const vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * result.normal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
+
+		// ===================================================================================
 
 		// add a check for points that are not within epsilon? just ran out the steps?
 			// this is much less likely with a 0.9 understep, rather than 0.618
 
-		if ( dHit >= raymarchMaxDistance ) {
+		if ( result.dTravel >= raymarchMaxDistance ) {
 
 			// ray escaped - break out of loop, since you will not bounce
 			finalColor += throughput * skylightColor;
@@ -807,29 +871,29 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		} else {
 
 			// material specific behavior
-			switch ( hitPointSurfaceType_cache ) {
+			switch ( result.material ) {
 			case NOHIT:
 				break;
 
 			case EMISSIVE:
 				// light emitting material
-				finalColor += throughput * hitPointColor_cache;
+				finalColor += throughput * result.color;
 				break;
 
 			case DIFFUSE:
 				// diffuse material
-				throughput *= hitPointColor_cache;
+				throughput *= result.color;
 				rayDirection = randomVectorDiffuse;
 				break;
 
 			case METALLIC:
 				// specular material
-				throughput *= hitPointColor_cache;
+				throughput *= result.color;
 				rayDirection = randomVectorSpecular;
 				break;
 
 			case RAINBOW:
-				throughput *= ( hitNormal + 1.0f ) / 2.0f;
+				throughput *= ( result.normal + 1.0f ) / 2.0f;
 				rayDirection = randomVectorDiffuse;
 				break;
 
@@ -837,6 +901,14 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				// perfect mirror ( slight attenuation )
 				throughput *= 0.95f;
 				rayDirection = reflectedVector;
+				break;
+
+			case REFRACTIVE:
+				// todo
+				break;
+
+			case REFRACTIVE_BACKFACE:
+				// todo
 				break;
 			}
 		}
