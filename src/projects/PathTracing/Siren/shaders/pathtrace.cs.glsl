@@ -810,36 +810,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 	// loop over bounces
 	for ( int bounce = 0; bounce < raymarchMaxBounces; bounce++ ) {
 
-		// ==== SDF ONLY ======================================================================
-
-		// // get the hit point
-		// float dHit = Raymarch( rayOrigin, rayDirection );
-
-		// // cache surface type, color, so it's not overwritten by calls to de() in normal vector calcs
-		// const int hitPointSurfaceType_cache = hitPointSurfaceType;
-		// const vec3 hitPointColor_cache = hitPointColor;
-
-		// // get previous direction, origin
-		// rayOriginPrevious = rayOrigin;
-		// rayDirectionPrevious = rayDirection;
-
-		// // update new ray origin ( at hit point )
-		// rayOrigin = rayOriginPrevious + dHit * rayDirectionPrevious;
-
-		// // get the normal vector
-		// const vec3 hitNormal = Normal( rayOrigin );
-
-		// // epsilon bump, along the normal vector
-		// rayOrigin += 2.0f * raymarchEpsilon * hitNormal;
-
-		// // precalculate reflected vector, random diffuse vector, random specular vector
-		// const vec3 reflectedVector = reflect( rayDirectionPrevious, hitNormal );
-		// const vec3 randomVectorDiffuse = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + RandomUnitVector() );
-		// const vec3 randomVectorSpecular = normalize( ( 1.0f + raymarchEpsilon ) * hitNormal + mix( reflectedVector, RandomUnitVector(), 0.1f ) );
-
-
 		// ==== SDF + EXPLICIT ===============================================================
-
 		sceneIntersection result = GetNearestSceneIntersection( rayOrigin, rayDirection );
 
 		// get previous direction, origin
@@ -958,13 +929,6 @@ void main () {
 		// new values - raymarch pathtrace
 		const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
 		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
-
-		// // testing ray-sphere intersection - now working
-		// const Intersection raySphereHit = IntersectSphere( r.origin, r.direction, vec3( 1.0f ), 1.0f );
-		// if ( raySphereHit != kEmpty && raySphereHit.a.x < hitDistance && raySphereHit.a.x >= 0.0f ) {
-		// 	newColor = vec4( raySphereHit.a.yzw, 1.0f );
-		// 	newNormalD = vec4( raySphereHit.a.yzw, raySphereHit.a.x );
-		// }
 
 		// blended with history based on sampleCount
 		const float mixFactor = 1.0f / sampleCount;
