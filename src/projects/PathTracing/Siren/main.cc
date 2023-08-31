@@ -496,33 +496,7 @@ public:
 			glUseProgram( shader );
 
 			AnimationUpdate();
-
-			// send uniforms ( initial, shared across all tiles dispatched this frame )
-			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ),				sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
-			glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ),		sirenConfig.raymarchMaxSteps );
-			glUniform1i( glGetUniformLocation( shader, "raymarchMaxBounces" ),		sirenConfig.raymarchMaxBounces );
-			glUniform1f( glGetUniformLocation( shader, "raymarchMaxDistance" ),		sirenConfig.raymarchMaxDistance );
-			glUniform1f( glGetUniformLocation( shader, "raymarchEpsilon" ),			sirenConfig.raymarchEpsilon );
-			glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ),		sirenConfig.raymarchUnderstep );
-			glUniform1f( glGetUniformLocation( shader, "exposure" ),				sirenConfig.exposure );
-			glUniform1f( glGetUniformLocation( shader, "FoV" ),						sirenConfig.renderFoV );
-			glUniform1f( glGetUniformLocation( shader, "uvScalar" ),				sirenConfig.uvScalar );
-			glUniform1i( glGetUniformLocation( shader, "cameraType" ),				sirenConfig.cameraType );
-			glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ),	sirenConfig.subpixelJitterMethod );
-			glUniform1i( glGetUniformLocation( shader, "sampleNumber" ),			sirenConfig.numFullscreenPasses );
-			glUniform1i( glGetUniformLocation( shader, "frameNumber" ),				sirenConfig.animation.frameNumber );
-			glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ),			sirenConfig.thinLensEnable );
-			glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ),	sirenConfig.thinLensFocusDistance );
-			glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ),	sirenConfig.thinLensJitterRadius );
-			glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1,		glm::value_ptr( sirenConfig.skylightColor ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1,				glm::value_ptr( sirenConfig.basisX ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1,				glm::value_ptr( sirenConfig.basisY ) );
-			glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1,				glm::value_ptr( sirenConfig.basisZ ) );
-			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1,		glm::value_ptr( sirenConfig.viewerPosition ) );
-			// color, depth, normal targets, blue noise source data
-			textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
-			textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
-			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
+			SendBasePathtraceUniforms();
 
 			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory
 			GLuint t[ 2 ];
@@ -897,6 +871,36 @@ public:
 
 			}
 		}
+	}
+
+	void SendBasePathtraceUniforms () {
+		// send uniforms ( initial, shared across all tiles dispatched this frame )
+		const GLuint shader = shaders[ "Pathtrace" ];
+		glUniform2i( glGetUniformLocation( shader, "noiseOffset" ),				sirenConfig.blueNoiseOffset.x, sirenConfig.blueNoiseOffset.y );
+		glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ),		sirenConfig.raymarchMaxSteps );
+		glUniform1i( glGetUniformLocation( shader, "raymarchMaxBounces" ),		sirenConfig.raymarchMaxBounces );
+		glUniform1f( glGetUniformLocation( shader, "raymarchMaxDistance" ),		sirenConfig.raymarchMaxDistance );
+		glUniform1f( glGetUniformLocation( shader, "raymarchEpsilon" ),			sirenConfig.raymarchEpsilon );
+		glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ),		sirenConfig.raymarchUnderstep );
+		glUniform1f( glGetUniformLocation( shader, "exposure" ),				sirenConfig.exposure );
+		glUniform1f( glGetUniformLocation( shader, "FoV" ),						sirenConfig.renderFoV );
+		glUniform1f( glGetUniformLocation( shader, "uvScalar" ),				sirenConfig.uvScalar );
+		glUniform1i( glGetUniformLocation( shader, "cameraType" ),				sirenConfig.cameraType );
+		glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ),	sirenConfig.subpixelJitterMethod );
+		glUniform1i( glGetUniformLocation( shader, "sampleNumber" ),			sirenConfig.numFullscreenPasses );
+		glUniform1i( glGetUniformLocation( shader, "frameNumber" ),				sirenConfig.animation.frameNumber );
+		glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ),			sirenConfig.thinLensEnable );
+		glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ),	sirenConfig.thinLensFocusDistance );
+		glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ),	sirenConfig.thinLensJitterRadius );
+		glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1,		glm::value_ptr( sirenConfig.skylightColor ) );
+		glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1,				glm::value_ptr( sirenConfig.basisX ) );
+		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1,				glm::value_ptr( sirenConfig.basisY ) );
+		glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1,				glm::value_ptr( sirenConfig.basisZ ) );
+		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1,		glm::value_ptr( sirenConfig.viewerPosition ) );
+		// color, depth, normal targets, blue noise source data
+		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
+		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
+		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 	}
 
 	void OnRender () {
