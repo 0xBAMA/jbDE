@@ -519,7 +519,7 @@ float deStairs ( vec3 P ) {
 #define REFRACTIVE			6
 #define REFRACTIVE_BACKFACE	7
 
-float baseIOR = 1.3f;
+float baseIOR = 1.2f;
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -540,48 +540,48 @@ float de ( vec3 p ) {
 	const vec3 pCache = p;
 	const vec3 floorCielingColor = vec3( 0.9f );
 
-	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
-	sceneDist = min( dFloor, sceneDist );
-	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
-		hitPointColor = floorCielingColor;
-		// hitPointSurfaceType = MIRROR;
-		hitPointSurfaceType = DIFFUSE;
-	}
-
-	// const float lightHeight = 7.0f + 2.0f * sinTime;
-	// const float lightDiameter = 7.0f;
-
-	// const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
-	// sceneDist = min( dLight, sceneDist );
-	// if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx;
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
-
-	// const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
-	// sceneDist = min( dLight2, sceneDist );
-	// if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.2f, 0.5f, 0.9f );
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
-
-	// const float dLightHousing = min(
-	// 	fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ), // light 1
-	// 	fCylinder( p - vec3( 0.0f, -lightHeight - 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ) // light 2
-	// );
-	// sceneDist = min( dLightHousing, sceneDist );
-	// if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.618f );
+	// const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
+	// sceneDist = min( dFloor, sceneDist );
+	// if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
+	// 	hitPointColor = floorCielingColor;
+	// 	// hitPointSurfaceType = MIRROR;
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	const float dLight = fCapsule( p, vec3( 100.0f, 5.0f, 100.0f ), vec3( -100.0f, 5.0f, -100.0f ), 0.1f );
+	const float lightHeight = 2.3f;
+	const float lightDiameter = 1.0f;
+
+	const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 1.0f );
-		hitPointColor = vec3( 3.0f );
+		hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx * 0.5f;
 		hitPointSurfaceType = EMISSIVE;
 	}
+
+	const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
+	sceneDist = min( dLight2, sceneDist );
+	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.2f, 0.5f, 0.9f ) * 0.5f;
+		hitPointSurfaceType = EMISSIVE;
+	}
+
+	const float dLightHousing = min(
+		fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ), // light 1
+		fCylinder( p - vec3( 0.0f, -lightHeight - 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ) // light 2
+	);
+	sceneDist = min( dLightHousing, sceneDist );
+	if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.618f );
+		hitPointSurfaceType = DIFFUSE;
+	}
+
+	// const float dLight = fCapsule( p, vec3( 100.0f, 5.0f, 100.0f ), vec3( -100.0f, 5.0f, -100.0f ), 0.1f );
+	// sceneDist = min( dLight, sceneDist );
+	// if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
+	// 	// hitPointColor = vec3( 1.0f );
+	// 	hitPointColor = vec3( 3.0f );
+	// 	hitPointSurfaceType = EMISSIVE;
+	// }
 
 	// const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
 	// sceneDist = min( dStairs, sceneDist );
@@ -590,12 +590,15 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	// const float dOrganic = deOrganic( ( pCache * 2.0f ) ) / 2.0f;
-	// sceneDist = min( dOrganic, sceneDist );
-	// if ( sceneDist == dOrganic && dOrganic <= raymarchEpsilon ) {
-	// 	// hitPointColor = vec3( 0.618f );
-	// 	hitPointSurfaceType = RAINBOW;
-	// }
+	const float dOrganic = deOrganic( ( pCache * 2.0f ) ) / 2.0f;
+	sceneDist = min( dOrganic, sceneDist );
+	if ( sceneDist == dOrganic && dOrganic <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.618f );
+		// hitPointSurfaceType = RAINBOW;
+		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : RAINBOW;
+		// hitPointSurfaceType = DIFFUSE;
+		hitPointSurfaceType = MIRROR;
+	}
 
 	// // const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
 	// // const float dFractal = deApollo( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
@@ -732,7 +735,7 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 
 Intersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
 	// eventually, walk a list of primitives
-	return IntersectSphere( origin, direction, vec3( 0.0f ), 1.0f );
+	return IntersectSphere( origin, direction, vec3( 0.0f ), 3.0f );
 }
 
 // ==============================================================================================
@@ -753,18 +756,18 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.normal = vec3( 0.0f );
 		result.color = vec3( 0.0f );
 		result.material = NOHIT;
-	} else if ( explicitResult.a.x < 0.0f && explicitResult.b.x > 0.0f ) {
+	} else if ( explicitResult.a.x < 0.0f && explicitResult.b.x >= 0.0f ) {
 		result.dTravel = explicitResult.b.x;
 		result.normal = explicitResult.b.yzw;
 		result.color = vec3( 1.0f, 0.0f, 0.0f ); // red for inside hits, for testing
 		result.material = REFRACTIVE_BACKFACE;
 		// result.material = EMISSIVE;
+		// result.material = MIRROR;
 	} else {
 		result.dTravel = explicitResult.a.x;
 		result.normal = explicitResult.a.yzw;
 		result.color = vec3( 0.0f, 0.0f, 1.0f ); // blue for outside hits, for testing
 		result.material = REFRACTIVE;
-		// result.material = EMISSIVE;
 	}
 
 	// get the raymarch intersection result
@@ -823,7 +826,8 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		rayOrigin = rayOriginPrevious + result.dTravel * rayDirectionPrevious;
 
 		// epsilon bump, along the normal vector
-		rayOrigin += 2.0f * raymarchEpsilon * result.normal;
+		if ( result.material != REFRACTIVE && result.material != REFRACTIVE_BACKFACE )
+			rayOrigin += 2.0f * raymarchEpsilon * result.normal;
 
 		// precalculate reflected vector, random diffuse vector, random specular vector
 		const vec3 reflectedVector = reflect( rayDirectionPrevious, result.normal );
@@ -873,7 +877,8 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 			case RAINBOW:
 			{
-				throughput *= ( result.normal + 1.0f ) / 2.0f;
+				// throughput *= ( result.normal + 1.0f ) / 2.0f;
+				throughput *= clamp( result.normal, 0.1618f, 1.0f );
 				rayDirection = randomVectorDiffuse;
 				break;
 			}
@@ -903,8 +908,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 
 			case REFRACTIVE_BACKFACE:
 			{
-				result.normal = -result.normal;
-				rayOrigin -= 2.0f * raymarchEpsilon * result.normal;
+				rayOrigin += 4.0f * raymarchEpsilon * result.normal;
 				float adjustedIOR = 1.0f / baseIOR;
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
@@ -951,7 +955,7 @@ void main () {
 		ray r = getCameraRayForUV( uvRemapped );
 
 		// this is a little bit redundant, need to maybe revisit at some point
-		const float hitDistance = Raymarch( r.origin, r.direction );
+		const float hitDistance = GetNearestSceneIntersection( r.origin, r.direction ).dTravel;
 		const vec3 hitPoint = r.origin + hitDistance * r.direction;
 
 		// existing values from the buffers
