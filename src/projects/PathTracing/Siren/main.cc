@@ -98,9 +98,11 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			if ( !ReloadShaders() ) pQuit = true; // tired of struggling to quit through error spew
-
 			ReloadDefaultConfig();
+			ReloadShaders();
+
+			if ( glIsProgram( shaders[ "Pathtrace" ] ) == GL_FALSE || glIsProgram( shaders[ "Postprocess" ] ) == GL_FALSE )
+				pQuit = true; // tired of struggling to quit through error spew - this is still broken
 
 			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
@@ -650,15 +652,10 @@ public:
 		sirenConfig.numFullscreenPasses = 0;
 	}
 
-	bool ReloadShaders () {
+	void ReloadShaders () {
 		ZoneScoped;
-		computeShader ptShader = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" );
-		computeShader ppShader = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" );
-
-		if ( ptShader.success ) shaders[ "Pathtrace" ] = ptShader.shaderHandle;
-		if ( ppShader.success ) shaders[ "Postprocess" ] = ppShader.shaderHandle;
-
-		return ptShader.success && ppShader.success;
+		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 	}
 
 	void ReloadDefaultConfig () {
