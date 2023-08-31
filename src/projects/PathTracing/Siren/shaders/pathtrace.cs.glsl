@@ -519,6 +519,8 @@ float deStairs ( vec3 P ) {
 #define REFRACTIVE			6
 #define REFRACTIVE_BACKFACE	7
 
+float baseIOR = 1.3f;
+
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
 
@@ -536,15 +538,15 @@ float de ( vec3 p ) {
 	hitPointColor = vec3( 0.0f );
 
 	const vec3 pCache = p;
-	// const vec3 floorCielingColor = vec3( 0.9f );
+	const vec3 floorCielingColor = vec3( 0.9f );
 
-	// const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
-	// sceneDist = min( dFloor, sceneDist );
-	// if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
-	// 	hitPointColor = floorCielingColor;
-	// 	// hitPointSurfaceType = MIRROR;
-	// 	hitPointSurfaceType = DIFFUSE;
-	// }
+	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
+	sceneDist = min( dFloor, sceneDist );
+	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
+		hitPointColor = floorCielingColor;
+		// hitPointSurfaceType = MIRROR;
+		hitPointSurfaceType = DIFFUSE;
+	}
 
 	// const float lightHeight = 7.0f + 2.0f * sinTime;
 	// const float lightDiameter = 7.0f;
@@ -573,7 +575,7 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	const float dLight = fCapsule( p, vec3( 100.0f, 0.0f, 100.0f ), vec3( -100.0f, 0.0f, -100.0f ), 0.1f );
+	const float dLight = fCapsule( p, vec3( 100.0f, 5.0f, 100.0f ), vec3( -100.0f, 5.0f, -100.0f ), 0.1f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
 		// hitPointColor = vec3( 1.0f );
@@ -595,24 +597,24 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = RAINBOW;
 	// }
 
-	// const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
-	// const float dFractal = deApollo( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
-	// const float dFractal = deJenga( pCache * 2.0f ) / 2.0f;
-	const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
-	// const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
-	// const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
-	// const float dFractal = deOrganic3( p * 0.2f ) / 0.2f;
-	sceneDist = min( dFractal, sceneDist );
-	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-		// hitPointColor = vec3( 0.618f );
-		hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
-		// hitPointColor = vec3( 0.618f, 0.3f, 0.1f );
-		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? METALLIC : DIFFUSE;
-		// hitPointSurfaceType = MIRROR;
-		// hitPointSurfaceType = DIFFUSE;
-		// hitPointSurfaceType = METALLIC;
-	}
+	// // const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	// // const float dFractal = deApollo( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	// // const float dFractal = deJenga( pCache * 2.0f ) / 2.0f;
+	// const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
+	// // const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
+	// // const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
+	// // const float dFractal = deOrganic3( p * 0.2f ) / 0.2f;
+	// sceneDist = min( dFractal, sceneDist );
+	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+	// 	// hitPointColor = vec3( 0.618f );
+	// 	hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
+	// 	// hitPointColor = vec3( 0.618f, 0.3f, 0.1f );
+	// 	hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? METALLIC : DIFFUSE;
+	// 	// hitPointSurfaceType = MIRROR;
+	// 	// hitPointSurfaceType = DIFFUSE;
+	// 	// hitPointSurfaceType = METALLIC;
+	// }
 
 	return sceneDist;
 }
@@ -755,14 +757,14 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.dTravel = explicitResult.b.x;
 		result.normal = explicitResult.b.yzw;
 		result.color = vec3( 1.0f, 0.0f, 0.0f ); // red for inside hits, for testing
-		// result.material = REFRACTIVE_BACKFACE;
-		result.material = EMISSIVE;
+		result.material = REFRACTIVE_BACKFACE;
+		// result.material = EMISSIVE;
 	} else {
 		result.dTravel = explicitResult.a.x;
 		result.normal = explicitResult.a.yzw;
 		result.color = vec3( 0.0f, 0.0f, 1.0f ); // blue for outside hits, for testing
-		// result.material = REFRACTIVE;
-		result.material = EMISSIVE;
+		result.material = REFRACTIVE;
+		// result.material = EMISSIVE;
 	}
 
 	// get the raymarch intersection result
@@ -847,40 +849,73 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				break;
 
 			case EMISSIVE:
+			{
 				// light emitting material
 				finalColor += throughput * result.color;
 				break;
+			}
 
 			case DIFFUSE:
+			{
 				// diffuse material
 				throughput *= result.color;
 				rayDirection = randomVectorDiffuse;
 				break;
+			}
 
 			case METALLIC:
+			{
 				// specular material
 				throughput *= result.color;
 				rayDirection = randomVectorSpecular;
 				break;
+			}
 
 			case RAINBOW:
+			{
 				throughput *= ( result.normal + 1.0f ) / 2.0f;
 				rayDirection = randomVectorDiffuse;
 				break;
+			}
 
 			case MIRROR:
+			{
 				// perfect mirror ( slight attenuation )
 				throughput *= 0.95f;
 				rayDirection = reflectedVector;
 				break;
+			}
 
+			// note for refractive surfaces, we have already bumped the ray origin by 2.0 * epsilon * normal
 			case REFRACTIVE:
-				// todo
+			{
+				rayOrigin -= 4.0f * raymarchEpsilon * result.normal;
+				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
+				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+				bool cannotRefract = ( baseIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+				if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
+					rayDirection = reflect( normalize( rayDirection ), result.normal );
+				} else {
+					rayDirection = refract( normalize( rayDirection ), result.normal, baseIOR );
+				}
 				break;
+			}
 
 			case REFRACTIVE_BACKFACE:
-				// todo
+			{
+				result.normal = -result.normal;
+				rayOrigin -= 2.0f * raymarchEpsilon * result.normal;
+				float adjustedIOR = 1.0f / baseIOR;
+				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
+				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+				bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+				if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
+					rayDirection = reflect( normalize( rayDirection ), result.normal );
+				} else {
+					rayDirection = refract( normalize( rayDirection ), result.normal, adjustedIOR );
+				}
 				break;
+			}
 			}
 		}
 
