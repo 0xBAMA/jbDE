@@ -362,22 +362,22 @@ float deFractal2 ( vec3 p ) {
 	return 0.3f * length( p ) / scale - 0.001f / sqrt( scale );
 }
 
-#define rot(a) mat2( cos( a ), sin( a ), -sin( a ), cos( a ) )
 float deFractal ( vec3 p ) {
-	p = abs( p ) - 3.0f;
-	if ( p.x < p.z ) p.xz = p.zx;
-	if ( p.y < p.z ) p.yz = p.zy;
-	if ( p.x < p.y ) p.xy = p.yx;
-	float s = 2.0f; vec3 off = p * 0.5f;
-	for ( int i = 0; i < 12; i++ ) {
-		p = 1.0f - abs( p - 1.0f );
-		float k = -1.1f * max( 1.5f / dot( p, p ), 1.5f );
-		s *= abs( k ); p *= k; p += off;
-		p.zx *= rot( -1.2f );
-	}
-	float a = 2.5f;
-	p -= clamp( p, -a, a );
-	return length( p ) / s;
+	float s = 2.0f, l = 0.0f;
+	p = abs( p );
+	for ( int j = 0; j++ < 8; )
+		p = 1.0f - abs( abs( p - 2.0f ) - 1.0f ),
+		p *= l = 1.2f / dot( p, p ), s *= l;
+	return dot( p, normalize( vec3( 3.0f, -2.0f, -1.0f ) ) ) / s;
+}
+
+float deApollo ( vec3 p ) {
+	float s = 3.0f, e;
+	for ( int i = 0; i++ < 10; )
+		p =mod( p - 1.0f, 2.0f ) - 1.0f,
+		s *= e = 1.4f / dot( p, p ),
+		p *= e;
+	return length( p.yz ) / s;
 }
 
 float deStairs ( vec3 P ) {
@@ -514,6 +514,7 @@ float deStairs ( vec3 P ) {
 #define METALLIC	3
 #define RAINBOW		4
 #define MIRROR		5
+#define REFRACTIVE	6
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -569,13 +570,13 @@ float de ( vec3 p ) {
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	const float dLight = fCapsule( p, vec3( 100.0f, 0.0f, 100.0f ), vec3( -100.0f, 0.0f, -100.0f ), 0.3f );
+	const float dLight = fCapsule( p, vec3( 100.0f, 0.0f, 100.0f ), vec3( -100.0f, 0.0f, -100.0f ), 0.1f );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		hitPointColor = vec3( 1.0f );
+		// hitPointColor = vec3( 1.0f );
+		hitPointColor = vec3( 3.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
-
 
 	// const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
 	// sceneDist = min( dStairs, sceneDist );
@@ -592,19 +593,22 @@ float de ( vec3 p ) {
 	// }
 
 	// const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	// const float dFractal = deApollo( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
 	// const float dFractal = deJenga( pCache * 2.0f ) / 2.0f;
-	// const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
+	const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
 	// const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
 	// const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
-	const float dFractal = deOrganic3( p * 0.2f ) / 0.2f;
+	// const float dFractal = deOrganic3( p * 0.2f ) / 0.2f;
 	sceneDist = min( dFractal, sceneDist );
 	if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
 		// hitPointColor = vec3( 0.618f );
-		// hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
-		hitPointColor = vec3( 0.618f, 0.3f, 0.1f );
+		hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
+		// hitPointColor = vec3( 0.618f, 0.3f, 0.1f );
 		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? METALLIC : DIFFUSE;
 		// hitPointSurfaceType = MIRROR;
 		// hitPointSurfaceType = DIFFUSE;
+		// hitPointSurfaceType = METALLIC;
 	}
 
 	return sceneDist;
@@ -640,6 +644,7 @@ float Raymarch ( const vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
 	vec3 pQuery = origin;
+
 	for ( int steps = 0; steps < raymarchMaxSteps; steps++ ) {
 		pQuery = origin + dTotal * direction;
 		dQuery = de( pQuery );
@@ -726,14 +731,17 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 // 	vec3 normal;
 // 	vec3 color;
 // 	int material;
+// 	bool backface; // informs refraction behavior - maybe a second refractive material is better? tbd
+// 		// more materials probably better solution, because that can extend to materials of different IORs
 // };
 
-// float GetNearestSceneIntersection ( vec3 origin, vec3 direction ) {
-	// get the raymarch result
+// sceneIntersection GetNearestSceneIntersection ( vec3 origin, vec3 direction ) {
+	// get the raymarch intersection result
 	// get the explict intersection result
 		// invert the normal, if the angle between the direction and the normal is less than 90 degrees ( handles backface hits )
+			// actually, this can just be if intersection.a.x ( distance ) is negative
 	// compare distances
-	// return the struct with the latest data
+	// return the struct with the correct data
 // }
 
 // ==============================================================================================
@@ -876,15 +884,15 @@ void main () {
 		const float sampleCount = oldColor.a + 1.0f;
 
 		// new values - raymarch pathtrace
-		vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
-		vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
+		const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
+		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
 
-		// testing ray-sphere intersection - now working
-		const Intersection raySphereHit = IntersectSphere( r.origin, r.direction, vec3( 1.0f ), 1.0f );
-		if ( raySphereHit != kEmpty && raySphereHit.a.x < hitDistance && raySphereHit.a.x >= 0.0f ) {
-			newColor = vec4( raySphereHit.a.yzw, 1.0f );
-			newNormalD = vec4( raySphereHit.a.yzw, raySphereHit.a.x );
-		}
+		// // testing ray-sphere intersection - now working
+		// const Intersection raySphereHit = IntersectSphere( r.origin, r.direction, vec3( 1.0f ), 1.0f );
+		// if ( raySphereHit != kEmpty && raySphereHit.a.x < hitDistance && raySphereHit.a.x >= 0.0f ) {
+		// 	newColor = vec4( raySphereHit.a.yzw, 1.0f );
+		// 	newNormalD = vec4( raySphereHit.a.yzw, raySphereHit.a.x );
+		// }
 
 		// blended with history based on sampleCount
 		const float mixFactor = 1.0f / sampleCount;
