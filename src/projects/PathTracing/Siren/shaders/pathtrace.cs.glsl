@@ -339,28 +339,6 @@ float deJenga ( vec3 p ){
 	return d;
 }
 
-vec3 triangles ( vec3 p ) {
-	const float sqrt3 = sqrt( 3.0f );
-	float zm = 1.0f;
-	p.x = p.x - sqrt3 * ( p.y + 0.5f ) / 3.0f;
-	p = vec3( mod( p.x + sqrt3 / 2.0f, sqrt3 ) - sqrt3 / 2.0f, mod( p.y + 0.5f, 1.5f ) - 0.5f, mod( p.z + 0.5f * zm, zm ) - 0.5f * zm );
-	p = vec3( p.x / sqrt3, ( p.y + 0.5f ) * 2.0f / 3.0f - 0.5f, p.z );
-	p = p.y > -p.x ? vec3( -p.y, -p.x , p.z ) : p;
-	p = vec3( p.x * sqrt3, ( p.y + 0.5f ) * 3.0f / 2.0f - 0.5f, p.z );
-	return vec3( p.x + sqrt3 * ( p.y + 0.5f ) / 3.0f, p.y , p.z );
-}
-float deFractal2 ( vec3 p ) {
-	float scale = 1.0f;
-	float s = 1.0f / 3.0f;
-	for ( int i = 0; i < 10; i++ ) {
-		p = triangles( p );
-		float r2 = dot( p, p );
-		float k = s / r2;
-		p = p * k;
-		scale = scale * k;
-	}
-	return 0.3f * length( p ) / scale - 0.001f / sqrt( scale );
-}
 
 float deFractal ( vec3 p ) {
 	float s = 2.0f, l = 0.0f;
@@ -371,20 +349,11 @@ float deFractal ( vec3 p ) {
 	return dot( p, normalize( vec3( 3.0f, -2.0f, -1.0f ) ) ) / s;
 }
 
-float deFractal3 ( vec3 p ) {
+float deFractal2 ( vec3 p ) {
 	float s=3., offset=8., e=0.0f;
 	for(int i=0;i++<9;p=vec3(2,4,2)-abs(abs(p)*e-vec3(4,4,2)))
 		s*=e=max(1.,(8.+offset)/dot(p,p));
 	return min(length(p.xz),p.y)/s;
-}
-
-float deFractal4 ( vec3 p ) {
-	float s=5., e=0.0f;
-	p=p/dot(p,p)+1.;
-	for(int i=0;i++<8;p*=e)
-		p=1.-abs(p-1.),
-		s*=e=1.6/min(dot(p,p),1.5);
-	return length(cross(p,normalize(vec3(1))))/s-5e-4;
 }
 
 float deApollo ( vec3 p ) {
