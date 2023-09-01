@@ -738,7 +738,6 @@ float CalcAO ( const vec3 position, const vec3 normal ) {
 }
 // ==============================================================================================
 // explicit intersection primitives
-// https://www.shadertoy.com/view/mlfGRM
 struct Intersection {
 	vec4 a;  // distance and normal at entry
 	vec4 b;  // distance and normal at exit
@@ -771,9 +770,83 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
 }
 
+// broken for some reason, tbd
+// Intersection IntersectBox ( in vec3 origin, in vec3 direction, in vec3 size ) {
+// 	vec3 m = 1.0f / direction;
+// 	vec3 k = vec3( direction.x >= 0.0f ? size.x : -size.x, direction.y >= 0.0f ? size.y : -size.y, direction.z >= 0.0f ? size.z : -size.z );
+// 	vec3 t1 = ( -origin - k ) * m;
+// 	vec3 t2 = ( -origin + k ) * m;
+// 	float tN = max( max( t1.x, t1.y ), t1.z );
+// 	float tF = min( min( t2.x, t2.y ), t2.z );
+// 	if ( tN > tF || tF < 0.0f ) return kEmpty;
+// 	return Intersection(
+// 		vec4( tN, normalize( -sign( direction ) * step( vec3( tN ), t1 ) ) ),
+// 		vec4( tF, normalize( -sign( direction ) * step( t2, vec3( tF ) ) ) ) );
+// }
+
+// The MIT License
+// Copyright © 2022 Inigo Quilez
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Raytracing boolean operations on shapes.
+// https://www.shadertoy.com/view/mlfGRM
+//
+// This works by doing boolean operations in "ray space" (ie,
+// manipulating intervals of ray distances). I'm only tracking one
+// segment, more should be added for deeper boolean trees.
+//
+// When intersecting two solid intervals A and B, there are 6 possible
+// scenarios for their combination:
+//
+// 1     x---x  |             |
+// 2     x------|---x         |
+// 3     x------|-------------|--x
+// 4            |   x-----x   |
+// 5            |   x---------|--x
+// 6            |             |  x---x 
+//
+// Subtraction in scenario 4 produces TWO segments, but I'm only tracking
+// ONE segment at a time in this shader, so I've got to take an arbitrary
+// decision as to what to do in that case (line 58).
+
+Intersection opIntersection ( Intersection a, Intersection b, out int r ) {
+	if ( a.a.x < b.a.x ) {
+		/* 1 */ if ( a.b.x < b.a.x ) return kEmpty;
+		/* 2 */ if ( a.b.x < b.b.x ) { r=1; return Intersection( b.a, a.b ); }
+		/* 3 */ { r=1; return b; }
+	} else if( a.a.x < b.b.x ) {
+		/* 4 */ if ( a.b.x < b.b.x ) { r=0; return a; }
+		/* 5 */ { r=0; return Intersection( a.a, b.b ); }
+	} else {
+		/* 6 */ return kEmpty;
+	}
+}
+
+Intersection opSubtraction ( Intersection b, Intersection a, out int r ) {
+	if ( a.a.x < b.a.x ) {
+		/* 1 */ if ( a.b.x < b.a.x ) { r=0; return b; }
+		/* 2 */ if ( a.b.x < b.b.x ) { r=1; return Intersection( a.b, b.b ); }
+		/* 3 */ return kEmpty;
+	} else if ( a.a.x < b.b.x ) {
+		/* 4 */ if ( a.b.x < b.b.x ) { r=0; return Intersection( b.a, a.a ); } // hm.... difficult to choose
+		/* 5 */ { r=0; return Intersection( b.a, a.b ); }
+	} else {
+		/* 6 */ { r=0; return b; }
+	}
+}
+
 Intersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
 	// eventually, walk a list of primitives
-	return IntersectSphere( origin, direction, vec3( 0.0f ), 3.0f );
+	int r;
+	const float radius = 3.0f;
+	const float offset = 1.0f;
+	// something's wrong here, I can't seem to get the behavior I'm wanting from the intersection of two spheres
+	// return opIntersection( IntersectSphere( origin, direction, vec3( offset, 0.0f, 0.0f ), radius ), IntersectSphere( origin, direction, vec3( -offset, 0.0f, 0.0f ), radius ), r );
+
+	// not getting good hits from this yet
+	// return IntersectBox( origin, direction, vec3( 2.0f ) );
+
+	return IntersectSphere( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), 3.0f );
 }
 
 // ==============================================================================================
