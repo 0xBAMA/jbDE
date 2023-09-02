@@ -307,6 +307,28 @@ float deOrganic3 ( vec3 p ) {
 	return d;
 }
 
+float deOrganic4 ( vec3 p ) {
+	const int iterations = 23;
+	float d = -2.; // vary this parameter, range is like -20 to 20
+	p=p.yxz;
+	pR(p.yz, 1.570795);
+	p.x += 6.5;
+	p.yz = mod(abs(p.yz)-.0, 20.) - 10.;
+	float scale = 1.25;
+	p.xy /= (1.+d*d*0.0005);
+
+	float l = 0.;
+	for (int i=0; i < iterations; i++) {
+		p.xy = abs(p.xy);
+		p = p*scale + vec3(-3. + d*0.0095,-1.5,-.5);
+		pR(p.xy,0.35-d*0.015);
+		pR(p.yz,0.5+d*0.02);
+		vec3 p6 = p*p*p; p6=p6*p6;
+		l =pow(p6.x + p6.y + p6.z, 1./6.);
+	}
+	return l*pow(scale, -float(iterations))-.15;
+}
+
 // tree shape
 mat2 rotate2D( float r ) {
 	return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) );
@@ -523,48 +545,59 @@ float de ( vec3 p ) {
 	hitPointColor = vec3( 0.0f );
 
 	const vec3 pCache = p;
-	const vec3 floorCielingColor = vec3( 0.9f );
+	const vec3 floorCielingColor = vec3( 0.4f );
+	const float floorHeight = 10.0f;
 
-	p = Rotate3D( -1.2f, vec3( 1.0f, 0.0f, 0.0f ) ) * p;
-
-	const float dFloor = fPlane( pCache, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
+	const float dFloor = min( fPlane( pCache, vec3( 1.0f ), floorHeight ), fPlane( pCache, vec3( -1.0f ), floorHeight ) );
 	sceneDist = min( dFloor, sceneDist );
 	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
-		// hitPointSurfaceType = MIRROR;
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float dFloor2 = fPlane( pCache, vec3( 0.0f, -1.0f, 0.0f ), 4.0f );
-	sceneDist = min( dFloor2, sceneDist );
-	if ( sceneDist == dFloor2 && dFloor2 <= raymarchEpsilon ) {
-		// hitPointColor = GetColorForTemperature( 3000.0f );
-		// hitPointSurfaceType = MIRROR;
-		hitPointColor = floorCielingColor;
-		hitPointSurfaceType = DIFFUSE;
-		// hitPointSurfaceType = EMISSIVE;
+	const float lightHeight = 8.0f;
+	const float lightDiameter = 5.0f;
+	const float lightRimDim = 0.2f;
+
+	vec3 offset = p + vec3( 0.0f, lightHeight, 0.0f );
+	vec3 offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
+
+	const float dLight1 = fCylinder( offset, lightDiameter, 0.1f );
+	const float dLight1Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
+	sceneDist = min( dLight1, sceneDist );
+	if ( sceneDist == dLight1 && dLight1 <= raymarchEpsilon ) {
+		hitPointColor = GetColorForTemperature( 6000.0f );
+		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float lightHeight = 6.0f;
-	const float lightDiameter = 4.0f;
+	pR( p.xy, 2.0f * PI / 3.0f );
+	offset = p + vec3( 0.0f, lightHeight, 0.0f );
+	offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
 
-	const float dLight = fCylinder( p - vec3( 0.0f, lightHeight, 0.0f ), lightDiameter, 0.1f );
-	sceneDist = min( dLight, sceneDist );
-	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
+	const float dLight2 = fCylinder( offset, lightDiameter, 0.1f );
+	const float dLight2Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
+	sceneDist = min( dLight2, sceneDist );
+	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
 		hitPointColor = vec3( 0.2f, 0.5f, 0.9f ).zyx * 0.5f;
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float dLight2 = fCylinder( p - vec3( 0.0f, -lightHeight, 0.0f ), lightDiameter, 0.1f );
-	sceneDist = min( dLight2, sceneDist );
-	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.2f, 0.5f, 0.9f ) * 0.5f;
+	pR( p.xy, 2.0f * PI / 3.0f );
+	offset = p + vec3( 0.0f, lightHeight, 0.0f );
+	offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
+
+	const float dLight3 = fCylinder( offset, lightDiameter, 0.1f );
+	const float dLight3Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
+	sceneDist = min( dLight3, sceneDist );
+	if ( sceneDist == dLight3 && dLight3 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 0.8f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	const float dLightHousing = min(
-		fCylinder( p - vec3( 0.0f, lightHeight + 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ), // light 1
-		fCylinder( p - vec3( 0.0f, -lightHeight - 0.1f, 0.0f ), lightDiameter + 0.3f, 0.15f ) // light 2
+	const float dLightHousing = min( min(
+		dLight1Housing,		// light 1
+		dLight2Housing ),	// light 2
+		dLight3Housing		// light 3
 	);
 	sceneDist = min( dLightHousing, sceneDist );
 	if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
@@ -572,59 +605,40 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	// const float dLightBall = distance( vec3( 0.0f ), p ) - 0.1f;
-	// sceneDist = min( dLightBall, sceneDist );
-	// if ( sceneDist == dLightBall && dLightBall <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 1.5f );
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
-
-	// const float dLightRod = fCapsule( p, vec3( 1.5f, 0.0f, 1.5f ), vec3( -1.5f, 0.0f, -1.5f ), 0.03f );
-	// sceneDist = min( dLightRod, sceneDist );
-	// if ( sceneDist == dLightRod && dLightRod <= raymarchEpsilon ) {
-	// 	// hitPointColor = vec3( 1.0f );
-	// 	// hitPointColor = vec3( 3.0f );
-	// 	hitPointColor = GetColorForTemperature( mix( 1000.0f, 3000.0f, sin( ( p.z + 1.5f ) * 15.0f ) ) );
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
-
-	// const float dStairs = deStairs( ( pCache * 0.3f ) ) / 0.3f;
-	// sceneDist = min( dStairs, sceneDist );
-	// if ( sceneDist == dStairs && dStairs <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.18f );
+	// const float dFractal = deOrganic3( ( pCache * 0.3f ) ) / 0.3f;
+	// sceneDist = min( dFractal, sceneDist );
+	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 0.618f, 0.3f, 0.01f );
 	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
-	// const float dOrganic = max( deOrganic( ( p * 2.0f ) ) / 2.0f, distance( p, vec3( 0.0f ) ) - 2.9f );
-	// const float dOrganic = max( deFractal3( Rotate3D( -0.8f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( p * 0.8f ) ) / 0.8f, distance( p, vec3( 0.0f ) ) - 2.9f );
-	// const float dOrganic = max( deFractal3( ( p * 0.8f ) / 0.8f ), distance( p, vec3( 0.0f ) ) - 2.9f );
-	const float dOrganic = max( deFractal3( ( p * 0.1f ) / 0.1f ), distance( p, vec3( 0.0f ) ) - 1.4f );
-	sceneDist = min( dOrganic, sceneDist );
-	if ( sceneDist == dOrganic && dOrganic <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.618f );
+	// marble 1
+	// vec3( 2.0f, 0.1f, 0.0f ), 1.0f
+	const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.9f );
+	sceneDist = min( dMarble1, sceneDist );
+	if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
 		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-		// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ); // mars dirt color
-		// hitPointSurfaceType = METALLIC;
+		hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ); // mars dirt color
 	}
 
-	// // const float dFractal = deFractal( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
-	// // const float dFractal = deApollo( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
-	// // const float dFractal = deJenga( pCache * 2.0f ) / 2.0f;
-	// const float dFractal = deFractal2( pCache * 2.0f ) / 2.0f;
-	// // const float dFractal = deOrganic3( Rotate3D( PI / 2.0f, vec3( 1.0f, 1.0f, 1.0f ) ) * ( pCache * 1.0f ) ) / 1.0f;
-	// // const float dFractal = fOpUnionRound( deOrganic3( p ), dLightHousing, 0.5f );
-	// // const float dFractal = deOrganic3( p * 0.2f ) / 0.2f;
-	// sceneDist = min( dFractal, sceneDist );
-	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-	// 	// hitPointColor = vec3( 0.618f );
-	// 	hitPointColor = vec3( 0.99f, 0.55f, 0.22f );
-	// 	// hitPointColor = vec3( 0.618f, 0.3f, 0.1f );
-	// 	hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? METALLIC : DIFFUSE;
-	// 	// hitPointSurfaceType = MIRROR;
-	// 	// hitPointSurfaceType = DIFFUSE;
-	// 	// hitPointSurfaceType = METALLIC;
-	// }
+	// marble 2
+	// vec3( 0.2f, 1.3f, 0.0f ), 0.9f
+	// const float dMarble2 = max( deOrganic4( pCache * 5.0f ) / 5.0f, distance( pCache, vec3( 0.2f, 1.3f, 0.0f ) ) - 0.8f );
+	const float dMarble2 = deOrganic4( pCache * 15.0f ) / 15.0f;
+	sceneDist = min( dMarble2, sceneDist );
+	if ( sceneDist == dMarble2 && dMarble2 <= raymarchEpsilon ) {
+		hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ).yxz / 1.3f;
+		hitPointSurfaceType = DIFFUSE;
+	}
+
+	// marble 3
+	// vec3( 0.0f, 0.2f, 1.3f ), 0.7f
+	const float dMarble3 = max( deOrganic3( pCache * 10.0f ) / 10.0f, distance( pCache, vec3( 0.0f, 0.2f, 1.3f ) ) - 0.6f );
+	sceneDist = min( dMarble3, sceneDist );
+	if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ).yzx;
+	}
 
 	return sceneDist;
 }
