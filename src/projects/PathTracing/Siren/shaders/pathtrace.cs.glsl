@@ -523,8 +523,11 @@ float deStairs ( vec3 P ) {
 #define MIRROR				5
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
-#define REFRACTIVE			6
-#define REFRACTIVE_BACKFACE	7
+#define REFRACTIVE					6
+#define REFRACTIVE_BACKFACE			7
+#define REFRACTIVE_FROSTED			8
+#define REFRACTIVE_FROSTED_BACKFACE	9
+
 
 float baseIOR = 1.0f / 1.5f;
 
@@ -882,14 +885,13 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.normal = explicitResult.b.yzw;
 		result.color = vec3( 1.0f, 0.0f, 0.0f ); // red for inside hits, for testing
 		result.material = REFRACTIVE_BACKFACE;
-		// result.material = EMISSIVE;
-		// result.material = MIRROR;
+		// result.material = REFRACTIVE_FROSTED_BACKFACE;
 	} else {
 		result.dTravel = explicitResult.a.x;
 		result.normal = explicitResult.a.yzw;
 		result.color = vec3( 0.0f, 0.0f, 1.0f ); // blue for outside hits, for testing
 		result.material = REFRACTIVE;
-		// result.material = ( NormalizedRandomFloat() < 0.5f ) ? MIRROR : REFRACTIVE;
+		// result.material = REFRACTIVE_FROSTED;
 	}
 
 	// get the raymarch intersection result
@@ -1040,6 +1042,36 @@ vec3 ColorSample ( const vec2 uvIn ) {
 					rayDirection = reflect( normalize( rayDirection ), result.normal );
 				} else {
 					rayDirection = refract( normalize( rayDirection ), result.normal, adjustedIOR );
+				}
+				break;
+			}
+
+			case REFRACTIVE_FROSTED:
+			{
+				rayOrigin -= 4.0f * raymarchEpsilon * result.normal;
+				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
+				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+				bool cannotRefract = ( baseIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+				if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
+					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.03f ) );
+				} else {
+					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, baseIOR ), RandomUnitVector(), 0.01f ) );
+				}
+				break;
+			}
+
+			case REFRACTIVE_FROSTED_BACKFACE:
+			{
+				rayOrigin += 4.0f * raymarchEpsilon * result.normal;
+				result.normal = -result.normal;
+				float adjustedIOR = 1.0f / baseIOR;
+				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
+				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+				bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+				if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
+					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.03f ) );
+				} else {
+					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, baseIOR ), RandomUnitVector(), 0.01f ) );
 				}
 				break;
 			}
