@@ -857,20 +857,41 @@ Intersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
 
 // need to generalize this to n many - walk a list, kind of thing - and also need to add a way to identify material
 
-	int materialID;
+	// int materialID;
 
-	Intersection Ball1 = IntersectSphere( origin, direction, vec3( 2.0f, 0.1f, 0.0f ), 1.0f );
-	Intersection Ball2 = IntersectSphere( origin, direction, vec3( 0.2f, 1.3f, 0.0f ), 0.9f );
-	Intersection Ball3 = opSubtraction( IntersectSphere( origin, direction, vec3( 0.0f, 0.2f, 1.3f ), 0.7f ), iPlane( origin, direction, vec4( -1.0f, -1.0f, -1.0f, 0.0f ) ), materialID );
+	// Intersection Ball1 = IntersectSphere( origin, direction, vec3( 2.0f, 0.1f, 0.0f ), 1.0f );
+	// Intersection Ball2 = IntersectSphere( origin, direction, vec3( 0.2f, 1.3f, 0.0f ), 0.9f );
+	// Intersection Ball3 = opSubtraction( IntersectSphere( origin, direction, vec3( 0.0f, 0.2f, 1.3f ), 0.7f ), iPlane( origin, direction, vec4( -1.0f, -1.0f, -1.0f, 0.0f ) ), materialID );
 
-	const float Ball1NearestPositive = ( Ball1.a.x < 0.0f ) ? ( Ball1.b.x < 0.0f ) ? 1000000.0f : Ball1.b.x : Ball1.a.x;
-	const float Ball2NearestPositive = ( Ball2.a.x < 0.0f ) ? ( Ball2.b.x < 0.0f ) ? 1000000.0f : Ball2.b.x : Ball2.a.x;
-	const float Ball3NearestPositive = ( Ball3.a.x < 0.0f ) ? ( Ball3.b.x < 0.0f ) ? 1000000.0f : Ball3.b.x : Ball3.a.x;
-	const float nearestOverallPositive = min( min( Ball1NearestPositive, Ball2NearestPositive ), Ball3NearestPositive );
+	// const float Ball1NearestPositive = ( Ball1.a.x < 0.0f ) ? ( Ball1.b.x < 0.0f ) ? 1000000.0f : Ball1.b.x : Ball1.a.x;
+	// const float Ball2NearestPositive = ( Ball2.a.x < 0.0f ) ? ( Ball2.b.x < 0.0f ) ? 1000000.0f : Ball2.b.x : Ball2.a.x;
+	// const float Ball3NearestPositive = ( Ball3.a.x < 0.0f ) ? ( Ball3.b.x < 0.0f ) ? 1000000.0f : Ball3.b.x : Ball3.a.x;
+	// const float nearestOverallPositive = min( min( Ball1NearestPositive, Ball2NearestPositive ), Ball3NearestPositive );
 
-	if ( Ball1NearestPositive == nearestOverallPositive ) return Ball1;
-	if ( Ball2NearestPositive == nearestOverallPositive ) return Ball2;
-	if ( Ball3NearestPositive == nearestOverallPositive ) return Ball3;
+	// if ( Ball1NearestPositive == nearestOverallPositive ) return Ball1;
+	// if ( Ball2NearestPositive == nearestOverallPositive ) return Ball2;
+	// if ( Ball3NearestPositive == nearestOverallPositive ) return Ball3;
+
+	vec4 sphereParameters[] = {
+		vec4( 2.0f, 0.1f, 0.0f, 1.0f ),
+		vec4( 0.2f, 1.3f, 0.0f, 0.9f ),
+		vec4( 0.0f, 0.2f, 1.3f, 0.7f )
+	};
+
+	Intersection result = kEmpty;
+	float nearestOverallHit = 1000000.0f;
+	for ( int i = 0; i < sphereParameters.length(); i++ ) {
+		Intersection current = IntersectSphere( origin, direction, sphereParameters[ i ].xyz, sphereParameters[ i ].w );
+		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;
+		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
+		if ( currentNearestPositive == nearestOverallHit ) {
+			result = current;
+		}
+	}
+
+	return result;
+
+
 
 	// return IntersectSphere( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), 3.0f );
 }
