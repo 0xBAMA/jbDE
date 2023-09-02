@@ -518,18 +518,19 @@ float deStairs ( vec3 P ) {
 #define NOHIT				0
 #define EMISSIVE			1
 #define DIFFUSE				2
-#define METALLIC			3
-#define RAINBOW				4
-#define MIRROR				5
+#define DIFFUSEAO			3
+#define METALLIC			4
+#define RAINBOW				5
+#define MIRROR				6
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
-#define REFRACTIVE					6
-#define REFRACTIVE_BACKFACE			7
-#define REFRACTIVE_FROSTED			8
-#define REFRACTIVE_FROSTED_BACKFACE	9
+#define REFRACTIVE					7
+#define REFRACTIVE_BACKFACE			8
+#define REFRACTIVE_FROSTED			9
+#define REFRACTIVE_FROSTED_BACKFACE	10
 
 
-float baseIOR = 1.0f / 1.5f;
+float baseIOR = 1.0f / 1.4f;
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -987,6 +988,17 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			{
 				// diffuse material
 				throughput *= result.color;
+				rayDirection = randomVectorDiffuse;
+				break;
+			}
+
+			case DIFFUSEAO:
+			{
+				// diffuse material with raymarch-style ao scale
+				// result.color *= pow( CalcAO( rayOrigin, result.normal ), 5.0f );
+				result.color *= pow( CalcAO( rayOrigin, result.normal ), 2.0f );
+				throughput *= result.color;
+				// finalColor += vec3( 1.0f / CalcAO( rayOrigin, result.normal ), 0.0f, 0.0f ) + throughput;
 				rayDirection = randomVectorDiffuse;
 				break;
 			}
