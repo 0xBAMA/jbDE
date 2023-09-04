@@ -6,6 +6,7 @@ layout( rgba32f ) uniform image2D accumulatorNormalsAndDepth;
 layout( rgba8ui ) uniform uimage2D blueNoise;
 
 #include "hg_sdf.glsl" // SDF modeling functions
+#include "twigl.glsl" // noise etc utils
 
 // offsets
 uniform ivec2 tileOffset;
@@ -331,9 +332,9 @@ float deOrganic4 ( vec3 p ) {
 }
 
 // tree shape
-mat2 rotate2D( float r ) {
-	return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) );
-}
+// mat2 rotate2D( float r ) {
+	// return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) );
+// }
 float deTree ( vec3 p ) {
 	float d, a;
 	d = a = 1.0f;
