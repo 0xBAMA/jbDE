@@ -311,11 +311,11 @@ float deOrganic3 ( vec3 p ) {
 float deOrganic4 ( vec3 p ) {
 	p -= vec3( 0.0f, 6.0f, 0.0f );
 	const int iterations = 30;
-	float d = 0.8; // vary this parameter, range is like -20 to 20
+	float d = 2.0; // vary this parameter, range is like -20 to 20
 	p=p.yxz;
 	pR(p.yz, 1.570795);
 	p.x += 6.5;
-	p.yz = mod(abs(p.yz)-.0, 20.) - 10.;
+	// p.yz = mod(abs(p.yz)-.0, 20.) - 10.;
 	float scale = 1.25;
 	p.xy /= (1.+d*d*0.0005);
 
@@ -398,6 +398,17 @@ float deStairs ( vec3 P ) {
 		d += abs( dot( sin( Q ), Q - Q + 1.0f ) ) / a / 7.0f;
 	}
 	return d;
+}
+
+float deWhorl ( vec3 p ) {
+	float i, e, s, g, k = 0.01f;
+	p.xy *= mat2( cos( p.z ), sin( p.z ), -sin( p.z ), cos( p.z ) );
+	e = 0.3f - dot( p.xy, p.xy );
+	for( s = 2.0f; s < 2e2f; s /= 0.6f ) {
+		p.yz *= mat2( cos( s ), sin( s ), -sin( s ), cos( s ) );
+		e += abs( dot( sin( p * s * s * 0.2f ) / s, vec3( 1.0f ) ) );
+	}
+	return e;
 }
 
 // ==============================================================================================
@@ -533,6 +544,7 @@ float deStairs ( vec3 P ) {
 
 
 float baseIOR = 1.0f / 1.4f;
+// float baseIOR = 1.4f;
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -552,17 +564,17 @@ float de ( vec3 p ) {
 
 	const vec3 pCache = p;
 	const vec3 floorCielingColor = vec3( 0.4f );
-	const float floorHeight = 10.0f;
+	const float floorHeight = 2.0f;
 
 	const float dFloor = min( fPlane( pCache, vec3( 1.0f ), floorHeight ), fPlane( pCache, vec3( -1.0f ), floorHeight ) );
 	sceneDist = min( dFloor, sceneDist );
 	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
 		hitPointColor = floorCielingColor;
-		hitPointSurfaceType = DIFFUSE;
+		hitPointSurfaceType = MIRROR;
 	}
 
-	const float lightHeight = 8.0f;
-	const float lightDiameter = 5.0f;
+	const float lightHeight = 3.8f;
+	const float lightDiameter = 3.6f;
 	const float lightRimDim = 0.2f;
 
 	vec3 offset = p + vec3( 0.0f, lightHeight, 0.0f );
@@ -620,33 +632,48 @@ float de ( vec3 p ) {
 
 	// marble 1
 	// vec3( 2.0f, 0.1f, 0.0f ), 1.0f
-	const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.9f );
+	const float dMarble1 = max( deFractal2( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.9f );
 	// const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.6f );
 	sceneDist = min( dMarble1, sceneDist );
 	if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
 		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-		hitPointSurfaceType = DIFFUSE;
+
+		// if ( NormalizedRandomFloat() < 0.9f ) {
+			hitPointSurfaceType = DIFFUSE;
+			hitPointColor = vec3( 0.793f, 0.793f, 0.664f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f ); // bone color
+
+			if ( ( deOrganic3( pCache * 16.4f ) / 16.4f ) < 0.0f ) {
+				hitPointColor = mix( vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, ( deOrganic3( pCache * 16.4f ) / 16.4f ) ) ); // mars dirt color
+				hitPointColor.r += clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f );
+				hitPointSurfaceType = METALLIC;
+			}
+
+			hitPointColor.rgb = hitPointColor.rrg;
+		// } else {
+			// hitPointSurfaceType = METALLIC;
+			// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ); // mars dirt color
+		// }
 		// hitPointSurfaceType = ( deOrganic3( pCache * 38.0f ) < 0.0f ) ? EMISSIVE : MIRROR;
 		// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ); // mars dirt color
 		// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ).yzx;
-		hitPointColor = vec3( 0.12f, 0.9f, 0.5f );
+		// hitPointColor = vec3( 0.12f, 0.9f, 0.5f );
 		// hitPointColor = ( vec3( 0.12f + 0.5f * deOrganic3( pCache * 23.0f ), 0.9f, 0.5f ) * vec3( clamp( deOrganic3( pCache * 10.0f ) / 10.0f, 0.2f, 1.0f ) * 6.0f, 0.31f, 0.2f ) ).gbr;
 		// hitPointColor = vec3( 0.1618f );
 
 	}
 
-	// // marble 2
-	// // vec3( 0.2f, 1.3f, 0.0f ), 0.9f
-	// // const float dMarble2 = max( deOrganic4( pCache * 5.0f ) / 5.0f, distance( pCache, vec3( 0.2f, 1.3f, 0.0f ) ) - 0.8f );
-	// const float dMarble2 = deOrganic4( Rotate3D( 0.2f, vec3( 1.0f ) ) * ( pCache * 38.0f ) ) / 38.0f;
-	// sceneDist = min( dMarble2, sceneDist );
-	// if ( sceneDist == dMarble2 && dMarble2 <= raymarchEpsilon ) {
-	// 	// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ).yzx;
-	// 	// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ); // mars dirt color
-	// 	hitPointSurfaceType = MIRROR;
-	// 	hitPointColor = vec3( 0.18f );
-	// 	// hitPointSurfaceType = METALLIC;
-	// }
+	// marble 2
+	// vec3( 0.2f, 1.3f, 0.0f ), 0.9f
+	// const float dMarble2 = max( deOrganic4( pCache * 5.0f ) / 5.0f, distance( pCache, vec3( 0.2f, 1.3f, 0.0f ) ) - 0.8f );
+	const float dMarble2 = deOrganic4( Rotate3D( 2.4f, vec3( 1.2f, 1.2f, -0.8f ) ) * ( pCache * 16.0f ) - vec3( -0.0f, 19.9f, -19.0f ) ) / 16.0f;
+	// const float dMarble2 = deWhorl( Rotate3D( 0.2f, vec3( 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
+	sceneDist = min( dMarble2, sceneDist );
+	if ( sceneDist == dMarble2 && dMarble2 <= raymarchEpsilon ) {
+		// hitPointColor = vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ).yzx;
+		hitPointSurfaceType = MIRROR;
+		hitPointColor = vec3( 0.18f );
+		// hitPointSurfaceType = METALLIC;
+	}
 
 	// marble 3
 	// vec3( 0.0f, 0.2f, 1.3f ), 0.7f
