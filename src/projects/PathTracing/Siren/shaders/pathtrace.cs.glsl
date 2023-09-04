@@ -845,7 +845,17 @@ Intersection opSubtraction ( Intersection b, Intersection a, out int r ) {
 	}
 }
 
-Intersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
+// ==============================================================================================
+struct sceneIntersection {
+	float dTravel;
+	vec3 normal;
+	vec3 color;
+	int material;
+
+	Intersection i;
+};
+
+sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
 	// eventually, walk a list of primitives
 	int r;
 	const float radius = 3.0f;
@@ -856,76 +866,76 @@ Intersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
 	// not getting good hits from this yet
 	// return IntersectBox( origin, direction, vec3( 2.0f ) );
 
-// need to generalize this to n many - walk a list, kind of thing - and also need to add a way to identify material
-
-	// int materialID;
-
-	// Intersection Ball1 = IntersectSphere( origin, direction, vec3( 2.0f, 0.1f, 0.0f ), 1.0f );
-	// Intersection Ball2 = IntersectSphere( origin, direction, vec3( 0.2f, 1.3f, 0.0f ), 0.9f );
-	// Intersection Ball3 = opSubtraction( IntersectSphere( origin, direction, vec3( 0.0f, 0.2f, 1.3f ), 0.7f ), iPlane( origin, direction, vec4( -1.0f, -1.0f, -1.0f, 0.0f ) ), materialID );
-
-	// const float Ball1NearestPositive = ( Ball1.a.x < 0.0f ) ? ( Ball1.b.x < 0.0f ) ? 1000000.0f : Ball1.b.x : Ball1.a.x;
-	// const float Ball2NearestPositive = ( Ball2.a.x < 0.0f ) ? ( Ball2.b.x < 0.0f ) ? 1000000.0f : Ball2.b.x : Ball2.a.x;
-	// const float Ball3NearestPositive = ( Ball3.a.x < 0.0f ) ? ( Ball3.b.x < 0.0f ) ? 1000000.0f : Ball3.b.x : Ball3.a.x;
-	// const float nearestOverallPositive = min( min( Ball1NearestPositive, Ball2NearestPositive ), Ball3NearestPositive );
-
-	// if ( Ball1NearestPositive == nearestOverallPositive ) return Ball1;
-	// if ( Ball2NearestPositive == nearestOverallPositive ) return Ball2;
-	// if ( Ball3NearestPositive == nearestOverallPositive ) return Ball3;
-
 	vec4 sphereParameters[] = {
 		vec4( 2.0f, 0.1f, 0.0f, 1.0f ),
 		vec4( 0.2f, 1.3f, 0.0f, 0.9f ),
 		vec4( 0.0f, 0.2f, 1.3f, 0.7f )
 	};
 
-	Intersection result = kEmpty;
+	Intersection iResult = kEmpty;
+	int indexOfHit = -1;
 	float nearestOverallHit = 1000000.0f;
 	for ( int i = 0; i < sphereParameters.length(); i++ ) {
 		Intersection current = IntersectSphere( origin, direction, sphereParameters[ i ].xyz, sphereParameters[ i ].w );
 		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;
 		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
 		if ( currentNearestPositive == nearestOverallHit ) {
-			result = current;
+			iResult = current;
+			indexOfHit = i;
 		}
 	}
 
-	return result;
+	sceneIntersection result;
+	result.dTravel = nearestOverallHit;
+	result.normal = ( iResult.a.x == nearestOverallHit ) ? iResult.a.yzw : iResult.b.yzw;
+	result.i = iResult;
+	switch ( indexOfHit ) {
+		case 0:
+		result.material = REFRACTIVE;
+		break;
 
+		case 1:
+		result.material = MIRROR;
+		break;
+
+		case 2:
+		result.material = MIRROR;
+		break;
+
+		default:
+		break;
+	}
+
+	return result;
 
 
 	// return IntersectSphere( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), 3.0f );
 }
 
 // ==============================================================================================
-struct sceneIntersection {
-	float dTravel;
-	vec3 normal;
-	vec3 color;
-	int material;
-};
-
 sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 direction ) {
 	sceneIntersection result;
 
 	// get the explict intersection result
-	Intersection explicitResult = ExplicitSceneIntersection( origin, direction );
-	if ( IsEmpty( explicitResult ) || ( explicitResult.a.x < 0.0f && explicitResult.b.x < 0.0f ) ) {
+	sceneIntersection explicitResult = ExplicitSceneIntersection( origin, direction );
+	if ( IsEmpty( explicitResult.i ) || ( explicitResult.i.a.x < 0.0f && explicitResult.i.b.x < 0.0f ) ) {
 		result.dTravel = raymarchMaxDistance + 1.0f;
 		result.normal = vec3( 0.0f );
 		result.color = vec3( 0.0f );
 		result.material = NOHIT;
-	} else if ( explicitResult.a.x < 0.0f && explicitResult.b.x >= 0.0f ) {
-		result.dTravel = explicitResult.b.x;
-		result.normal = explicitResult.b.yzw;
+	} else if ( explicitResult.i.a.x < 0.0f && explicitResult.i.b.x >= 0.0f ) {
+		result.dTravel = explicitResult.i.b.x;
+		result.normal = explicitResult.i.b.yzw;
 		result.color = vec3( 1.0f, 0.0f, 0.0f ); // red for inside hits, for testing
-		result.material = REFRACTIVE_BACKFACE;
+		// result.material = REFRACTIVE_BACKFACE;
+		result.material = ( explicitResult.material == MIRROR ) ? MIRROR : REFRACTIVE_BACKFACE;
 		// result.material = REFRACTIVE_FROSTED_BACKFACE;
 	} else {
-		result.dTravel = explicitResult.a.x;
-		result.normal = explicitResult.a.yzw;
+		result.dTravel = explicitResult.i.a.x;
+		result.normal = explicitResult.i.a.yzw;
 		result.color = vec3( 0.0f, 0.0f, 1.0f ); // blue for outside hits, for testing
-		result.material = REFRACTIVE;
+		// result.material = REFRACTIVE;
+		result.material = ( explicitResult.material == MIRROR ) ? MIRROR : REFRACTIVE;
 		// result.material = REFRACTIVE_FROSTED;
 	}
 
