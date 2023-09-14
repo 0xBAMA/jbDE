@@ -693,24 +693,24 @@ float de ( vec3 p ) {
 	// const float dMarble1 = max( deGrail( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
 
 
-	// const float dMarble1 = max( deGrail( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// // const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.6f );
-	// sceneDist = min( dMarble1, sceneDist );
-	// if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
+	const float dMarble1 = max( deGrail( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	// const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.6f );
+	sceneDist = min( dMarble1, sceneDist );
+	if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
 
-	// 	// if ( NormalizedRandomFloat() < 0.9f ) {
-	// 		// hitPointSurfaceType = DIFFUSE;
-	// 		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? MIRROR : DIFFUSE;
-	// 		// hitPointColor = vec3( 0.793f, 0.793f, 0.664f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f ); // bone color
-	// 		hitPointColor = vec3( 0.793f, 0.293f, 0.164f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f );
+		// if ( NormalizedRandomFloat() < 0.9f ) {
+			// hitPointSurfaceType = DIFFUSE;
+			hitPointSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? MIRROR : DIFFUSE;
+			// hitPointColor = vec3( 0.793f, 0.793f, 0.664f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f ); // bone color
+			hitPointColor = vec3( 0.793f, 0.293f, 0.164f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f );
 
-	// 		if ( ( deOrganic3( pCache * 16.4f ) / 16.4f ) < 0.0f ) {
-	// 			hitPointColor = mix( vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, ( deOrganic3( pCache * 16.4f ) / 16.4f ) ) ); // mars dirt color
-	// 			hitPointColor.rg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
+			if ( ( deOrganic3( pCache * 16.4f ) / 16.4f ) < 0.0f ) {
+				hitPointColor = mix( vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, ( deOrganic3( pCache * 16.4f ) / 16.4f ) ) ); // mars dirt color
+				hitPointColor.rg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
 
-	// 			hitPointColor.rgb *= 3.0f;
-	// 			hitPointSurfaceType = METALLIC;
-	// 		}
+				hitPointColor.rgb *= 3.0f;
+				hitPointSurfaceType = METALLIC;
+			}
 
 			// hitPointColor.rgb *= vec3( 1.0f, 0.3f, 0.1f );
 		// } else {
@@ -724,15 +724,17 @@ float de ( vec3 p ) {
 		// hitPointColor = ( vec3( 0.12f + 0.5f * deOrganic3( pCache * 23.0f ), 0.9f, 0.5f ) * vec3( clamp( deOrganic3( pCache * 10.0f ) / 10.0f, 0.2f, 1.0f ) * 6.0f, 0.31f, 0.2f ) ).gbr;
 		// hitPointColor = vec3( 0.1618f );
 
-	// }
+	}
 
 
 
 	// marble 2
 	// vec3( 0.2f, 1.3f, 0.0f ), 0.9f
 	// const float dMarble2 = max( deOrganic4( pCache * 5.0f ) / 5.0f, distance( pCache, vec3( 0.2f, 1.3f, 0.0f ) ) - 0.8f );
-	const float scale = 0.1f;
-	const float dMarble2 = deOrganic4( Rotate3D( 2.4f, vec3( 1.2f, 1.2f, -0.8f ) ) * ( pCache * scale ) - vec3( -0.0f, 19.9f, -19.0f ) ) / scale;
+	const float scale = 1.1f;
+	const vec3 offset2 = vec3( 1.0f, 0.0f, 0.0f );
+	const float dMarble2 = deOrganic4( Rotate3D( 2.4f, vec3( 1.2f, 1.2f, -0.8f ) ) * ( pCache * scale ) - offset2 ) / scale;
+	// const float dMarble2 = deOrganic4( ( pCache * scale ) ) / scale;
 	// const float dMarble2 = deWhorl( Rotate3D( 0.2f, vec3( 1.0f ) ) * ( pCache * 0.2f ) ) / 0.2f;
 	sceneDist = min( dMarble2, sceneDist );
 	if ( sceneDist == dMarble2 && dMarble2 <= raymarchEpsilon ) {
@@ -748,15 +750,15 @@ float de ( vec3 p ) {
 	// const float dMarble3 = max( deFractal2( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
 
 
-	// const float dMarble3 = max( deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// sceneDist = min( dMarble3, sceneDist );
-	// if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
-	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 	hitPointSurfaceType = DIFFUSE;
-	// 	// hitPointColor = vec3( 93.0f / 255.0f + 0.1f * snoise3D( pCache * 100.0f ), 168.0f / 255.0f + 0.5f * snoise3D( pCache * 14.0f ), 5.0f / 255.0f );
-	// 	// hitPointColor = vec3( 93.0f / 255.0f + 0.5f * snoise3D( pCache * 100.0f ), 168.0f / 255.0f, 5.0f / 255.0f );
-	// 	hitPointColor = ( snoise3D( pCache * 10.0f ) < 0.7f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 1.0f, 0.1f, 0.3f );
-	// }
+	const float dMarble3 = max( deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	sceneDist = min( dMarble3, sceneDist );
+	if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
+		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = vec3( 93.0f / 255.0f + 0.1f * snoise3D( pCache * 100.0f ), 168.0f / 255.0f + 0.5f * snoise3D( pCache * 14.0f ), 5.0f / 255.0f );
+		// hitPointColor = vec3( 93.0f / 255.0f + 0.5f * snoise3D( pCache * 100.0f ), 168.0f / 255.0f, 5.0f / 255.0f );
+		hitPointColor = ( snoise3D( pCache * 10.0f ) < 0.7f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 1.0f, 0.1f, 0.3f );
+	}
 	return sceneDist;
 }
 
