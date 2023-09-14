@@ -331,6 +331,12 @@ public:
 				y = 2160;
 				ResizeAccumulators( 3840, 2160 );
 			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " Print Max " ) ) {
+				x = 4800;
+				y = 2400;
+				ResizeAccumulators( 4800, 2400 );
+			}
 
 		// rendering parameters
 			ImGui::Text( " " );
