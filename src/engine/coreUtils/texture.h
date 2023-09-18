@@ -235,6 +235,12 @@ public:
 		glBindTexture( texOptsIn.textureType, tex.textureHandle );
 		switch ( texOptsIn.textureType ) {
 		case GL_TEXTURE_2D:
+
+			// { // temporary, trying to figure out if GL_CLAMP_TO_EDGE still exists - it does not
+			// 	GLfloat color[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
+			// 	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
+			// }
+
 			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
 			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
