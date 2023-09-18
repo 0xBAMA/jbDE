@@ -470,7 +470,7 @@ float deFractal3 ( vec3 z ) {
   float a = KleinR;
   float b = KleinI;
   float f = sign( b ) * 0.45;
-  for ( int i = 0; i < 80; i++ ) {
+  for ( int i = 0; i < 100; i++ ) {
     z.x += b / a * z.y;
     z.xz = wrap( z.xz, box_size * 2.0, -box_size );
     z.x -= b / a * z.y;
@@ -760,29 +760,36 @@ float de ( vec3 p ) {
 
 	// const float dMarble1 = max( deGrail( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
 	// const float dMarble1 = max( deApollo( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	const float dMarble1 = max( deFractal3( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	// const float dMarble1 = max( deFractal3( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	const float dMarble1 = max( deFractal3( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.3f ) / 0.3f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
 	// const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.6f );
 	sceneDist = min( dMarble1, sceneDist );
 	if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
 
 		// if ( NormalizedRandomFloat() < 0.9f ) {
-			// hitPointSurfaceType = DIFFUSE;
-			hitPointSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? MIRROR : DIFFUSE;
+			hitPointSurfaceType = DIFFUSE;
+			// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? MIRROR : DIFFUSE;
 			// hitPointColor = vec3( 0.793f, 0.793f, 0.664f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f ); // bone color
-			hitPointColor = vec3( 0.793f, 0.293f, 0.164f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f );
+			// hitPointColor = vec3( 0.793f, 0.293f, 0.164f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f );
+			hitPointColor = vec3( 0.1618f ) + vec3( 0.1618f ) * snoise3D( pCache * 16.18f );
 
-			if ( ( deOrganic3( pCache * 16.4f ) / 16.4f ) < 0.0f ) {
+			if ( deOrganic3( pCache * 16.18f ) < 0.0f ) {
 				// hitPointColor = mix( vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, ( deOrganic3( pCache * 16.4f ) / 16.4f ) ) ); // mars dirt color
-				hitPointColor = mix( vec3( 93.0f / 255.0f, 168.0f / 255.0f, 199.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, ( deOrganic3( pCache * 16.4f ) / 16.4f ) ) );
+				hitPointColor = mix( vec3( 93.0f / 255.0f, 168.0f / 255.0f, 199.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, deOrganic3( pCache * 26.4f ) ) );
 				// hitPointColor.rg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
 				hitPointColor.bg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
 
 				hitPointColor.rgb *= 3.0f;
 				hitPointColor.rgb = hitPointColor.grb;
-				hitPointSurfaceType = METALLIC;
+				hitPointColor.rgb = vec3( 0.36f );
+				// hitPointColor.rgb = vec3( 0.5f, 0.2f, 0.1f );
+				// hitPointSurfaceType = EMISSIVE;
+				// hitPointSurfaceType = DIFFUSE;
+				hitPointSurfaceType = MIRROR;
+				// hitPointSurfaceType = NormalizedRandomFloat() < 0.4f ? DIFFUSE : EMISSIVE;
 			}
 
-			hitPointColor.rgb = hitPointColor.brg;
+			// hitPointColor.rgb = hitPointColor.brg;
 	}
 
 	// // marble 2
@@ -796,8 +803,8 @@ float de ( vec3 p ) {
 	// }
 
 	// marble 3
-	// const float dMarble3 = max( deAsteroids( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	const float dMarble3 = deAsteroids( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
+	const float dMarble3 = max( deAsteroids( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	// const float dMarble3 = deAsteroids( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
 	// const float dMarble3 = ( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
 	sceneDist = min( dMarble3, sceneDist );
 	if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
