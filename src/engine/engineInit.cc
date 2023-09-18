@@ -313,6 +313,9 @@ void engineBase::LoadData () {
 
 			/* plantWords, animalWords, toolWords, etc? tbd */
 		}
+	} else {
+		cout << endl << T_RED << " User Has Elected to Skip Loading of Data Resources ( Palettes, WordLists ) " << RESET << endl;
+		cout << T_RED << "  Check Value of " << T_YELLOW << "config.loadDataResources" << T_RED << " to Change This Behavior" << RESET << endl << endl;
 	}
 }
 
