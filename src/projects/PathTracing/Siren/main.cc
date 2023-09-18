@@ -270,10 +270,22 @@ public:
 			static float imageScalar = 1.0f;
 			static ImVec2 offset = ImVec2( 0.0f, 0.0f );
 
+
+			// for changing what is displayed in the display texture
+			if ( ImGui::BeginTabBar( "Tab Bar Parent", ImGuiTabBarFlags_None ) ) {
+				if ( ImGui::BeginTabItem( "Tab Element 1" ) ) {
+					ImGui::EndTabItem();
+				}
+				if ( ImGui::BeginTabItem( "Tab Element 2" ) ) {
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
+
 			// image is inverted, because the display texture is technically upside down - note the uvs passed as third and fourth args
 			// ImGui::Image( ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( 200.0f, 200.0f ), ImVec2( 0.0f, 1.0f ), ImVec2( 1.0f, 0.0f ),
 			// ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - 24.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
-			ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - 24.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
+			ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - 48.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
 				ImGui::GetStyleColorVec4( ImGuiCol_Border ),	// border color
 				ImVec4( 1.0f, 1.0f, 1.0f, 1.0f )			// tint color
 			);
