@@ -115,6 +115,8 @@ public:
 			opts.minFilter		= GL_LINEAR;
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
+			// opts.wrap			= GL_CLAMP_TO_BORDER;
+			opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
 
@@ -416,6 +418,39 @@ public:
 			ImGui::PlotLines( " ", tileVector.data(), sirenConfig.performanceHistorySamples, 0, tileLabel.c_str(), -10.0f, 2000.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
 
 			// report number of complete passes, average tiles per second, average effective rays per second
+
+			ImGui::End();
+		}
+
+		{
+			// ImGui::Begin( "Viewer Window", NULL, ImGuiWindowFlags_NoMove );
+			ImGui::Begin( "Viewer Window ( PROTOTYPE )", NULL, 0 );
+			static float imageScalar = 1.0f;
+			static ImVec2 offset = ImVec2( 0.0f, 0.0f );
+
+			// image is inverted, because the display texture is technically upside down - note the uvs passed as third and fourth args
+			// ImGui::Image( ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( 200.0f, 200.0f ), ImVec2( 0.0f, 1.0f ), ImVec2( 1.0f, 0.0f ),
+			ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 25.0f, ImGui::GetWindowSize().y - 45.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
+				ImGui::GetStyleColorVec4( ImGuiCol_Border ),	// border color
+				ImVec4( 1.0f, 1.0f, 1.0f, 1.0f )			// tint color
+			);
+
+			// detect dragging
+			if ( ImGui::IsItemActive() && ( SDL_GetMouseState( NULL, NULL ) & SDL_BUTTON_LMASK ) ) {
+				// int mouseX, mouseY;
+				// uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+
+				// ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0, 0.01f );
+				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
+				offset.x -= currentMouseDrag.x * 0.001f;
+				offset.y += currentMouseDrag.y * 0.001f;
+				ImGui::ResetMouseDragDelta();
+				// cout << "drag add " << currentMouseDrag.x << " " << currentMouseDrag.y << ", now " << offset.x << " " << offset.y << endl;
+			}
+
+			if ( ImGui::IsItemHovered() ) {
+				imageScalar -= ImGui::GetIO().MouseWheel * 0.01f;
+			}
 
 			ImGui::End();
 		}
