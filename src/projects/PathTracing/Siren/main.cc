@@ -423,14 +423,16 @@ public:
 		}
 
 		{
-			// ImGui::Begin( "Viewer Window", NULL, ImGuiWindowFlags_NoMove );
-			ImGui::Begin( "Viewer Window ( PROTOTYPE )", NULL, 0 );
+			// setting fullscreen window
+			ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
+			ImGui::SetNextWindowSize( ImGui::GetIO().DisplaySize );
+			ImGui::Begin( "Viewer Window ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus );
 			static float imageScalar = 1.0f;
 			static ImVec2 offset = ImVec2( 0.0f, 0.0f );
 
 			// image is inverted, because the display texture is technically upside down - note the uvs passed as third and fourth args
 			// ImGui::Image( ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( 200.0f, 200.0f ), ImVec2( 0.0f, 1.0f ), ImVec2( 1.0f, 0.0f ),
-			ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 25.0f, ImGui::GetWindowSize().y - 45.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
+			ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - 24.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
 				ImGui::GetStyleColorVec4( ImGuiCol_Border ),	// border color
 				ImVec4( 1.0f, 1.0f, 1.0f, 1.0f )			// tint color
 			);
