@@ -961,7 +961,7 @@ public:
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
 		ComputePasses();			// multistage update of displayTexture
-		BlitToScreen();				// fullscreen triangle copying to the screen
+		// BlitToScreen();				// fullscreen triangle copying to the screen
 		{
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
