@@ -263,59 +263,84 @@ public:
 		ZoneScoped;
 
 		{
+			static bool MouseHoveringOverImage = true;
+			const int heightBottomSection = 400;
+
 			// setting fullscreen window
 			ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 			ImGui::SetNextWindowSize( ImGui::GetIO().DisplaySize );
-			ImGui::Begin( "Viewer Window ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
+			ImGui::Begin( "Viewer Window ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ( MouseHoveringOverImage ? ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar : 0 ) );
 			static float imageScalar = 1.0f;
 			static ImVec2 offset = ImVec2( 0.0f, 0.0f );
 
-
 			// for changing what is displayed in the display texture
+				// basically, we're abusing just the tab bar here, to set state
 			if ( ImGui::BeginTabBar( "Tab Bar Parent", ImGuiTabBarFlags_None ) ) {
 				if ( ImGui::BeginTabItem( "Tab Element 1" ) ) {
+					// e.g. this branch will set whatever state for element 1, e.g. color
 					ImGui::EndTabItem();
 				}
 				if ( ImGui::BeginTabItem( "Tab Element 2" ) ) {
+					// and this branch would set whatever state for element 2, e.g. normals, depth, etc, whatever
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
 			}
 
-			// image is inverted, because the display texture is technically upside down - note the uvs passed as third and fourth args
-			// ImGui::Image( ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( 200.0f, 200.0f ), ImVec2( 0.0f, 1.0f ), ImVec2( 1.0f, 0.0f ),
-			// ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - 24.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
-			ImGui::ImageButton( " ", ( ImTextureID ) textureManager.Get( "Display Texture" ), ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - 48.0f ), ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y ), ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y ),
-				ImGui::GetStyleColorVec4( ImGuiCol_Border ),	// border color
-				ImVec4( 1.0f, 1.0f, 1.0f, 1.0f )			// tint color
-			);
+			const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
+			const float textureAR = ( ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight );
+			const float widgetAR = widgetSize.x / widgetSize.y;
+			const float correction = 0.5f * ( widgetAR / textureAR );
+
+			// cout << endl << "ARs " << textureAR << ", " << widgetAR << " stretching from " << sirenConfig.targetWidth << " " << sirenConfig.targetHeight << " to " << widgetSize.x << " " << widgetSize.y << endl;
+
+			const ImVec2 minUV = ImVec2( 1.0f - imageScalar + offset.x, imageScalar * correction + offset.y * correction );
+			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, 1.0f - imageScalar * correction + offset.y * correction );
+
+			// ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
+			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Color Accumulator" );
+			ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV );
 
 			// detect dragging
+			MouseHoveringOverImage = false;
 			if ( ImGui::IsItemActive() && ( SDL_GetMouseState( NULL, NULL ) & SDL_BUTTON_LMASK ) ) {
-				// int mouseX, mouseY;
-				// uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+				MouseHoveringOverImage = true;
 
 				// ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0, 0.01f );
 				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 				offset.x -= currentMouseDrag.x * 0.001f;
-				offset.y += currentMouseDrag.y * 0.001f;
+				offset.y += currentMouseDrag.y * 0.0015f;
 				ImGui::ResetMouseDragDelta();
-				// cout << "drag add " << currentMouseDrag.x << " " << currentMouseDrag.y << ", now " << offset.x << " " << offset.y << endl;
 			}
 
 			if ( ImGui::IsItemHovered() ) {
+				MouseHoveringOverImage = true;
 				imageScalar -= ImGui::GetIO().MouseWheel * 0.01f;
 			}
 
-			ImGui::End();
-		}
+			// end of the display section
+			const float oneThirdSectionWidth = ImGui::GetContentRegionAvail().x / 3.0f;
 
-		{
-			// controls, perf monitoring window
-			ImGui::Begin( "Controls Window", NULL, 0 );
+			ImGui::BeginChild( "ChildLeftmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
+			ImGui::SeparatorText( "Performance" );
+			float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - sirenConfig.tLastReset ).count() / 1000.0f;
+			ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", sirenConfig.numFullscreenPasses, ts, ( float ) sirenConfig.numFullscreenPasses / ts );
+			ImGui::SeparatorText( "History" );
+			// timing history
+			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
+			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
+			ImGui::PlotLines( " ", timeVector.data(), sirenConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 180.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
 
-			// controls
-			ImGui::SeparatorText( "Screenshots" );
+		// I'm not finding that this is particularly useful information
+			// ImGui::SeparatorText( "Tile History" );
+			// // tiling history
+			// const std::vector< float > tileVector = { sirenConfig.tileHistory.begin(), sirenConfig.tileHistory.end() };
+			// const string tileLabel = string( "Average: " ) + std::to_string( std::reduce( tileVector.begin(), tileVector.end() ) / tileVector.size() ).substr( 0, 5 ) + string( " tiles/update" );
+			// ImGui::PlotLines( " ", tileVector.data(), sirenConfig.performanceHistorySamples, 0, tileLabel.c_str(), -10.0f, 2000.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
+
+			// report number of complete passes, average tiles per second, average effective rays per second
+
+			ImGui::SeparatorText( "Controls" );
 			if ( ImGui::Button( "Linear Color EXR" ) ) {
 			// EXR screenshot for linear color
 				ScreenShots( true, false, false, false );
@@ -333,8 +358,6 @@ public:
 				ScreenShots( false, false, true, false );
 			}
 
-			ImGui::Text( " " );
-			ImGui::SeparatorText( "Renderer Controls" );
 			if ( ImGui::Button( "Reset Accumulators" ) ) {
 				ResetAccumulators();
 			}
@@ -388,18 +411,6 @@ public:
 				ResizeAccumulators( 4800, 2400 );
 			}
 
-		// rendering parameters
-			ImGui::Text( " " );
-			ImGui::SeparatorText( "Rendering Parameters" );
-			// view position - consider adding 3 component float input SliderFloat3
-			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
-			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
-			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -20.0f, 20.0f );
-			ImGui::Text( "Basis Vectors:" );
-			ImGui::Text( " X: %.3f %.3f %.3f", sirenConfig.basisX.x, sirenConfig.basisX.y, sirenConfig.basisX.z );
-			ImGui::Text( " Y: %.3f %.3f %.3f", sirenConfig.basisY.x, sirenConfig.basisY.y, sirenConfig.basisY.z );
-			ImGui::Text( " Z: %.3f %.3f %.3f", sirenConfig.basisZ.x, sirenConfig.basisZ.y, sirenConfig.basisZ.z );
-
 			// tile size
 			ImGui::Text( "Tile Size: %d", sirenConfig.tileSize );
 			ImGui::SameLine();
@@ -416,6 +427,24 @@ public:
 
 			ImGui::SliderInt( "Tiles Between Queries", ( int * ) &sirenConfig.tilesBetweenQueries, 0, 45, "%d" );
 			ImGui::SliderFloat( "Frame Time Limit (ms)", &sirenConfig.tilesMSLimit, 1.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+
+			ImGui::EndChild();
+			ImGui::SameLine();
+
+			// controls
+			ImGui::BeginChild( "ChildMiddle", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
+
+		// rendering parameters
+			ImGui::SeparatorText( "Rendering Parameters" );
+			// view position - consider adding 3 component float input SliderFloat3
+			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
+			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
+			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -20.0f, 20.0f );
+			ImGui::Text( "Basis Vectors:" );
+			ImGui::Text( " X: %.3f %.3f %.3f", sirenConfig.basisX.x, sirenConfig.basisX.y, sirenConfig.basisX.z );
+			ImGui::Text( " Y: %.3f %.3f %.3f", sirenConfig.basisY.x, sirenConfig.basisY.y, sirenConfig.basisY.z );
+			ImGui::Text( " Z: %.3f %.3f %.3f", sirenConfig.basisZ.x, sirenConfig.basisZ.y, sirenConfig.basisZ.z );
+
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Screen UV Scalar", &sirenConfig.uvScalar, 0.01f, 5.0f );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
@@ -444,34 +473,40 @@ public:
 			ImGui::SliderFloat( "Epsilon", &sirenConfig.raymarchEpsilon, 0.0001f, 0.5f, "%.5f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Understep", &sirenConfig.raymarchUnderstep, 0.1f, 1.0f );
 
-		// scene parameters
-			ImGui::Text( " " );
-			ImGui::SeparatorText( "Scene Parameters" );
-			// skylight color
+			ImGui::EndChild();
+			ImGui::SameLine();
 
-			ImGui::Text( " " );
-			ImGui::SeparatorText( "Performance" );
-			float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - sirenConfig.tLastReset ).count() / 1000.0f;
-			ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", sirenConfig.numFullscreenPasses, ts, ( float ) sirenConfig.numFullscreenPasses / ts );
-			ImGui::SeparatorText( "Time History" );
-			// timing history
-			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
-			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
-			ImGui::PlotLines( " ", timeVector.data(), sirenConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 180.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
+			ImGui::BeginChild( "ChildRightmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
+			const char* tonemapModesList[] = {
+				"None (Linear)",
+				"ACES (Narkowicz 2015)",
+				"Unreal Engine 3",
+				"Unreal Engine 4",
+				"Uncharted 2",
+				"Gran Turismo",
+				"Modified Gran Turismo",
+				"Rienhard",
+				"Modified Rienhard",
+				"jt",
+				"robobo1221s",
+				"robo",
+				"reinhardRobo",
+				"jodieRobo",
+				"jodieRobo2",
+				"jodieReinhard",
+				"jodieReinhard2"
+			};
+			ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
+			ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
+			ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
+			ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
+			ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
+			if ( ImGui::Button( "Reset to Defaults" ) ) {
+				TonemapDefaults();
+			}
 
-			ImGui::SeparatorText( "Tile History" );
-			// tiling history
-			const std::vector< float > tileVector = { sirenConfig.tileHistory.begin(), sirenConfig.tileHistory.end() };
-			const string tileLabel = string( "Average: " ) + std::to_string( std::reduce( tileVector.begin(), tileVector.end() ) / tileVector.size() ).substr( 0, 5 ) + string( " tiles/update" );
-			ImGui::PlotLines( " ", tileVector.data(), sirenConfig.performanceHistorySamples, 0, tileLabel.c_str(), -10.0f, 2000.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
-
-			// report number of complete passes, average tiles per second, average effective rays per second
-
+			ImGui::EndChild();
 			ImGui::End();
-		}
-
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
 		}
 
 		if ( showProfiler ) {
@@ -701,6 +736,7 @@ public:
 		opts.minFilter		= GL_LINEAR;
 		opts.magFilter		= GL_LINEAR;
 		opts.textureType	= GL_TEXTURE_2D;
+		opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
 		textureManager.Add( "Depth/Normals Accumulator", opts );
 		textureManager.Add( "Color Accumulator", opts );
 
