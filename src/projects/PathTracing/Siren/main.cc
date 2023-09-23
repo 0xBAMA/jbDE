@@ -106,6 +106,9 @@ public:
 			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
 
+			// remove the default display texture, since we need one padded by a pixel on each edge
+			textureManager.Remove( "Display Texture" );
+
 			// create the new accumulator(s)
 			textureOptions_t opts;
 			opts.dataType		= GL_RGBA32F;
@@ -114,10 +117,16 @@ public:
 			opts.minFilter		= GL_LINEAR;
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
-			// opts.wrap			= GL_CLAMP_TO_BORDER;
-			opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
+			// opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
+			opts.wrap			= GL_CLAMP_TO_EDGE;
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
+
+			// and for the display texture, padded
+			opts.dataType		= GL_RGBA8;
+			opts.width			= sirenConfig.targetWidth + 2;
+			opts.height			= sirenConfig.targetHeight + 2;
+			textureManager.Add( "Display Texture", opts );
 
 			// setup performance monitors
 			sirenConfig.timeHistory.resize( sirenConfig.performanceHistorySamples );
@@ -291,7 +300,8 @@ public:
 				ImGui::EndTabBar();
 			}
 
-			const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
+			// const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
+			const ImVec2 widgetSize = ImGui::GetContentRegionAvail();
 			const float textureAR = ( ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight );
 			const float widgetAR = widgetSize.x / widgetSize.y;
 			const float correction = 0.5f * ( widgetAR / textureAR );
@@ -301,9 +311,10 @@ public:
 			const ImVec2 minUV = ImVec2( 1.0f - imageScalar + offset.x, imageScalar * correction + offset.y * correction );
 			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, 1.0f - imageScalar * correction + offset.y * correction );
 
-			// ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
-			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Color Accumulator" );
-			ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV );
+			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
+			// ImTextureID texture = ( ImTextureID ) textureManager.Get( "Color Accumulator" );
+			// ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV );
+			ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ), ImVec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 			// detect dragging
 			MouseHoveringOverImage = false;
@@ -319,7 +330,7 @@ public:
 
 			if ( ImGui::IsItemHovered() ) {
 				MouseHoveringOverImage = true;
-				imageScalar -= ImGui::GetIO().MouseWheel * 0.01f;
+				imageScalar -= ImGui::GetIO().MouseWheel * 0.08f;
 			}
 
 			// end of the display section
@@ -676,9 +687,11 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ),					tonemap.tonemapMode );
 			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
-			glUniform2f( glGetUniformLocation( shader, "resolution" ),					config.width, config.height );
+			// glUniform2f( glGetUniformLocation( shader, "resolution" ),					config.width, config.height );
+			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth, sirenConfig.targetHeight );
 
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
+			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
