@@ -272,15 +272,20 @@ public:
 			static float imageScalar = 1.0f;
 			static ImVec2 offset = ImVec2( 0.0f, 0.0f );
 
-			// for changing what is displayed in the display texture
-				// basically, we're abusing just the tab bar here, to set state
+		// for changing what is displayed in the display texture
+			// basically, we're abusing just the tab bar here, to set state
 			if ( ImGui::BeginTabBar( "Tab Bar Parent", ImGuiTabBarFlags_None ) ) {
-				if ( ImGui::BeginTabItem( "Tab Element 1" ) ) {
-					// e.g. this branch will set whatever state for element 1, e.g. color
+				// e.g. this branch will set whatever state for element 1, e.g. color
+				if ( ImGui::BeginTabItem( "Color" ) ) {
+					// set state to show color
 					ImGui::EndTabItem();
 				}
-				if ( ImGui::BeginTabItem( "Tab Element 2" ) ) {
-					// and this branch would set whatever state for element 2, e.g. normals, depth, etc, whatever
+				if ( ImGui::BeginTabItem( "Normal" ) ) {
+					// set state to show normals
+					ImGui::EndTabItem();
+				}
+				if ( ImGui::BeginTabItem( "Depth" ) ) {
+					// set state to show depth
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
