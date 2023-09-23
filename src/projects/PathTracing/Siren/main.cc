@@ -483,6 +483,7 @@ public:
 			ImGui::SameLine();
 
 			ImGui::BeginChild( "ChildRightmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
+			ImGui::SeparatorText( "Tonemapping / Postprocess" );
 			const char* tonemapModesList[] = {
 				"None (Linear)",
 				"ACES (Narkowicz 2015)",
