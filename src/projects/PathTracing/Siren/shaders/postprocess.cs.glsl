@@ -13,6 +13,14 @@ uniform mat3 saturation;
 uniform vec3 colorTempAdjust;
 uniform vec2 resolution;
 
+bool inBounds ( in ivec2 loc ) {
+	return !(
+		loc.x == 0 ||
+		loc.y == 0 ||
+		loc.x == imageSize( displayTexture ).x - 1 ||
+		loc.y == imageSize( displayTexture ).y - 1 );
+}
+
 void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
@@ -24,6 +32,9 @@ void main () {
 	originalValue.rgb = Tonemap( tonemapMode, originalValue.rgb );
 	originalValue.rgb = GammaCorrect( gamma, originalValue.rgb );
 
-	imageStore( displayTexture, loc, originalValue );
-	// imageStore( displayTexture, loc, originalDepth );
+	if ( inBounds( loc ) ) {
+		imageStore( displayTexture, loc, originalValue );
+	} else {
+		imageStore( displayTexture, loc, vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	}
 }
