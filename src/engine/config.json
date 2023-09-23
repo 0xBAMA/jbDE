@@ -16,7 +16,7 @@
 	"SDLDisplayModeDump":false,
 	"reportPlatformInfo":true,
 	"depthTesting":true,
-	"SRGBFramebuffer":false,
+	"SRGBFramebuffer":true,
 	"SDL_WINDOW_FULLSCREEN":true,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,
