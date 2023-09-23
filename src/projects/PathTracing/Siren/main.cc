@@ -278,6 +278,7 @@ public:
 			ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 			ImGui::SetNextWindowSize( ImGui::GetIO().DisplaySize );
 			ImGui::Begin( "Viewer Window ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ( MouseHoveringOverImage ? ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar : 0 ) );
+
 			static float imageScalar = 1.0f;
 			static ImVec2 offset = ImVec2( 0.0f, 0.0f );
 
@@ -285,23 +286,27 @@ public:
 			// basically, we're abusing just the tab bar here, to set state
 			if ( ImGui::BeginTabBar( "Tab Bar Parent", ImGuiTabBarFlags_None ) ) {
 				// e.g. this branch will set whatever state for element 1, e.g. color
-				if ( ImGui::BeginTabItem( "Color" ) ) {
+				if ( ImGui::BeginTabItem( " Output Color " ) ) {
 					// set state to show color
 					ImGui::EndTabItem();
 				}
-				if ( ImGui::BeginTabItem( "Normal" ) ) {
+				if ( ImGui::BeginTabItem( " Normal " ) ) {
 					// set state to show normals
 					ImGui::EndTabItem();
 				}
-				if ( ImGui::BeginTabItem( "Depth" ) ) {
+				if ( ImGui::BeginTabItem( " Depth " ) ) {
 					// set state to show depth
+					ImGui::EndTabItem();
+				}
+				if ( ImGui::BeginTabItem( " Accumulator " ) ) {
+					// show the accumulator contents
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
 			}
 
 			// const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
-			const ImVec2 widgetSize = ImGui::GetContentRegionAvail();
+			const ImVec2 widgetSize = ImVec2( ImGui::GetContentRegionAvail().x - 20.0f, ImGui::GetContentRegionAvail().y - 20.0f );
 			const float textureAR = ( ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight );
 			const float widgetAR = widgetSize.x / widgetSize.y;
 			const float correction = 0.5f * ( widgetAR / textureAR );
@@ -467,7 +472,8 @@ public:
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Screen UV Scalar", &sirenConfig.uvScalar, 0.01f, 5.0f );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
-			ImGui::ColorEdit3( "Background Color", ( float * ) &sirenConfig.skylightColor, ImGuiColorEditFlags_PickerHueWheel );
+			ImGui::ColorEdit3( "Sky Color", ( float * ) &sirenConfig.skylightColor, ImGuiColorEditFlags_PickerHueWheel );
+			ImGui::ColorEdit3( "Background Color", ( float * ) &sirenConfig.backgroundColor, ImGuiColorEditFlags_PickerHueWheel );
 			ImGui::Text( " " );
 
 			const char * cameraNames[] = { "NORMAL", "SPHERICAL", "SPHERICAL2", "SPHEREBUG", "SIMPLEORTHO", "ORTHO" };
@@ -687,11 +693,10 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ),					tonemap.tonemapMode );
 			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
-			// glUniform2f( glGetUniformLocation( shader, "resolution" ),					config.width, config.height );
 			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth, sirenConfig.targetHeight );
+			glUniform3fv( glGetUniformLocation( shader, "bgColor" ), 1,					glm::value_ptr( sirenConfig.backgroundColor ) );
 
-			// glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
+			glDispatchCompute( ( ( sirenConfig.targetWidth + 2 ) + 15 ) / 16, ( ( sirenConfig.targetHeight + 2 ) + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 

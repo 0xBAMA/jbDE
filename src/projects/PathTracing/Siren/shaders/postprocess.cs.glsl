@@ -12,6 +12,7 @@ uniform float gamma;
 uniform mat3 saturation;
 uniform vec3 colorTempAdjust;
 uniform vec2 resolution;
+uniform vec3 bgColor;
 
 bool inBounds ( in ivec2 loc ) {
 	return !(
@@ -35,6 +36,6 @@ void main () {
 	if ( inBounds( loc ) ) {
 		imageStore( displayTexture, loc, originalValue );
 	} else {
-		imageStore( displayTexture, loc, vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );
+		imageStore( displayTexture, loc, vec4( bgColor, 1.0f ) );
 	}
 }
