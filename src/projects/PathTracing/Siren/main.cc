@@ -411,6 +411,10 @@ public:
 				ResizeAccumulators( 4800, 2400 );
 			}
 
+			// probably refit this for optimial resolutions for e.g. 4"x6", 5"x7", 8"x10", etc
+				// figured out that 1080p is too low for 8.5"x11" - approx 125dpi - you will see pixels, if you look closely
+				// from Tim Lottes: optimal res is around 300dpi for high quality photo prints
+
 			// tile size
 			ImGui::Text( "Tile Size: %d", sirenConfig.tileSize );
 			ImGui::SameLine();
