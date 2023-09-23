@@ -340,6 +340,7 @@ public:
 
 			// end of the display section
 			const float oneThirdSectionWidth = ImGui::GetContentRegionAvail().x / 3.0f;
+			ImGui::SetCursorPosY( oneThirdSectionWidth + 100 );
 
 			ImGui::BeginChild( "ChildLeftmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
 			ImGui::SeparatorText( "Performance" );
@@ -752,6 +753,7 @@ public:
 		// destroy the existing textures
 		textureManager.Remove( "Depth/Normals Accumulator" );
 		textureManager.Remove( "Color Accumulator" );
+		textureManager.Remove( "Display Texture" );
 
 		// create the new ones
 		textureOptions_t opts;
@@ -764,6 +766,11 @@ public:
 		opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
 		textureManager.Add( "Depth/Normals Accumulator", opts );
 		textureManager.Add( "Color Accumulator", opts );
+
+		opts.dataType		= GL_RGBA8;
+		opts.width			= sirenConfig.targetWidth + 2;
+		opts.height			= sirenConfig.targetHeight + 2;
+		textureManager.Add( "Display Texture", opts );
 
 		// rebuild tile list next frame
 		sirenConfig.tileListNeedsUpdate = true;
