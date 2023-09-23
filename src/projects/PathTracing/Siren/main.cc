@@ -70,9 +70,8 @@ struct sirenConfig_t {
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
-	// scene parameters
-	vec3 skylightColor = vec3( 0.1f );
-	float mainLightTemperature = 6500.0f;
+	vec3 skylightColor = vec3( 0.1f );		// ray escape color
+	vec3 backgroundColor = vec3( 0.1f );	// background color for the image view
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
