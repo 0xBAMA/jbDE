@@ -21,7 +21,6 @@ struct sirenConfig_t {
 	// performance settings / monitoring
 	uint32_t performanceHistorySamples;
 	std::deque< float > timeHistory;	// ms per frame
-	std::deque< float > tileHistory;	// completed tiles per frame
 	uint32_t numFullscreenPasses = 0;
 	int32_t sampleCountCap;				// -1 for unlimited
 	bool showTimeStamp = false;
@@ -128,9 +127,8 @@ public:
 			opts.height			= sirenConfig.targetHeight + 2;
 			textureManager.Add( "Display Texture", opts );
 
-			// setup performance monitors
+			// setup performance monitor
 			sirenConfig.timeHistory.resize( sirenConfig.performanceHistorySamples );
-			sirenConfig.tileHistory.resize( sirenConfig.performanceHistorySamples );
 
 			// initialize the animation
 			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
@@ -354,13 +352,6 @@ public:
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
 			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
 			ImGui::PlotLines( " ", timeVector.data(), sirenConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 180.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
-
-		// I'm not finding that this is particularly useful information
-			// ImGui::SeparatorText( "Tile History" );
-			// // tiling history
-			// const std::vector< float > tileVector = { sirenConfig.tileHistory.begin(), sirenConfig.tileHistory.end() };
-			// const string tileLabel = string( "Average: " ) + std::to_string( std::reduce( tileVector.begin(), tileVector.end() ) / tileVector.size() ).substr( 0, 5 ) + string( " tiles/update" );
-			// ImGui::PlotLines( " ", tileVector.data(), sirenConfig.performanceHistorySamples, 0, tileLabel.c_str(), -10.0f, 2000.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
 
 			// report number of complete passes, average tiles per second, average effective rays per second
 
@@ -651,7 +642,7 @@ public:
 				float loopTime = ( tCheck - t0 ) / 1e6f; // convert ns -> ms
 				if ( loopTime > sirenConfig.tilesMSLimit ) {
 					// update performance monitors with latest data
-					UpdatePerfMonitors( loopTime, tilesThisFrame );
+					UpdatePerfMonitor( loopTime, tilesThisFrame );
 					break;
 				}
 			}
@@ -722,13 +713,11 @@ public:
 		sirenConfig.blueNoiseOffset = ivec2( offsetGenerator(), offsetGenerator() );
 	}
 
-	void UpdatePerfMonitors ( float loopTime, float tilesThisFrame ) {
+	void UpdatePerfMonitor ( float loopTime, float tilesThisFrame ) {
 		ZoneScoped;
 
 		sirenConfig.timeHistory.push_back( loopTime );
-		sirenConfig.tileHistory.push_back( tilesThisFrame );
 		sirenConfig.timeHistory.pop_front();
-		sirenConfig.tileHistory.pop_front();
 	}
 
 	void ResetAccumulators () {
