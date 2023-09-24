@@ -305,13 +305,9 @@ public:
 
 			// const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
 			const ImVec2 widgetSize = ImVec2( ImGui::GetContentRegionAvail().x - 8.0f, ImGui::GetContentRegionAvail().y - 20.0f );
-			const float textureAR = ( ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight );
-			const float widgetAR = widgetSize.x / widgetSize.y;
 
-			// cout << endl << "ARs " << textureAR << ", " << widgetAR << " stretching from " << sirenConfig.targetWidth << " " << sirenConfig.targetHeight << " to " << widgetSize.x << " " << widgetSize.y << endl;
-
-			const ImVec2 minUV = ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y );
-			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y );
+			const ImVec2 minUV = ImVec2( ( 1.0f - imageScalar )  + offset.x, imageScalar + offset.y );
+			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, ( 1.0f - imageScalar ) + offset.y );
 
 			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
 			// ImTextureID texture = ( ImTextureID ) textureManager.Get( "Color Accumulator" );
@@ -325,9 +321,13 @@ public:
 
 				// ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0, 0.01f );
 				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
-				offset.x -= currentMouseDrag.x * 0.001f;
-				offset.y += currentMouseDrag.y * 0.0015f;
 				ImGui::ResetMouseDragDelta();
+
+				const float adj = ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight;
+				const float base = 1.0f / sirenConfig.targetWidth;
+
+				offset.x -= currentMouseDrag.x * base * ( 1.0f / adj ) * ( 1.0f / imageScalar );
+				offset.y += currentMouseDrag.y * base * ( 1.0f / imageScalar );
 			}
 
 			if ( ImGui::IsItemHovered() ) {
@@ -335,10 +335,11 @@ public:
 				imageScalar -= ImGui::GetIO().MouseWheel * 0.08f;
 			}
 
+			// clamp to a minimum value
+			imageScalar = std::max( imageScalar, 0.001f );
+
 			// end of the display section
 			ImGui::SetCursorPosY( widgetSize.y - ( heightBottomSection - 20.0f ) );
-			// cout << "setting y to " << ImGui::GetContentRegionAvail().y << endl;
-			// cout << "and the height is " << heightBottomSection << endl;
 			const float oneThirdSectionWidth = ( ImGui::GetContentRegionAvail().x - 60.0f ) / 3.0f;
 			ImGui::Separator();
 
@@ -541,10 +542,10 @@ public:
 
 	void ColorScreenShotWithFilename ( const string filename ) {
 		std::vector< uint8_t > imageBytesToSave;
-		imageBytesToSave.resize( config.width * config.height * 4, 0 );
+		imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
 		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
-		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-		Image_4U screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
+		glTexSubImage2D( GL_TEXTURE_2D, 0, 1, 1, sirenConfig.targetWidth, sirenConfig.targetHeight, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+		Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 		screenshot.FlipVertical(); // whatever
 		screenshot.Save( filename );
 	}
@@ -1023,8 +1024,7 @@ public:
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
 		ComputePasses();			// multistage update of displayTexture
-		// BlitToScreen();				// fullscreen triangle copying to the screen
-		{
+		{	// imgui is now used to show the content of the program directly via ImGui::ImageButton
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
 			ImguiPass();			// do all the gui stuff
