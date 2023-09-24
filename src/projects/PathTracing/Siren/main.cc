@@ -306,12 +306,10 @@ public:
 			// const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
 			const ImVec2 widgetSize = ImVec2( ImGui::GetContentRegionAvail().x - 8.0f, ImGui::GetContentRegionAvail().y - 20.0f );
 
-			const ImVec2 minUV = ImVec2( ( 1.0f - imageScalar )  + offset.x, imageScalar + offset.y );
+			const ImVec2 minUV = ImVec2( ( 1.0f - imageScalar ) + offset.x, imageScalar + offset.y );
 			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, ( 1.0f - imageScalar ) + offset.y );
 
 			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
-			// ImTextureID texture = ( ImTextureID ) textureManager.Get( "Color Accumulator" );
-			// ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV );
 			ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ), ImVec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 			// detect dragging
@@ -319,7 +317,6 @@ public:
 			if ( ImGui::IsItemActive() && ( SDL_GetMouseState( NULL, NULL ) & SDL_BUTTON_LMASK ) ) {
 				MouseHoveringOverImage = true;
 
-				// ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0, 0.01f );
 				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 				ImGui::ResetMouseDragDelta();
 
