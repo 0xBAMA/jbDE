@@ -71,7 +71,7 @@ struct sirenConfig_t {
 	float raymarchUnderstep;
 
 	vec3 skylightColor = vec3( 0.1f );		// ray escape color
-	vec3 backgroundColor = vec3( 0.1f );	// background color for the image view
+	vec3 backgroundColor = vec3( 0.01618f );	// background color for the image view
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
@@ -306,7 +306,7 @@ public:
 			}
 
 			// const ImVec2 widgetSize = ImVec2( ImGui::GetWindowSize().x - 20.0f, ImGui::GetWindowSize().y - heightBottomSection - 55.0f );
-			const ImVec2 widgetSize = ImVec2( ImGui::GetContentRegionAvail().x - 20.0f, ImGui::GetContentRegionAvail().y - 20.0f );
+			const ImVec2 widgetSize = ImVec2( ImGui::GetContentRegionAvail().x - 8.0f, ImGui::GetContentRegionAvail().y - 20.0f );
 			const float textureAR = ( ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight );
 			const float widgetAR = widgetSize.x / widgetSize.y;
 			const float correction = 0.5f * ( widgetAR / textureAR );
@@ -339,14 +339,17 @@ public:
 			}
 
 			// end of the display section
-			const float oneThirdSectionWidth = ImGui::GetContentRegionAvail().x / 3.0f;
-			ImGui::SetCursorPosY( oneThirdSectionWidth + 100 );
+			ImGui::SetCursorPosY( widgetSize.y - ( heightBottomSection - 20.0f ) );
+			// cout << "setting y to " << ImGui::GetContentRegionAvail().y << endl;
+			// cout << "and the height is " << heightBottomSection << endl;
+			const float oneThirdSectionWidth = ( ImGui::GetContentRegionAvail().x - 60.0f ) / 3.0f;
 
+			ImGui::SetCursorPosX( 30.0f );
 			ImGui::BeginChild( "ChildLeftmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
-			ImGui::SeparatorText( "Performance" );
+			ImGui::SeparatorText( " Performance " );
 			float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - sirenConfig.tLastReset ).count() / 1000.0f;
 			ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", sirenConfig.numFullscreenPasses, ts, ( float ) sirenConfig.numFullscreenPasses / ts );
-			ImGui::SeparatorText( "History" );
+			ImGui::SeparatorText( " History " );
 			// timing history
 			const std::vector< float > timeVector = { sirenConfig.timeHistory.begin(), sirenConfig.timeHistory.end() };
 			const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
@@ -361,7 +364,7 @@ public:
 
 			// report number of complete passes, average tiles per second, average effective rays per second
 
-			ImGui::SeparatorText( "Controls" );
+			ImGui::SeparatorText( " Controls " );
 			if ( ImGui::Button( "Linear Color EXR" ) ) {
 			// EXR screenshot for linear color
 				ScreenShots( true, false, false, false );
@@ -460,7 +463,7 @@ public:
 			ImGui::BeginChild( "ChildMiddle", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
 
 		// rendering parameters
-			ImGui::SeparatorText( "Rendering Parameters" );
+			ImGui::SeparatorText( " Rendering " );
 			// view position - consider adding 3 component float input SliderFloat3
 			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
 			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
@@ -470,6 +473,7 @@ public:
 			ImGui::Text( " Y: %.3f %.3f %.3f", sirenConfig.basisY.x, sirenConfig.basisY.y, sirenConfig.basisY.z );
 			ImGui::Text( " Z: %.3f %.3f %.3f", sirenConfig.basisZ.x, sirenConfig.basisZ.y, sirenConfig.basisZ.z );
 
+			ImGui::SeparatorText( " Camera " );
 			ImGui::SliderFloat( "Render FoV", &sirenConfig.renderFoV, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Screen UV Scalar", &sirenConfig.uvScalar, 0.01f, 5.0f );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
@@ -490,7 +494,7 @@ public:
 
 		// raymarch parameters
 			ImGui::Text( " " );
-			ImGui::SeparatorText( "Raymarch Parameters" );
+			ImGui::SeparatorText( " Raymarch Parameters " );
 			ImGui::SliderInt( "Max Steps", ( int * ) &sirenConfig.raymarchMaxSteps, 10, 500 );
 			ImGui::SliderInt( "Max Bounces", ( int * ) &sirenConfig.raymarchMaxBounces, 0, 50 );
 			ImGui::SliderFloat( "Max Distance", &sirenConfig.raymarchMaxDistance, 1.0f, 500.0f );
@@ -501,7 +505,7 @@ public:
 			ImGui::SameLine();
 
 			ImGui::BeginChild( "ChildRightmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
-			ImGui::SeparatorText( "Tonemapping / Postprocess" );
+			ImGui::SeparatorText( " Tonemapping / Postprocess " );
 			const char* tonemapModesList[] = {
 				"None (Linear)",
 				"ACES (Narkowicz 2015)",
