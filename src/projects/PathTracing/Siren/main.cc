@@ -307,12 +307,11 @@ public:
 			const ImVec2 widgetSize = ImVec2( ImGui::GetContentRegionAvail().x - 8.0f, ImGui::GetContentRegionAvail().y - 20.0f );
 			const float textureAR = ( ( float ) sirenConfig.targetWidth / ( float ) sirenConfig.targetHeight );
 			const float widgetAR = widgetSize.x / widgetSize.y;
-			const float correction = 0.5f * ( widgetAR / textureAR );
 
 			// cout << endl << "ARs " << textureAR << ", " << widgetAR << " stretching from " << sirenConfig.targetWidth << " " << sirenConfig.targetHeight << " to " << widgetSize.x << " " << widgetSize.y << endl;
 
-			const ImVec2 minUV = ImVec2( 1.0f - imageScalar + offset.x, imageScalar * correction + offset.y * correction );
-			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, 1.0f - imageScalar * correction + offset.y * correction );
+			const ImVec2 minUV = ImVec2( 1.0f - imageScalar + offset.x, imageScalar + offset.y );
+			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, 1.0f - imageScalar + offset.y );
 
 			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
 			// ImTextureID texture = ( ImTextureID ) textureManager.Get( "Color Accumulator" );
@@ -341,6 +340,7 @@ public:
 			// cout << "setting y to " << ImGui::GetContentRegionAvail().y << endl;
 			// cout << "and the height is " << heightBottomSection << endl;
 			const float oneThirdSectionWidth = ( ImGui::GetContentRegionAvail().x - 60.0f ) / 3.0f;
+			ImGui::Separator();
 
 			ImGui::SetCursorPosX( 30.0f );
 			ImGui::BeginChild( "ChildLeftmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
@@ -756,7 +756,8 @@ public:
 		opts.minFilter		= GL_LINEAR;
 		opts.magFilter		= GL_LINEAR;
 		opts.textureType	= GL_TEXTURE_2D;
-		opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
+		// opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
+		opts.wrap			= GL_CLAMP_TO_EDGE;
 		textureManager.Add( "Depth/Normals Accumulator", opts );
 		textureManager.Add( "Color Accumulator", opts );
 
