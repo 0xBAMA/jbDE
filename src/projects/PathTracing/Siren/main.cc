@@ -310,6 +310,7 @@ public:
 			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, ( 1.0f - imageScalar ) + offset.y );
 
 			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
+			// line 7717 in imgui_demo.cc has an example where a grid is drawn
 			ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ), ImVec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 			// detect dragging
@@ -333,12 +334,18 @@ public:
 			}
 
 			// clamp to a minimum value
-			imageScalar = std::max( imageScalar, 0.001f );
+			imageScalar = std::max( imageScalar, 0.01f );
 
 			// end of the display section
+			// ImGui::SetCursorPosY( widgetSize.y - ( heightBottomSection - 20.0f ) );
+
+			// background for the controls
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			draw_list->AddRectFilled( ImVec2( 12.0f, widgetSize.y - ( heightBottomSection - 10.0f ) ), ImVec2( widgetSize.x + 12.0f, widgetSize.y + 20.0f ), IM_COL32( 25, 18, 16, 200 ) );
+
 			ImGui::SetCursorPosY( widgetSize.y - ( heightBottomSection - 20.0f ) );
 			const float oneThirdSectionWidth = ( ImGui::GetContentRegionAvail().x - 60.0f ) / 3.0f;
-			ImGui::Separator();
+			// ImGui::Separator();
 
 			ImGui::SetCursorPosX( 30.0f );
 			ImGui::BeginChild( "ChildLeftmost", ImVec2( oneThirdSectionWidth, heightBottomSection ), false, 0 );
@@ -539,11 +546,13 @@ public:
 
 	void ColorScreenShotWithFilename ( const string filename ) {
 		std::vector< uint8_t > imageBytesToSave;
-		imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
+		imageBytesToSave.resize( ( sirenConfig.targetWidth + 2 ) * ( sirenConfig.targetHeight + 2 ) * 4, 0 );
 		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
-		glTexSubImage2D( GL_TEXTURE_2D, 0, 1, 1, sirenConfig.targetWidth, sirenConfig.targetHeight, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-		Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
+		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
+		Image_4U screenshot( sirenConfig.targetWidth + 2, sirenConfig.targetHeight + 2, &imageBytesToSave.data()[ 0 ] );
 		screenshot.FlipVertical(); // whatever
+		screenshot.Save( string( "uncropped" ) + filename );
+		screenshot.Crop( sirenConfig.targetWidth, sirenConfig.targetHeight, 1, 1 );
 		screenshot.Save( filename );
 	}
 
@@ -687,7 +696,7 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ),					tonemap.tonemapMode );
 			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
-			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth, sirenConfig.targetHeight );
+			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth + 2, sirenConfig.targetHeight + 2 );
 			glUniform3fv( glGetUniformLocation( shader, "bgColor" ), 1,					glm::value_ptr( sirenConfig.backgroundColor ) );
 
 			glDispatchCompute( ( ( sirenConfig.targetWidth + 2 ) + 15 ) / 16, ( ( sirenConfig.targetHeight + 2 ) + 15 ) / 16, 1 );

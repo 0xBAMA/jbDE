@@ -16,14 +16,14 @@ uniform vec3 bgColor;
 
 bool inBounds ( in ivec2 loc ) {
 	return !(
-		loc.x == 0 ||
-		loc.y == 0 ||
-		loc.x == imageSize( displayTexture ).x - 1 ||
-		loc.y == imageSize( displayTexture ).y - 1 );
+		loc.x <= 0 ||
+		loc.y <= 0 ||
+		loc.x >= imageSize( displayTexture ).x - 1 ||
+		loc.y >= imageSize( displayTexture ).y - 1 );
 }
 
 void main () {
-	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
+	ivec2 loc = ivec2( gl_GlobalInvocationID.xy ) - ivec2( 1 );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
 	vec4 originalValue = texture( sourceC, sampleLoc );
 	vec4 originalDepth = texture( sourceDN, sampleLoc );
