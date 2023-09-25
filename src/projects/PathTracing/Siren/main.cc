@@ -69,7 +69,7 @@ struct sirenConfig_t {
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
-	vec3 skylightColor = vec3( 0.1f );		// ray escape color
+	vec3 skylightColor = vec3( 0.0f );		// ray escape color
 	vec3 backgroundColor = vec3( 0.01618f );	// background color for the image view
 
 	// questionable need:
