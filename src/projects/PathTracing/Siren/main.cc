@@ -141,7 +141,7 @@ public:
 			// initialize the list of spheres
 			rng c = rng( 1.5f, 2.9f );
 			rng o = rng( -0.1f, 0.1f );
-			rngi p = rngi( 1, 4 );
+			rngi p = rngi( 1, 6 );
 			for ( int x = 0; x < 4; x++ ) {
 				for ( int y = 0; y < 4; y++ ) {
 					sirenConfig.sphereLocationsPlusColors.push_back( vec4( x / 4.0f + o(), y / 4.0f + o(), 0.0f + o(), 0.13f + o() ) );	// position

@@ -1129,16 +1129,7 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	result.normal = ( iResult.a.x == nearestOverallHit ) ? iResult.a.yzw : iResult.b.yzw;
 	result.i = iResult;
 
-	if ( spheres[ indexOfHit ].colorMaterial.w == 1 ) {
-		result.material = DIFFUSE;
-	} else if ( spheres[ indexOfHit ].colorMaterial.w == 2 ) {
-		result.material = MIRROR;
-	} else if ( spheres[ indexOfHit ].colorMaterial.w == 3 ) {
-		result.material = EMISSIVE;
-	} else {
-		result.material = REFRACTIVE;
-	}
-
+	result.material = int( spheres[ indexOfHit ].colorMaterial.w );
 	result.color = spheres[ indexOfHit ].colorMaterial.xyz;
 
 	// colors > 1 really only make sense for lights
