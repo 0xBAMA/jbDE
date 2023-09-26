@@ -401,6 +401,11 @@ public:
 				ReloadDefaultConfig();
 			}
 
+			if ( ImGui::Button( "Regen Sphere List" ) ) {
+				InitSphereData();
+				SendSphereSSBO();
+			}
+
 			ImGui::Text( "Resolution" );
 			static int x = sirenConfig.targetWidth;
 			static int y = sirenConfig.targetHeight;
