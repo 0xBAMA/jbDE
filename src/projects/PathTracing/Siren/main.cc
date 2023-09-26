@@ -139,16 +139,19 @@ public:
 			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
 
 			// initialize the list of spheres
+			rng c = rng( 1.5f, 2.9f );
+			rng o = rng( -0.1f, 0.1f );
+			rngi p = rngi( 1, 4 );
 			for ( int x = 0; x < 4; x++ ) {
 				for ( int y = 0; y < 4; y++ ) {
-					sirenConfig.sphereLocationsPlusColors.push_back( vec4( x, y, 0.0f, 0.33f ) );
-					sirenConfig.sphereLocationsPlusColors.push_back( vec4( 1.0f ) );
+					sirenConfig.sphereLocationsPlusColors.push_back( vec4( x / 4.0f + o(), y / 4.0f + o(), 0.0f + o(), 0.13f + o() ) );	// position
+					sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c(), c(), p() ) ); // color
 				}
 			}
 
-			// create the corresponding SSBO
+			// create the corresponding SSBO and populate it
 			glGenBuffers( 1, &sirenConfig.sphereSSBO );
-
+			SendSphereSSBO();
 		}
 	}
 
@@ -634,7 +637,6 @@ public:
 
 			AnimationUpdate();
 			SendBasePathtraceUniforms();
-			SendSphereSSBO();
 
 			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory
 			GLuint t[ 2 ];
