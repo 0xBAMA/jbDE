@@ -138,19 +138,8 @@ public:
 			// initialize the animation
 			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
 
-			// initialize the list of spheres
-			rng c = rng( 1.5f, 2.9f );
-			rng o = rng( -0.1f, 0.1f );
-			rngi p = rngi( 1, 6 );
-			for ( int x = 0; x < 4; x++ ) {
-				for ( int y = 0; y < 4; y++ ) {
-					sirenConfig.sphereLocationsPlusColors.push_back( vec4( x / 4.0f + o(), y / 4.0f + o(), 0.0f + o(), 0.13f + o() ) );	// position
-					sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c(), c(), p() ) ); // color
-				}
-			}
-
-			// create the corresponding SSBO and populate it
-			glGenBuffers( 1, &sirenConfig.sphereSSBO );
+			InitSphereData(); // initialize the list of spheres
+			glGenBuffers( 1, &sirenConfig.sphereSSBO ); // create the corresponding SSBO and populate it
 			SendSphereSSBO();
 		}
 	}
@@ -1043,6 +1032,18 @@ public:
 		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
 		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
+	}
+
+	void InitSphereData () {
+		sirenConfig.sphereLocationsPlusColors.clear();
+		rng c = rng( 1.5f, 2.9f );
+		rng o = rng( -0.3f, 0.5f );
+		rng r = rng( 0.01f, 0.23f );
+		rngi p = rngi( 1, 7 );
+		for ( int x = 0; x < 16; x++ ) {
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c(), c(), p() ) ); // color
+		}
 	}
 
 	void SendSphereSSBO () {
