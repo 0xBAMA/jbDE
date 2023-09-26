@@ -109,6 +109,97 @@ vec3 GetColorForTemperature ( const float temperature ) {
 		+ m[ 2 ] ), vec3( 0.0f ), vec3( 1.0f ) ), vec3( 1.0f ), smoothstep( 1000.0f, 0.0f, temperature ) );
 }
 
+// ==============================================================================================
+// procedural wood + support funcs from dean the coder https://www.shadertoy.com/view/mdy3R1
+///////////////////////////////////////////////////////////////////////////////
+#define sat(x) clamp(x,0.,1.)
+#define S(a,b,c) smoothstep(a,b,c)
+#define S01(a) S(0.,1.,a)
+
+float sum2(vec2 v) { return dot(v, vec2(1)); }
+float h31(vec3 p3) {
+	p3 = fract(p3 * .1031);
+	p3 += dot(p3, p3.yzx + 333.3456);
+	return fract(sum2(p3.xy) * p3.z);
+}
+
+float h21(vec2 p) { return h31(p.xyx); }
+float n31(vec3 p) {
+	const vec3 s = vec3(7, 157, 113);
+	// Thanks Shane - https://www.shadertoy.com/view/lstGRB
+	vec3 ip = floor(p);
+	p = fract(p);
+	p = p * p * (3. - 2. * p);
+	vec4 h = vec4(0, s.yz, sum2(s.yz)) + dot(ip, s);
+	h = mix(fract(sin(h) * 43758.545), fract(sin(h + s.x) * 43758.545), p.x);
+	h.xy = mix(h.xz, h.yw, p.y);
+	return mix(h.x, h.y, p.z);
+}
+// roughness: (0.0, 1.0], default: 0.5
+// Returns unsigned noise [0.0, 1.0]
+float fbm(vec3 p, int octaves, float roughness) {
+	float sum = 0.,
+	      amp = 1.,
+	      tot = 0.;
+	roughness = sat(roughness);
+	while (octaves-- > 0) {
+		sum += amp * n31(p);
+		tot += amp;
+		amp *= roughness;
+		p *= 2.;
+	}
+	return sum / tot;
+}
+vec3 randomPos(float seed) {
+	vec4 s = vec4(seed, 0, 1, 2);
+	return vec3(h21(s.xy), h21(s.xz), h21(s.xw)) * 1e2 + 1e2;
+}
+// Returns unsigned noise [0.0, 1.0]
+float fbmDistorted(vec3 p) {
+	p += (vec3(n31(p + randomPos(0.)), n31(p + randomPos(1.)), n31(p + randomPos(2.))) * 2. - 1.) * 1.12;
+	return fbm(p, 8, .5);
+}
+// vec3: detail(/octaves), dimension(/inverse contrast), lacunarity
+// Returns signed noise.
+float musgraveFbm(vec3 p, float octaves, float dimension, float lacunarity) {
+	float sum = 0.,
+	      amp = 1.,
+	      m = pow(lacunarity, -dimension);
+	while (octaves-- > 0.) {
+		float n = n31(p) * 2. - 1.;
+		sum += n * amp;
+		amp *= m;
+		p *= lacunarity;
+	}
+	return sum;
+}
+// Wave noise along X axis.
+vec3 waveFbmX(vec3 p) {
+	float n = p.x * 20.;
+	n += .4 * fbm(p * 3., 3, 3.);
+	return vec3(sin(n) * .5 + .5, p.yz);
+}
+///////////////////////////////////////////////////////////////////////////////
+// Math
+float remap01(float f, float in1, float in2) { return sat((f - in1) / (in2 - in1)); }
+///////////////////////////////////////////////////////////////////////////////
+// Wood material.
+vec3 matWood(vec3 p) {
+	float n1 = fbmDistorted(p * vec3(7.8, 1.17, 1.17));
+	n1 = mix(n1, 1., .2);
+	float n2 = mix(musgraveFbm(vec3(n1 * 4.6), 8., 0., 2.5), n1, .85),
+	      dirt = 1. - musgraveFbm(waveFbmX(p * vec3(.01, .15, .15)), 15., .26, 2.4) * .4;
+	float grain = 1. - S(.2, 1., musgraveFbm(p * vec3(500, 6, 1), 2., 2., 2.5)) * .2;
+	n2 *= dirt * grain;
+    
+    // The three vec3 values are the RGB wood colors - Tweak to suit.
+	return mix(mix(vec3(.03, .012, .003), vec3(.25, .11, .04), remap01(n2, .19, .56)), vec3(.52, .32, .19), remap01(n2, .56, 1.));
+}
+#undef sat
+#undef S
+#undef S01
+// ==============================================================================================
+
 float Reflectance ( const float cosTheta, const float IoR ) {
 	// Use Schlick's approximation for reflectance
 	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
@@ -531,6 +622,39 @@ float deWhorl ( vec3 p ) {
 	return e;
 }
 
+float hash(vec2 p) { return fract(sin(dot(p, vec2(123.45, 875.43))) * 5432.3); }
+float noise(vec2 p) {
+	vec2 i = floor(p),
+	     f = fract(p);
+	float a = hash(i),
+	      b = hash(i + vec2(1, 0)),
+	      c = hash(i + vec2(0, 1)),
+	      d = hash(i + vec2(1));
+	f = f * f * (3. - 2. * f);
+	return mix(a, b, f.x) + (c - a) * f.y * (1. - f.x) + (d - b) * f.x * f.y;
+}
+float fbm(vec2 p) {
+	float f = 0.;
+	f += .5 * noise(p * 1.1);
+	f += .22 * noise(p * 2.3);
+	f += .155 * noise(p * 3.9);
+	f += .0625 * noise(p * 8.4);
+	f += .03125 * noise(p * 15.);
+	return f;
+}
+float rfbm(vec2 xz) { return abs(2. * fbm(xz) - 1.); }
+float sdTerrain(vec3 p) {
+	if (p.y > 0.) return 1e10;
+	float h = rfbm(p.xz * .2);
+	p.xz += vec2(1);
+	h += .5 * rfbm(p.xz * .8);
+	h += .25 * rfbm(p.xz * 2.);
+	h += .03 * rfbm(p.xz * 16.1);
+	h *= .7 * fbm(p.xz);
+	h -= .7;
+	return abs(p.y - h) * .6;
+}
+
 // ==============================================================================================
 // ====== Old Test Chamber ======================================================================
 
@@ -748,81 +872,34 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	// const float dFractal = deOrganic3( ( pCache * 0.3f ) ) / 0.3f;
-	// sceneDist = min( dFractal, sceneDist );
-	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.618f, 0.3f, 0.01f );
-	// 	hitPointSurfaceType = DIFFUSE;
-	// }
-
-		// vec4( 2.0f, 0.1f, 0.0f, 5.0f )
-		// vec4( 2.0f, 0.1f, 0.0f, 2.5f )
-		// vec4( 0.0f, 0.2f, 1.3f, 0.7f )
-
-	// marble 1
-	// vec3( 2.0f, 0.1f, 0.0f ), 1.0f
-	// const float dMarble1 = max( deFractal2( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deWhorl( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deFractal( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deGate( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deGrail( Rotate3D( -0.1f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-
-
-	// const float dMarble1 = max( deGrail( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deApollo( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deFractal3( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
 	const float dMarble1 = max( deFractal3( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.3f ) / 0.3f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble1 = max( deFractal2( ( pCache * 0.8f ) / 0.8f ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 0.6f );
 	sceneDist = min( dMarble1, sceneDist );
 	if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
 
-		// if ( NormalizedRandomFloat() < 0.9f ) {
-			hitPointSurfaceType = DIFFUSE;
-			// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? MIRROR : DIFFUSE;
-			// hitPointColor = vec3( 0.793f, 0.793f, 0.664f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f ); // bone color
-			// hitPointColor = vec3( 0.793f, 0.293f, 0.164f ) + vec3( 0.3f, 0.2f, 0.1f ) * snoise3D( pCache * 10.0f );
-			hitPointColor = vec3( 0.1618f ) + vec3( 0.1618f ) * snoise3D( pCache * 16.18f );
+		hitPointSurfaceType = DIFFUSE;
+		hitPointColor = vec3( 0.1618f ) + vec3( 0.1618f ) * snoise3D( pCache * 16.18f );
 
-			if ( deOrganic3( pCache * 16.18f ) < 0.0f ) {
-				// hitPointColor = mix( vec3( 193.0f / 255.0f, 68.0f / 255.0f, 14.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, ( deOrganic3( pCache * 16.4f ) / 16.4f ) ) ); // mars dirt color
-				hitPointColor = mix( vec3( 93.0f / 255.0f, 168.0f / 255.0f, 199.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, deOrganic3( pCache * 26.4f ) ) );
-				// hitPointColor.rg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
-				hitPointColor.bg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
-
-				hitPointColor.rgb *= 3.0f;
-				hitPointColor.rgb = hitPointColor.grb;
-				hitPointColor.rgb = vec3( 0.36f );
-				// hitPointColor.rgb = vec3( 0.5f, 0.2f, 0.1f );
-				// hitPointSurfaceType = EMISSIVE;
-				// hitPointSurfaceType = DIFFUSE;
-				hitPointSurfaceType = MIRROR;
-				// hitPointSurfaceType = NormalizedRandomFloat() < 0.4f ? DIFFUSE : EMISSIVE;
-			}
-
-			// hitPointColor.rgb = hitPointColor.brg;
+		if ( deOrganic3( pCache * 16.18f ) < 0.0f ) {
+			hitPointColor = mix( vec3( 93.0f / 255.0f, 168.0f / 255.0f, 199.0f / 255.0f ), hitPointColor, smoothstep( -0.1f, 0.1f, deOrganic3( pCache * 26.4f ) ) );
+			hitPointColor.bg += vec2( clamp( ( deOrganic3( pCache * 28.4f ) ) / 0.5f, 0.0f, 1.0f ) );
+			hitPointColor.rgb *= 3.0f;
+			hitPointColor.rgb = hitPointColor.grb;
+			hitPointColor.rgb = vec3( 0.36f );
+			hitPointSurfaceType = MIRROR;
+		}
 	}
 
-	// // marble 2
-	// const float scale = 1.1f;
-	// const vec3 offset2 = vec3( 1.0f, 0.0f, 0.0f );
-	// const float dMarble2 = deOrganic4( Rotate3D( 2.4f, vec3( 1.2f, 1.2f, -0.8f ) ) * ( pCache * scale ) - offset2 ) / scale;
-	// sceneDist = min( dMarble2, sceneDist );
-	// if ( sceneDist == dMarble2 && dMarble2 <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 0.18f );
-	// 	hitPointSurfaceType = METALLIC;
-	// }
-
 	// marble 3
-	const float dMarble3 = max( deAsteroids( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble3 = deAsteroids( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
-	// const float dMarble3 = ( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
+	// const float dMarble3 = max( deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	const float dMarble3 = deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
 	sceneDist = min( dMarble3, sceneDist );
 	if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
-		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.8f ) ? MIRROR : DIFFUSE;
-		hitPointColor = ( snoise3D( pCache * 10.0f + 3.0f * vec3( snoise3D( pCache * 2.0f ), snoise3D( pCache * 4.0f ), snoise3D( pCache * 3.0f ) ) ) > 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 0.2f, 0.618f, 0.3f );
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		// hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = ( snoise3D( pCache * 10.0f + 3.0f * vec3( snoise3D( pCache * 2.0f ), snoise3D( pCache * 4.0f ), snoise3D( pCache * 3.0f ) ) ) > 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 0.2f, 0.618f, 0.3f );
 		// hitPointColor = ( snoise3D( pCache * 10.0f + vec3( 2.0f * snoise3D( pCache * 2.0f ), 3.0f * snoise3D( pCache * 4.0f ), 4.0f * snoise3D( pCache * 3.0f ) ) ) < 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( snoise3D( pCache * 2.0f + vec3( snoise3D( pCache * 20.0f ) ) ), 0.1f, 0.3f );
-		hitPointColor.rgb = hitPointColor.rbg;
+		// hitPointColor.rgb = hitPointColor.rbg;
+		hitPointColor = matWood( pCache );
 	}
 	return sceneDist;
 }
