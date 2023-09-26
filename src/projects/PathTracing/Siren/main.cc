@@ -82,6 +82,11 @@ struct sirenConfig_t {
 
 	// properties of the animation
 	animation_t animation;
+
+	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
+	GLuint sphereSSBO;
+	std::vector< vec4 > sphereLocationsPlusColors;
+	const uint32_t maxSpheres = 16; // pretty till I validate - tbd
 };
 
 class Siren : public engineBase {	// example derived class
@@ -132,6 +137,18 @@ public:
 
 			// initialize the animation
 			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
+
+			// initialize the list of spheres
+			for ( int x = 0; x < 4; x++ ) {
+				for ( int y = 0; y < 4; y++ ) {
+					sirenConfig.sphereLocationsPlusColors.push_back( vec4( x, y, 0.0f, 0.33f ) );
+					sirenConfig.sphereLocationsPlusColors.push_back( vec4( 1.0f ) );
+				}
+			}
+
+			// create the corresponding SSBO
+			glGenBuffers( 1, &sirenConfig.sphereSSBO );
+
 		}
 	}
 
@@ -609,6 +626,7 @@ public:
 
 			AnimationUpdate();
 			SendBasePathtraceUniforms();
+			SendSphereSSBO();
 
 			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory
 			GLuint t[ 2 ];
@@ -1015,6 +1033,13 @@ public:
 		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
 		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
+	}
+
+	void SendSphereSSBO () {
+		// send the data from the vector to the GPU
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, sirenConfig.sphereSSBO );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * sirenConfig.maxSpheres, ( GLvoid * ) &sirenConfig.sphereLocationsPlusColors[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, sirenConfig.sphereSSBO );
 	}
 
 	void OnRender () {

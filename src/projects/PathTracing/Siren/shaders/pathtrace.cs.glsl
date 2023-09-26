@@ -41,6 +41,16 @@ uniform float raymarchUnderstep;
 // scene parameters
 uniform vec3 skylightColor;
 
+// CPU-generated sphere array
+const int numSpheres = 16;
+struct sphere_t {
+	vec4 positionRadius;
+	vec4 colorMaterial;
+};
+layout( binding = 0, std430 ) buffer sphereData {
+	sphere_t spheres[];
+};
+
 mat3 Rotate3D ( const float angle, const vec3 axis ) {
 	const vec3 a = normalize( axis );
 	const float s = sin( angle );
@@ -1032,8 +1042,8 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	Intersection iResult = kEmpty;
 	int indexOfHit = -1;
 	float nearestOverallHit = 1000000.0f;
-	for ( int i = 0; i < sphereParameters.length(); i++ ) {
-		Intersection current = IntersectSphere( origin, direction, sphereParameters[ i ].xyz, sphereParameters[ i ].w );
+	for ( int i = 0; i < numSpheres; i++ ) {
+		Intersection current = IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
 		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;
 		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
 		if ( currentNearestPositive == nearestOverallHit ) {
@@ -1046,25 +1056,25 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	result.dTravel = nearestOverallHit;
 	result.normal = ( iResult.a.x == nearestOverallHit ) ? iResult.a.yzw : iResult.b.yzw;
 	result.i = iResult;
-	switch ( indexOfHit ) {
-		case 0:
-		result.material = REFRACTIVE;
-		break;
+	// switch ( indexOfHit ) {
+	// 	case 0:
+	// 	result.material = REFRACTIVE;
+	// 	break;
 
-		case 1:
-		result.material = MIRROR;
-		break;
+	// 	case 1:
+	// 	result.material = MIRROR;
+	// 	break;
 
-		case 2:
-		result.material = MIRROR;
-		break;
+	// 	case 2:
+	// 	result.material = MIRROR;
+	// 	break;
 
-		default:
-		break;
-	}
+	// 	default:
+	// 	break;
+	// }
+	result.material = DIFFUSE;
 
 	return result;
-
 
 	// return IntersectSphere( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), 3.0f );
 }
