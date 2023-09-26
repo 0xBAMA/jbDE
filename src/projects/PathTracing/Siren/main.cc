@@ -361,7 +361,7 @@ public:
 
 			// background for the controls
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			draw_list->AddRectFilled( ImVec2( 12.0f, widgetSize.y - ( heightBottomSection - 10.0f ) ), ImVec2( widgetSize.x + 12.0f, widgetSize.y + 20.0f ), IM_COL32( 25, 18, 16, 200 ) );
+			draw_list->AddRectFilled( ImVec2( 12.0f, widgetSize.y - ( heightBottomSection - 10.0f ) ), ImVec2( widgetSize.x + 12.0f, widgetSize.y + 30.0f ), IM_COL32( 25, 18, 16, 200 ) );
 
 			ImGui::SetCursorPosY( widgetSize.y - ( heightBottomSection - 20.0f ) );
 			const float oneThirdSectionWidth = ( ImGui::GetContentRegionAvail().x - 60.0f ) / 3.0f;
