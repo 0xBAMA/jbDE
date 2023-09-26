@@ -23,7 +23,8 @@ bool inBounds ( in ivec2 loc ) {
 }
 
 void main () {
-	ivec2 loc = ivec2( gl_GlobalInvocationID.xy ) - ivec2( 1 );
+	// ivec2 loc = ivec2( gl_GlobalInvocationID.xy ) - ivec2( 1 );
+	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
 	vec4 originalValue = texture( sourceC, sampleLoc );
 	vec4 originalDepth = texture( sourceDN, sampleLoc );
