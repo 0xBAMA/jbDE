@@ -86,7 +86,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 16; // pretty till I validate - tbd
+	const uint32_t maxSpheres = 16; // pretty artibtrary till I validate - tbd
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1045,9 +1045,44 @@ public:
 		rng o = rng( -0.3f, 0.5f );
 		rng r = rng( 0.01f, 0.23f );
 		rngi p = rngi( 1, 7 );
-		for ( int x = 0; x < 16; x++ ) {
+		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c(), c(), p() ) ); // color
+		}
+
+		while ( 1 ) { // relaxation step
+			// walk the list, repulstion force between pairs
+			for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
+				for ( uint j = i + 1; j < sirenConfig.maxSpheres; j++ ) {
+					// sphere i and sphere j move slightly away from one another if intersecting
+					vec4 sphereI = sirenConfig.sphereLocationsPlusColors[ 2 * i ];
+					vec4 sphereJ = sirenConfig.sphereLocationsPlusColors[ 2 * j ];
+					float combinedRadius = sphereI.w + sphereJ.w;
+					vec3 displacement = sphereI.xyz() - sphereJ.xyz();
+					if ( glm::length( displacement ) < combinedRadius ) {
+						const float offset = combinedRadius - length( displacement ) ;
+						sphereI = glm::vec4( sphereI.xyz() + ( offset / 2.0f ) * normalize( displacement ), sphereI.w );
+						sphereJ = glm::vec4( sphereJ.xyz() - ( offset / 2.0f ) * normalize( displacement ), sphereJ.w );
+					}
+				}
+			}
+
+			// break out when there are no intersections
+			bool existsIntersections = false;
+			for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
+				for ( uint j = i + 1; j < sirenConfig.maxSpheres; j++ ) {
+					vec4 sphereI = sirenConfig.sphereLocationsPlusColors[ 2 * i ];
+					vec4 sphereJ = sirenConfig.sphereLocationsPlusColors[ 2 * j ];
+					float combinedRadius = sphereI.w + sphereJ.w;
+					vec3 displacement = sphereI.xyz() - sphereJ.xyz();
+					if ( glm::length( displacement ) < combinedRadius ) {
+						existsIntersections = true;
+					}
+				}
+			}
+
+			// we have made sure nobody intersects
+			if ( !existsIntersections ) break;
 		}
 	}
 
