@@ -772,19 +772,22 @@ float sdTerrain(vec3 p) {
 // ==============================================================================================
 // ==============================================================================================
 
-#define NOHIT				0
-#define EMISSIVE			1
-#define DIFFUSE				2
-#define DIFFUSEAO			3
-#define METALLIC			4
-#define RAINBOW				5
-#define MIRROR				6
+#define NOHIT						0
+#define EMISSIVE					1
+#define DIFFUSE						2
+#define DIFFUSEAO					3
+#define METALLIC					4
+#define RAINBOW						5
+#define MIRROR						6
+#define WOOD						7
+#define MALACHITE					8
+#define REFRACTIVE					9
+#define REFRACTIVE_FROSTED			10
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
-#define REFRACTIVE					7
-#define REFRACTIVE_BACKFACE			8
-#define REFRACTIVE_FROSTED			9
-#define REFRACTIVE_FROSTED_BACKFACE	10
+	// objects shouldn't have this material, it is used in the explicit intersection logic / bounce behavior
+#define REFRACTIVE_BACKFACE			11
+#define REFRACTIVE_FROSTED_BACKFACE	12
 
 
 float baseIOR = 1.0f / 1.4f;
@@ -1299,6 +1302,28 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			// quick hack
 				// throughput *= vec3( 0.933f, 0.8235f, 0.0078f );
 				// rayDirection = randomVectorDiffuse;
+				break;
+			}
+
+			case WOOD:
+			{
+				if ( NormalizedRandomFloat() < 0.1f ) { // mirror behavior
+					rayDirection = reflectedVector;
+				} else {
+					throughput *= matWood( rayOrigin );
+					rayDirection = randomVectorDiffuse;
+				}
+				break;
+			}
+
+			case MALACHITE:
+			{
+				if ( NormalizedRandomFloat() < 0.1f ) {
+					rayDirection = reflectedVector;
+				} else {
+					throughput *= matWood( rayOrigin ).brg; // this swizzle makes a nice light green / dark green mix
+					rayDirection = randomVectorDiffuse;
+				}
 				break;
 			}
 
