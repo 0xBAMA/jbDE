@@ -42,8 +42,7 @@ uniform float raymarchUnderstep;
 uniform vec3 skylightColor;
 
 // CPU-generated sphere array
-// const int numSpheres = 256;
-const int numSpheres = 0;
+const int numSpheres = 256;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -690,225 +689,52 @@ vec3 hitPointColor = vec3( 0.0f );
 	// hitPointSurfaceType gives the type of material
 	// hitPointColor gives the albedo of the material
 
-// float de ( vec3 p ) {
-// 	// init nohit, far from surface, no diffuse color
-// 	hitPointSurfaceType = NOHIT;
-// 	float sceneDist = 1000.0f;
-// 	hitPointColor = vec3( 0.0f );
-
-// 	const vec3 pCache = p;
-// 	const vec3 floorCielingColor = vec3( 0.4f, 0.5f, 0.8f );
-// 	const float floorHeight = 10.0f;
-
-// 	const float dFloor = min( fPlane( pCache, vec3( 0.0f, 0.0f, 1.0f ), floorHeight ), fPlane( pCache, vec3( 0.0f, 0.0f, -1.0f ), floorHeight ) );
-// 	sceneDist = min( dFloor, sceneDist );
-// 	if ( sceneDist == dFloor && dFloor <= raymarchEpsilon ) {
-// 		hitPointColor = floorCielingColor;
-// 		hitPointSurfaceType = WOOD;
-// 	}
-
-// 	const bool lights = true;
-// 	if ( lights ) {
-// 		const float lightHeight = 7.8f;
-// 		const float lightDiameter = 3.0f;
-// 		const float lightRimDim = 0.1f;
-
-// 		vec3 offset = p + vec3( 0.0f, lightHeight, 0.0f );
-// 		vec3 offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
-
-// 		const float dLight1 = fCylinder( offset, lightDiameter, 0.1f );
-// 		const float dLight1Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
-// 		sceneDist = min( dLight1, sceneDist );
-// 		if ( sceneDist == dLight1 && dLight1 <= raymarchEpsilon ) {
-// 			hitPointColor = vec3( 0.9f, 0.7f, 0.9f );
-// 			hitPointSurfaceType = EMISSIVE;
-// 		}
-
-// 		pR( p.xy, 2.0f * PI / 3.0f );
-// 		offset = p + vec3( 0.0f, lightHeight, 0.0f );
-// 		offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
-
-// 		const float dLight2 = fCylinder( offset, lightDiameter, 0.1f );
-// 		const float dLight2Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
-// 		sceneDist = min( dLight2, sceneDist );
-// 		if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
-// 			hitPointColor = GetColorForTemperature( 2000.0f ) * 3.3f;
-// 			hitPointSurfaceType = EMISSIVE;
-// 		}
-
-// 		pR( p.xy, 2.0f * PI / 3.0f );
-// 		offset = p + vec3( 0.0f, lightHeight, 0.0f );
-// 		offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
-
-// 		const float dLight3 = fCylinder( offset, lightDiameter, 0.1f );
-// 		const float dLight3Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
-// 		sceneDist = min( dLight3, sceneDist );
-// 		if ( sceneDist == dLight3 && dLight3 <= raymarchEpsilon ) {
-// 			hitPointColor = vec3( 0.7f, 0.5f, 0.9f );
-// 			hitPointSurfaceType = EMISSIVE;
-// 		}
-
-// 		const float dLightHousing = min( min(
-// 			dLight1Housing,		// light 1
-// 			dLight2Housing ),	// light 2
-// 			dLight3Housing		// light 3
-// 		);
-// 		sceneDist = min( dLightHousing, sceneDist );
-// 		if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
-// 			hitPointColor = vec3( 0.618f );
-// 			hitPointSurfaceType = WOOD;
-// 		}
-// 	}
-
-// 	const float dMarble1 = max( deFractal2( Rotate3D( -0.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.3f ) / 0.3f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 3.5f );
-// 	sceneDist = min( dMarble1, sceneDist );
-// 	if ( sceneDist == dMarble1 && dMarble1 <= raymarchEpsilon ) {
-// 		hitPointSurfaceType = DIFFUSE;
-// 		hitPointColor = vec3( 0.618f ) + vec3( 0.1618f ) * snoise3D( pCache * 16.18f );
-// 	}
-
-// 	// marble 3
-// 	const float dMarble3 = max( deOrganic( Rotate3D( -1.5f, vec3( 1.2f, 0.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-// 	// const float dMarble3 = deOrganic( Rotate3D( -1.5f, vec3( 1.2f, 0.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
-// 	// const float dMarble3 = deOrganic( ( pCache * 0.8f ) / 0.8f );
-// 	sceneDist = min( dMarble3, sceneDist );
-// 	if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
-// 		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-// 		// hitPointSurfaceType = MIRROR;
-// 		hitPointSurfaceType = WOOD;
-// 		// hitPointSurfaceType = DIFFUSE;
-// 		// hitPointColor = ( snoise3D( pCache * 10.0f + 3.0f * vec3( snoise3D( pCache * 2.0f ), snoise3D( pCache * 4.0f ), snoise3D( pCache * 3.0f ) ) ) > 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 0.2f, 0.618f, 0.3f );
-// 		// hitPointColor = ( snoise3D( pCache * 10.0f + vec3( 2.0f * snoise3D( pCache * 2.0f ), 3.0f * snoise3D( pCache * 4.0f ), 4.0f * snoise3D( pCache * 3.0f ) ) ) < 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( snoise3D( pCache * 2.0f + vec3( snoise3D( pCache * 20.0f ) ) ), 0.1f, 0.3f );
-// 		// hitPointColor.rgb = hitPointColor.rbg;
-// 		// hitPointColor = matWood( pCache );
-// 	}
-// 	return sceneDist;
-// }
-
-
-// ==============================================================================================
-// ====== Old Test Chamber ======================================================================
-
 float de ( vec3 p ) {
 	// init nohit, far from surface, no diffuse color
 	hitPointSurfaceType = NOHIT;
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
-	const vec3 whiteWallColor = vec3( 0.618f );
-	const vec3 floorCielingColor = vec3( 0.9f );
-
-	const int material = WOOD;
-
-	// North, South, East, West walls
-	const float dNorthWall = fPlane( p, vec3( 0.0f, 0.0f, -1.0f ), 48.0f );
-	const float dSouthWall = fPlane( p, vec3( 0.0f, 0.0f, 1.0f ), 48.0f );
-	const float dEastWall = fPlane( p, vec3( -1.0f, 0.0f, 0.0f ), 10.0f );
-	const float dWestWall = fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 10.0f );
-	const float dWalls = fOpUnionRound( fOpUnionRound( fOpUnionRound( dNorthWall, dSouthWall, 0.5f ), dEastWall, 0.5f ), dWestWall, 0.5f );
-	sceneDist = min( dWalls, sceneDist );
-	if ( sceneDist == dWalls && dWalls < raymarchEpsilon ) {
-		hitPointColor = whiteWallColor;
-		hitPointSurfaceType = material;
-	}
-
-	const float dFloor = fPlane( p, vec3( 0.0f, 1.0f, 0.0f ), 4.0f );
-	sceneDist = min( dFloor, sceneDist );
-	if ( sceneDist == dFloor && dFloor < raymarchEpsilon ) {
-		hitPointColor = floorCielingColor;
-		hitPointSurfaceType = material;
-	}
-
-	// balcony floor
-	const float dEastBalcony = fBox( p - vec3( 10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
-	const float dWestBalcony = fBox( p - vec3( -10.0f, 0.0f, 0.0f ), vec3( 4.0f, 0.1f, 48.0f ) );
-	const float dBalconies = min( dEastBalcony, dWestBalcony );
-	sceneDist = min( dBalconies, sceneDist );
-	if ( sceneDist == dBalconies && dBalconies < raymarchEpsilon ) {
-		hitPointColor = floorCielingColor;
-		hitPointSurfaceType = material;
-	}
-
-	// store point value before applying repeat
 	const vec3 pCache = p;
-	pMirror( p.x, 0.0f );
 
-	// compute bounding box for the rails on both sides, using the mirrored point
-	const float dRailBounds = fBox( p - vec3( 7.0f, 1.625f, 0.0f ), vec3( 1.0f, 1.2f, 48.0f ) );
+	// floor / cieling
+	pMirror( p.y, 2.9f );
+	const float dBlocks = fBox( p, vec3( 25.0f, 0.2f, 10.0f ) );
 
-	// if railing bounding box is true
-	float dRails;
-	if ( dRailBounds < 0.0f ) {
-		// railings - probably use some instancing on them, also want to use a bounding volume
-		dRails = fCapsule( p, vec3( 7.0f, 2.4f, 48.0f ), vec3( 7.0f, 2.4f, -48.0f ), 0.3f );
-		dRails = min( dRails, fCapsule( p, vec3( 7.0f, 0.6f, 48.0f ), vec3( 7.0f, 0.6f, -48.0f ), 0.1f ) );
-		dRails = min( dRails, fCapsule( p, vec3( 7.0f, 1.1f, 48.0f ), vec3( 7.0f, 1.1f, -48.0f ), 0.1f ) );
-		dRails = min( dRails, fCapsule( p, vec3( 7.0f, 1.6f, 48.0f ), vec3( 7.0f, 1.6f, -48.0f ), 0.1f ) );
-		sceneDist = min( dRails, sceneDist );
-		if ( sceneDist == dRails && dRails <= raymarchEpsilon ) {
-			hitPointColor = vec3( 0.618f );
-			hitPointSurfaceType = METALLIC;
-		}
-	} // end railing bounding box
-
-	// revert to original point value
+	// pillars
 	p = pCache;
+	pMirror( p.z, 6.0f );
+	pModInterval1( p.x, 2.0f, -12, 12 );
+	const float dPillars = fCylinder( p, 0.5f, 2.8f );
 
-	pMod1( p.x, 14.0f );
-	p.z += 2.0f;
-	pModMirror1( p.z, 4.0f );
-	float dArches = fBox( p - vec3( 0.0f, 4.9f, 0.0f ), vec3( 10.0f, 5.0f, 5.0f ) );
-	dArches = fOpDifferenceRound( dArches, fRoundedBox( p - vec3( 0.0f, 0.0f, 3.0f ), vec3( 10.0f, 4.5f, 1.0f ), 3.0f ), 0.2f );
-	dArches = fOpDifferenceRound( dArches, fRoundedBox( p, vec3( 3.0f, 4.5f, 10.0f ), 3.0f ), 0.2f );
-
-	// if railing bounding box is true
-	if ( dRailBounds < 0.0f ) {
-		dArches = fOpDifferenceRound( dArches, dRails - 0.05f, 0.1f );
-	} // end railing bounding box
-
-	sceneDist = min( dArches, sceneDist );
-	if ( sceneDist == dArches && dArches < raymarchEpsilon ) {
-		hitPointColor = floorCielingColor;
-		hitPointSurfaceType = material;
+	// composite object
+	const float dPlatform = fOpUnionRound( dPillars, dBlocks, 0.5f );
+	sceneDist = min( dPlatform, sceneDist );
+	if ( sceneDist == dPlatform && dPlatform <= raymarchEpsilon ) {
+		hitPointColor = vec3( 1.0f );
+		hitPointSurfaceType = WOOD;
 	}
 
-	// illumination in the cores of the coloumns, visible through the holes for the railings
-	pModMirror1( p.z, 8.0f );
-	float dLightCore = fBox( p - vec3( 7.0f, 1.6f, 1.5f ), vec3( 0.9f, 1.1f, 0.4f ) );
-	sceneDist = min( dLightCore, sceneDist );
-	if ( sceneDist == dLightCore && dLightCore <= raymarchEpsilon ) {
-		hitPointColor = vec3( 20.0f );
-		hitPointSurfaceType = EMISSIVE;
-	}
-	p = pCache;
-
-	// // the bar lights are the primary source of light in the scene
-	// const float dCenterLightBar = fBox( p - vec3( 0.0f, 7.4f, 0.0f ), vec3( 1.0f, 0.9f, 48.0f ) );
-	// sceneDist = min( dCenterLightBar, sceneDist );
-	// if ( sceneDist == dCenterLightBar && dCenterLightBar <=raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 2.0f );
+	// p = pCache;
+	// pModInterval1( p.x, 4.0f, -5, 5 );
+	// const float dLight = distance( p, vec3( 0.0f, 2.0f, 0.0f ) ) - 0.2f;
+	// sceneDist = min( dLight, sceneDist );
+	// if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 5.0f );
 	// 	hitPointSurfaceType = EMISSIVE;
 	// }
 
-	// const vec3 coolColor = 0.8f * pow( GetColorForTemperature( 1000000.0f ), vec3( 3.0f ) );
-	// const vec3 warmColor = 0.8f * pow( GetColorForTemperature( 1000.0f ), vec3( 1.2f ) );
-
-	// const float dSideLightBar1 = fBox( p - vec3( 7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
-	// sceneDist = min( dSideLightBar1, sceneDist );
-	// if ( sceneDist == dSideLightBar1 && dSideLightBar1 <= raymarchEpsilon ) {
-	// 	hitPointColor = coolColor;
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
-
-	// const float dSideLightBar2 = fBox( p - vec3( -7.5f, -0.4f, 0.0f ), vec3( 0.618f, 0.05f, 48.0f ) );
-	// sceneDist = min( dSideLightBar2, sceneDist );
-	// if ( sceneDist == dSideLightBar2 && dSideLightBar2 <= raymarchEpsilon ) {
-	// 	hitPointColor = warmColor;
-	// 	hitPointSurfaceType = EMISSIVE;
+	// p = pCache;
+	// const float dFractal = max( deOrganic3( p ), distance( p, vec3( 0.0f ) ) - 8.0f );
+	// sceneDist = min( dFractal, sceneDist );
+	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
+	// 	hitPointColor = vec3( 1.0f, 0.8f, 0.2f );
+	// 	hitPointSurfaceType = DIFFUSE;
 	// }
 
 	return sceneDist;
 }
+
 
 // ==============================================================================================
 // ray scattering functions
