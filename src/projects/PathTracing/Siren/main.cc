@@ -86,7 +86,8 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 16; // pretty artibtrary till I validate - tbd
+	// const uint32_t maxSpheres = 64; // pretty artibtrary till I validate - tbd
+	const uint32_t maxSpheres = 256;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -138,7 +139,7 @@ public:
 			// initialize the animation
 			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
 
-			InitSphereData( false ); // initialize the list of spheres
+			InitSphereData(); // initialize the list of spheres
 			glGenBuffers( 1, &sirenConfig.sphereSSBO ); // create the corresponding SSBO and populate it
 			SendSphereSSBO();
 		}
@@ -401,13 +402,15 @@ public:
 				ReloadDefaultConfig();
 			}
 
-			static bool shouldRelax = true;
 			if ( ImGui::Button( " Regen Sphere List " ) ) {
-				InitSphereData( shouldRelax );
+				InitSphereData();
 				SendSphereSSBO();
 			}
 			ImGui::SameLine();
-			ImGui::Checkbox( "Relax", &shouldRelax );
+			if ( ImGui::Button( " Relax Sphere List " ) ) {
+				SphereRelax();
+				SendSphereSSBO();
+			}
 
 			ImGui::Text( "Resolution" );
 			static int x = sirenConfig.targetWidth;
@@ -1070,8 +1073,8 @@ public:
 					float lengthDisplacement = glm::length( displacement );
 					if ( lengthDisplacement < combinedRadius ) {
 						const float offset = combinedRadius - lengthDisplacement;
-						sirenConfig.sphereLocationsPlusColors[ 2 * i ] = glm::vec4( sphereI.xyz() + ( offset / 2.0f ) * glm::normalize( displacement ), sphereI.w );
-						sirenConfig.sphereLocationsPlusColors[ 2 * j ] = glm::vec4( sphereJ.xyz() - ( offset / 2.0f ) * glm::normalize( displacement ), sphereJ.w );
+						sirenConfig.sphereLocationsPlusColors[ 2 * i ] = glm::vec4( sphereI.xyz() + ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereI.w );
+						sirenConfig.sphereLocationsPlusColors[ 2 * j ] = glm::vec4( sphereJ.xyz() - ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereJ.w );
 					}
 				}
 			}
