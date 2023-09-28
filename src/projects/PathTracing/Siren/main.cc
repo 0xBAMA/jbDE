@@ -1052,41 +1052,46 @@ public:
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c(), c(), p() ) ); // color
 		}
+		if ( relax ) {
+			SphereRelax();
+		}
+	}
 
-		// while ( 1 ) { // relaxation step
-		// 	// walk the list, repulstion force between pairs
-		// 	for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
-		// 		for ( uint j = i + 1; j < sirenConfig.maxSpheres; j++ ) {
-		// 			// sphere i and sphere j move slightly away from one another if intersecting
-		// 			vec4 sphereI = sirenConfig.sphereLocationsPlusColors[ 2 * i ];
-		// 			vec4 sphereJ = sirenConfig.sphereLocationsPlusColors[ 2 * j ];
-		// 			float combinedRadius = sphereI.w + sphereJ.w;
-		// 			vec3 displacement = sphereI.xyz() - sphereJ.xyz();
-		// 			if ( glm::length( displacement ) < combinedRadius ) {
-		// 				const float offset = combinedRadius - length( displacement ) ;
-		// 				sphereI = glm::vec4( sphereI.xyz() + ( offset / 2.0f ) * normalize( displacement ), sphereI.w );
-		// 				sphereJ = glm::vec4( sphereJ.xyz() - ( offset / 2.0f ) * normalize( displacement ), sphereJ.w );
-		// 			}
-		// 		}
-		// 	}
-
-		// 	// break out when there are no intersections
-		// 	bool existsIntersections = false;
-		// 	for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
-		// 		for ( uint j = i + 1; j < sirenConfig.maxSpheres; j++ ) {
-		// 			vec4 sphereI = sirenConfig.sphereLocationsPlusColors[ 2 * i ];
-		// 			vec4 sphereJ = sirenConfig.sphereLocationsPlusColors[ 2 * j ];
-		// 			float combinedRadius = sphereI.w + sphereJ.w;
-		// 			vec3 displacement = sphereI.xyz() - sphereJ.xyz();
-		// 			if ( glm::length( displacement ) < combinedRadius ) {
-		// 				existsIntersections = true;
-		// 			}
-		// 		}
-		// 	}
-
-		// 	// we have made sure nobody intersects
-		// 	if ( !existsIntersections ) break;
-		// }
+	void SphereRelax () {
+		int iterations = 0;
+		while ( 1 ) { // relaxation step
+			// walk the list, repulstion force between pairs
+			for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
+				for ( uint j = i + 1; j < sirenConfig.maxSpheres; j++ ) {
+					// sphere i and sphere j move slightly away from one another if intersecting
+					vec4 sphereI = sirenConfig.sphereLocationsPlusColors[ 2 * i ];
+					vec4 sphereJ = sirenConfig.sphereLocationsPlusColors[ 2 * j ];
+					float combinedRadius = sphereI.w + sphereJ.w;
+					vec3 displacement = sphereI.xyz() - sphereJ.xyz();
+					float lengthDisplacement = glm::length( displacement );
+					if ( lengthDisplacement < combinedRadius ) {
+						const float offset = combinedRadius - lengthDisplacement;
+						sirenConfig.sphereLocationsPlusColors[ 2 * i ] = glm::vec4( sphereI.xyz() + ( offset / 2.0f ) * glm::normalize( displacement ), sphereI.w );
+						sirenConfig.sphereLocationsPlusColors[ 2 * j ] = glm::vec4( sphereJ.xyz() - ( offset / 2.0f ) * glm::normalize( displacement ), sphereJ.w );
+					}
+				}
+			}
+			// break out when there are no intersections
+			bool existsIntersections = false;
+			for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
+				for ( uint j = i + 1; j < sirenConfig.maxSpheres; j++ ) {
+					vec4 sphereI = sirenConfig.sphereLocationsPlusColors[ 2 * i ];
+					vec4 sphereJ = sirenConfig.sphereLocationsPlusColors[ 2 * j ];
+					float combinedRadius = sphereI.w + sphereJ.w;
+					vec3 displacement = sphereI.xyz() - sphereJ.xyz();
+					if ( glm::length( displacement ) < combinedRadius ) {
+						existsIntersections = true;
+					}
+				}
+			}
+			// we have made sure nobody intersects, or something is hanging
+			if ( !existsIntersections || ( iterations++ == 10 ) ) break;
+		}
 	}
 
 	void SendSphereSSBO () {
