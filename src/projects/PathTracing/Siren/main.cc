@@ -138,7 +138,7 @@ public:
 			// initialize the animation
 			// InitiailizeAnimation( "src/projects/PathTracing/Siren/dummyAnimation.json" );
 
-			InitSphereData(); // initialize the list of spheres
+			InitSphereData( false ); // initialize the list of spheres
 			glGenBuffers( 1, &sirenConfig.sphereSSBO ); // create the corresponding SSBO and populate it
 			SendSphereSSBO();
 		}
@@ -1042,7 +1042,7 @@ public:
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 	}
 
-	void InitSphereData () {
+	void InitSphereData ( const bool relax ) {
 		sirenConfig.sphereLocationsPlusColors.clear();
 		rng c = rng( 1.5f, 2.9f );
 		rng o = rng( -0.3f, 0.5f );
