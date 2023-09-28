@@ -370,41 +370,44 @@ public:
 			// report number of complete passes, average tiles per second, average effective rays per second
 
 			ImGui::SeparatorText( " Controls " );
-			if ( ImGui::Button( "Linear Color EXR" ) ) {
+			if ( ImGui::Button( " Linear Color EXR " ) ) {
 			// EXR screenshot for linear color
 				ScreenShots( true, false, false, false );
 			}
 
 			ImGui::SameLine();
-			if ( ImGui::Button( "Normal/Depth EXR" ) ) {
+			if ( ImGui::Button( " Normal/Depth EXR " ) ) {
 			// EXR screenshot for normals/depth
 				ScreenShots( false, true, false, false );
 			}
 
 			ImGui::SameLine();
-			if ( ImGui::Button( "Tonemapped LDR PNG" ) ) {
+			if ( ImGui::Button( " Tonemapped LDR PNG " ) ) {
 			// PNG screenshot for tonemapped result
 				ScreenShots( false, false, true, false );
 			}
 
-			if ( ImGui::Button( "Reset Accumulators" ) ) {
+			if ( ImGui::Button( " Reset Accumulators " ) ) {
 				ResetAccumulators();
 			}
 
 			ImGui::SameLine();
-			if ( ImGui::Button( "Reload Shaders" ) ) {
+			if ( ImGui::Button( " Reload Shaders " ) ) {
 				ReloadShaders();
 			}
 
 			ImGui::SameLine();
-			if ( ImGui::Button( "Reload Config" ) ) {
+			if ( ImGui::Button( " Reload Config " ) ) {
 				ReloadDefaultConfig();
 			}
 
-			if ( ImGui::Button( "Regen Sphere List" ) ) {
-				InitSphereData();
+			static bool shouldRelax = true;
+			if ( ImGui::Button( " Regen Sphere List " ) ) {
+				InitSphereData( shouldRelax );
 				SendSphereSSBO();
 			}
+			ImGui::SameLine();
+			ImGui::Checkbox( "Relax", &shouldRelax );
 
 			ImGui::Text( "Resolution" );
 			static int x = sirenConfig.targetWidth;
