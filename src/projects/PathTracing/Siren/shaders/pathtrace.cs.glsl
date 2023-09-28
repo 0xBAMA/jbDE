@@ -1334,10 +1334,17 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( baseIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+
+				// adding noise to IOR? interesting idea, maybe, adds visual vaiations
+				// float IoRLocal = baseIOR + snoise3D( rayOrigin * 10.0f ) * 0.3f;
+				// bool cannotRefract = ( IoRLocal * sinTheta ) > 1.0f;
+				
+				// disabling this disables first surface reflections
 				// if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
 					// rayDirection = reflect( normalize( rayDirection ), result.normal );
 				// } else {
 					rayDirection = refract( normalize( rayDirection ), result.normal, baseIOR );
+					// rayDirection = refract( normalize( rayDirection ), result.normal, IoRLocal ); // for adding IOR noise
 				// }
 				break;
 			}
