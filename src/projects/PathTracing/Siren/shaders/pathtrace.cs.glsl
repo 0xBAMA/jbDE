@@ -820,54 +820,57 @@ float de ( vec3 p ) {
 		hitPointSurfaceType = DIFFUSE;
 	}
 
-	const float lightHeight = 7.8f;
-	const float lightDiameter = 3.0f;
-	const float lightRimDim = 0.1f;
+	const bool lights = true;
+	if ( lights ) {
+		const float lightHeight = 7.8f;
+		const float lightDiameter = 3.0f;
+		const float lightRimDim = 0.1f;
 
-	vec3 offset = p + vec3( 0.0f, lightHeight, 0.0f );
-	vec3 offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
+		vec3 offset = p + vec3( 0.0f, lightHeight, 0.0f );
+		vec3 offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
 
-	const float dLight1 = fCylinder( offset, lightDiameter, 0.1f );
-	const float dLight1Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
-	sceneDist = min( dLight1, sceneDist );
-	if ( sceneDist == dLight1 && dLight1 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.9f, 0.7f, 0.9f );
-		hitPointSurfaceType = EMISSIVE;
-	}
+		const float dLight1 = fCylinder( offset, lightDiameter, 0.1f );
+		const float dLight1Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
+		sceneDist = min( dLight1, sceneDist );
+		if ( sceneDist == dLight1 && dLight1 <= raymarchEpsilon ) {
+			hitPointColor = vec3( 0.9f, 0.7f, 0.9f );
+			hitPointSurfaceType = EMISSIVE;
+		}
 
-	pR( p.xy, 2.0f * PI / 3.0f );
-	offset = p + vec3( 0.0f, lightHeight, 0.0f );
-	offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
+		pR( p.xy, 2.0f * PI / 3.0f );
+		offset = p + vec3( 0.0f, lightHeight, 0.0f );
+		offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
 
-	const float dLight2 = fCylinder( offset, lightDiameter, 0.1f );
-	const float dLight2Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
-	sceneDist = min( dLight2, sceneDist );
-	if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
-		hitPointColor = GetColorForTemperature( 2000.0f ) * 3.3f;
-		hitPointSurfaceType = EMISSIVE;
-	}
+		const float dLight2 = fCylinder( offset, lightDiameter, 0.1f );
+		const float dLight2Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
+		sceneDist = min( dLight2, sceneDist );
+		if ( sceneDist == dLight2 && dLight2 <= raymarchEpsilon ) {
+			hitPointColor = GetColorForTemperature( 2000.0f ) * 3.3f;
+			hitPointSurfaceType = EMISSIVE;
+		}
 
-	pR( p.xy, 2.0f * PI / 3.0f );
-	offset = p + vec3( 0.0f, lightHeight, 0.0f );
-	offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
+		pR( p.xy, 2.0f * PI / 3.0f );
+		offset = p + vec3( 0.0f, lightHeight, 0.0f );
+		offsetH = p + vec3( 0.0f, lightHeight + lightRimDim, 0.0f );
 
-	const float dLight3 = fCylinder( offset, lightDiameter, 0.1f );
-	const float dLight3Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
-	sceneDist = min( dLight3, sceneDist );
-	if ( sceneDist == dLight3 && dLight3 <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.7f, 0.5f, 0.9f );
-		hitPointSurfaceType = EMISSIVE;
-	}
+		const float dLight3 = fCylinder( offset, lightDiameter, 0.1f );
+		const float dLight3Housing = fCylinder( offsetH, lightDiameter + lightRimDim, 0.15f );
+		sceneDist = min( dLight3, sceneDist );
+		if ( sceneDist == dLight3 && dLight3 <= raymarchEpsilon ) {
+			hitPointColor = vec3( 0.7f, 0.5f, 0.9f );
+			hitPointSurfaceType = EMISSIVE;
+		}
 
-	const float dLightHousing = min( min(
-		dLight1Housing,		// light 1
-		dLight2Housing ),	// light 2
-		dLight3Housing		// light 3
-	);
-	sceneDist = min( dLightHousing, sceneDist );
-	if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
-		hitPointColor = vec3( 0.618f );
-		hitPointSurfaceType = DIFFUSE;
+		const float dLightHousing = min( min(
+			dLight1Housing,		// light 1
+			dLight2Housing ),	// light 2
+			dLight3Housing		// light 3
+		);
+		sceneDist = min( dLightHousing, sceneDist );
+		if ( sceneDist == dLightHousing && dLightHousing <= raymarchEpsilon ) {
+			hitPointColor = vec3( 0.618f );
+			hitPointSurfaceType = DIFFUSE;
+		}
 	}
 
 	// const float dMarble1 = max( deFractal3( Rotate3D( -2.9f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.3f ) / 0.3f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
@@ -887,18 +890,21 @@ float de ( vec3 p ) {
 	// 	}
 	// }
 
-	// // marble 3
-	// // const float dMarble3 = max( deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
-	// const float dMarble3 = deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
-	// sceneDist = min( dMarble3, sceneDist );
-	// if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
-	// 	hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 	// hitPointSurfaceType = DIFFUSE;
-	// 	// hitPointColor = ( snoise3D( pCache * 10.0f + 3.0f * vec3( snoise3D( pCache * 2.0f ), snoise3D( pCache * 4.0f ), snoise3D( pCache * 3.0f ) ) ) > 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 0.2f, 0.618f, 0.3f );
-	// 	// hitPointColor = ( snoise3D( pCache * 10.0f + vec3( 2.0f * snoise3D( pCache * 2.0f ), 3.0f * snoise3D( pCache * 4.0f ), 4.0f * snoise3D( pCache * 3.0f ) ) ) < 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( snoise3D( pCache * 2.0f + vec3( snoise3D( pCache * 20.0f ) ) ), 0.1f, 0.3f );
-	// 	// hitPointColor.rgb = hitPointColor.rbg;
-	// 	hitPointColor = matWood( pCache );
-	// }
+	// marble 3
+	// const float dMarble3 = max( deOrganic3( Rotate3D( -0.5f, vec3( 0.2f, 1.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) ), distance( pCache, vec3( 2.0f, 0.1f, 0.0f ) ) - 4.9f );
+	const float dMarble3 = deOrganic( Rotate3D( -1.5f, vec3( 1.2f, 0.2f, 0.8f ) ) * ( ( pCache * 0.8f ) / 0.8f ) );
+	// const float dMarble3 = deOrganic( ( pCache * 0.8f ) / 0.8f );
+	sceneDist = min( dMarble3, sceneDist );
+	if ( sceneDist == dMarble3 && dMarble3 <= raymarchEpsilon ) {
+		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		// hitPointSurfaceType = MIRROR;
+		hitPointSurfaceType = WOOD;
+		// hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = ( snoise3D( pCache * 10.0f + 3.0f * vec3( snoise3D( pCache * 2.0f ), snoise3D( pCache * 4.0f ), snoise3D( pCache * 3.0f ) ) ) > 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( 0.2f, 0.618f, 0.3f );
+		// hitPointColor = ( snoise3D( pCache * 10.0f + vec3( 2.0f * snoise3D( pCache * 2.0f ), 3.0f * snoise3D( pCache * 4.0f ), 4.0f * snoise3D( pCache * 3.0f ) ) ) < 0.4f ) ? vec3( 0.793f, 0.793f, 0.664f ) : vec3( snoise3D( pCache * 2.0f + vec3( snoise3D( pCache * 20.0f ) ) ), 0.1f, 0.3f );
+		// hitPointColor.rgb = hitPointColor.rbg;
+		// hitPointColor = matWood( pCache );
+	}
 	return sceneDist;
 }
 
