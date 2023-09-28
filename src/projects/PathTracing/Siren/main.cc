@@ -1042,23 +1042,22 @@ public:
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 	}
 
-	void InitSphereData ( const bool relax ) {
+	void InitSphereData () {
 		sirenConfig.sphereLocationsPlusColors.clear();
-		rng c = rng( 1.5f, 2.9f );
+		rng c = rng( 0.1f, 1.0f );
 		rng o = rng( -0.3f, 0.5f );
-		rng r = rng( 0.01f, 0.23f );
+		rng r = rng( 0.01f, 0.13f );
 		rngi p = rngi( 1, 9 );
 		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c(), c(), p() ) ); // color
-		}
-		if ( relax ) {
-			SphereRelax();
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
 		}
 	}
 
 	void SphereRelax () {
+		rng o = rng( -0.1f, 0.1f );
 		int iterations = 0;
+		const int maxIterations = 100;
 		while ( 1 ) { // relaxation step
 			// walk the list, repulstion force between pairs
 			for ( uint i = 0; i < sirenConfig.maxSpheres; i++ ) {
@@ -1090,7 +1089,7 @@ public:
 				}
 			}
 			// we have made sure nobody intersects, or something is hanging
-			if ( !existsIntersections || ( iterations++ == 10 ) ) break;
+			if ( !existsIntersections || ( iterations++ == maxIterations ) ) break;
 		}
 	}
 
