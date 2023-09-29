@@ -669,6 +669,26 @@ float sdTerrain(vec3 p) {
 	return abs(p.y - h) * .6;
 }
 
+float dPlatformOverall ( vec3 p ) {
+	const float heightSplit = 5.0f;
+	float sceneDist = 10000.0f;
+
+	// floor/top rail
+	pModPolar( p.xz, 4 );
+	const float dFloor = fBox( p - vec3( 0.0f, -heightSplit, 0.0f ), vec3( 25.0f, 0.2f, 25.0f ) );
+	const float dTopRail = fBox( p - vec3( 23.0f, heightSplit, 0.0f ), vec3( 3.0f, 0.4f, 30.0f ) );
+
+	// pillars
+	pModInterval1( p.z, 3.0f, -8, 8 );
+	const float dPillars = fCylinder( p - vec3( 23.0f, 0.0f, 0.0f ), 0.618f, heightSplit - 0.1f );
+
+	// composite object
+	const float dPlatform = fOpUnionRound( dPillars, min( dFloor, dTopRail ), 0.5f );
+	sceneDist = min( dPlatform, sceneDist );
+
+	return sceneDist;
+}
+
 // ==============================================================================================
 // ==============================================================================================
 
@@ -709,42 +729,30 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
+	// cache initial point location
 	const vec3 pCache = p;
-
-	// floor / cieling
-	pMirror( p.y, 2.9f );
-	const float dBlocks = fBox( p, vec3( 25.0f, 0.2f, 10.0f ) );
-
-	// pillars
-	p = pCache;
-	pMirror( p.z, 6.0f );
-	pModInterval1( p.x, 2.0f, -12, 12 );
-	const float dPillars = fCylinder( p, 0.5f, 2.8f );
-
-	// composite object
-	const float dPlatform = fOpUnionRound( dPillars, dBlocks, 0.5f );
-	sceneDist = min( dPlatform, sceneDist );
-	if ( sceneDist == dPlatform && dPlatform <= raymarchEpsilon ) {
-		hitPointColor = vec3( 1.0f );
-		hitPointSurfaceType = WOOD;
-	}
-
-	// p = pCache;
-	// pModInterval1( p.x, 4.0f, -5, 5 );
-	// const float dLight = distance( p, vec3( 0.0f, 2.0f, 0.0f ) ) - 0.2f;
+	// const float dLight = fBox( p - vec3( 0.0f, 35.0f, 0.0f ), vec3( 25.0f, 0.05f, 25.0f ) );
 	// sceneDist = min( dLight, sceneDist );
 	// if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 5.0f );
+	// 	hitPointColor = vec3( 3.0f );
 	// 	hitPointSurfaceType = EMISSIVE;
 	// }
 
-	// p = pCache;
-	// const float dFractal = max( deOrganic3( p ), distance( p, vec3( 0.0f ) ) - 8.0f );
-	// sceneDist = min( dFractal, sceneDist );
-	// if ( sceneDist == dFractal && dFractal <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 1.0f, 0.8f, 0.2f );
-	// 	hitPointSurfaceType = DIFFUSE;
-	// }
+	// inner platform
+	const float dPlatform = dPlatformOverall( p - vec3( 0.0f, -10.0f, 0.0f ) );
+	sceneDist = min( dPlatform, sceneDist );
+	if ( sceneDist == dPlatform && dPlatform <= raymarchEpsilon ) {
+		hitPointSurfaceType = WOOD;
+	}
+
+	// outer frame
+	pModPolar( p.xz, 4 );
+	const float dFrame = deGrail( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * Rotate3D( PI, vec3( 0.0f, 1.0f, 0.0f ) ) * ( 0.3f * ( p - vec3( 35.0f, 16.0f, 0.0f ) ) ) ) / 0.3f;
+	sceneDist = min( dFrame, sceneDist );
+	if ( sceneDist == dFrame && dFrame <= raymarchEpsilon ) {
+		hitPointSurfaceType = WOOD;
+		// hitPointSurfaceType = MIRROR;
+	}
 
 	return sceneDist;
 }
