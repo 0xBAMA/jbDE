@@ -199,7 +199,7 @@ public:
 		}
 
 		// quaternion based rotation via retained state in the basis vectors - much easier to use than euler angles or the trident
-		const float scalar = shift ? 0.02f : 0.0005f;
+		const float scalar = shift ? 0.1f : 0.0005f;
 		if ( state[ SDL_SCANCODE_W ] ) {
 			glm::quat rot = glm::angleAxis( -scalar, sirenConfig.basisX ); // basisX is the axis, therefore remains untransformed
 			sirenConfig.basisY = ( rot * vec4( sirenConfig.basisY, 0.0f ) ).xyz();
