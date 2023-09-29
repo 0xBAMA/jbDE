@@ -324,6 +324,7 @@ This is a planning document for work on this project and in general, about the t
 			- Dither inside tile / mask / both
 			- Reset averaging ( sample count )
 			- Use std::vector + shuffle to on an array of floats cast to a byte array - make a mess of it, but check for NaN's in the data before re-sending to keep from having issues from that - set these values to either 1 or 0, based on some RNG
+	- [Cool sample on shadertoy](https://www.shadertoy.com/view/XtyXzW)
 
 --------------------------------------------------------------------------------------------------
 
