@@ -1196,12 +1196,12 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				// bool cannotRefract = ( IoRLocal * sinTheta ) > 1.0f;
 				
 				// disabling this disables first surface reflections
-				// if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
-					// rayDirection = reflect( normalize( rayDirection ), result.normal );
-				// } else {
+				if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
+					rayDirection = reflect( normalize( rayDirection ), result.normal );
+				} else {
 					rayDirection = refract( normalize( rayDirection ), result.normal, baseIOR );
 					// rayDirection = refract( normalize( rayDirection ), result.normal, IoRLocal ); // for adding IOR noise
-				// }
+				}
 				break;
 			}
 
