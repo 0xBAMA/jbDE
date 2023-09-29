@@ -198,6 +198,20 @@ vec3 matWood(vec3 p) {
 #undef sat
 #undef S
 #undef S01
+
+// other cool procedural materials to explore/learn from:
+// marble:
+	// https://www.shadertoy.com/view/MdXSzX
+	// https://www.shadertoy.com/view/3sfXzB
+	// https://www.shadertoy.com/view/XsKcRm
+	// https://www.shadertoy.com/view/Wd33Ws
+
+// stained surface
+	// https://www.shadertoy.com/view/7sVXWD
+	// https://www.shadertoy.com/view/Ntsczn
+	// https://www.shadertoy.com/view/WljSWz
+
+
 // ==============================================================================================
 
 float Reflectance ( const float cosTheta, const float IoR ) {
