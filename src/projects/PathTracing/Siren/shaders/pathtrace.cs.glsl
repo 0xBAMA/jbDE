@@ -1166,7 +1166,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				if ( NormalizedRandomFloat() < 0.01f ) { // mirror behavior
 					rayDirection = reflectedVector;
 				} else {
-					throughput *= matWood( rayOrigin );
+					throughput *= matWood( rayOrigin / 10.0f );
 					rayDirection = randomVectorDiffuse;
 				}
 				break;
