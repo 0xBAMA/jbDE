@@ -50,6 +50,8 @@ This is a planning document for work on this project and in general, about the t
 				- Really need to focus up and try to get through [vkGuide](https://vkguide.dev/) again at some point, see if I can follow along this time and lay the groundwork for this engine in Vulkan
 				- Resource from Renderdoc - ["Vulkan in 30 Minutes"](https://renderdoc.org/vulkan-in-30-minutes.html)
 				- [Vulkan all the way - Transitioning to modern low level graphics api in academia](https://www.sciencedirect.com/science/article/pii/S0097849323000249)
+				- [Vulkan Synchronization](https://themaister.net/blog/2019/08/14/yet-another-blog-explaining-vulkan-synchronization/)
+				- [Lesley's Article on Dynamic Rendering](https://lesleylai.info/en/vk-khr-dynamic-rendering/)
 			- Hardware Raytracing Experimentation, not possible with OpenGL
 		- More focus on cross-platform dev?
 			- These same driver issues do not exist when I run the existing NQADE/Voraldo13 code under windows on the new machine
@@ -562,6 +564,7 @@ This is a planning document for work on this project and in general, about the t
 - [UC Davis Computer Graphics](https://youtube.com/playlist?list=PL_w_qWAQZtAZhtzPI5pkAtcUVgmzdAP8g)
 - [TU Wien Intro to Computer Graphics](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3CLa2Kcffo4_EJeHCYj-AH)
 - [TU Wien Vulkan](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE0UsR2E_84-twxX6G7ynZNq)
+- [Other TU Wein Vulkan Lectures](https://youtube.com/playlist?list=PLmIqTlJ6KsE1Jx5HV4sd2jOe3V1KMHHgn)
 - [TU Wien Algorithms for Real-Time Rendering Course](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE1-jb7DF313E6MvLcpTLqgH)
 - [TU Wien Rendering](https://www.youtube.com/playlist?list=PLmIqTlJ6KsE3e8SQowQ-DjD1eZkBA_Xb9)
 - [CIS 565 GPU Programming and Architecture Fall 2021 University of Pennsylvania](https://cis565-fall-2021.github.io/) / [Videos](https://cis565-fall-2022.github.io/syllabus/)
