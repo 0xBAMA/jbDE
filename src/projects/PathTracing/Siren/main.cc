@@ -1047,13 +1047,28 @@ public:
 
 	void InitSphereData () {
 		sirenConfig.sphereLocationsPlusColors.clear();
-		rng c = rng( 0.1f, 1.0f );
-		rng o = rng( -0.3f, 0.5f );
-		rng r = rng( 0.01f, 0.13f );
-		rngi p = rngi( 1, 9 );
-		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
+		// rng c = rng( 0.3f, 1.0f );
+		// rng o = rng( -15.0f, 15.0f );
+		// rng y = rng( 0.0f, 15.0f );
+		// rng r = rng( 0.2f, 3.0f );
+		// // rngi p = rngi( 0, 1 );
+		// rng p = rng( 0.0f, 1.0f );
+		// for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
+		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), y(), o(), r() ) );	// position
+		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
+		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
+		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
+		// }
+
+		PerlinNoise p;
+		rng r = rng( 0.2f, 2.9f );
+		for ( int x = 0; x < 16; x++ ) {
+			for ( int y = 0; y < 16; y++ ) {
+				vec3 pos = vec3( RemapRange( x, 0, 15, -10.0f, 10.0f ), 5.0f, RemapRange( y, 0, 15, -10.0f, 10.0f ) );
+				sirenConfig.sphereLocationsPlusColors.push_back( vec4( pos, r() ) );	// position
+				// sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
+				sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p.noise( pos.x / 2.0f, pos.y / 2.0f, pos.z / 2.0f ) < 0.5f ) ? 9 : 7 ) ); // color
+			}
 		}
 	}
 
