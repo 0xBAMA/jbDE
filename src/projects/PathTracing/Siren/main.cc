@@ -481,9 +481,9 @@ public:
 		// rendering parameters
 			ImGui::SeparatorText( " Rendering " );
 			// view position - consider adding 3 component float input SliderFloat3
-			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -20.0f, 20.0f );
-			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -20.0f, 20.0f );
-			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -20.0f, 20.0f );
+			ImGui::SliderFloat( "Viewer X", &sirenConfig.viewerPosition.x, -40.0f, 40.0f );
+			ImGui::SliderFloat( "Viewer Y", &sirenConfig.viewerPosition.y, -40.0f, 40.0f );
+			ImGui::SliderFloat( "Viewer Z", &sirenConfig.viewerPosition.z, -40.0f, 40.0f );
 			ImGui::Text( "Basis Vectors:" );
 			ImGui::Text( " X: %.3f %.3f %.3f", sirenConfig.basisX.x, sirenConfig.basisX.y, sirenConfig.basisX.z );
 			ImGui::Text( " Y: %.3f %.3f %.3f", sirenConfig.basisY.x, sirenConfig.basisY.y, sirenConfig.basisY.z );
