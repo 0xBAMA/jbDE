@@ -1061,7 +1061,10 @@ public:
 	}
 
 	void InitSphereData () {
+		// clear it out
 		sirenConfig.sphereLocationsPlusColors.clear();
+
+		// first implementation, randomizing all parameters
 		// rng c = rng( 0.3f, 1.0f );
 		// rng o = rng( -15.0f, 15.0f );
 		// rng y = rng( 0.0f, 15.0f );
@@ -1075,15 +1078,42 @@ public:
 		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
 		// }
 
-		PerlinNoise p;
-		rng r = rng( 0.2f, 2.9f );
-		for ( int x = 0; x < 16; x++ ) {
-			for ( int y = 0; y < 16; y++ ) {
-				vec3 pos = vec3( RemapRange( x, 0, 15, -10.0f, 10.0f ), 5.0f, RemapRange( y, 0, 15, -10.0f, 10.0f ) );
-				sirenConfig.sphereLocationsPlusColors.push_back( vec4( pos, r() ) );	// position
-				// sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
-				sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p.noise( pos.x / 2.0f, pos.y / 2.0f, pos.z / 2.0f ) < 0.5f ) ? 9 : 7 ) ); // color
+
+		// jittered grid, noise informing material properties
+		// PerlinNoise p;
+		// rng r = rng( 0.2f, 2.9f );
+		// for ( int x = 0; x < 16; x++ ) {
+		// 	for ( int y = 0; y < 16; y++ ) {
+		// 		vec3 pos = vec3( RemapRange( x, 0, 15, -10.0f, 10.0f ), 5.0f, RemapRange( y, 0, 15, -10.0f, 10.0f ) );
+		// 		sirenConfig.sphereLocationsPlusColors.push_back( vec4( pos, r() ) );	// position
+		// 		// sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
+		// 		sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p.noise( pos.x / 2.0f, pos.y / 2.0f, pos.z / 2.0f ) < 0.5f ) ? 9 : 7 ) ); // color
+		// 	}
+		// }
+
+		// stochastic sphere packing, inside the volume
+		const vec3 min = vec3( -10.0f, -10.0f, -10.0f );
+		const vec3 max = vec3(  10.0f,  10.0f,  10.0f );
+		rng x = rng( min.x, max.x );
+		rng y = rng( min.y, max.y );
+		rng z = rng( min.z, max.z );
+		uint32_t maxIterations = 10;
+		float currentRadius = 2.5f;
+		rngi p = rngi( 1, 9 );
+		vec4 currentMaterial = vec4( 0.618f, 0.618f, 0.618f, p() );
+		while ( sirenConfig.sphereLocationsPlusColors.size() < sirenConfig.maxSpheres ) {
+			uint32_t iterations = maxIterations;
+			while ( iterations-- ) {
+				// generate point inside the parent cube
+				vec3 checkP = vec3( x(), y(), z() );
+				// check against parent cube
+					// if fully inside
+						// check against all other spheres with current radius value
+						// if there are no intersections, add it to the list with the current material
 			}
+			// if you've gone max iterations, time to halve the radius and double the max iteration count
+			currentRadius /= 2.0f;
+			maxIterations *= 2;
 		}
 	}
 
