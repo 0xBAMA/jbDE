@@ -208,6 +208,7 @@ vec3 matWood(vec3 p) {
 
 // stained surface
 	// https://www.shadertoy.com/view/7sVXWD
+	// https://www.shadertoy.com/view/7stSzl
 	// https://www.shadertoy.com/view/Ntsczn
 	// https://www.shadertoy.com/view/WljSWz
 
