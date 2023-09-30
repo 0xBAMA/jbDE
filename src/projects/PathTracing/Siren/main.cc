@@ -16,6 +16,11 @@ struct animation_t {
 	json animationData;
 };
 
+#define OUTPUT		0
+#define ACCUMULATOR	1
+#define NORMAL		2
+#define DEPTH		3
+
 // program parameters and state
 struct sirenConfig_t {
 	// performance settings / monitoring
@@ -27,6 +32,8 @@ struct sirenConfig_t {
 
 	// add time since last reset ( + report avg time per fullscreen pass )
 	std::chrono::time_point< std::chrono::steady_clock > tLastReset = std::chrono::steady_clock::now();
+
+	uint32_t outputMode = OUTPUT;
 
 	// renderer state
 	uint32_t tileSize;
@@ -295,19 +302,19 @@ public:
 			if ( ImGui::BeginTabBar( "Tab Bar Parent", ImGuiTabBarFlags_None ) ) {
 				// e.g. this branch will set whatever state for element 1, e.g. color
 				if ( ImGui::BeginTabItem( " Output Color " ) ) {
-					// set state to show color
-					ImGui::EndTabItem();
-				}
-				if ( ImGui::BeginTabItem( " Normal " ) ) {
-					// set state to show normals
-					ImGui::EndTabItem();
-				}
-				if ( ImGui::BeginTabItem( " Depth " ) ) {
-					// set state to show depth
+					sirenConfig.outputMode = OUTPUT;
 					ImGui::EndTabItem();
 				}
 				if ( ImGui::BeginTabItem( " Accumulator " ) ) {
-					// show the accumulator contents
+					sirenConfig.outputMode = ACCUMULATOR;
+					ImGui::EndTabItem();
+				}
+				if ( ImGui::BeginTabItem( " Normal " ) ) {
+					sirenConfig.outputMode = NORMAL;
+					ImGui::EndTabItem();
+				}
+				if ( ImGui::BeginTabItem( " Depth " ) ) {
+					sirenConfig.outputMode = DEPTH;
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
@@ -717,6 +724,7 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
 			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth + 2, sirenConfig.targetHeight + 2 );
 			glUniform3fv( glGetUniformLocation( shader, "bgColor" ), 1,					glm::value_ptr( sirenConfig.backgroundColor ) );
+			glUniform1i( glGetUniformLocation( shader, "activeMode" ),					sirenConfig.outputMode );
 
 			glDispatchCompute( ( ( sirenConfig.targetWidth + 2 ) + 15 ) / 16, ( ( sirenConfig.targetHeight + 2 ) + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

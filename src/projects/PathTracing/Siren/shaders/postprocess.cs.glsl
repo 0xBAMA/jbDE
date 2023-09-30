@@ -25,6 +25,13 @@ bool inBounds ( in ivec2 loc ) {
 	// return !( fLoc.x < 0.0f || fLoc.y < 0.0f || fLoc.x > 1.0f || fLoc.y > 1.0f );
 }
 
+#define OUTPUT		0
+#define ACCUMULATOR	1
+#define NORMAL		2
+#define DEPTH		3
+
+uniform int activeMode;
+
 void main () {
 
 	// there is something wrong with the sampling here - I'm not sure exactly what it is
@@ -32,13 +39,35 @@ void main () {
 
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy ) - ivec2( 1 );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
-	vec4 originalValue = texture( sourceC, sampleLoc );
-	vec4 originalDepth = texture( sourceDN, sampleLoc );
+	vec4 originalValue;
 
-	originalValue.rgb = saturation * originalValue.rgb;
-	originalValue.rgb = colorTempAdjust * originalValue.rgb;
-	originalValue.rgb = Tonemap( tonemapMode, originalValue.rgb );
-	originalValue.rgb = GammaCorrect( gamma, originalValue.rgb );
+	switch ( activeMode ) {
+		case OUTPUT:
+			originalValue = texture( sourceC, sampleLoc );
+			originalValue.rgb = saturation * originalValue.rgb;
+			originalValue.rgb = colorTempAdjust * originalValue.rgb;
+			originalValue.rgb = Tonemap( tonemapMode, originalValue.rgb );
+			originalValue.rgb = GammaCorrect( gamma, originalValue.rgb );
+			break;
+
+		case ACCUMULATOR:
+			originalValue = texture( sourceC, sampleLoc );
+			break;
+
+		case NORMAL:
+			originalValue = texture( sourceDN, sampleLoc );
+			break;
+
+		case DEPTH:
+			originalValue.rgb = vec3( 5.0f / texture( sourceDN, sampleLoc ).a );
+			break;
+
+		default:
+			originalValue.rgb = vec3( 0.0f );
+			break;
+	}
+
+	originalValue.a = 1.0f;
 
 	if ( inBounds( loc ) ) {
 		imageStore( displayTexture, loc, originalValue );
