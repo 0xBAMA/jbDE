@@ -9,6 +9,7 @@ layout( rgba8 ) uniform image2D displayTexture;
 
 uniform int tonemapMode;
 uniform float gamma;
+uniform float postExposure;
 uniform mat3 saturation;
 uniform vec3 colorTempAdjust;
 uniform vec2 resolution;
@@ -44,7 +45,7 @@ void main () {
 
 	switch ( activeMode ) {
 		case OUTPUT:
-			originalValue = texture( sourceC, sampleLoc );
+			originalValue = postExposure * texture( sourceC, sampleLoc );
 			originalValue.rgb = saturation * originalValue.rgb;
 			originalValue.rgb = colorTempAdjust * originalValue.rgb;
 			originalValue.rgb = Tonemap( tonemapMode, originalValue.rgb );
@@ -64,7 +65,7 @@ void main () {
 			break;
 
 		case DEPTH:
-			originalValue.rgb = vec3( 5.0f / texture( sourceDN, sampleLoc ).a );
+			originalValue.rgb = vec3( postExposure / texture( sourceDN, sampleLoc ).a );
 			break;
 
 		default: // no

@@ -98,6 +98,7 @@ void engineBase::TonemapControlsWindow () {
 	};
 	ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
 	ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
+	ImGui::SliderFloat( "PostExposure", &tonemap.postExposure, 0.0f, 5.0f );
 	ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
 	ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
 	ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );

@@ -7,6 +7,7 @@ layout( binding = 1, rgba8ui ) uniform uimage2D displayTexture;
 
 uniform int tonemapMode;
 uniform float gamma;
+uniform float postExposure;
 uniform mat3 saturation;
 uniform vec3 colorTempAdjust;
 
@@ -14,7 +15,7 @@ void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 
 	// temporary hack for inverted image
-	vec4 originalValue = imageLoad( source, ivec2( loc.x, imageSize( source ).y - loc.y - 1 ) );
+	vec4 originalValue = postExposure * imageLoad( source, ivec2( loc.x, imageSize( source ).y - loc.y - 1 ) );
 
 	vec3 color = Tonemap( tonemapMode, colorTempAdjust * ( saturation * originalValue.rgb ) );
 	color = GammaCorrect( gamma, color );

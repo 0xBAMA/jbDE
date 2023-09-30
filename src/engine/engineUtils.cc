@@ -47,6 +47,7 @@ void engineBase::SendTonemappingParameters () {
 	glUniform3fv( glGetUniformLocation( shader, "colorTempAdjust" ), 1, glm::value_ptr( temperatureColor ) );
 	glUniform1i( glGetUniformLocation( shader, "tonemapMode" ), tonemap.tonemapMode );
 	glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
+	glUniform1f( glGetUniformLocation( shader, "postExposure" ), tonemap.postExposure );
 	glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false, glm::value_ptr( saturationMatrix ) );
 }
 

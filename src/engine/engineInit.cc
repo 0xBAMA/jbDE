@@ -58,6 +58,7 @@ void engineBase::TonemapDefaults () {
 	tonemap.showTonemapWindow		= j[ "colorGrade" ][ "showTonemapWindow" ];
 	tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
 	tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
+	tonemap.postExposure			= j[ "colorGrade" ][ "postExposure" ];
 	tonemap.saturation				= j[ "colorGrade" ][ "saturation" ];
 	tonemap.saturationImprovedWeights = j[ "colorGrade" ][ "saturationImprovedWeights" ];
 	tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];

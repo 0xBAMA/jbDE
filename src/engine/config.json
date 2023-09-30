@@ -37,6 +37,7 @@
 		"showTonemapWindow":true,
 		"tonemapMode":6,
 		"gamma":1.337,
+		"postExposure":1.0,
 		"saturation":1.0,
 		"saturationImprovedWeights":true,
 		"colorTemp":6500.0

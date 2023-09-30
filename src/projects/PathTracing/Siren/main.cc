@@ -555,6 +555,7 @@ public:
 			};
 			ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
 			ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
+			ImGui::SliderFloat( "PostExposure", &tonemap.postExposure, 0.0f, 5.0f );
 			ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
 			ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
 			ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
@@ -727,6 +728,7 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "tonemapMode" ),					tonemap.tonemapMode );
 			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
+			glUniform1f( glGetUniformLocation( shader, "postExposure" ),				tonemap.postExposure );
 			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth + 2, sirenConfig.targetHeight + 2 );
 			glUniform3fv( glGetUniformLocation( shader, "bgColor" ), 1,					glm::value_ptr( sirenConfig.backgroundColor ) );
 			glUniform1i( glGetUniformLocation( shader, "activeMode" ),					sirenConfig.outputMode );
