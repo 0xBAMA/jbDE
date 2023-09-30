@@ -612,7 +612,7 @@ public:
 		}
 
 		if ( tonemappedResult == true ) {
-			const string filename = string( "Tonemapped-" ) + timeDateString() + string( ".png" );
+			const string filename = string( "Output-" ) + timeDateString() + string( ".png" );
 			ColorScreenShotWithFilename( filename );
 		}
 
