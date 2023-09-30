@@ -1285,7 +1285,8 @@ void main () {
 		ray r = getCameraRayForUV( uvRemapped );
 
 		// this is a little bit redundant, need to maybe revisit at some point
-		const float hitDistance = GetNearestSceneIntersection( r.origin, r.direction ).dTravel;
+		sceneIntersection s = GetNearestSceneIntersection( r.origin, r.direction );
+		const float hitDistance = s.dTravel;
 		const vec3 hitPoint = r.origin + hitDistance * r.direction;
 
 		// existing values from the buffers
@@ -1297,7 +1298,7 @@ void main () {
 
 		// new values - raymarch pathtrace
 		const vec4 newColor = vec4( ColorSample( uvRemapped ), 1.0f );
-		const vec4 newNormalD = vec4( Normal( hitPoint ), hitDistance );
+		const vec4 newNormalD = vec4( s.normal, hitDistance );
 
 		// blended with history based on sampleCount
 		const float mixFactor = 1.0f / sampleCount;
