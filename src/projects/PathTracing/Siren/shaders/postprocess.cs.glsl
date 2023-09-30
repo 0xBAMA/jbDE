@@ -28,7 +28,8 @@ bool inBounds ( in ivec2 loc ) {
 #define OUTPUT		0
 #define ACCUMULATOR	1
 #define NORMAL		2
-#define DEPTH		3
+#define NORMALR		3
+#define DEPTH		4
 
 uniform int activeMode;
 
@@ -58,11 +59,15 @@ void main () {
 			originalValue = texture( sourceDN, sampleLoc );
 			break;
 
+		case NORMALR:
+			originalValue.rgb = 0.5f * texture( sourceDN, sampleLoc ).xyz + vec3( 0.5f );
+			break;
+
 		case DEPTH:
 			originalValue.rgb = vec3( 5.0f / texture( sourceDN, sampleLoc ).a );
 			break;
 
-		default:
+		default: // no
 			originalValue.rgb = vec3( 0.0f );
 			break;
 	}

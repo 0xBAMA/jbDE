@@ -19,7 +19,8 @@ struct animation_t {
 #define OUTPUT		0
 #define ACCUMULATOR	1
 #define NORMAL		2
-#define DEPTH		3
+#define NORMALR		3
+#define DEPTH		4
 
 // program parameters and state
 struct sirenConfig_t {
@@ -311,6 +312,10 @@ public:
 				}
 				if ( ImGui::BeginTabItem( " Normal " ) ) {
 					sirenConfig.outputMode = NORMAL;
+					ImGui::EndTabItem();
+				}
+				if ( ImGui::BeginTabItem( " Normal (Remapped) " ) ) {
+					sirenConfig.outputMode = NORMALR;
 					ImGui::EndTabItem();
 				}
 				if ( ImGui::BeginTabItem( " Depth " ) ) {
