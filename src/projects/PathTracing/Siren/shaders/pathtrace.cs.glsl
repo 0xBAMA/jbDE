@@ -694,6 +694,39 @@ float dPlatformOverall ( vec3 p ) {
 	return sceneDist;
 }
 
+// #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+// #define sabs(x)sqrt((x)*(x)+.005)
+// #define sabs2(x)sqrt((x)*(x)+1e-4)
+// #define smax(a,b) (a+b+sabs2(a-b))*.5
+// void sfold90(inout vec2 p){
+//     p=(p.x+p.y+vec2(1,-1)*sabs(p.x-p.y))*.5;
+// }
+// float de ( vec3 p ) {
+//     vec3 q=p;
+//     p=abs(p)-4.;
+//     sfold90(p.xy);
+//     sfold90(p.yz);
+//     sfold90(p.zx);
+// 	float s=2.5;
+// 	p=sabs(p);
+// 	vec3  p0 = p*1.5;
+// 	for (float i=0.; i<4.; i++){
+//     	p=1.-sabs2(sabs2(p-2.)-1.); 
+//     	float g=-5.5*clamp(.7*smax(1.6/dot(p,p),.7),.0,5.5);
+//     	p*=g;
+//     	p+=p0+normalize(vec3(1,5,12))*(5.-.8*i);
+//         s*=g;
+// 	}
+// 	s=sabs(s);
+// 	float a=25.;
+// 	p-=clamp(p,-a,a);
+// 	q=abs(q)-vec3(3.7);
+//     sfold90(q.xy);
+//     sfold90(q.yz);
+//     sfold90(q.zx);
+//   	return smax(max(abs(q.y),abs(q.z))-1.3,length(p)/s-.00);
+// }
+
 // ==============================================================================================
 // ==============================================================================================
 
