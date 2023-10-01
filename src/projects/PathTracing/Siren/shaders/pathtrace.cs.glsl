@@ -711,9 +711,8 @@ float dPlatformOverall ( vec3 p ) {
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
 	// objects shouldn't have this material, it is used in the explicit intersection logic / bounce behavior
-#define REFRACTIVE_BACKFACE			11
-#define REFRACTIVE_FROSTED_BACKFACE	12
-
+#define REFRACTIVE_BACKFACE			100
+#define REFRACTIVE_FROSTED_BACKFACE	101
 
 float baseIOR = 1.0f / 1.4f;
 // float baseIOR = 1.4f;
