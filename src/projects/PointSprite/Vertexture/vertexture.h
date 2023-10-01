@@ -420,6 +420,72 @@ void APIGeometryContainer::Initialize () {
 			}
 		}
 
+			// for ( uint i = 0; i < points.size(); i++ ) {
+			// 	point_t p = points[ i ];
+			// 	p.position = p.position * 5.0f;
+			// 	points.push_back( p );
+			// 	resources.numPointsStaticSpheres++;
+			// 	cout << "position is " << p.position.x << " " << p.position.y << " " << p.position.z << ", radius is " << p.position.a << endl;
+			// }
+
+// /*
+		{
+			// stochastic sphere packing, inside the volume
+			std::vector< point_t > temp;
+			vec3 min = vec3( -3.0f, -0.5f, -1.0f );
+			vec3 max = vec3(  3.0f,  0.5f,  1.0f );
+			uint32_t maxIterations = 500;
+			uint32_t maxSpheres = 1000;
+			float currentRadius = 0.5f;
+			float paletteRefVal = 1.0f;
+			vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal ), 0.0f );
+			while ( temp.size() < maxSpheres ) {
+				rng x = rng( min.x + currentRadius, max.x - currentRadius );
+				rng y = rng( min.y + currentRadius, max.y - currentRadius );
+				rng z = rng( min.z + currentRadius, max.z - currentRadius );
+				uint32_t iterations = maxIterations;
+				while ( iterations-- ) {
+					// generate point inside the parent cube
+					vec3 checkP = vec3( x(), y(), z() );
+					// check for intersection against all other spheres
+					bool foundIntersection = false;
+					for ( uint idx = 0; idx < temp.size(); idx++ ) {
+						vec4 otherSphere = temp[ idx ].position;
+						if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
+							// cout << "intersection found in iteration " << iterations << endl;
+							foundIntersection = true;
+							break;
+						}
+					}
+					// if there are no intersections, add it to the list with the current material
+					if ( !foundIntersection && temp.size() < maxSpheres ) {
+						// cout << "adding sphere, " << currentRadius << " " << temp.size() << " / " << maxSpheres << endl;
+						point_t p;
+						p.color = currentMaterial;
+						p.position = vec4( checkP, currentRadius );
+						temp.push_back( p );
+					}
+				}
+				// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
+				currentMaterial = vec4( palette::paletteRef( paletteRefVal ), 2 );
+				paletteRefVal /= 1.618f;
+				currentRadius /= 1.618f;
+				maxIterations *= 3;
+				min.y /= 1.5f;
+				max.y /= 1.5f;
+			}
+
+			// pull this data from temp, into the buffer array
+			for ( uint i = 0; i < temp.size(); i++ ) {
+				point_t p = temp[ i ];
+				p.position = vec4( p.position.xyz() / 5.0f, p.position.a * 256.0f );
+				points.push_back( p );
+				resources.numPointsStaticSpheres++;
+				// cout << "position is " << p.position.x << " " << p.position.y << " " << p.position.z << ", radius is " << p.position.a << endl;
+			}
+		}
+// */
+
 		// also: this SSBO is required for the deferred usage, since I'm doing now is essentially a visibility buffer
 
 		GLuint ssbo;
