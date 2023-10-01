@@ -771,7 +771,7 @@ float de ( vec3 p ) {
 	const float dLight = fBox( p - vec3( 0.0f, 35.0f, 0.0f ), vec3( 25.0f, 0.05f, 25.0f ) );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		hitPointColor = vec3( 3.0f );
+		hitPointColor = vec3( 2.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
@@ -992,21 +992,15 @@ struct sceneIntersection {
 };
 
 sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction ) {
-	// eventually, walk a list of primitives
-	int r;
-	const float radius = 3.0f;
-	const float offset = 1.0f;
 	// something's wrong here, I can't seem to get the behavior I'm wanting from the intersection of two spheres
 	// return opIntersection( IntersectSphere( origin, direction, vec3( offset, 0.0f, 0.0f ), radius ), IntersectSphere( origin, direction, vec3( -offset, 0.0f, 0.0f ), radius ), r );
-
-	// not getting good hits from this yet
-	// return IntersectBox( origin, direction, vec3( 2.0f ) );
 
 	Intersection iResult = kEmpty;
 	int indexOfHit = -1;
 	float nearestOverallHit = 1000000.0f;
 	for ( int i = 0; i < numSpheres; i++ ) {
 		Intersection current = IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
+		// Intersection current = ( i % 2 == 0 ) ? IntersectBox( origin, direction, spheres[ i ].positionRadius.xyz, vec3( spheres[ i ].positionRadius.w ) ) : IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
 		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;
 		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
 		if ( currentNearestPositive == nearestOverallHit ) {
