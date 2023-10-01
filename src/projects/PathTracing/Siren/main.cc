@@ -416,11 +416,13 @@ public:
 			if ( ImGui::Button( " Regen Sphere List " ) ) {
 				InitSphereData();
 				SendSphereSSBO();
+				ResetAccumulators();
 			}
 			ImGui::SameLine();
 			if ( ImGui::Button( " Relax Sphere List " ) ) {
 				SphereRelax();
 				SendSphereSSBO();
+				ResetAccumulators();
 			}
 
 			ImGui::Text( "Resolution" );
