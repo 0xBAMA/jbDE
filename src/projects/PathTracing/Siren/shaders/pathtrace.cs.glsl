@@ -965,12 +965,6 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	// not getting good hits from this yet
 	// return IntersectBox( origin, direction, vec3( 2.0f ) );
 
-	vec4 sphereParameters[] = {
-		vec4( 2.0f, 0.1f, 0.0f, 5.0f ),
-		vec4( 2.0f, 0.1f, 0.0f, 1.5f ),
-		vec4( 0.0f, 0.2f, 1.3f, 0.7f )
-	};
-
 	Intersection iResult = kEmpty;
 	int indexOfHit = -1;
 	float nearestOverallHit = 1000000.0f;
