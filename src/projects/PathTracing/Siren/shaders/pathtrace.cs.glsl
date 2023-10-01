@@ -732,12 +732,12 @@ float de ( vec3 p ) {
 
 	// cache initial point location
 	const vec3 pCache = p;
-	// const float dLight = fBox( p - vec3( 0.0f, 35.0f, 0.0f ), vec3( 25.0f, 0.05f, 25.0f ) );
-	// sceneDist = min( dLight, sceneDist );
-	// if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-	// 	hitPointColor = vec3( 3.0f );
-	// 	hitPointSurfaceType = EMISSIVE;
-	// }
+	const float dLight = fBox( p - vec3( 0.0f, 35.0f, 0.0f ), vec3( 25.0f, 0.05f, 25.0f ) );
+	sceneDist = min( dLight, sceneDist );
+	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
+		hitPointColor = vec3( 3.0f );
+		hitPointSurfaceType = EMISSIVE;
+	}
 
 	// inner platform
 	const float dPlatform = dPlatformOverall( p - vec3( 0.0f, -10.0f, 0.0f ) );
