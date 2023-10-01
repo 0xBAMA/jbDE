@@ -42,7 +42,11 @@ uniform float raymarchUnderstep;
 uniform vec3 skylightColor;
 
 // CPU-generated sphere array
-const int numSpheres = 256;
+	// I want to generalize this:
+		// primitive type
+		// primitive parameters
+		// material details
+const int numSpheres = 1000;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
