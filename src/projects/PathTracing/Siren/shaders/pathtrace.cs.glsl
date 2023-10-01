@@ -873,26 +873,27 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 }
 
 // broken for some reason, tbd
-// Intersection IntersectBox ( in vec3 origin, in vec3 direction, in vec3 size ) {
-// 	vec3 m = 1.0f / direction;
-// 	vec3 k = vec3( direction.x >= 0.0f ? size.x : -size.x, direction.y >= 0.0f ? size.y : -size.y, direction.z >= 0.0f ? size.z : -size.z );
-// 	vec3 t1 = ( -origin - k ) * m;
-// 	vec3 t2 = ( -origin + k ) * m;
-// 	float tN = max( max( t1.x, t1.y ), t1.z );
-// 	float tF = min( min( t2.x, t2.y ), t2.z );
-// 	if ( tN > tF || tF < 0.0f ) return kEmpty;
-// 	return Intersection(
-// 		vec4( tN, normalize( -sign( direction ) * step( vec3( tN ), t1 ) ) ),
-// 		vec4( tF, normalize( -sign( direction ) * step( t2, vec3( tF ) ) ) ) );
-// }
+Intersection IntersectBox ( in vec3 origin, in vec3 direction, in vec3 center, in vec3 size ) {
+	vec3 oc = origin - center;
+	vec3 m = 1.0f / direction;
+	vec3 k = vec3( direction.x >= 0.0f ? size.x : -size.x, direction.y >= 0.0f ? size.y : -size.y, direction.z >= 0.0f ? size.z : -size.z );
+	vec3 t1 = ( -oc - k ) * m;
+	vec3 t2 = ( -oc + k ) * m;
+	float tN = max( max( t1.x, t1.y ), t1.z );
+	float tF = min( min( t2.x, t2.y ), t2.z );
+	if ( tN > tF || tF < 0.0f ) return kEmpty;
+	return Intersection(
+		vec4( tN, normalize( -sign( direction ) * step( vec3( tN ), t1 ) ) ),
+		vec4( tF, normalize( -sign( direction ) * step( t2, vec3( tF ) ) ) ) );
+}
 
 // just solve for t, < ro+t*d, nor > - k = 0
 Intersection iPlane ( in vec3 ro, in vec3 rd, vec4 pla ) {
-	float k1 = dot(ro, pla.xyz);
-	float k2 = dot(rd, pla.xyz);
-	float t = (pla.w-k1)/k2;
-	vec2 ab = (k2>0.0) ? vec2( t, 1e20 ) : vec2( -1e20, t );
-	return Intersection( vec4(ab.x, -pla.xyz), vec4(ab.y, pla.xyz) );
+	float k1 = dot( ro, pla.xyz );
+	float k2 = dot( rd, pla.xyz );
+	float t = ( pla.w - k1 ) / k2;
+	vec2 ab = ( k2 > 0.0f ) ? vec2( t, 1e20f ) : vec2( -1e20f, t );
+	return Intersection( vec4( ab.x, -pla.xyz ), vec4( ab.y, pla.xyz ) );
 }
 
 
