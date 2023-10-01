@@ -94,7 +94,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 20000;
+	const uint32_t maxSpheres = 1000;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1065,6 +1065,9 @@ public:
 		// clear it out
 		sirenConfig.sphereLocationsPlusColors.clear();
 
+		// pick new palette
+		palette::PickRandomPalette( true );
+
 		// first implementation, randomizing all parameters
 		// rng c = rng( 0.3f, 1.0f );
 		// rng o = rng( -15.0f, 15.0f );
@@ -1093,13 +1096,13 @@ public:
 		// }
 
 		// stochastic sphere packing, inside the volume
-		const vec3 min = vec3( -2.0f, -0.5f, -2.0f );
-		const vec3 max = vec3(  2.0f,  0.5f,  2.0f );
+		vec3 min = vec3( -3.0f, -0.5f, -1.0f );
+		vec3 max = vec3(  3.0f,  0.5f,  1.0f );
 		uint32_t maxIterations = 500;
 		float currentRadius = 0.5f;
-		rngi p = rngi( 1, 9 );
-		vec4 currentMaterial = vec4( 0.618f, 0.618f, 0.618f, p() );
-		while ( sirenConfig.sphereLocationsPlusColors.size() < sirenConfig.maxSpheres ) {
+		float paletteRefVal = 1.0f;
+		vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal ), 2 );
+		while ( ( sirenConfig.sphereLocationsPlusColors.size() / 2 ) < sirenConfig.maxSpheres ) {
 			rng x = rng( min.x + currentRadius, max.x - currentRadius );
 			rng y = rng( min.y + currentRadius, max.y - currentRadius );
 			rng z = rng( min.z + currentRadius, max.z - currentRadius );
@@ -1125,10 +1128,21 @@ public:
 				}
 			}
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
-			currentRadius /= 1.618f;
-			maxIterations *= 3;
-			currentMaterial = vec4( currentRadius, currentRadius, currentRadius, 2 );
+				currentMaterial = vec4( palette::paletteRef( paletteRefVal ), 2 );
+				paletteRefVal /= 1.618f;
+				currentRadius /= 1.618f;
+				maxIterations *= 3;
+				
+				// doing this makes it pack flat
+				// min.y /= 1.5f;
+				// max.y /= 1.5f;
+
+				// slowly shrink bounds to accentuate the earlier placed spheres
+				min *= 0.95f;
+				max *= 0.95f;
 		}
+
+		// generate 50 extra, and then pop 50 off the front - will create cavities where some of the earliest, largest spheres are
 	}
 
 	void SphereRelax () {
