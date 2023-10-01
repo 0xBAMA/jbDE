@@ -22,7 +22,7 @@
 	"SDL_WINDOW_BORDERLESS":false,
 	"SDL_WINDOW_RESIZABLE":true,
 	"SDL_WINDOW_INPUT_GRABBED":false,
-	"loadDataResources":false,
+	"loadDataResources":true,
 	"clearColor":{
 		"r":0.0,
 		"g":0.0,
@@ -84,9 +84,9 @@
 		"ProjectedFramebuffers":{
 			"showTrident":false,
 			"showTiming":false,
-			"Lights":64,
-			"Lights Min Brightness":0.005,
-			"Lights Max Brightness":0.020,
+			"Lights":256,
+			"Lights Min Brightness":0.10,
+			"Lights Max Brightness":0.30,
 			"Guys":0,
 			"ShowLightDebugLocations":false,
 			"worldX":1.6,
