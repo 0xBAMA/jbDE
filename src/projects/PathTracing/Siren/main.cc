@@ -94,8 +94,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	// const uint32_t maxSpheres = 64; // pretty artibtrary till I validate - tbd
-	const uint32_t maxSpheres = 256;
+	const uint32_t maxSpheres = 20000;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1092,28 +1091,41 @@ public:
 		// }
 
 		// stochastic sphere packing, inside the volume
-		const vec3 min = vec3( -10.0f, -10.0f, -10.0f );
-		const vec3 max = vec3(  10.0f,  10.0f,  10.0f );
-		rng x = rng( min.x, max.x );
-		rng y = rng( min.y, max.y );
-		rng z = rng( min.z, max.z );
-		uint32_t maxIterations = 10;
-		float currentRadius = 2.5f;
+		const vec3 min = vec3( -2.0f, -0.5f, -2.0f );
+		const vec3 max = vec3(  2.0f,  0.5f,  2.0f );
+		uint32_t maxIterations = 500;
+		float currentRadius = 0.5f;
 		rngi p = rngi( 1, 9 );
 		vec4 currentMaterial = vec4( 0.618f, 0.618f, 0.618f, p() );
 		while ( sirenConfig.sphereLocationsPlusColors.size() < sirenConfig.maxSpheres ) {
+			rng x = rng( min.x + currentRadius, max.x - currentRadius );
+			rng y = rng( min.y + currentRadius, max.y - currentRadius );
+			rng z = rng( min.z + currentRadius, max.z - currentRadius );
 			uint32_t iterations = maxIterations;
 			while ( iterations-- ) {
 				// generate point inside the parent cube
 				vec3 checkP = vec3( x(), y(), z() );
-				// check against parent cube
-					// if fully inside
-						// check against all other spheres with current radius value
-						// if there are no intersections, add it to the list with the current material
+				// check for intersection against all other spheres
+				bool foundIntersection = false;
+				for ( uint idx = 0; idx < sirenConfig.sphereLocationsPlusColors.size() / 2; idx++ ) {
+					vec4 otherSphere = sirenConfig.sphereLocationsPlusColors[ 2 * idx ];
+					if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
+						// cout << "intersection found in iteration " << iterations << endl;
+						foundIntersection = true;
+						break;
+					}
+				}
+				// if there are no intersections, add it to the list with the current material
+				if ( !foundIntersection ) {
+					// cout << "adding sphere, " << currentRadius << endl;
+					sirenConfig.sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
+					sirenConfig.sphereLocationsPlusColors.push_back( currentMaterial );
+				}
 			}
-			// if you've gone max iterations, time to halve the radius and double the max iteration count
-			currentRadius /= 2.0f;
-			maxIterations *= 2;
+			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
+			currentRadius /= 1.618f;
+			maxIterations *= 3;
+			currentMaterial = vec4( currentRadius, currentRadius, currentRadius, 2 );
 		}
 	}
 
