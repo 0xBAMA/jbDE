@@ -440,8 +440,8 @@ void APIGeometryContainer::InitReport () {
 	cout << "\nVertexture2 Init Complete:\n";
 	cout << "Lights: .... " << config.Lights << newline;
 	cout << "Point Totals:\n";
-	cout << "\tSpheres:\t\t" << resources.numPointsStaticSpheres << " ( " << ( resources.numPointsStaticSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
-	cout << "\tMoving Spheres:\t\t" << resources.numPointsDynamicSpheres << " ( " << ( resources.numPointsDynamicSpheres * 8 * sizeof( float ) ) / ( 1024 * 1024 ) << "mb )" << newline;
+	cout << "\tSpheres:\t\t" << resources.numPointsStaticSpheres << " ( " << ( resources.numPointsStaticSpheres * 8 * sizeof( float ) ) / ( 1024.0f * 1024.0f ) << "mb )" << newline;
+	cout << "\tMoving Spheres:\t\t" << resources.numPointsDynamicSpheres << " ( " << ( resources.numPointsDynamicSpheres * 8 * sizeof( float ) ) / ( 1024.0f * 1024.0f ) << "mb )" << newline;
 }
 
 void APIGeometryContainer::Terminate () {
