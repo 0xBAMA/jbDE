@@ -326,6 +326,7 @@ This is a planning document for work on this project and in general, about the t
 			- Use std::vector + shuffle to on an array of floats cast to a byte array - make a mess of it, but check for NaN's in the data before re-sending to keep from having issues from that - set these values to either 1 or 0, based on some RNG
 	- [Cool sample on shadertoy](https://www.shadertoy.com/view/XtyXzW)
 	- [Z curve expansion](https://www.shadertoy.com/view/3tj3Rc)
+	- [CRT Postprocess (Lottes)](https://www.shadertoy.com/view/wdtfDf)
 
 --------------------------------------------------------------------------------------------------
 
@@ -363,6 +364,10 @@ This is a planning document for work on this project and in general, about the t
 		- [Ghost of Tsushima GDC talk](https://youtu.be/Ibe1JBF5i5Y)
 		- [Realtime Realistic Rendering and Lighting of Forests](https://hal.inria.fr/hal-00650120/file/article.pdf)
 		- [Outerra Procedural Grass Rendering](https://outerra.blogspot.com/2012/05/procedural-grass-rendering.html)
+
+- Sky/skyboxes
+	- [Nebula type clouds](https://www.shadertoy.com/view/DtdSz7)
+	- [Really nice skybox](https://www.shadertoy.com/view/4lBcRm)
 
 - RTIOW on the GPU
 	- More raytracing stuff, the next week, the rest of your life books
