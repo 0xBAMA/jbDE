@@ -739,8 +739,9 @@ float dPlatformOverall ( vec3 p ) {
 #define MIRROR						6
 #define WOOD						7
 #define MALACHITE					8
-#define REFRACTIVE					9
-#define REFRACTIVE_FROSTED			10
+#define CHECKER						9
+#define REFRACTIVE					10
+#define REFRACTIVE_FROSTED			11
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
 	// objects shouldn't have this material, it is used in the explicit intersection logic / bounce behavior
@@ -787,8 +788,7 @@ float de ( vec3 p ) {
 	const float dFrame = deGrail( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * Rotate3D( PI, vec3( 0.0f, 1.0f, 0.0f ) ) * ( 0.3f * ( p - vec3( 35.0f, 16.0f, 0.0f ) ) ) ) / 0.3f;
 	sceneDist = min( dFrame, sceneDist );
 	if ( sceneDist == dFrame && dFrame <= raymarchEpsilon ) {
-		hitPointSurfaceType = WOOD;
-		// hitPointSurfaceType = MIRROR;
+		hitPointSurfaceType = CHECKER;
 	}
 
 	return sceneDist;
@@ -1206,6 +1206,16 @@ vec3 ColorSample ( const vec2 uvIn ) {
 					throughput *= matWood( rayOrigin ).brg; // this swizzle makes a nice light green / dark green mix
 					rayDirection = randomVectorDiffuse;
 				}
+				break;
+			}
+
+			case CHECKER:
+			{
+				// diffuse material
+				bool blackOrWhite = ( ( uint( abs( rayOrigin.x ) ) ^ uint( abs( rayOrigin.y ) ) ^ uint( abs( rayOrigin.z ) ) ) & 1u ) == 0;
+				vec3 color = ( abs( rayOrigin.x ) < 0.1f || abs( rayOrigin.y ) < 0.1f || abs( rayOrigin.z ) < 0.1f ) ? vec3( 1.0f, 0.1f, 0.1f ) : blackOrWhite ? vec3( 0.1618f ) : vec3( 0.618f );
+				throughput *= color;
+				rayDirection = randomVectorDiffuse;
 				break;
 			}
 
