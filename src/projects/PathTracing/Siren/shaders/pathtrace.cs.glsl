@@ -1049,12 +1049,12 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.dTravel = explicitResult.i.b.x;
 		result.normal = explicitResult.i.b.yzw;
 		result.color = explicitResult.color;
-		result.material = ( explicitResult.material == REFRACTIVE ) ? REFRACTIVE_BACKFACE : explicitResult.material;
+		result.material = ( explicitResult.material == REFRACTIVE ) ? REFRACTIVE_BACKFACE : ( explicitResult.material == REFRACTIVE_FROSTED ) ? REFRACTIVE_FROSTED_BACKFACE : explicitResult.material;
 	} else {
 		result.dTravel = explicitResult.i.a.x;
 		result.normal = explicitResult.i.a.yzw;
 		result.color = explicitResult.color;
-		result.material = ( explicitResult.material == REFRACTIVE ) ? REFRACTIVE : explicitResult.material;
+		result.material = explicitResult.material;
 	}
 
 	// get the raymarch intersection result
