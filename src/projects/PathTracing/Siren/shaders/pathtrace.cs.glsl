@@ -717,11 +717,12 @@ float sdTerrain(vec3 p) {
 #define METALLIC					4
 #define RAINBOW						5
 #define MIRROR						6
-#define WOOD						7
-#define MALACHITE					8
-#define CHECKER						9
-#define REFRACTIVE					10
-#define REFRACTIVE_FROSTED			11
+#define PERFECTMIRROR				7
+#define WOOD						8
+#define MALACHITE					9
+#define CHECKER						10
+#define REFRACTIVE					11
+#define REFRACTIVE_FROSTED			12
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
 	// objects shouldn't have this material, it is used in the explicit intersection logic / bounce behavior
@@ -1181,16 +1182,16 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			}
 
 			case MIRROR:
-			{
-				// perfect mirror ( slight attenuation )
+			{	// perfect mirror ( slight attenuation )
 				throughput *= 0.618f;
-				// throughput *= 0.95f;
 				rayDirection = reflectedVector;
+				break;
+			}
 
-
-			// quick hack
-				// throughput *= vec3( 0.933f, 0.8235f, 0.0078f );
-				// rayDirection = randomVectorDiffuse;
+			case PERFECTMIRROR:
+			{	// less attenuation than MIRROR - in particular, useful for lighting fixtures
+				throughput *= 0.95f;
+				rayDirection = reflectedVector;
 				break;
 			}
 
