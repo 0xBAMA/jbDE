@@ -332,6 +332,8 @@ This is a planning document for work on this project and in general, about the t
 
 ## More Vague Future Software Project Ideas
 
+- [OBS has a shader system](https://obsproject.com/forum/resources/obs-shaderfilter.1736/)? Very Interesting
+
 - More investigation into screenspace effects
 	- [Underwater Distort](https://www.shadertoy.com/view/4tG3WR)
 
