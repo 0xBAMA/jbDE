@@ -1096,12 +1096,13 @@ public:
 		// }
 
 		// stochastic sphere packing, inside the volume
-		vec3 min = vec3( -3.0f, -0.5f, -1.0f );
-		vec3 max = vec3(  3.0f,  0.5f,  1.0f );
+		vec3 min = vec3( -6.0f, -1.5f, -6.0f );
+		vec3 max = vec3(  6.0f,  1.5f,  6.0f );
 		uint32_t maxIterations = 500;
-		float currentRadius = 0.5f;
+		float currentRadius = 1.4f;
 		float paletteRefVal = 1.0f;
-		vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal ), 2 );
+		int material = 12;
+		vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal ), material );
 		while ( ( sirenConfig.sphereLocationsPlusColors.size() / 2 ) < sirenConfig.maxSpheres ) {
 			rng x = rng( min.x + currentRadius, max.x - currentRadius );
 			rng y = rng( min.y + currentRadius, max.y - currentRadius );
@@ -1128,7 +1129,7 @@ public:
 				}
 			}
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
-				currentMaterial = vec4( palette::paletteRef( paletteRefVal ), 2 );
+				currentMaterial = vec4( palette::paletteRef( paletteRefVal ), material );
 				paletteRefVal /= 1.618f;
 				currentRadius /= 1.618f;
 				maxIterations *= 3;
@@ -1140,6 +1141,11 @@ public:
 				// slowly shrink bounds to accentuate the earlier placed spheres
 				min *= 0.95f;
 				max *= 0.95f;
+		}
+
+		// offset the spheres after running through, because otherwise it messes up the packing algorithm
+		for ( int i = 0; i < sirenConfig.sphereLocationsPlusColors.size() / 2; i++ ) {
+			sirenConfig.sphereLocationsPlusColors[ i * 2 ] = sirenConfig.sphereLocationsPlusColors[ i * 2 ] - vec4( 0.0f, 4.0f, 0.0f, 0.0f );
 		}
 
 		// generate 50 extra, and then pop 50 off the front - will create cavities where some of the earliest, largest spheres are
