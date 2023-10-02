@@ -674,26 +674,6 @@ float sdTerrain(vec3 p) {
 	return abs(p.y - h) * .6;
 }
 
-float dPlatformOverall ( vec3 p ) {
-	const float heightSplit = 5.0f;
-	float sceneDist = 10000.0f;
-
-	// floor/top rail
-	pModPolar( p.xz, 4 );
-	const float dFloor = fBox( p - vec3( 0.0f, -heightSplit, 0.0f ), vec3( 25.0f, 0.2f, 25.0f ) );
-	const float dTopRail = fBox( p - vec3( 23.0f, heightSplit, 0.0f ), vec3( 3.0f, 0.4f, 30.0f ) );
-
-	// pillars
-	pModInterval1( p.z, 3.0f, -8, 8 );
-	const float dPillars = fCylinder( p - vec3( 23.0f, 0.0f, 0.0f ), 0.618f, heightSplit - 0.1f );
-
-	// composite object
-	const float dPlatform = fOpUnionRound( dPillars, min( dFloor, dTopRail ), 0.5f );
-	sceneDist = min( dPlatform, sceneDist );
-
-	return sceneDist;
-}
-
 // #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
 // #define sabs(x)sqrt((x)*(x)+.005)
 // #define sabs2(x)sqrt((x)*(x)+1e-4)
@@ -769,26 +749,53 @@ float de ( vec3 p ) {
 
 	// cache initial point location
 	const vec3 pCache = p;
-	const float dLight = fBox( p - vec3( 0.0f, 35.0f, 0.0f ), vec3( 25.0f, 0.05f, 25.0f ) );
+	pModPolar( p.xz, 4 );
+	pMirror( p.y, -2.0f );
+	p.y = 5.0f - p.y;
+
+	// light bar
+	const float dLight = fBox( p - vec3( 14.0f, 0.0f, 0.0f ), vec3( 0.15f, 0.15f, 18.0f ) );
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		hitPointColor = vec3( 2.0f );
+		hitPointColor = vec3( 3.0f );
 		hitPointSurfaceType = EMISSIVE;
 	}
 
-	// inner platform
-	const float dPlatform = dPlatformOverall( p - vec3( 0.0f, -10.0f, 0.0f ) );
-	sceneDist = min( dPlatform, sceneDist );
-	if ( sceneDist == dPlatform && dPlatform <= raymarchEpsilon ) {
+	// outer frame
+	const float heightSplit = 2.0f;
+	const float dFloor = fBox( p - vec3( 0.0f, -heightSplit, 0.0f ), vec3( 15.0f, 0.2f, 15.0f ) );
+	const float dMolding = deGrail( Rotate3D( PI / 4.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * Rotate3D( PI, vec3( 0.0f, 1.0f, 0.0f ) ) * ( 0.618f * ( p - vec3( 15.0f, 0.0f, 0.0f ) ) ) ) / 0.618f;
+	pModInterval1( p.z, 3.0f, -3, 3 );
+	const float dCutout = fSphere( p - vec3( 9.0f, heightSplit + 2.0f, 0.0f ), 1.618f );
+	const float dPillars = max( fCylinder( p - vec3( 9.0f, 0.0f, 0.0f ), 0.618f, heightSplit + 0.5f ), -dCutout );
+	const float dReflector = fOpUnionRound( fOpIntersectionChamfer( dPillars, fSphere( p - vec3( 9.0f, heightSplit + 2.0f, 0.0f ), 1.8f ), 0.1f ), fCylinder( p - vec3( 9.0f, 0.0f, 0.0f ), 0.1618f, 10.0f ), 0.3f );
+	const float dOrbs = fSphere( p - vec3( 9.0f, heightSplit + 1.3f, 0.0f ), 0.618f );
+	const float dFramePlusPlatform = fOpUnionRound( min( dMolding, dPillars ), dFloor, 0.5f );
+
+	sceneDist = min( dFramePlusPlatform, sceneDist );
+	if ( sceneDist == dFramePlusPlatform && dFramePlusPlatform <= raymarchEpsilon ) {
+		// hitPointSurfaceType = CHECKER;
+
+		// hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = vec3( 0.1f, 0.1f, 0.1f );
+
 		hitPointSurfaceType = WOOD;
 	}
 
-	// outer frame
-	pModPolar( p.xz, 4 );
-	const float dFrame = deGrail( Rotate3D( PI / 2.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * Rotate3D( PI, vec3( 0.0f, 1.0f, 0.0f ) ) * ( 0.3f * ( p - vec3( 35.0f, 16.0f, 0.0f ) ) ) ) / 0.3f;
-	sceneDist = min( dFrame, sceneDist );
-	if ( sceneDist == dFrame && dFrame <= raymarchEpsilon ) {
-		hitPointSurfaceType = CHECKER;
+	sceneDist = min( dOrbs, sceneDist );
+	if ( sceneDist == dOrbs && dOrbs <= raymarchEpsilon ) {
+		hitPointColor = vec3( 3.0f );
+		hitPointSurfaceType = EMISSIVE;
+	}
+
+	sceneDist = min( dReflector, sceneDist );
+	if ( sceneDist == dReflector && dReflector <= raymarchEpsilon ) {
+
+		// hitPointSurfaceType = DIFFUSE;
+		// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
+
+		hitPointSurfaceType = MIRROR;
+		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
 	return sceneDist;
