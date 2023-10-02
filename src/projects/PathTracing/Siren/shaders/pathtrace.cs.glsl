@@ -1232,8 +1232,9 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			case CHECKER:
 			{
 				// diffuse material
+				const float thresh = 0.05f;
 				bool blackOrWhite = ( ( uint( abs( rayOrigin.x ) ) ^ uint( abs( rayOrigin.y ) ) ^ uint( abs( rayOrigin.z ) ) ) & 1u ) == 0;
-				vec3 color = ( abs( rayOrigin.x ) < 0.1f || abs( rayOrigin.y ) < 0.1f || abs( rayOrigin.z ) < 0.1f ) ? vec3( 1.0f, 0.1f, 0.1f ) : blackOrWhite ? vec3( 0.1618f ) : vec3( 0.618f );
+				vec3 color = ( abs( rayOrigin.x ) < thresh || abs( rayOrigin.y ) < thresh || abs( rayOrigin.z ) < thresh ) ? vec3( 1.0f, 0.1f, 0.1f ) : blackOrWhite ? vec3( 0.1618f ) : vec3( 0.618f );
 				throughput *= color;
 				rayDirection = randomVectorDiffuse;
 				break;
