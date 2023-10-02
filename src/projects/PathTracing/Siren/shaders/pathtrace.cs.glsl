@@ -1021,17 +1021,29 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	result.dTravel = nearestOverallHit;
 	result.normal = ( iResult.a.x == nearestOverallHit ) ? iResult.a.yzw : iResult.b.yzw;
 	result.i = iResult;
-
 	result.material = int( spheres[ indexOfHit ].colorMaterial.w );
 	result.color = spheres[ indexOfHit ].colorMaterial.xyz;
+
+
+	// // trying to debug the issues with the refractive box - why is it black?
+	// Intersection iResult = IntersectBox( origin, direction, vec3( 0.0f ), vec3( 1.0f ) );
+	// sceneIntersection result;
+	// result.dTravel =  ( iResult.a.x < 0.0f ) ? ( iResult.b.x < 0.0f ) ? 1000000.0f : iResult.b.x : iResult.a.x;
+	// result.normal = ( iResult.a.x == result.dTravel ) ? iResult.a.yzw : iResult.b.yzw;
+	// result.i = iResult;
+	// result.material = DIFFUSE;
+	// result.color = vec3( 0.618f );
+
+
+	// placeholder no-op
+	// sceneIntersection result;
+	// result.i = kEmpty;
 
 	// colors > 1 really only make sense for lights
 	if ( result.material != EMISSIVE )
 		result.color = clamp( result.color, vec3( 0.0f ), vec3( 1.0f ) );
 
 	return result;
-
-	// return IntersectSphere( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), 3.0f );
 }
 
 // ==============================================================================================
