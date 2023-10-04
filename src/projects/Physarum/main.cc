@@ -18,6 +18,9 @@ struct physarumConfig_t {
 	// diffuse + decay
 	float decayFactor;
 	uint32_t depositAmount;
+
+	vec3 color;
+	float brightness;
 };
 
 class Physarum : public engineBase {
@@ -54,6 +57,12 @@ public:
 			physarumConfig.writeBack		= j[ "app" ][ "Physarum" ][ "writeBack" ];
 			physarumConfig.decayFactor		= j[ "app" ][ "Physarum" ][ "decayFactor" ];
 			physarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
+			physarumConfig.brightness		= j[ "app" ][ "Physarum" ][ "brightness" ];
+			physarumConfig.color			= vec3(
+				j[ "app" ][ "Physarum" ][ "color" ][ "r" ],
+				j[ "app" ][ "Physarum" ][ "color" ][ "g" ],
+				j[ "app" ][ "Physarum" ][ "color" ][ "b" ]
+			);
 
 			// setup the ssbo for the agent data
 			struct agent_t {
@@ -165,6 +174,9 @@ public:
 
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 
+		ImGui::ColorEdit3( "Color", ( float * ) &physarumConfig.color, ImGuiColorEditFlags_PickerHueWheel );
+		ImGui::SliderFloat( "Brightness", &physarumConfig.brightness, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -204,6 +216,8 @@ public:
 			bindSets[ "Drawing" ].apply();
 
 			glUseProgram( shaders[ "Buffer Copy" ] );
+			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
+			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
 

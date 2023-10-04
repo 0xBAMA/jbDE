@@ -5,11 +5,13 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 uniform usampler2D continuum;
 uniform vec2 resolution;
+uniform vec3 color;
+uniform float brightness;
 
 void main () {
 	const vec2 sampleLocation = ( vec2( gl_GlobalInvocationID.xy ) + vec2( 0.5f ) ) / resolution.xy;
 	uint result = texture( continuum, sampleLocation ).r;
 
 	// write the data to the accumulator
-	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( result / 1000000.0f, 0.0f, 0.0f, 1.0f ) );
+	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( brightness * ( result / 1000000.0f ) * color, 1.0f ) );
 }
