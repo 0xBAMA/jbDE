@@ -94,7 +94,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 1000;
+	const uint32_t maxSpheres = 5000;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1062,11 +1062,17 @@ public:
 	}
 
 	void InitSphereData () {
+		// start timing
+		Tick();
+
 		// clear it out
 		sirenConfig.sphereLocationsPlusColors.clear();
 
 		// pick new palette
 		palette::PickRandomPalette( true );
+
+		// matplotlib plasma
+		// palette::PaletteIndex = 1239;
 
 		// first implementation, randomizing all parameters
 		// rng c = rng( 0.3f, 1.0f );
@@ -1096,19 +1102,20 @@ public:
 		// }
 
 		// stochastic sphere packing, inside the volume
-		vec3 min = vec3( -6.0f, -1.5f, -6.0f );
-		vec3 max = vec3(  6.0f,  1.5f,  6.0f );
+		vec3 min = vec3( -8.0f, -1.5f, -8.0f );
+		vec3 max = vec3(  8.0f,  1.5f,  8.0f );
 		uint32_t maxIterations = 500;
-		float currentRadius = 1.4f;
-		float paletteRefVal = 1.0f;
-		int material = 12;
-		vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal ), material );
+		float currentRadius = 1.3f;
+		rng paletteRefVal = rng( 0.0f, 1.0f );
+		int material = 6;
+		vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
 		while ( ( sirenConfig.sphereLocationsPlusColors.size() / 2 ) < sirenConfig.maxSpheres ) {
 			rng x = rng( min.x + currentRadius, max.x - currentRadius );
 			rng y = rng( min.y + currentRadius, max.y - currentRadius );
 			rng z = rng( min.z + currentRadius, max.z - currentRadius );
 			uint32_t iterations = maxIterations;
-			while ( iterations-- ) {
+			// redundant check, but I think it's the easiest way not to run over
+			while ( iterations-- && ( sirenConfig.sphereLocationsPlusColors.size() / 2 ) < sirenConfig.maxSpheres ) {
 				// generate point inside the parent cube
 				vec3 checkP = vec3( x(), y(), z() );
 				// check for intersection against all other spheres
@@ -1126,11 +1133,11 @@ public:
 					// cout << "adding sphere, " << currentRadius << endl;
 					sirenConfig.sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
 					sirenConfig.sphereLocationsPlusColors.push_back( currentMaterial );
+					cout << "\r" << fixedWidthNumberString( sirenConfig.sphereLocationsPlusColors.size() / 2, 6, ' ' ) << " / " << sirenConfig.maxSpheres << " after " << Tock() / 1000.0f << "s                          ";
 				}
 			}
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
-				currentMaterial = vec4( palette::paletteRef( paletteRefVal ), material );
-				paletteRefVal /= 1.618f;
+				currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
 				currentRadius /= 1.618f;
 				maxIterations *= 3;
 				
@@ -1143,8 +1150,10 @@ public:
 				max *= 0.95f;
 		}
 
+		cout << "Packing operation completed in " << Tock() / 1000.0f << "s" << endl;
+
 		// offset the spheres after running through, because otherwise it messes up the packing algorithm
-		for ( int i = 0; i < sirenConfig.sphereLocationsPlusColors.size() / 2; i++ ) {
+		for ( uint i = 0; i < sirenConfig.sphereLocationsPlusColors.size() / 2; i++ ) {
 			sirenConfig.sphereLocationsPlusColors[ i * 2 ] = sirenConfig.sphereLocationsPlusColors[ i * 2 ] - vec4( 0.0f, 4.0f, 0.0f, 0.0f );
 		}
 
