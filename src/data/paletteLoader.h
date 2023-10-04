@@ -4,6 +4,7 @@
 
 #include "../utils/GLM/glm.hpp"
 #include "../engine/coreUtils/image2.h"
+#include "../engine/coreUtils/math.h"
 
 struct paletteEntry {
 	string label;
@@ -57,7 +58,7 @@ struct paletteEntry {
 // 	out.Save( "test.png" );
 // }
 
-static void LoadPalettes ( std::vector< paletteEntry >& paletteList ) {
+static void LoadPalettes ( std::vector< paletteEntry >& paletteList, bool verbose = false ) {
 	Image_4U paletteRecord( "./src/data/palettes.png" );
 	for ( uint32_t yPos = 0; yPos < paletteRecord.Height(); yPos++ ) {
 		paletteEntry p;
@@ -65,6 +66,9 @@ static void LoadPalettes ( std::vector< paletteEntry >& paletteList ) {
 		// first 32 pixels' red channels contain the space-padded label
 		for ( int x = 0; x < 32; x++ ) { p.label += char( paletteRecord.GetAtXY( x, yPos )[ red ] ); }
 		p.label.erase( std::remove( p.label.begin(), p.label.end(), ' ' ), p.label.end() );
+		if ( verbose ) {
+			cout << fixedWidthNumberString( yPos, 5, ' ' ) << ":" << p.label << endl;
+		}
 
 		// then the rest of the row, up to the first { 0, 0, 0, 0 } pixel is the palette data
 		for ( int x = 33;; x++ ) {
