@@ -125,6 +125,8 @@ This is a planning document for work on this project and in general, about the t
 			- Instead of iterating through and doing N distance checks for every pixel, every frame, just keep LUTs of closest, second closest color for all points in a 3D LDR RGB colorspace, and use dither patterns as before
 	- Probably make this built-in functionality in the engine, part of postprocessing stack?
 		- Yes - add as a configurable postprocess step on VSRA, after tonemapping
+	- [CIE94 Palette Quantization](https://www.shadertoy.com/view/mslcRs)
+	- [Color Space Conversions](https://www.shadertoy.com/view/wt23Rt) - am I missing any of these?
 
 - [Properly Seeding the Mersenne Twistor](https://www.phy.olemiss.edu/~kbeach/guide/2020/01/11/random/)
 	- VAT, Spaceship Generator need repeatability in random number generation
@@ -336,6 +338,7 @@ This is a planning document for work on this project and in general, about the t
 
 - More investigation into screenspace effects
 	- [Underwater Distort](https://www.shadertoy.com/view/4tG3WR)
+	- [Suslik's stuff to break up texture tiling](https://www.shadertoy.com/view/tsVGRd)
 
 - Little JS demo based on [this](https://www.youtube.com/watch?v=XGioNBHrFU4) ( particle text )? would be cool to have something with interaction
 
