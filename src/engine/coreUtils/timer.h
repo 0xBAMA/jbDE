@@ -5,16 +5,14 @@
 #include <sstream>
 #include <algorithm>
 
+#include "math.h"
+
 inline std::string timeDateString () {
 	auto now = std::chrono::system_clock::now();
 	auto inTime_t = std::chrono::system_clock::to_time_t( now );
 	std::stringstream ssA;
 	ssA << std::put_time( std::localtime( &inTime_t ), "%Y-%m-%d at %H-%M-%S" );
 	return ssA.str();
-}
-
-inline std::string fixedWidthNumberString ( int32_t value, int32_t width = 5 ) {
-	return string( width - std::min( width, ( int ) to_string( value ).length() ), '0' ) + to_string( value );
 }
 
 //=============================================================================
