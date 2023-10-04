@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":2560,
-	"screenHeight":1440,
+	"screenWidth":1080,
+	"screenHeight":1920,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -96,15 +96,21 @@
 		},
 		"Physarum":{
 			"numAgents":1048576,
-			"dimensionX":2560,
-			"dimensionY":1440,
+			"dimensionX":1080,
+			"dimensionY":1920,
 			"senseAngle":2.454,
 			"senseDistance":0.0013,
 			"turnAngle":1.25,
 			"stepSize":0.0006,
 			"depositAmount":1250,
 			"decayFactor":0.9875,
-			"writeBack":false
+			"writeBack":false,
+			"color":{
+				"r":1.0,
+				"g":0.7,
+				"b":0.2
+			},
+			"brightness":1.0
 		},
 		"CellularAutomata":{
 			"dimensionX":640,
