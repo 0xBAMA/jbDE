@@ -94,10 +94,29 @@
 			"framebufferX":800,
 			"framebufferY":800
 		},
-		"Physarum":{
+		"Physarum2D":{
 			"numAgents":1048576,
 			"dimensionX":1080,
 			"dimensionY":1920,
+			"senseAngle":2.454,
+			"senseDistance":0.0013,
+			"turnAngle":1.25,
+			"stepSize":0.0006,
+			"depositAmount":1250,
+			"decayFactor":0.9875,
+			"writeBack":false,
+			"color":{
+				"r":1.0,
+				"g":0.7,
+				"b":0.2
+			},
+			"brightness":1.0
+		},
+		"Physarum3D":{
+			"numAgents":1048576,
+			"dimensionX":1080,
+			"dimensionY":1920,
+			"dimensionZ":100,
 			"senseAngle":2.454,
 			"senseDistance":0.0013,
 			"turnAngle":1.25,
