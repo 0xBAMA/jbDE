@@ -47,21 +47,21 @@ public:
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			physarumConfig.numAgents		= j[ "app" ][ "Physarum" ][ "numAgents" ];
-			physarumConfig.dimensionX		= j[ "app" ][ "Physarum" ][ "dimensionX" ];
-			physarumConfig.dimensionY		= j[ "app" ][ "Physarum" ][ "dimensionY" ];
-			physarumConfig.senseAngle		= j[ "app" ][ "Physarum" ][ "senseAngle" ];
-			physarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
-			physarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
-			physarumConfig.stepSize			= j[ "app" ][ "Physarum" ][ "stepSize" ];
-			physarumConfig.writeBack		= j[ "app" ][ "Physarum" ][ "writeBack" ];
-			physarumConfig.decayFactor		= j[ "app" ][ "Physarum" ][ "decayFactor" ];
-			physarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
-			physarumConfig.brightness		= j[ "app" ][ "Physarum" ][ "brightness" ];
+			physarumConfig.numAgents		= j[ "app" ][ "Physarum2D" ][ "numAgents" ];
+			physarumConfig.dimensionX		= j[ "app" ][ "Physarum2D" ][ "dimensionX" ];
+			physarumConfig.dimensionY		= j[ "app" ][ "Physarum2D" ][ "dimensionY" ];
+			physarumConfig.senseAngle		= j[ "app" ][ "Physarum2D" ][ "senseAngle" ];
+			physarumConfig.senseDistance	= j[ "app" ][ "Physarum2D" ][ "senseDistance" ];
+			physarumConfig.turnAngle		= j[ "app" ][ "Physarum2D" ][ "turnAngle" ];
+			physarumConfig.stepSize			= j[ "app" ][ "Physarum2D" ][ "stepSize" ];
+			physarumConfig.writeBack		= j[ "app" ][ "Physarum2D" ][ "writeBack" ];
+			physarumConfig.decayFactor		= j[ "app" ][ "Physarum2D" ][ "decayFactor" ];
+			physarumConfig.depositAmount	= j[ "app" ][ "Physarum2D" ][ "depositAmount" ];
+			physarumConfig.brightness		= j[ "app" ][ "Physarum2D" ][ "brightness" ];
 			physarumConfig.color			= vec3(
-				j[ "app" ][ "Physarum" ][ "color" ][ "r" ],
-				j[ "app" ][ "Physarum" ][ "color" ][ "g" ],
-				j[ "app" ][ "Physarum" ][ "color" ][ "b" ]
+				j[ "app" ][ "Physarum2D" ][ "color" ][ "r" ],
+				j[ "app" ][ "Physarum2D" ][ "color" ][ "g" ],
+				j[ "app" ][ "Physarum2D" ][ "color" ][ "b" ]
 			);
 
 			// setup the ssbo for the agent data

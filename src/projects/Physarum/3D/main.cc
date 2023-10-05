@@ -5,6 +5,7 @@ struct physarumConfig_t {
 	uint32_t numAgents;
 	uint32_t dimensionX;
 	uint32_t dimensionY;
+	uint32_t dimensionZ;
 	bool oddFrame = false;
 
 	// agent sim
@@ -47,21 +48,22 @@ public:
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			physarumConfig.numAgents		= j[ "app" ][ "Physarum" ][ "numAgents" ];
-			physarumConfig.dimensionX		= j[ "app" ][ "Physarum" ][ "dimensionX" ];
-			physarumConfig.dimensionY		= j[ "app" ][ "Physarum" ][ "dimensionY" ];
-			physarumConfig.senseAngle		= j[ "app" ][ "Physarum" ][ "senseAngle" ];
-			physarumConfig.senseDistance	= j[ "app" ][ "Physarum" ][ "senseDistance" ];
-			physarumConfig.turnAngle		= j[ "app" ][ "Physarum" ][ "turnAngle" ];
-			physarumConfig.stepSize			= j[ "app" ][ "Physarum" ][ "stepSize" ];
-			physarumConfig.writeBack		= j[ "app" ][ "Physarum" ][ "writeBack" ];
-			physarumConfig.decayFactor		= j[ "app" ][ "Physarum" ][ "decayFactor" ];
-			physarumConfig.depositAmount	= j[ "app" ][ "Physarum" ][ "depositAmount" ];
-			physarumConfig.brightness		= j[ "app" ][ "Physarum" ][ "brightness" ];
+			physarumConfig.numAgents		= j[ "app" ][ "Physarum3D" ][ "numAgents" ];
+			physarumConfig.dimensionX		= j[ "app" ][ "Physarum3D" ][ "dimensionX" ];
+			physarumConfig.dimensionY		= j[ "app" ][ "Physarum3D" ][ "dimensionY" ];
+			physarumConfig.dimensionZ		= j[ "app" ][ "Physarum3D" ][ "dimensionZ" ];
+			physarumConfig.senseAngle		= j[ "app" ][ "Physarum3D" ][ "senseAngle" ];
+			physarumConfig.senseDistance	= j[ "app" ][ "Physarum3D" ][ "senseDistance" ];
+			physarumConfig.turnAngle		= j[ "app" ][ "Physarum3D" ][ "turnAngle" ];
+			physarumConfig.stepSize			= j[ "app" ][ "Physarum3D" ][ "stepSize" ];
+			physarumConfig.writeBack		= j[ "app" ][ "Physarum3D" ][ "writeBack" ];
+			physarumConfig.decayFactor		= j[ "app" ][ "Physarum3D" ][ "decayFactor" ];
+			physarumConfig.depositAmount	= j[ "app" ][ "Physarum3D" ][ "depositAmount" ];
+			physarumConfig.brightness		= j[ "app" ][ "Physarum3D" ][ "brightness" ];
 			physarumConfig.color			= vec3(
-				j[ "app" ][ "Physarum" ][ "color" ][ "r" ],
-				j[ "app" ][ "Physarum" ][ "color" ][ "g" ],
-				j[ "app" ][ "Physarum" ][ "color" ][ "b" ]
+				j[ "app" ][ "Physarum3D" ][ "color" ][ "r" ],
+				j[ "app" ][ "Physarum3D" ][ "color" ][ "g" ],
+				j[ "app" ][ "Physarum3D" ][ "color" ][ "b" ]
 			);
 
 			// setup the ssbo for the agent data
@@ -88,7 +90,8 @@ public:
 			opts.dataType		= GL_R32UI;
 			opts.width			= physarumConfig.dimensionX;
 			opts.height			= physarumConfig.dimensionY;
-			opts.textureType	= GL_TEXTURE_2D;
+			opts.depth			= physarumConfig.dimensionZ;
+			opts.textureType	= GL_TEXTURE_3D;
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 		}
@@ -255,7 +258,7 @@ public:
 		glUniform1f( glGetUniformLocation( shaders[ "Diffuse and Decay" ], "decayFactor" ), physarumConfig.decayFactor );
 		physarumConfig.oddFrame = !physarumConfig.oddFrame;
 
-		glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, 1 );
+		glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 	}
