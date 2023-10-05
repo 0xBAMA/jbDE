@@ -46,7 +46,7 @@ uniform vec3 skylightColor;
 		// primitive type
 		// primitive parameters
 		// material details
-const int numSpheres = 1000;
+const int numSpheres = 5000;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -748,6 +748,8 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
+	// return sceneDist;
+
 	// cache initial point location
 	const vec3 pCache = p;
 	pModPolar( p.xz, 4 );
@@ -879,6 +881,19 @@ float CalcAO ( const vec3 position, const vec3 normal ) {
 	}
 	return clamp( 1.0f - 1.5f * occ, 0.0f, 1.0f );
 }
+
+// // alternate version from https://www.shadertoy.com/view/MsySWK
+// float calculateAO(in vec3 pos, in vec3 nor) {
+// 	float sca = 3., occ = 0.;
+//     for(int i=0; i<5; i++){
+//         float hr = .01 + float(i)*.5/4.;
+//         float dd = map(nor * hr + pos);
+//         occ += (hr - dd)*sca;
+//         sca *= 0.7;
+//     }
+//     return clamp(1.0 - occ, 0., 1.);
+// }
+
 // ==============================================================================================
 // explicit intersection primitives
 struct Intersection {
@@ -1006,7 +1021,7 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	Intersection iResult = kEmpty;
 	int indexOfHit = -1;
 	float nearestOverallHit = 1000000.0f;
-	for ( int i = 0; i < numSpheres; i++ ) {
+	for ( int i = 30; i < numSpheres; i++ ) {
 		Intersection current = IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
 		// Intersection current = ( i % 2 == 0 ) ? IntersectBox( origin, direction, spheres[ i ].positionRadius.xyz, vec3( spheres[ i ].positionRadius.w ) ) : IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
 		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;

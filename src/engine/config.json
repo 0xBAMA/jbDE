@@ -113,10 +113,10 @@
 			"brightness":1.0
 		},
 		"Physarum3D":{
-			"numAgents":1048576,
-			"dimensionX":1080,
-			"dimensionY":1920,
-			"dimensionZ":100,
+			"numAgents":10000000,
+			"dimensionX":360,
+			"dimensionY":640,
+			"dimensionZ":64,
 			"senseAngle":2.454,
 			"senseDistance":0.0013,
 			"turnAngle":1.25,

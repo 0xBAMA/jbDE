@@ -22,6 +22,7 @@ struct physarumConfig_t {
 
 	vec3 color;
 	float brightness;
+	float zOffset = 0.0f;
 };
 
 class Physarum : public engineBase {
@@ -43,6 +44,7 @@ public:
 			// something to put some basic data in the accumulator texture - comes from the demo project
 			const string basePath = "./src/projects/Physarum/3D/shaders/";
 			shaders[ "Buffer Copy" ]		= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
+			shaders[ "Lighting" ]			= computeShader( basePath + "lighting.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 
@@ -68,16 +70,16 @@ public:
 
 			// setup the ssbo for the agent data
 			struct agent_t {
-				vec2 position;
-				vec2 direction;
+				vec3 position;
+				vec3 direction;
 			};
 
 			std::vector< agent_t > agentsInitialData;
-			size_t bufferSize = 4 * sizeof( GLfloat ) * physarumConfig.numAgents;
+			size_t bufferSize = 6 * sizeof( GLfloat ) * physarumConfig.numAgents;
 			rng dist( -1.0f, 1.0f );
 
 			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
-				agentsInitialData.push_back( { { dist(), dist() }, glm::normalize( vec2( dist(), dist() ) ) } );
+				agentsInitialData.push_back( { { dist(), dist(), dist() }, glm::normalize( vec3( dist(), dist(), 0.1f * dist() ) ) } );
 			}
 
 			glGenBuffers( 1, &agentSSBO );
@@ -94,6 +96,10 @@ public:
 			opts.textureType	= GL_TEXTURE_3D;
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
+
+			// caches the lit color value, to be sampled during rendering
+			opts.dataType		= GL_RGBA16F;
+			textureManager.Add( "Shaded Volume", opts );
 		}
 	}
 
@@ -180,6 +186,10 @@ public:
 		ImGui::ColorEdit3( "Color", ( float * ) &physarumConfig.color, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::SliderFloat( "Brightness", &physarumConfig.brightness, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 
+		ImGui::Separator();
+		ImGui::Separator();
+		ImGui::SliderFloat( "Display Z Offset", &physarumConfig.zOffset, 0.0f, 1.0f, "%.3f" );
+
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -218,12 +228,22 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 
+			glUseProgram( shaders[ "Lighting" ] );
+			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Lighting" ], 2 );
+			textureManager.BindImageForShader( "Shaded Volume", "shadedVolume", shaders[ "Lighting" ], 3 );
+			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
+			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "brightness" ), physarumConfig.brightness );
+			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "zOffset" ), physarumConfig.zOffset );
+			glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
 			glUseProgram( shaders[ "Buffer Copy" ] );
 			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
+			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "zOffset" ), physarumConfig.zOffset );
+			textureManager.BindImageForShader( "Shaded Volume", "shadedVolume", shaders[ "Buffer Copy" ], 3 );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
-
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -260,6 +280,8 @@ public:
 
 		glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		
 
 	}
 
