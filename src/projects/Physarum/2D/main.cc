@@ -1,4 +1,4 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 
 struct physarumConfig_t {
 	// environment setup
@@ -40,7 +40,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - comes from the demo project
-			const string basePath = "./src/projects/Physarum/shaders/";
+			const string basePath = "./src/projects/Physarum/2D/shaders/";
 			shaders[ "Buffer Copy" ]		= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;

@@ -197,16 +197,30 @@ target_link_libraries( CABitPlanes
 )
 
 # =================================================================================================
-# Physarum
+# Physarum ( 2D )
 # =================================================================================================
-add_executable( Physarum
-	src/projects/Physarum/main.cc
+add_executable( Physarum2D
+	src/projects/Physarum/2D/main.cc
 )
 
-target_link_libraries( Physarum
+target_link_libraries( Physarum2D
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# Physarum ( 3D )
+# =================================================================================================
+add_executable( Physarum3D
+	src/projects/Physarum/3D/main.cc
+)
+
+target_link_libraries( Physarum3D
+	PUBLIC
+	engineBase
+)
+
+
 
 
 # =================================================================================================
