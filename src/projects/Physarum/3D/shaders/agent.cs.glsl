@@ -1,7 +1,7 @@
 #version 430 core
 layout( local_size_x = 1024, local_size_y = 1, local_size_z = 1 ) in;
 
-layout( r32ui ) uniform uimage2D current;
+layout( r32ui ) uniform uimage3D current;
 
 struct agent_t {
 	vec2 position;
@@ -83,13 +83,13 @@ void main () {
 
 		// do the simulation logic to update the value of position
 			// take your samples
-		const ivec2 rightSampleLoc	= ivec2( imageSize( current ) * wrapPosition( 0.5f * ( a.position + senseDistance * rotate( a.direction, -senseAngle ) + vec2( 1.0f ) ) ) );
-		const ivec2 middleSampleLoc	= ivec2( imageSize( current ) * wrapPosition( 0.5f * ( a.position + senseDistance * a.direction + vec2( 1.0f ) ) ) );
-		const ivec2 leftSampleLoc	= ivec2( imageSize( current ) * wrapPosition( 0.5f * ( a.position + senseDistance * rotate( a.direction, senseAngle ) + vec2( 1.0f ) ) ) );
+		const ivec2 rightSampleLoc	= ivec2( imageSize( current ).xy * wrapPosition( 0.5f * ( a.position + senseDistance * rotate( a.direction, -senseAngle ) + vec2( 1.0f ) ) ) );
+		const ivec2 middleSampleLoc	= ivec2( imageSize( current ).xy * wrapPosition( 0.5f * ( a.position + senseDistance * a.direction + vec2( 1.0f ) ) ) );
+		const ivec2 leftSampleLoc	= ivec2( imageSize( current ).xy * wrapPosition( 0.5f * ( a.position + senseDistance * rotate( a.direction, senseAngle ) + vec2( 1.0f ) ) ) );
 
-		const uint rightSample		= imageLoad( current, rightSampleLoc ).r;
-		const uint middleSample		= imageLoad( current, middleSampleLoc ).r;
-		const uint leftSample		= imageLoad( current, leftSampleLoc ).r;
+		const uint rightSample		= imageLoad( current, ivec3( rightSampleLoc, 0 ) ).r;
+		const uint middleSample		= imageLoad( current, ivec3( middleSampleLoc, 0 ) ).r;
+		const uint leftSample		= imageLoad( current, ivec3( leftSampleLoc, 0 ) ).r;
 
 		// make a decision on whether to turn left, right, go straight, or a random direction
 			// this can be generalized and simplified, as some sort of weighted sum thing - will bear revisiting
@@ -110,6 +110,6 @@ void main () {
 			data[ index ].direction = a.direction; // old impl never updated direction????
 		}
 
-		imageAtomicAdd( current, ivec2( imageSize( current ) * ( 0.5f * ( newPosition + vec2( 1.0f ) ) ) ), depositAmount );
+		imageAtomicAdd( current, ivec3( imageSize( current ).xy * ( 0.5f * ( newPosition + vec2( 1.0f ) ) ), 0 ), depositAmount );
 	}
 }
