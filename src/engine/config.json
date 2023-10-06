@@ -114,9 +114,9 @@
 		},
 		"Physarum3D":{
 			"numAgents":10000000,
-			"dimensionX":360,
-			"dimensionY":640,
-			"dimensionZ":64,
+			"dimensionX":256,
+			"dimensionY":256,
+			"dimensionZ":256,
 			"senseAngle":2.454,
 			"senseDistance":0.0013,
 			"turnAngle":1.25,
