@@ -70,16 +70,37 @@ public:
 
 			// setup the ssbo for the agent data
 			struct agent_t {
-				vec3 position;
-				vec3 direction;
+
+				// location, extra float available
+				vec4 position;
+
+				// direction now needs 
+				vec4 basisX;
+				vec4 basisY;
+				vec4 basisZ;
+
+				// other info? parameters per-agent?
 			};
 
 			std::vector< agent_t > agentsInitialData;
-			size_t bufferSize = 6 * sizeof( GLfloat ) * physarumConfig.numAgents;
+			size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
+
 			rng dist( -1.0f, 1.0f );
+			rng dist2( -pi, pi );
 
 			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
-				agentsInitialData.push_back( { { dist(), dist(), dist() }, glm::normalize( vec3( dist(), dist(), 0.1f * dist() ) ) } );
+				orientTrident t; // randomize the orientation
+				for ( int j = 0; j < 10; j++ ) {
+					t.RotateX( dist2() );
+					t.RotateY( dist2() );
+					t.RotateZ( dist2() );
+				}
+				agentsInitialData.push_back( {
+					{ dist(), dist(), dist(), dist() },
+					{ t.basisX, dist() },
+					{ t.basisY, dist() },
+					{ t.basisZ, dist() }
+				} );
 			}
 
 			glGenBuffers( 1, &agentSSBO );

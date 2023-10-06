@@ -4,8 +4,17 @@ layout( local_size_x = 1024, local_size_y = 1, local_size_z = 1 ) in;
 layout( r32ui ) uniform uimage3D current;
 
 struct agent_t {
-	vec3 position;
-	vec3 direction;
+
+	// location, extra float available
+	vec4 position;
+
+	// direction now needs 
+	vec4 basisX;
+	vec4 basisY;
+	vec4 basisZ;
+
+	// other info? parameters per-agent?
+
 };
 
 layout( binding = 0, std430 ) buffer agentData {
@@ -83,33 +92,37 @@ void main () {
 
 		agent_t a = data[ index ];
 
+		// vec3 direction = 
+
 		// do the simulation logic to update the value of position
 			// take your samples
-		const ivec3 rightSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position + senseDistance * vec3( rotate( a.direction.xy, -senseAngle ), a.direction.z ) + vec3( 1.0f ) ) ) );
-		const ivec3 middleSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position + senseDistance * a.direction + vec3( 1.0f ) ) ) );
-		const ivec3 leftSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position + senseDistance * vec3( rotate( a.direction.xy, senseAngle ), a.direction.z ) + vec3( 1.0f ) ) ) );
+		const ivec3 rightSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, -senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
+		const ivec3 middleSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * a.basisX.xyz + vec3( 1.0f ) ) ) );
+		const ivec3 leftSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
 
 		const uint rightSample		= imageLoad( current, rightSampleLoc ).r;
 		const uint middleSample		= imageLoad( current, middleSampleLoc ).r;
 		const uint leftSample		= imageLoad( current, leftSampleLoc ).r;
+
+
 
 		// make a decision on whether to turn left, right, go straight, or a random direction
 			// this can be generalized and simplified, as some sort of weighted sum thing - will bear revisiting
 		if ( middleSample > leftSample && middleSample > rightSample ) {
 			// just retain the existing direction
 		} else if ( middleSample < leftSample && middleSample < rightSample ) { // turn a random direction
-			a.direction.xy = randomInUnitDisk();
+			a.basisX.xyz = randomUnitVector();
 		} else if ( rightSample > middleSample && middleSample > leftSample ) { // turn right (positive)
-			a.direction.xy = rotate( a.direction.xy, turnAngle );
+			a.basisX.xy = rotate( a.basisX.xy, turnAngle );
 		} else if ( leftSample > middleSample && middleSample > rightSample ) { // turn left (negative)
-			a.direction.xy = rotate( a.direction.xy, -turnAngle );
+			a.basisX.xy = rotate( a.basisX.xy, -turnAngle );
 		}
 		// else, fall through and retain value of direction
 
-		vec3 newPosition = wrapPosition( a.position + stepSize * a.direction );
-		data[ index ].position = newPosition;
+		vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisX.xyz );
+		data[ index ].position.xyz = newPosition;
 		if ( writeBack ) {
-			data[ index ].direction = a.direction; // old impl never updated direction????
+			data[ index ].basisX = a.basisX; // old impl never updated direction????
 		}
 
 		imageAtomicAdd( current, ivec3( imageSize( current ) * ( 0.5f * ( newPosition + vec3( 1.0f ) ) ) ), depositAmount );
