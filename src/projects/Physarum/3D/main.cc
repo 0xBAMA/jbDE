@@ -263,7 +263,7 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "zOffset" ), physarumConfig.zOffset );
-			textureManager.BindImageForShader( "Shaded Volume", "shadedVolume", shaders[ "Buffer Copy" ], 3 );
+			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Buffer Copy" ], 3 );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
