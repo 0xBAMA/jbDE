@@ -148,7 +148,8 @@ struct textureOptions_t {
 	GLint magFilter = GL_NEAREST;
 
 // wrap mode - they let you specifiy it different for different axes, but I don't ever use that
-	GLint wrap = GL_CLAMP_TO_EDGE;
+	GLint wrap = GL_CLAMP_TO_BORDER;
+	vec4 borderColor = vec4( 0.0f );
 
 	// initial image data, for loading images
 	void * initialData = nullptr;
@@ -245,6 +246,7 @@ public:
 			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
+			glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &texOptsIn.borderColor[ 0 ] );
 			glTexImage2D( GL_TEXTURE_2D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
 			if ( needsMipmap == true ) {
 				glGenerateMipmap( GL_TEXTURE_2D );
@@ -256,6 +258,7 @@ public:
 			glTexParameterf( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
+			glTexParameterfv( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, &texOptsIn.borderColor[ 0 ] );
 			glTexImage3D( GL_TEXTURE_2D_ARRAY, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, texOptsIn.depth, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
 			if ( needsMipmap == true ) {
 				glGenerateMipmap( GL_TEXTURE_2D_ARRAY );
@@ -267,6 +270,7 @@ public:
 			glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
+			glTexParameterfv( GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, &texOptsIn.borderColor[ 0 ] );
 			glTexImage3D( GL_TEXTURE_3D, 0, texOptsIn.dataType, texOptsIn.width, texOptsIn.height, texOptsIn.depth, 0, getFormat( texOptsIn.dataType ), texOptsIn.pixelDataType, texOptsIn.initialData );
 			if ( needsMipmap == true ) {
 				glGenerateMipmap( GL_TEXTURE_3D );
