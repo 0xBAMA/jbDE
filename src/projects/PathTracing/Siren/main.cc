@@ -78,7 +78,7 @@ struct sirenConfig_t {
 	float raymarchUnderstep;
 
 	vec3 skylightColor = vec3( 0.0f );		// ray escape color
-	vec3 backgroundColor = vec3( 0.01618f );	// background color for the image view
+	vec4 backgroundColor = vec4( vec3( 0.01618f ), 1.0f );	// background color for the image view
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
@@ -130,14 +130,13 @@ public:
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
 			// opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
-			opts.wrap			= GL_CLAMP_TO_EDGE;
+			// opts.wrap			= GL_CLAMP_TO_EDGE;
+			opts.wrap			= GL_CLAMP_TO_BORDER;
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
 
-			// and for the display texture, padded
+			// and for the display texture, LDR
 			opts.dataType		= GL_RGBA8;
-			opts.width			= sirenConfig.targetWidth + 2;
-			opts.height			= sirenConfig.targetHeight + 2;
 			textureManager.Add( "Display Texture", opts );
 
 			// setup performance monitor
@@ -508,6 +507,11 @@ public:
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 			ImGui::ColorEdit3( "Sky Color", ( float * ) &sirenConfig.skylightColor, ImGuiColorEditFlags_PickerHueWheel );
 			ImGui::ColorEdit3( "Background Color", ( float * ) &sirenConfig.backgroundColor, ImGuiColorEditFlags_PickerHueWheel );
+			if ( ImGui::IsItemEdited() ) {
+				// update the value of the border
+				glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
+				glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &sirenConfig.backgroundColor[ 0 ] );
+			}
 			ImGui::Text( " " );
 
 			const char * cameraNames[] = { "NORMAL", "SPHERICAL", "SPHERICAL2", "SPHEREBUG", "SIMPLEORTHO", "ORTHO" };
@@ -580,10 +584,10 @@ public:
 
 	void ColorScreenShotWithFilename ( const string filename ) {
 		std::vector< uint8_t > imageBytesToSave;
-		imageBytesToSave.resize( ( sirenConfig.targetWidth + 2 ) * ( sirenConfig.targetHeight + 2 ) * 4, 0 );
+		imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
 		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
 		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-		Image_4U screenshot( sirenConfig.targetWidth + 2, sirenConfig.targetHeight + 2, &imageBytesToSave.data()[ 0 ] );
+		Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 		screenshot.FlipVertical(); // whatever
 		screenshot.Crop( sirenConfig.targetWidth, sirenConfig.targetHeight, 1, 1 );
 		screenshot.Save( filename );
@@ -730,11 +734,11 @@ public:
 			glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
 			glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
 			glUniform1f( glGetUniformLocation( shader, "postExposure" ),				tonemap.postExposure );
-			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth + 2, sirenConfig.targetHeight + 2 );
+			glUniform2f( glGetUniformLocation( shader, "resolution" ),					sirenConfig.targetWidth, sirenConfig.targetHeight );
 			glUniform3fv( glGetUniformLocation( shader, "bgColor" ), 1,					glm::value_ptr( sirenConfig.backgroundColor ) );
 			glUniform1i( glGetUniformLocation( shader, "activeMode" ),					sirenConfig.outputMode );
 
-			glDispatchCompute( ( ( sirenConfig.targetWidth + 2 ) + 15 ) / 16, ( ( sirenConfig.targetHeight + 2 ) + 15 ) / 16, 1 );
+			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
@@ -799,13 +803,14 @@ public:
 		opts.magFilter		= GL_LINEAR;
 		opts.textureType	= GL_TEXTURE_2D;
 		// opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
-		opts.wrap			= GL_CLAMP_TO_EDGE;
+		// opts.wrap			= GL_CLAMP_TO_EDGE;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
 		textureManager.Add( "Depth/Normals Accumulator", opts );
 		textureManager.Add( "Color Accumulator", opts );
 
 		opts.dataType		= GL_RGBA8;
-		opts.width			= sirenConfig.targetWidth + 2;
-		opts.height			= sirenConfig.targetHeight + 2;
+		opts.width			= sirenConfig.targetWidth;
+		opts.height			= sirenConfig.targetHeight;
 		textureManager.Add( "Display Texture", opts );
 
 		// rebuild tile list next frame

@@ -17,10 +17,10 @@ uniform vec3 bgColor;
 
 bool inBounds ( in ivec2 loc ) {
 	return !(
-		loc.x <= 0 ||
-		loc.y <= 0 ||
-		loc.x >= imageSize( displayTexture ).x - 1 ||
-		loc.y >= imageSize( displayTexture ).y - 1 );
+		loc.x < 0 ||
+		loc.y < 0 ||
+		loc.x >= imageSize( displayTexture ).x ||
+		loc.y >= imageSize( displayTexture ).y );
 
 	// vec2 fLoc = loc / imageSize( displayTexture );
 	// return !( fLoc.x < 0.0f || fLoc.y < 0.0f || fLoc.x > 1.0f || fLoc.y > 1.0f );
@@ -39,7 +39,7 @@ void main () {
 	// there is something wrong with the sampling here - I'm not sure exactly what it is
 		// I need to put an XOR or something with exact per-pixel detail in sourceC and evaluate
 
-	ivec2 loc = ivec2( gl_GlobalInvocationID.xy ) - ivec2( 1 );
+	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 sampleLoc = ( vec2( loc ) + vec2( 0.5f ) ) / resolution;
 	vec4 originalValue;
 
@@ -74,10 +74,7 @@ void main () {
 	}
 
 	originalValue.a = 1.0f;
-
 	if ( inBounds( loc ) ) {
 		imageStore( displayTexture, loc, originalValue );
-	} else {
-		imageStore( displayTexture, loc, vec4( bgColor, 1.0f ) );
 	}
 }
