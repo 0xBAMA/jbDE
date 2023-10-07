@@ -88,9 +88,11 @@ public:
 			rng dist( -1.0f, 1.0f );
 			rng dist2( -pi, pi );
 
+			Tick();
+			cout << endl;
 			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
 				orientTrident t; // randomize the orientation
-				for ( int j = 0; j < 10; j++ ) {
+				for ( int j = 0; j < 3; j++ ) {
 					t.RotateX( dist2() );
 					t.RotateY( dist2() );
 					t.RotateZ( dist2() );
@@ -101,7 +103,19 @@ public:
 					{ t.basisY, dist() },
 					{ t.basisZ, dist() }
 				} );
+
+				// I think this would be nice to have as a general utility
+				const int reportWidth = 64;
+				if ( i % 50 == 0 ) {
+					cout << "\r Generating data [";
+					const float frac = float( i ) / float( physarumConfig.numAgents );
+					int numFill = std::floor( reportWidth * frac ) - 1;
+					for( int i = 0; i <= numFill; i++ ) cout << "=";
+					for( int i = 0; i < reportWidth - numFill; i++ ) cout << ".";
+					cout << "] " << 100.0f * frac << "% in " << Tock() / 1000.0f << "s" << std::flush;
+				}
 			}
+			cout << endl;
 
 			glGenBuffers( 1, &agentSSBO );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
