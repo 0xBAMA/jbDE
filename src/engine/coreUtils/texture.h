@@ -149,7 +149,7 @@ struct textureOptions_t {
 
 // wrap mode - they let you specifiy it different for different axes, but I don't ever use that
 	GLint wrap = GL_CLAMP_TO_BORDER;
-	vec4 borderColor = vec4( 0.0f );
+	vec4 borderColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	// initial image data, for loading images
 	void * initialData = nullptr;
