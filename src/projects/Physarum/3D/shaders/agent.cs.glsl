@@ -150,35 +150,6 @@ void main () {
 		vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisZ.xyz );
 		data[ index ].position.xyz = newPosition;
 
-		// // do the simulation logic to update the value of position
-		// 	// take your samples
-		// const ivec3 rightSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, -senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
-		// const ivec3 middleSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * a.basisX.xyz + vec3( 1.0f ) ) ) );
-		// const ivec3 leftSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
-
-		// const uint rightSample		= imageLoad( current, rightSampleLoc ).r;
-		// const uint middleSample		= imageLoad( current, middleSampleLoc ).r;
-		// const uint leftSample		= imageLoad( current, leftSampleLoc ).r;
-
-		// // make a decision on whether to turn left, right, go straight, or a random direction
-		// 	// this can be generalized and simplified, as some sort of weighted sum thing - will bear revisiting
-		// if ( middleSample > leftSample && middleSample > rightSample ) {
-		// 	// just retain the existing direction
-		// } else if ( middleSample < leftSample && middleSample < rightSample ) { // turn a random direction
-		// 	a.basisX.xyz = randomUnitVector();
-		// } else if ( rightSample > middleSample && middleSample > leftSample ) { // turn right (positive)
-		// 	a.basisX.xy = rotate( a.basisX.xy, turnAngle );
-		// } else if ( leftSample > middleSample && middleSample > rightSample ) { // turn left (negative)
-		// 	a.basisX.xy = rotate( a.basisX.xy, -turnAngle );
-		// }
-		// // else, fall through and retain value of direction
-
-		// vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisX.xyz );
-		// data[ index ].position.xyz = newPosition;
-		// if ( writeBack ) {
-		// 	data[ index ].basisX = a.basisX; // old impl never updated direction????
-		// }
-
 		imageAtomicAdd( current, ivec3( imageSize( current ) * ( 0.5f * ( newPosition + vec3( 1.0f ) ) ) ), depositAmount );
 	}
 }
