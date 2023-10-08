@@ -10,6 +10,7 @@ uniform vec3 resolution;
 uniform vec3 color;
 uniform float brightness;
 uniform float zOffset;
+uniform vec3 lightDirection;
 
 // wanting to do some kind of visualization of the voxels
 // https://www.shadertoy.com/view/NstSR8
@@ -22,7 +23,7 @@ void main () {
 	// float blueNoiseValue = imageLoad( blueNoiseTexture, ivec2( gl_GlobalInvocationID.xy ) ).r / 255.0f;
 	uint shadowDepth = 0;
 	for ( int j = 0; j < 64; j++ ) {
-		shadowDepth += texture( continuum, sampleLocation + vec3( 0.01f * j ) ).r;
+		shadowDepth += texture( continuum, sampleLocation + 0.01f * j * lightDirection ).r;
 	}
 
 	// shade

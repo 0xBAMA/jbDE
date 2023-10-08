@@ -270,6 +270,16 @@ public:
 			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
 			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "brightness" ), physarumConfig.brightness );
 			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "zOffset" ), physarumConfig.zOffset );
+
+			static vec3 lightDirection = glm::normalize( vec3( 1.0f ) );
+			const float amt = 0.001f;
+			const float amt2 = 0.00451f;
+			const float amt3 = 0.001618f;
+			lightDirection = vec3( mat2( cos( amt ), -sin( amt ), sin( amt ), cos( amt ) ) * lightDirection.xy(), lightDirection.z );
+			lightDirection = vec3( lightDirection.x, mat2( cos( amt2 ), -sin( amt2 ), sin( amt2 ), cos( amt2 ) ) * lightDirection.yz() );
+			lightDirection = vec3( mat2( cos( amt3 ), -sin( amt3 ), sin( amt3 ), cos( amt3 ) ) * lightDirection.xy(), lightDirection.z );
+			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
+
 			glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
