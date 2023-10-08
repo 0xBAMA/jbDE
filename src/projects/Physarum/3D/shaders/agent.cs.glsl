@@ -2,6 +2,7 @@
 layout( local_size_x = 1024, local_size_y = 1, local_size_z = 1 ) in;
 
 layout( r32ui ) uniform uimage3D current;
+layout( rgba32f ) uniform image3D simData;
 
 struct agent_t {
 
@@ -113,7 +114,7 @@ void main () {
 		vec3 tippedUp = Rotate3D( senseAngle, a.basisX.xyz ) * forwards;
 
 		vec3 weightedSum = vec3( 0.0f );
-		const int numDirections = 6;
+		const int numDirections = 3;
 		uint samples[ numDirections ];
 		for ( int i = 0; i < numDirections; i++ ) {
 			mat3 rollMat = Rotate3D( TAU * ( float( i ) / float( numDirections ) ), a.basisZ.xyz );
@@ -130,7 +131,9 @@ void main () {
 		mat3 updateRotation = mat3( 1.0f );
 		if ( length( weightedSum.xy ) < 0.1f ) {
 			// this is the random direction behavior
-				// for now, leave updateRotation as identity
+			for ( int i = 0; i < 3; i++ ) {
+				updateRotation *= Rotate3D( normalizedRandomFloat(), randomUnitVector() );
+			}
 		} else {
 			float angle = atan( weightedSum.y, weightedSum.x );
 			// tilt up by the turn angle, then roll by the solved-for angle
