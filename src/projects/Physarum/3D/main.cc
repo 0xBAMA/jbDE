@@ -85,7 +85,8 @@ public:
 			std::vector< agent_t > agentsInitialData;
 			size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
 
-			rng dist( -1.0f, 1.0f );
+			// rng dist( -1.0f, 1.0f );
+			rngN dist( 0.0f, 0.1f );
 			rng dist2( -pi, pi );
 
 			Tick();
@@ -98,13 +99,13 @@ public:
 					t.RotateZ( dist2() );
 				}
 				agentsInitialData.push_back( {
-					{ dist(), dist(), dist(), dist() },
+					{ dist(), dist(), dist2(), dist() },
 					{ t.basisX, dist() },
 					{ t.basisY, dist() },
 					{ t.basisZ, dist() }
 				} );
 
-				// I think this would be nice to have as a general utility
+				// I think this would be nice to have, progress bars as a general utility
 				const int reportWidth = 64;
 				if ( i % 50 == 0 ) {
 					cout << "\r Generating data [";
