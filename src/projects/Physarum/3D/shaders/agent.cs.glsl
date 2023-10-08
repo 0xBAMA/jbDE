@@ -8,7 +8,7 @@ struct agent_t {
 	// location, extra float available
 	vec4 position;
 
-	// direction now needs 
+	// direction now needs to specify the basis vectors to construct sample positions
 	vec4 basisX;
 	vec4 basisY;
 	vec4 basisZ;
@@ -29,12 +29,32 @@ uniform uint depositAmount;
 uniform uint numAgents;
 uniform bool writeBack;
 
+#include "hg_sdf.glsl"
+
 // takes argument in radians
 vec2 rotate ( const vec2 v, const float a ) {
 	const float s = sin( a );
 	const float c = cos( a );
 	const mat2 m = mat2( c, -s, s, c );
 	return m * v;
+}
+
+mat3 Rotate3D ( const float angle, const vec3 axis ) {
+	const vec3 a = normalize( axis );
+	const float s = sin( angle );
+	const float c = cos( angle );
+	const float r = 1.0f - c;
+	return mat3(
+		a.x * a.x * r + c,
+		a.y * a.x * r + a.z * s,
+		a.z * a.x * r - a.y * s,
+		a.x * a.y * r - a.z * s,
+		a.y * a.y * r + c,
+		a.z * a.y * r + a.x * s,
+		a.x * a.z * r + a.y * s,
+		a.y * a.z * r - a.x * s,
+		a.z * a.z * r + c
+	);
 }
 
 vec3 wrapPosition ( vec3 pos ) {
@@ -86,44 +106,78 @@ void main () {
 		gl_GlobalInvocationID.x );
 
 	if ( index < numAgents ) {
-
-		// initialize the rng
-		seed = wangSeed + 69 * index;
-
+		seed = wangSeed + 69 * index; // initialize the rng
 		agent_t a = data[ index ];
 
-		// vec3 direction = 
+		vec3 forwards = a.basisZ.xyz;
+		vec3 tippedUp = Rotate3D( senseAngle, a.basisX.xyz ) * forwards;
 
-		// do the simulation logic to update the value of position
-			// take your samples
-		const ivec3 rightSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, -senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
-		const ivec3 middleSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * a.basisX.xyz + vec3( 1.0f ) ) ) );
-		const ivec3 leftSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
-
-		const uint rightSample		= imageLoad( current, rightSampleLoc ).r;
-		const uint middleSample		= imageLoad( current, middleSampleLoc ).r;
-		const uint leftSample		= imageLoad( current, leftSampleLoc ).r;
-
-
-
-		// make a decision on whether to turn left, right, go straight, or a random direction
-			// this can be generalized and simplified, as some sort of weighted sum thing - will bear revisiting
-		if ( middleSample > leftSample && middleSample > rightSample ) {
-			// just retain the existing direction
-		} else if ( middleSample < leftSample && middleSample < rightSample ) { // turn a random direction
-			a.basisX.xyz = randomUnitVector();
-		} else if ( rightSample > middleSample && middleSample > leftSample ) { // turn right (positive)
-			a.basisX.xy = rotate( a.basisX.xy, turnAngle );
-		} else if ( leftSample > middleSample && middleSample > rightSample ) { // turn left (negative)
-			a.basisX.xy = rotate( a.basisX.xy, -turnAngle );
+		vec3 weightedSum = vec3( 0.0f );
+		const int numDirections = 6;
+		uint samples[ numDirections ];
+		for ( int i = 0; i < numDirections; i++ ) {
+			mat3 rollMat = Rotate3D( TAU * ( float( i ) / float( numDirections ) ), a.basisZ.xyz );
+			vec3 rotated = rollMat * tippedUp;
+			vec3 flatSpace = Rotate3D( TAU * ( float( i ) / float( numDirections ) ), vec3( 0.0f, 0.0f, 1.0f ) ) * vec3( 0.0f, 1.0f, 0.0f );
+			samples[ i ] = imageLoad( current, ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * rotated + vec3( 1.0f ) ) ) ) ).r;
+			weightedSum += float( samples[ i ] ) * flatSpace; // this can become 2d
 		}
-		// else, fall through and retain value of direction
 
-		vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisX.xyz );
+
+		// basically need like, angle about the forward z axis, from the weighted sum
+			// ... if within some small circle of the forward z axis ( dot product > thresh ~0.9 or something like that, xy plane offset smaller than some value ), that's when we do the random direction logic - will also need to create a new basis, in that case - for now, that case will just be, no-op
+		
+		mat3 updateRotation = mat3( 1.0f );
+		if ( length( weightedSum.xy ) < 0.1f ) {
+			// this is the random direction behavior
+				// for now, leave updateRotation as identity
+		} else {
+			float angle = atan( weightedSum.y, weightedSum.x );
+			// tilt up by the turn angle, then roll by the solved-for angle
+			updateRotation = Rotate3D( angle, a.basisZ.xyz ) * Rotate3D( turnAngle, a.basisX.xyz );
+		}
+
+		a.basisX.xyz = updateRotation * a.basisX.xyz;
+		a.basisY.xyz = updateRotation * a.basisY.xyz;
+		a.basisZ.xyz = updateRotation * a.basisZ.xyz;
+
+		if ( writeBack ) { // solve for the new direction, update the basis vectors to indicate
+			data[ index ].basisX.xyz = a.basisX.xyz;
+			data[ index ].basisY.xyz = a.basisY.xyz;
+			data[ index ].basisZ.xyz = a.basisZ.xyz;
+		}
+
+		vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisZ.xyz );
 		data[ index ].position.xyz = newPosition;
-		if ( writeBack ) {
-			data[ index ].basisX = a.basisX; // old impl never updated direction????
-		}
+
+		// // do the simulation logic to update the value of position
+		// 	// take your samples
+		// const ivec3 rightSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, -senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
+		// const ivec3 middleSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * a.basisX.xyz + vec3( 1.0f ) ) ) );
+		// const ivec3 leftSampleLoc	= ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * vec3( rotate( a.basisX.xy, senseAngle ), a.basisX.z ) + vec3( 1.0f ) ) ) );
+
+		// const uint rightSample		= imageLoad( current, rightSampleLoc ).r;
+		// const uint middleSample		= imageLoad( current, middleSampleLoc ).r;
+		// const uint leftSample		= imageLoad( current, leftSampleLoc ).r;
+
+		// // make a decision on whether to turn left, right, go straight, or a random direction
+		// 	// this can be generalized and simplified, as some sort of weighted sum thing - will bear revisiting
+		// if ( middleSample > leftSample && middleSample > rightSample ) {
+		// 	// just retain the existing direction
+		// } else if ( middleSample < leftSample && middleSample < rightSample ) { // turn a random direction
+		// 	a.basisX.xyz = randomUnitVector();
+		// } else if ( rightSample > middleSample && middleSample > leftSample ) { // turn right (positive)
+		// 	a.basisX.xy = rotate( a.basisX.xy, turnAngle );
+		// } else if ( leftSample > middleSample && middleSample > rightSample ) { // turn left (negative)
+		// 	a.basisX.xy = rotate( a.basisX.xy, -turnAngle );
+		// }
+		// // else, fall through and retain value of direction
+
+		// vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisX.xyz );
+		// data[ index ].position.xyz = newPosition;
+		// if ( writeBack ) {
+		// 	data[ index ].basisX = a.basisX; // old impl never updated direction????
+		// }
 
 		imageAtomicAdd( current, ivec3( imageSize( current ) * ( 0.5f * ( newPosition + vec3( 1.0f ) ) ) ), depositAmount );
 	}
