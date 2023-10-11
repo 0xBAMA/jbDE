@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <sstream>
+#include <iostream>
 #include <algorithm>
 
 #include "math.h"
@@ -14,6 +15,52 @@ inline std::string timeDateString () {
 	ssA << std::put_time( std::localtime( &inTime_t ), "%Y-%m-%d at %H-%M-%S" );
 	return ssA.str();
 }
+
+//=============================================================================
+//==== CLI Progress Bar Utility ===============================================
+//=============================================================================
+
+class progressBar {
+public:
+	progressBar () {
+		// set report width
+		// set the label for the progress bar
+		// set the chars that are used to done/undone
+		// set the total amount of shit to do
+		// set the amount of shit done now
+		// set the time that the process started? or skip timing entirely for now?
+	}
+
+	float done = 0.0f;
+	float total = 0.0f;
+
+	writeCurrentState () {
+		// calculate completion percentage
+		cout << "\r" << label;
+		const float frac = float( done ) / float( total );
+		int numFill = std::floor( reportWidth * frac ) - 1;
+
+		// draw the bar
+		cout << "[";
+		for( int i = 0; i <= numFill; i++ )					cout << doneChar;
+		for( int i = 0; i < reportWidth - numFill; i++ )	cout << undoneChar;
+		cout << "]";
+		
+		// and report the percentage
+		cout << 100.0f * frac << "%";
+		
+		// and timing if desired
+		// if ( reportTime )
+			// cout << " in " << Tock() / 1000.0f << "s" << std::flush;
+	}
+
+	char doneChar = '=';
+	char undoneChar = '.';
+	int reportWidth = 64;
+	bool reportTime = false;
+
+	std::string label = std::string( " Progress: " );
+};
 
 //=============================================================================
 //==== OpenGL Timer Query Wrapper =============================================
