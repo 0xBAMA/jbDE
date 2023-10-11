@@ -34,7 +34,7 @@ public:
 	float done = 0.0f;
 	float total = 0.0f;
 
-	writeCurrentState () {
+	void writeCurrentState () {
 		// calculate completion percentage
 		cout << "\r" << label;
 		const float frac = float( done ) / float( total );

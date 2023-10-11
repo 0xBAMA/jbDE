@@ -89,6 +89,11 @@ public:
 			rngN dist( 0.0f, 0.1f );
 			rng dist2( -pi, pi );
 
+			// init the progress bar
+			progressBar bar;
+			bar.total = physarumConfig.numAgents;
+			bar.label = string( " Generating Initial Data: " );
+
 			Tick();
 			cout << endl;
 			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
@@ -105,15 +110,9 @@ public:
 					{ t.basisZ, dist() }
 				} );
 
-				// I think this would be nice to have, progress bars as a general utility
-				const int reportWidth = 64;
+				bar.done = i;
 				if ( i % 50 == 0 ) {
-					cout << "\r Generating data [";
-					const float frac = float( i ) / float( physarumConfig.numAgents );
-					int numFill = std::floor( reportWidth * frac ) - 1;
-					for( int i = 0; i <= numFill; i++ ) cout << "=";
-					for( int i = 0; i < reportWidth - numFill; i++ ) cout << ".";
-					cout << "] " << 100.0f * frac << "% in " << Tock() / 1000.0f << "s" << std::flush;
+					bar.writeCurrentState();
 				}
 			}
 			cout << endl;
