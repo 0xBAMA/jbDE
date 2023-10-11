@@ -1,5 +1,20 @@
 #!/bin/bash
 
+if [ "$1" == "noiseTool" ]
+then
+	cd build/src/FastNoise2/NoiseTool/
+	make
+	cd ../../..
+	cp ./Release/bin/NoiseTool ..
+	cd ..
+fi
+
+if [ "$1" == "clean" ]
+then
+	rm -r ./bin
+	rm -r ./build
+fi
+
 mkdir build
 cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release
 cd build
@@ -11,8 +26,12 @@ cd build
 
 # # child apps
 
-# time make -j17 Physarum				# agent-based sim
-time make -j17 Siren					# tile based async pathtracer
+# # Simulations
+# time make -j17 Physarum2D				# agent-based sim
+# time make -j17 Physarum3D				# agent-based sim
+
+# # Pathtracing
+# time make -j17 Siren					# tile based async pathtracer
 
 # # voxelspace variants
 # time make -j17 VoxelSpace				# voxelspace algorithm renderer
@@ -36,21 +55,6 @@ time make -j17 Siren					# tile based async pathtracer
 
 # this runs all the targets in parallel
 	# use the above individual targets to enable / disable piecemeal
-# time make -j17 all
+time make -j4 all
 
 cd ..
-
-if [ "$1" == "noiseTool" ]
-then
-	cd build/src/FastNoise2/NoiseTool/
-	make
-	cd ../../..
-	cp ./Release/bin/NoiseTool ..
-	cd ..
-fi
-
-if [ "$1" == "clean" ]
-then
-	rm -r ./bin
-	rm -r ./build
-fi
