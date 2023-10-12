@@ -1029,7 +1029,8 @@ public:
 	uint32_t Height () const { return height; }
 
 	// tbd, need to make sure this works for passing texture data to GPU
-	const imageType* GetImageDataBasePtr () const { return data.data(); }
+	const imageType* GetImageDataBasePtr () const	{ return data.data(); }
+		imageType* GetImageDataBasePtr () 			{ return data.data(); }
 
 private:
 

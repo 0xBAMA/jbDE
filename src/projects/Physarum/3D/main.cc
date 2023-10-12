@@ -103,6 +103,7 @@ public:
 					t.RotateY( dist2() );
 					t.RotateZ( dist2() );
 				}
+
 				agentsInitialData.push_back( {
 					{ dist(), dist(), dist2(), dist() },
 					{ t.basisX, dist() },
@@ -110,6 +111,7 @@ public:
 					{ t.basisZ, dist() }
 				} );
 
+				// update and report
 				bar.done = i;
 				if ( i % 50 == 0 ) {
 					bar.writeCurrentState();

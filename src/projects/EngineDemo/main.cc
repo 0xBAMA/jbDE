@@ -20,6 +20,41 @@ public:
 				// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
 				// something like bin/imageProcess <json path>, and have that json specify source file, a list of ops, and destination path
 
+			Image_4F testImage;
+			testImage.Load( "test.png" );
+
+			// extract the image's bytes out
+			std::vector< unsigned char > bytes;
+			for ( uint y = 0; y < testImage.Height(); y++ ) {
+				for ( uint x = 0; x < testImage.Width(); x++ ) {
+
+					color_4F color = testImage.GetAtXY( x, y );
+					float sourceData[ 4 ];
+					sourceData[ 0 ] = color[ red ];
+					sourceData[ 1 ] = color[ green ];
+					sourceData[ 2 ] = color[ blue ];
+					sourceData[ 3 ] = color[ alpha ];
+
+					for ( int i = 0; i < 4; i++ ) {
+						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 0 ) );
+						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 1 ) );
+						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 2 ) );
+						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 3 ) );
+					}
+				}
+			}
+
+			// shuffle the bytes
+			std::random_shuffle( bytes.begin() + 1500000, bytes.end() - 1500000 );
+
+			// put the bytes back into the array
+			for ( uint i = 0; i < bytes.size(); i += 4 ) {
+				uint8_t data[ 4 ] = { bytes[ i ], bytes[ i + 1 ], bytes[ i + 2 ], bytes[ i + 3 ] };
+				testImage.GetImageDataBasePtr()[ i / 4 ] = std::clamp( *( float* )&data[ 0 ], 0.0f, 1.0f );
+			}
+
+			// save the image back out
+			testImage.Save( "out.png" );
 		}
 	}
 
