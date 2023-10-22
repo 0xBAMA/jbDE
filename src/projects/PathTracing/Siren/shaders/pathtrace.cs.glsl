@@ -46,7 +46,7 @@ uniform vec3 skylightColor;
 		// primitive type
 		// primitive parameters
 		// material details
-const int numSpheres = 5000;
+const int numSpheres = 0;// 5000;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -777,12 +777,12 @@ float de ( vec3 p ) {
 
 	sceneDist = min( dFramePlusPlatform, sceneDist );
 	if ( sceneDist == dFramePlusPlatform && dFramePlusPlatform <= raymarchEpsilon ) {
-		// hitPointSurfaceType = CHECKER;
+		hitPointSurfaceType = CHECKER;
 
 		// hitPointSurfaceType = DIFFUSE;
-		// hitPointColor = vec3( 0.1f, 0.1f, 0.1f );
+		// hitPointColor = vec3( 0.1f, 0.3f, 0.9f );
 
-		hitPointSurfaceType = WOOD;
+		// hitPointSurfaceType = WOOD;
 	}
 
 	sceneDist = min( dOrbs, sceneDist );

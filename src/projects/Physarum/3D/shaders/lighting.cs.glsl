@@ -20,15 +20,18 @@ void main () {
 	const vec3 sampleLocation = ( vec3( gl_GlobalInvocationID.xyz ) + vec3( 0.5f ) ) / imageSize( shadedVolume ).xyz;
 	uint myValue = texture( continuum, sampleLocation ).r;
 	float densityFraction = myValue / 100.0f;
+
+	// first light
 	// float blueNoiseValue = imageLoad( blueNoiseTexture, ivec2( gl_GlobalInvocationID.xy ) ).r / 255.0f;
 	uint shadowDepth = 0;
 	for ( int j = 0; j < 64; j++ ) {
-		shadowDepth += texture( continuum, sampleLocation + 0.01f * j * lightDirection ).r;
+		// shadowDepth += texture( continuum, sampleLocation + 0.01f * j * lightDirection ).r;
+		shadowDepth += texture( continuum, vec3( 0.5f ) - sampleLocation + 0.01f * j * lightDirection ).r;
 	}
 
 	// shade
 	vec3 colorResult = brightness * densityFraction * color;
-	colorResult *= exp( -float( shadowDepth / 400000.0f ) );
+	colorResult *= exp( -float( shadowDepth / 400000.0f ) ) + 0.0618f;
 
 	// imageStore( shadedVolume, ivec3( gl_GlobalInvocationID.xyz ), vec4( vec2( shadowDepth / 1000000.0f ), myValue / 10000.0f, 1.0f ) );
 	imageStore( shadedVolume, ivec3( gl_GlobalInvocationID.xyz ), vec4( colorResult, myValue / 16000.0f ) );

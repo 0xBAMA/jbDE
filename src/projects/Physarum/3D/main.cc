@@ -91,15 +91,10 @@ public:
 
 			// setup the ssbo for the agent data
 			struct agent_t {
-
-				// location, extra float available
 				vec4 position;
-
-				// direction now needs 
 				vec4 basisX;
 				vec4 basisY;
 				vec4 basisZ;
-
 				// other info? parameters per-agent?
 			};
 
