@@ -13,7 +13,7 @@
 	"OpenGLVersionMajor":4,
 	"OpenGLVersionMinor":5,
 	"OpenGLVerboseInit":false,
-	"SDLDisplayModeDump":true,
+	"SDLDisplayModeDump":false,
 	"reportPlatformInfo":true,
 	"depthTesting":true,
 	"SRGBFramebuffer":true,
@@ -31,7 +31,7 @@
 	},
 	"showImGUIDemoWindow":false,
 	"showProfiler":false,
-	"oneShot":true,
+	"oneShot":false,
 	"vSyncEnable":true,
 	"colorGrade":{
 		"showTonemapWindow":true,
