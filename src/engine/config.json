@@ -112,6 +112,33 @@
 				"depositAmount":27170,
 				"decayFactor":0.9355,
 				"writeBack":false
+			},
+			{
+				"senseAngle":1.6722,
+				"senseDistance":0.0032,
+				"turnAngle":2.5560,
+				"stepSize":0.0005,
+				"depositAmount":27660,
+				"decayFactor":0.9166,
+				"writeBack":false
+			},
+			{
+				"senseAngle":1.6659,
+				"senseDistance":0.0039,
+				"turnAngle":2.2867,
+				"stepSize":0.0022,
+				"depositAmount":32166,
+				"decayFactor":0.9335,
+				"writeBack":false
+			},
+			{
+				"senseAngle":1.5892,
+				"senseDistance":0.0038,
+				"turnAngle":2.7801,
+				"stepSize":0.0005,
+				"depositAmount":26686,
+				"decayFactor":0.8513,
+				"writeBack":false
 			}
 		],
 		"Physarum2D":{
