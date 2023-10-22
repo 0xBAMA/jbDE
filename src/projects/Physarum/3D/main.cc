@@ -101,9 +101,9 @@ public:
 			std::vector< agent_t > agentsInitialData;
 			size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
 
-			// rng dist( -1.0f, 1.0f );
 			rngN dist( 0.0f, 0.1f );
 			rng dist2( -pi, pi );
+			rng dist3( 0.0f, 1.0f );
 
 			// init the progress bar
 			progressBar bar;
@@ -119,7 +119,7 @@ public:
 				t.RotateZ( dist2() );
 
 				agentsInitialData.push_back( {
-					{ dist(), dist(), dist2(), dist() },
+					{ dist(), dist(), dist3(), dist() },
 					{ t.basisX, dist() },
 					{ t.basisY, dist() },
 					{ t.basisZ, dist() }
@@ -189,6 +189,20 @@ public:
 			physarumConfig.stepSize			= stepSize();
 			physarumConfig.depositAmount	= depositAmount();
 			physarumConfig.decayFactor		= decayFactor();
+		}
+
+		static int currentPreset = 0;
+		if ( ImGui::Button( "Prev Preset" ) ) {
+			currentPreset--;
+			if ( currentPreset < 0 ) {
+				currentPreset = presets.size() - 1;
+			}
+			ApplyPreset( currentPreset );
+		}
+		ImGui::SameLine();
+		if ( ImGui::Button( "Next Preset" ) ) {
+			currentPreset = ( currentPreset + 1 ) % presets.size();
+			ApplyPreset( currentPreset );
 		}
 
 		// widgets

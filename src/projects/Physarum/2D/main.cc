@@ -118,7 +118,6 @@ public:
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
-
 	}
 
 	void ImguiPass () {
@@ -150,6 +149,20 @@ public:
 			physarumConfig.stepSize			= stepSize();
 			physarumConfig.depositAmount	= depositAmount();
 			physarumConfig.decayFactor		= decayFactor();
+		}
+
+		static int currentPreset = 0;
+		if ( ImGui::Button( "Prev Preset" ) ) {
+			currentPreset--;
+			if ( currentPreset < 0 ) {
+				currentPreset = presets.size() - 1;
+			}
+			ApplyPreset( currentPreset );
+		}
+		ImGui::SameLine();
+		if ( ImGui::Button( "Next Preset" ) ) {
+			currentPreset = ( currentPreset + 1 ) % presets.size();
+			ApplyPreset( currentPreset );
 		}
 
 		// widgets
@@ -203,7 +216,6 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-
 	}
 
 	void ComputePasses () {
