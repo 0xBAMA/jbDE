@@ -114,11 +114,9 @@ public:
 			cout << endl;
 			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
 				orientTrident t; // randomize the orientation
-				for ( int j = 0; j < 3; j++ ) {
-					t.RotateX( dist2() );
-					t.RotateY( dist2() );
-					t.RotateZ( dist2() );
-				}
+				t.RotateX( dist2() );
+				t.RotateY( dist2() );
+				t.RotateZ( dist2() );
 
 				agentsInitialData.push_back( {
 					{ dist(), dist(), dist2(), dist() },
@@ -237,7 +235,7 @@ public:
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 
 		ImGui::ColorEdit3( "Color", ( float * ) &physarumConfig.color, ImGuiColorEditFlags_PickerHueWheel );
-		ImGui::SliderFloat( "Brightness", &physarumConfig.brightness, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Brightness", &physarumConfig.brightness, 0.0f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 
 		ImGui::Separator();
 		ImGui::Separator();

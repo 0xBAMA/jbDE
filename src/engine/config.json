@@ -153,7 +153,7 @@
 			"brightness":1.0
 		},
 		"Physarum3D":{
-			"numAgents":10000000,
+			"numAgents":1000000,
 			"dimensionX":256,
 			"dimensionY":256,
 			"dimensionZ":256,
