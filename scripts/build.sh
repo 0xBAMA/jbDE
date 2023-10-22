@@ -22,7 +22,7 @@ cd build
 
 # engine stuff
 # time make -j17 TracyClient
-time make -j17 EngineDemo				# super basic demo
+# time make -j17 EngineDemo				# super basic demo
 
 # # child apps
 
@@ -55,6 +55,6 @@ time make -j17 EngineDemo				# super basic demo
 
 # this runs all the targets in parallel
 	# use the above individual targets to enable / disable piecemeal
-# time make -j4 all
+time make -j17 all
 
 cd ..
