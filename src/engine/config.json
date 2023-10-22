@@ -2,8 +2,8 @@
 	"windowTitle":"jbDE",
 	"MSAACount":8,
 	"startOnScreen":1,
-	"screenWidth":1080,
-	"screenHeight":1920,
+	"screenWidth":1920,
+	"screenHeight":1080,
 	"windowOffset":{
 		"x":100,
 		"y":200
@@ -13,10 +13,10 @@
 	"OpenGLVersionMajor":4,
 	"OpenGLVersionMinor":5,
 	"OpenGLVerboseInit":false,
-	"SDLDisplayModeDump":false,
+	"SDLDisplayModeDump":true,
 	"reportPlatformInfo":true,
 	"depthTesting":true,
-	"SRGBFramebuffer":false,
+	"SRGBFramebuffer":true,
 	"SDL_WINDOW_FULLSCREEN":true,
 	"SDL_WINDOW_FULLSCREEN_DESKTOP":false,
 	"SDL_WINDOW_BORDERLESS":false,
@@ -94,17 +94,30 @@
 			"framebufferX":800,
 			"framebufferY":800
 		},
+		"PhysarumPresets":[
+			{
+				"senseAngle":2.454,
+				"senseDistance":0.0013,
+				"turnAngle":1.25,
+				"stepSize":0.0006,
+				"depositAmount":1250,
+				"decayFactor":0.9875,
+				"writeBack":false
+			},
+			{
+				"senseAngle":2.4011,
+				"senseDistance":0.0017,
+				"turnAngle":1.6381,
+				"stepSize":0.0003,
+				"depositAmount":27170,
+				"decayFactor":0.9355,
+				"writeBack":false
+			}
+		],
 		"Physarum2D":{
 			"numAgents":1048576,
-			"dimensionX":1080,
-			"dimensionY":1920,
-			"senseAngle":2.454,
-			"senseDistance":0.0013,
-			"turnAngle":1.25,
-			"stepSize":0.0006,
-			"depositAmount":1250,
-			"decayFactor":0.9875,
-			"writeBack":false,
+			"dimensionX":1920,
+			"dimensionY":1080,
 			"color":{
 				"r":1.0,
 				"g":0.7,
@@ -117,13 +130,6 @@
 			"dimensionX":256,
 			"dimensionY":256,
 			"dimensionZ":256,
-			"senseAngle":2.454,
-			"senseDistance":0.0013,
-			"turnAngle":1.25,
-			"stepSize":0.0006,
-			"depositAmount":1250,
-			"decayFactor":0.9875,
-			"writeBack":false,
 			"color":{
 				"r":1.0,
 				"g":0.7,

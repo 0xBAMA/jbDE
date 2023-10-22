@@ -1,5 +1,17 @@
 #include "../../../engine/engine.h"
 
+struct preset_t {
+	float senseAngle;
+	float senseDistance;
+	float turnAngle;
+	float stepSize;
+	float decayFactor;
+	uint32_t depositAmount;
+	bool writeBack;
+};
+
+static std::vector< preset_t > presets;
+
 struct physarumConfig_t {
 	// environment setup
 	uint32_t numAgents;
@@ -50,19 +62,28 @@ public:
 			physarumConfig.numAgents		= j[ "app" ][ "Physarum2D" ][ "numAgents" ];
 			physarumConfig.dimensionX		= j[ "app" ][ "Physarum2D" ][ "dimensionX" ];
 			physarumConfig.dimensionY		= j[ "app" ][ "Physarum2D" ][ "dimensionY" ];
-			physarumConfig.senseAngle		= j[ "app" ][ "Physarum2D" ][ "senseAngle" ];
-			physarumConfig.senseDistance	= j[ "app" ][ "Physarum2D" ][ "senseDistance" ];
-			physarumConfig.turnAngle		= j[ "app" ][ "Physarum2D" ][ "turnAngle" ];
-			physarumConfig.stepSize			= j[ "app" ][ "Physarum2D" ][ "stepSize" ];
-			physarumConfig.writeBack		= j[ "app" ][ "Physarum2D" ][ "writeBack" ];
-			physarumConfig.decayFactor		= j[ "app" ][ "Physarum2D" ][ "decayFactor" ];
-			physarumConfig.depositAmount	= j[ "app" ][ "Physarum2D" ][ "depositAmount" ];
 			physarumConfig.brightness		= j[ "app" ][ "Physarum2D" ][ "brightness" ];
 			physarumConfig.color			= vec3(
 				j[ "app" ][ "Physarum2D" ][ "color" ][ "r" ],
 				j[ "app" ][ "Physarum2D" ][ "color" ][ "g" ],
 				j[ "app" ][ "Physarum2D" ][ "color" ][ "b" ]
 			);
+
+			// populate the presets vector
+			json j2 = j[ "app" ][ "PhysarumPresets" ];
+			for ( auto& data : j2 ) {
+				preset_t preset;
+				preset.senseAngle		= data[ "senseAngle" ];
+				preset.senseDistance	= data[ "senseDistance" ];
+				preset.turnAngle		= data[ "turnAngle" ];
+				preset.stepSize			= data[ "stepSize" ];
+				preset.writeBack		= data[ "writeBack" ];
+				preset.decayFactor		= data[ "decayFactor" ];
+				preset.depositAmount	= data[ "depositAmount" ];
+				presets.push_back( preset );
+			}
+
+			ApplyPreset( 0 );
 
 			// setup the ssbo for the agent data
 			struct agent_t {
@@ -241,6 +262,16 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
+	}
+
+	void ApplyPreset( int idx ) {
+		physarumConfig.senseAngle		= presets[ idx ].senseAngle;
+		physarumConfig.senseDistance	= presets[ idx ].senseDistance;
+		physarumConfig.turnAngle		= presets[ idx ].turnAngle;
+		physarumConfig.stepSize			= presets[ idx ].stepSize;
+		physarumConfig.decayFactor		= presets[ idx ].decayFactor;
+		physarumConfig.depositAmount	= presets[ idx ].depositAmount;
+		physarumConfig.writeBack		= presets[ idx ].writeBack;
 	}
 
 	void OnUpdate () {
