@@ -164,6 +164,35 @@ public:
 		ImGui::SameLine();
 		ImGui::Text( " %d / %d ", currentPreset, ( int ) presets.size() - 1 );
 
+		if ( ImGui::Button( "Add Current Config To Presets" ) ) {
+			// currentPreset will now be the index of the final element
+			currentPreset = presets.size(); // don't need to decrement if you grab it before adding
+
+			// add it to the live list
+			preset_t current;
+			current.senseAngle					= physarumConfig.senseAngle;
+			current.senseDistance				= physarumConfig.senseDistance;
+			current.turnAngle					= physarumConfig.turnAngle;
+			current.stepSize					= physarumConfig.stepSize;
+			current.decayFactor					= physarumConfig.decayFactor;
+			current.depositAmount				= physarumConfig.depositAmount;
+			current.writeBack					= physarumConfig.writeBack;
+			presets.push_back( current );
+
+			// add it to the config
+			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			json currentConfig;
+			currentConfig[ "senseAngle" ] 		= current.senseAngle;
+			currentConfig[ "senseDistance" ] 	= current.senseDistance;
+			currentConfig[ "turnAngle" ] 		= current.turnAngle;
+			currentConfig[ "stepSize" ]			= current.stepSize;
+			currentConfig[ "decayFactor" ] 		= current.decayFactor;
+			currentConfig[ "depositAmount" ]	= current.depositAmount;
+			currentConfig[ "writeBack" ]		= current.writeBack;
+			j[ "app" ][ "PhysarumPresets" ].push_back( currentConfig );
+			std::ofstream o ( "src/engine/config.json" ); o << j.dump( 2 ); o.close();
+		}
+
 
 		// widgets
 		HelpMarker( "The angle between the sensors." );
