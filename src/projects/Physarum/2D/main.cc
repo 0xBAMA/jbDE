@@ -153,15 +153,12 @@ public:
 
 		static int currentPreset = 0;
 		if ( ImGui::Button( "Prev Preset" ) ) {
-			currentPreset--;
-			if ( currentPreset < 0 ) {
-				currentPreset = presets.size() - 1;
-			}
+			currentPreset = std::clamp( currentPreset - 1, 0, ( int ) presets.size() - 1 );
 			ApplyPreset( currentPreset );
 		}
 		ImGui::SameLine();
 		if ( ImGui::Button( "Next Preset" ) ) {
-			currentPreset = ( currentPreset + 1 ) % presets.size();
+			currentPreset = std::clamp( currentPreset + 1, 0, ( int ) presets.size() - 1 );
 			ApplyPreset( currentPreset );
 		}
 
