@@ -340,6 +340,8 @@ This is a planning document for work on this project and in general, about the t
 	- [Underwater Distort](https://www.shadertoy.com/view/4tG3WR)
 	- [Suslik's stuff to break up texture tiling](https://www.shadertoy.com/view/tsVGRd)
 
+- [Cool project, projecting video onto morphing 3d object](https://www.transphormetic.com/Daub)
+
 - Little JS demo based on [this](https://www.youtube.com/watch?v=XGioNBHrFU4) ( particle text )? would be cool to have something with interaction
 
 - [Impostor shader](https://www.landontownsend.com/single-post/super-imposter-shader-my-journey-to-make-a-high-quality-imposter-shader)
