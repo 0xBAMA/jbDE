@@ -161,6 +161,9 @@ public:
 			currentPreset = std::clamp( currentPreset + 1, 0, ( int ) presets.size() - 1 );
 			ApplyPreset( currentPreset );
 		}
+		ImGui::SameLine();
+		ImGui::Text( " %d / %d ", currentPreset, ( int ) presets.size() - 1 );
+
 
 		// widgets
 		HelpMarker( "The angle between the sensors." );
