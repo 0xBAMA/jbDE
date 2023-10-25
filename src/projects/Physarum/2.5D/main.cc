@@ -17,6 +17,7 @@ struct physarumConfig_t {
 	uint32_t numAgents;
 	uint32_t dimensionX;
 	uint32_t dimensionY;
+	uint32_t thickness;
 	bool oddFrame = false;
 
 	// agent sim
@@ -31,8 +32,10 @@ struct physarumConfig_t {
 	float decayFactor;
 	uint32_t depositAmount;
 
+	// display
 	vec3 color;
 	float brightness;
+	float scale = 1.0f;
 };
 
 class Physarum : public engineBase {
@@ -62,6 +65,7 @@ public:
 			physarumConfig.numAgents		= j[ "app" ][ "Physarum2.5D" ][ "numAgents" ];
 			physarumConfig.dimensionX		= j[ "app" ][ "Physarum2.5D" ][ "dimensionX" ];
 			physarumConfig.dimensionY		= j[ "app" ][ "Physarum2.5D" ][ "dimensionY" ];
+			physarumConfig.thickness		= j[ "app" ][ "Physarum2.5D" ][ "thickness" ];
 			physarumConfig.brightness		= j[ "app" ][ "Physarum2.5D" ][ "brightness" ];
 			physarumConfig.color			= vec3(
 				j[ "app" ][ "Physarum2.5D" ][ "color" ][ "r" ],
@@ -122,6 +126,21 @@ public:
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
+
+		// // current state of the whole keyboard
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
+
+		// // current state of the modifier keys
+		// const SDL_Keymod k	= SDL_GetModState();
+		// const bool shift		= ( k & KMOD_SHIFT );
+		// const bool alt		= ( k & KMOD_ALT );
+		// const bool control	= ( k & KMOD_CTRL );
+		// const bool caps		= ( k & KMOD_CAPS );
+		// const bool super		= ( k & KMOD_GUI );
+
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { physarumConfig.scale /= 0.99f; }
+		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { physarumConfig.scale *= 0.99f; }
+
 	}
 
 	void ImguiPass () {
@@ -287,6 +306,7 @@ public:
 
 			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
+			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "scale" ), physarumConfig.scale );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
 
