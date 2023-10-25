@@ -13,8 +13,8 @@
         "g": 0.7,
         "r": 1.0
       },
-      "dimensionX": 3840,
-      "dimensionY": 2160,
+      "dimensionX": 512,
+      "dimensionY": 256,
       "numAgents": 1048576
     },
     "Physarum3D": {
