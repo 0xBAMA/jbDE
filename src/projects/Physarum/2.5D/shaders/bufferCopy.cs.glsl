@@ -8,6 +8,8 @@ uniform vec2 resolution;
 uniform vec3 color;
 uniform float brightness;
 
+uniform mat3 invBasis;
+
 #include "intersect.h"
 
 void main () {
@@ -23,9 +25,9 @@ void main () {
 
 	// box intersection
 	float tMin, tMax;
-	vec3 Origin = vec3( uv, -1.0f );
-	vec3 Direction = vec3( 0.0f, 0.0f, 1.0f );
+	vec3 Origin = invBasis * vec3( uv, -1.0f );
+	vec3 Direction = invBasis * vec3( 0.0f, 0.0f, 1.0f );
 	const bool hit = Intersect( Origin, Direction, vec3( -0.1f, -0.2f, -0.3f ), vec3( 0.1f, 0.2f, 0.3f ), tMin, tMax );
 
-	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( hit ? uv : vec2( 0.0f ), 0.0f, 1.0f ) );
+	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( hit ? uv * clamp( abs( tMin - tMax ), 0.0f, 1.0f ) : vec2( 0.0f ), 0.0f, 1.0f ) );
 }

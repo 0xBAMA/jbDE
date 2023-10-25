@@ -281,6 +281,10 @@ public:
 			bindSets[ "Drawing" ].apply();
 
 			glUseProgram( shaders[ "Buffer Copy" ] );
+
+			const glm::mat3 inverseBasisMat = inverse( glm::mat3( -trident.basisX, -trident.basisY, -trident.basisZ ) );
+			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Buffer Copy" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
+
 			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
