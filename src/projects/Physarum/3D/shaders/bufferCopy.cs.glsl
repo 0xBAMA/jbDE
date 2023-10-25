@@ -11,7 +11,11 @@ uniform float brightness;
 uniform float zOffset;
 
 // wanting to do some kind of visualization of the voxels
+// this would enable something like xima's subvoxels
 // https://www.shadertoy.com/view/NstSR8
+
+
+
 
 void main () {
 	const vec2 uv = ( ( gl_GlobalInvocationID.xy + vec2( 0.5f ) ) / resolution ) - vec2( 0.5f );
