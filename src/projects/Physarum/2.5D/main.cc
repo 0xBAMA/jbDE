@@ -304,6 +304,8 @@ public:
 			const glm::mat3 inverseBasisMat = inverse( glm::mat3( -trident.basisX, -trident.basisY, -trident.basisZ ) );
 			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Buffer Copy" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
 
+			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "blockSize" ), physarumConfig.dimensionX / 1024.0f, physarumConfig.dimensionY / 1024.0f, physarumConfig.thickness / 1024.0f );
+
 			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "scale" ), physarumConfig.scale );
@@ -334,7 +336,7 @@ public:
 
 	}
 
-	void ApplyPreset( int idx ) {
+	void ApplyPreset ( int idx ) {
 		physarumConfig.senseAngle		= presets[ idx ].senseAngle;
 		physarumConfig.senseDistance	= presets[ idx ].senseDistance;
 		physarumConfig.turnAngle		= presets[ idx ].turnAngle;
