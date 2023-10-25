@@ -1,5 +1,4 @@
-float tMin, tMax; // global state tracking
-bool Intersect ( const vec3 rO, vec3 rD ) {
+bool Intersect ( const vec3 rO, vec3 rD, in vec3 min, in vec3 max, out float tMin, out float tMax ) {
 // Intersect() code adapted from:
 //    Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley
 //    "An Efficient and Robust Ray-Box Intersection Algorithm"
@@ -12,8 +11,6 @@ bool Intersect ( const vec3 rO, vec3 rD ) {
 	s[ 0 ] = ( iD[ 0 ] < 0 ) ? 1 : 0;
 	s[ 1 ] = ( iD[ 1 ] < 0 ) ? 1 : 0;
 	s[ 2 ] = ( iD[ 2 ] < 0 ) ? 1 : 0;
-	const vec3 min = vec3( -1.0, -1.0, -1.0 );
-	const vec3 max = vec3(  1.0,  1.0,  1.0 );
 	const vec3 b[ 2 ] = { min, max }; // bounds
 	tMin = ( b[ s[ 0 ] ][ 0 ] - rO[ 0 ] ) * iD[ 0 ];
 	tMax = ( b[ 1 - s[ 0 ] ][ 0 ] - rO[ 0 ] ) * iD[ 0 ];
