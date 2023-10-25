@@ -17,6 +17,18 @@
       "dimensionY": 256,
       "numAgents": 1048576
     },
+	"Physarum2.5D": {
+		"brightness": 1.0,
+		"color": {
+			"b": 0.2,
+			"g": 0.7,
+			"r": 1.0
+		},
+		"dimensionX": 1920,
+		"dimensionY": 1080,
+		"thickness": 64,
+		"numAgents": 1048576
+	},
     "Physarum3D": {
       "brightness": 1.0,
       "color": {
