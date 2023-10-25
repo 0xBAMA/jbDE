@@ -59,22 +59,19 @@ public:
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			physarumConfig.numAgents		= j[ "app" ][ "Physarum2D" ][ "numAgents" ];
-			physarumConfig.dimensionX		= j[ "app" ][ "Physarum2D" ][ "dimensionX" ];
-			physarumConfig.dimensionY		= j[ "app" ][ "Physarum2D" ][ "dimensionY" ];
-			physarumConfig.brightness		= j[ "app" ][ "Physarum2D" ][ "brightness" ];
+			physarumConfig.numAgents		= j[ "app" ][ "Physarum2.5D" ][ "numAgents" ];
+			physarumConfig.dimensionX		= j[ "app" ][ "Physarum2.5D" ][ "dimensionX" ];
+			physarumConfig.dimensionY		= j[ "app" ][ "Physarum2.5D" ][ "dimensionY" ];
+			physarumConfig.brightness		= j[ "app" ][ "Physarum2.5D" ][ "brightness" ];
 			physarumConfig.color			= vec3(
-				j[ "app" ][ "Physarum2D" ][ "color" ][ "r" ],
-				j[ "app" ][ "Physarum2D" ][ "color" ][ "g" ],
-				j[ "app" ][ "Physarum2D" ][ "color" ][ "b" ]
+				j[ "app" ][ "Physarum2.5D" ][ "color" ][ "r" ],
+				j[ "app" ][ "Physarum2.5D" ][ "color" ][ "g" ],
+				j[ "app" ][ "Physarum2.5D" ][ "color" ][ "b" ]
 			);
-
-			cout << "entering init" << endl;
 
 			// populate the presets vector
 			json j2; ifstream i2 ( "src/projects/Physarum/presets.json" ); i2 >> j2; i2.close();
 			j2 = j2[ "PhysarumPresets" ];
-			cout << j2 << endl;
 			for ( auto& data : j2 ) {
 				preset_t preset;
 				preset.senseAngle		= data[ "senseAngle" ];
@@ -87,7 +84,6 @@ public:
 				presets.push_back( preset );
 			}
 
-			cout << "finished init" << endl;
 			ApplyPreset( 0 );
 
 			// setup the ssbo for the agent data
@@ -117,6 +113,9 @@ public:
 			opts.textureType	= GL_TEXTURE_2D;
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
+
+			// lighting volume, tbd
+
 		}
 	}
 
@@ -286,6 +285,8 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
 			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
+
+			// update the alpha, every frame - update the color more slowly... forward pt?
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
