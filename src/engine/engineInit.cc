@@ -16,37 +16,37 @@ void engineBase::LoadConfig () {
 
 		// load the config json, populate config struct - this will probably have more data, eventually
 		json j; ifstream i( "src/engine/config.json" ); i >> j; i.close();
-		config.windowTitle				= j[ "windowTitle" ];
-		config.width					= j[ "screenWidth" ];
-		config.height					= j[ "screenHeight" ];
-		config.linearFilter				= j[ "linearFilterDisplayTex" ];
-		config.windowOffset.x			= j[ "windowOffset" ][ "x" ];
-		config.windowOffset.y			= j[ "windowOffset" ][ "y" ];
-		config.startOnScreen			= j[ "startOnScreen" ];
-		config.numMsDelayAfterCallback	= j[ "numMsDelayAfterCallback" ];
-		config.windowFlags				|= ( j[ "SDL_WINDOW_FULLSCREEN" ] ? SDL_WINDOW_FULLSCREEN : 0 );
-		config.windowFlags				|= ( j[ "SDL_WINDOW_FULLSCREEN_DESKTOP" ] ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0 );
-		config.windowFlags				|= ( j[ "SDL_WINDOW_BORDERLESS" ] ? SDL_WINDOW_BORDERLESS : 0 );
-		config.windowFlags				|= ( j[ "SDL_WINDOW_RESIZABLE" ] ? SDL_WINDOW_RESIZABLE : 0 );
-		config.windowFlags				|= ( j[ "SDL_WINDOW_INPUT_GRABBED" ] ? SDL_WINDOW_INPUT_GRABBED : 0 );
-		config.vSyncEnable				= j[ "vSyncEnable" ];
-		config.MSAACount				= j[ "MSAACount" ];
-		config.OpenGLVersionMajor		= j[ "OpenGLVersionMajor" ];
-		config.OpenGLVersionMinor		= j[ "OpenGLVersionMinor" ];
-		config.OpenGLVerboseInit		= j[ "OpenGLVerboseInit" ];
-		config.SDLDisplayModeDump		= j[ "SDLDisplayModeDump" ];
-		config.reportPlatformInfo		= j[ "reportPlatformInfo" ];
-		config.enableDepthTesting		= j[ "depthTesting" ];
-		config.SRGBFramebuffer			= j[ "SRGBFramebuffer" ];
-		config.loadDataResources		= j[ "loadDataResources" ];
-		config.clearColor.r				= j[ "clearColor" ][ "r" ];
-		config.clearColor.g				= j[ "clearColor" ][ "g" ];
-		config.clearColor.b				= j[ "clearColor" ][ "b" ];
-		config.clearColor.a				= j[ "clearColor" ][ "a" ];
+		config.windowTitle				= j[ "system" ][ "windowTitle" ];
+		config.width					= j[ "system" ][ "screenWidth" ];
+		config.height					= j[ "system" ][ "screenHeight" ];
+		config.linearFilter				= j[ "system" ][ "linearFilterDisplayTex" ];
+		config.windowOffset.x			= j[ "system" ][ "windowOffset" ][ "x" ];
+		config.windowOffset.y			= j[ "system" ][ "windowOffset" ][ "y" ];
+		config.startOnScreen			= j[ "system" ][ "startOnScreen" ];
+		config.numMsDelayAfterCallback	= j[ "system" ][ "numMsDelayAfterCallback" ];
+		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_FULLSCREEN" ] ? SDL_WINDOW_FULLSCREEN : 0 );
+		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_FULLSCREEN_DESKTOP" ] ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0 );
+		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_BORDERLESS" ] ? SDL_WINDOW_BORDERLESS : 0 );
+		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_RESIZABLE" ] ? SDL_WINDOW_RESIZABLE : 0 );
+		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_INPUT_GRABBED" ] ? SDL_WINDOW_INPUT_GRABBED : 0 );
+		config.vSyncEnable				= j[ "system" ][ "vSyncEnable" ];
+		config.MSAACount				= j[ "system" ][ "MSAACount" ];
+		config.OpenGLVersionMajor		= j[ "system" ][ "OpenGLVersionMajor" ];
+		config.OpenGLVersionMinor		= j[ "system" ][ "OpenGLVersionMinor" ];
+		config.OpenGLVerboseInit		= j[ "system" ][ "OpenGLVerboseInit" ];
+		config.SDLDisplayModeDump		= j[ "system" ][ "SDLDisplayModeDump" ];
+		config.reportPlatformInfo		= j[ "system" ][ "reportPlatformInfo" ];
+		config.enableDepthTesting		= j[ "system" ][ "depthTesting" ];
+		config.SRGBFramebuffer			= j[ "system" ][ "SRGBFramebuffer" ];
+		config.loadDataResources		= j[ "system" ][ "loadDataResources" ];
+		config.clearColor.r				= j[ "system" ][ "clearColor" ][ "r" ];
+		config.clearColor.g				= j[ "system" ][ "clearColor" ][ "g" ];
+		config.clearColor.b				= j[ "system" ][ "clearColor" ][ "b" ];
+		config.clearColor.a				= j[ "system" ][ "clearColor" ][ "a" ];
 
-		config.oneShot					= j[ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
-		showDemoWindow					= j[ "showImGUIDemoWindow" ];
-		showProfiler					= j[ "showProfiler" ];
+		config.oneShot					= j[ "system" ][ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
+		showDemoWindow					= j[ "system" ][ "showImGUIDemoWindow" ];
+		showProfiler					= j[ "system" ][ "showProfiler" ];
 
 		TonemapDefaults();
 	}
@@ -55,13 +55,13 @@ void engineBase::LoadConfig () {
 void engineBase::TonemapDefaults () {
 	// color grading stuff
 	json j; ifstream i( "src/engine/config.json" ); i >> j; i.close();
-	tonemap.showTonemapWindow		= j[ "colorGrade" ][ "showTonemapWindow" ];
-	tonemap.tonemapMode				= j[ "colorGrade" ][ "tonemapMode" ];
-	tonemap.gamma					= j[ "colorGrade" ][ "gamma" ];
-	tonemap.postExposure			= j[ "colorGrade" ][ "postExposure" ];
-	tonemap.saturation				= j[ "colorGrade" ][ "saturation" ];
-	tonemap.saturationImprovedWeights = j[ "colorGrade" ][ "saturationImprovedWeights" ];
-	tonemap.colorTemp				= j[ "colorGrade" ][ "colorTemp" ];
+	tonemap.showTonemapWindow		= j[ "system" ][ "colorGrade" ][ "showTonemapWindow" ];
+	tonemap.tonemapMode				= j[ "system" ][ "colorGrade" ][ "tonemapMode" ];
+	tonemap.gamma					= j[ "system" ][ "colorGrade" ][ "gamma" ];
+	tonemap.postExposure			= j[ "system" ][ "colorGrade" ][ "postExposure" ];
+	tonemap.saturation				= j[ "system" ][ "colorGrade" ][ "saturation" ];
+	tonemap.saturationImprovedWeights = j[ "system" ][ "colorGrade" ][ "saturationImprovedWeights" ];
+	tonemap.colorTemp				= j[ "system" ][ "colorGrade" ][ "colorTemp" ];
 }
 
 void engineBase::CreateWindowAndContext () {
