@@ -69,12 +69,9 @@ public:
 				j[ "app" ][ "Physarum2D" ][ "color" ][ "b" ]
 			);
 
-			cout << "entering init" << endl;
-
 			// populate the presets vector
 			json j2; ifstream i2 ( "src/projects/Physarum/presets.json" ); i2 >> j2; i2.close();
 			j2 = j2[ "PhysarumPresets" ];
-			cout << j2 << endl;
 			for ( auto& data : j2 ) {
 				preset_t preset;
 				preset.senseAngle		= data[ "senseAngle" ];
@@ -87,7 +84,6 @@ public:
 				presets.push_back( preset );
 			}
 
-			cout << "finished init" << endl;
 			ApplyPreset( 0 );
 
 			// setup the ssbo for the agent data
