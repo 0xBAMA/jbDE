@@ -8,10 +8,24 @@ uniform vec2 resolution;
 uniform vec3 color;
 uniform float brightness;
 
-void main () {
-	const vec2 sampleLocation = ( vec2( gl_GlobalInvocationID.xy ) + vec2( 0.5f ) ) / resolution.xy;
-	uint result = texture( continuum, sampleLocation ).r;
+#include "intersect.h"
 
-	// write the data to the accumulator
-	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( brightness * ( result / 1000000.0f ) * color, 1.0f ) );
+void main () {
+	// remapped uv
+	vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + vec2( 0.5f ) ) / resolution.xy;
+	uv = ( uv - 0.5f ) * 2.0f;
+
+	// aspect ratio correction
+	uv.x *= ( resolution.x / resolution.y );
+
+	// scaling
+	// uv *= scale;
+
+	// box intersection
+	float tMin, tMax;
+	vec3 Origin = vec3( uv, -1.0f );
+	vec3 Direction = vec3( 0.0f, 0.0f, 1.0f );
+	const bool hit = Intersect( Origin, Direction, vec3( -0.1f, -0.2f, -0.3f ), vec3( 0.1f, 0.2f, 0.3f ), tMin, tMax );
+
+	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( hit ? uv : vec2( 0.0f ), 0.0f, 1.0f ) );
 }
