@@ -73,8 +73,8 @@ void main () {
 
 		const int numSteps = 700;
 		int iterationsToHit = 0;
-		vec3 samplePoint = blockUVMin + blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 0 ) * 0.01f;
-		vec3 final = vec3( 0.01f );
+		vec3 samplePoint = blockUVMin + blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 0 ) * 0.001f;
+		vec3 final = vec3( 0.0f );
 		for ( ; iterationsToHit < numSteps; iterationsToHit++ ) {
 			samplePoint += stepSize * displacement;
 			float result = brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f );
@@ -85,7 +85,7 @@ void main () {
 			vec3 iterationColor = color;
 			final = mix( final, iterationColor, 0.01f );
 		}
-		final = mix( final, brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f ) * color + vec3( 0.003f ), 0.2f );
+		// final = mix( final, brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f ) * color + vec3( 0.003f ), 0.2f );
 		imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( final, 1.0f ) );
 	} else {
 		imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( 0.0, 0.0f, 0.0f, 1.0f ) );
