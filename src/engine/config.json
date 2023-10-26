@@ -26,7 +26,7 @@
 			},
 			"dimensionX": 1920,
 			"dimensionY": 1080,
-			"thickness": 64,
+			"thickness": 256,
 			"numAgents": 1048576
 		},
 		"Physarum3D": {
