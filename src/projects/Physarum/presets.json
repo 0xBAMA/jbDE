@@ -548,6 +548,33 @@
       "stepSize": 0.0004352643736638129,
       "turnAngle": 1.2246136665344238,
       "writeBack": false
+    },
+    {
+      "decayFactor": 0.9612982869148254,
+      "depositAmount": 14322,
+      "senseAngle": 1.7367095947265625,
+      "senseDistance": 0.00232523400336504,
+      "stepSize": 0.001914737280458212,
+      "turnAngle": 2.5922412872314453,
+      "writeBack": false
+    },
+    {
+      "decayFactor": 0.9264234900474548,
+      "depositAmount": 36752,
+      "senseAngle": 1.2265032529830933,
+      "senseDistance": 0.001998872496187687,
+      "stepSize": 0.0009655180620029569,
+      "turnAngle": 2.8286516666412354,
+      "writeBack": false
+    },
+    {
+      "decayFactor": 0.9977872371673584,
+      "depositAmount": 69393,
+      "senseAngle": 1.5281366109848022,
+      "senseDistance": 0.0038400166667997837,
+      "stepSize": 0.003863781224936247,
+      "turnAngle": 0.3812125325202942,
+      "writeBack": false
     }
   ]
 }
