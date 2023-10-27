@@ -118,8 +118,13 @@ public:
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 
-			// lighting volume, tbd
-
+			// lighting volume
+			opts.dataType		= GL_RGBA16F;
+			opts.width			= physarumConfig.dimensionX;
+			opts.height			= physarumConfig.dimensionY;
+			opts.depth			= physarumConfig.thickness;
+			opts.textureType	= GL_TEXTURE_3D;
+			textureManager.Add( "Shaded Volume", opts );
 		}
 	}
 
