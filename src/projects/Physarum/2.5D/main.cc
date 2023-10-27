@@ -56,7 +56,7 @@ public:
 
 			// something to put some basic data in the accumulator texture - comes from the demo project
 			const string basePath = "./src/projects/Physarum/2.5D/shaders/";
-			shaders[ "Display" ]			= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
+			shaders[ "Raymarch" ]			= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 			shaders[ "Lighting" ]			= computeShader( basePath + "lighting.cs.glsl" ).shaderHandle;
@@ -328,16 +328,16 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 		// show the display volume
-			glUseProgram( shaders[ "Display" ] );
+			glUseProgram( shaders[ "Raymarch" ] );
 			const glm::mat3 inverseBasisMat = inverse( glm::mat3( -trident.basisX, -trident.basisY, -trident.basisZ ) );
-			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Display" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
-			glUniform3f( glGetUniformLocation( shaders[ "Display" ], "blockSize" ), physarumConfig.dimensionX / 1024.0f, physarumConfig.dimensionY / 1024.0f, physarumConfig.thickness / 1024.0f );
-			glUniform3f( glGetUniformLocation( shaders[ "Display" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
-			glUniform1f( glGetUniformLocation( shaders[ "Display" ], "brightness" ), physarumConfig.brightness );
-			glUniform1f( glGetUniformLocation( shaders[ "Display" ], "scale" ), physarumConfig.scale );
-			glUniform2f( glGetUniformLocation( shaders[ "Display" ], "resolution" ), config.width, config.height );
-			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Display" ], 3 );
-			// textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Display" ], 2 );
+			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Raymarch" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
+			glUniform3f( glGetUniformLocation( shaders[ "Raymarch" ], "blockSize" ), physarumConfig.dimensionX / 1024.0f, physarumConfig.dimensionY / 1024.0f, physarumConfig.thickness / 1024.0f );
+			glUniform3f( glGetUniformLocation( shaders[ "Raymarch" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
+			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "brightness" ), physarumConfig.brightness );
+			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "scale" ), physarumConfig.scale );
+			glUniform2f( glGetUniformLocation( shaders[ "Raymarch" ], "resolution" ), config.width, config.height );
+			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Raymarch" ], 3 );
+			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Raymarch" ], 2 );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
