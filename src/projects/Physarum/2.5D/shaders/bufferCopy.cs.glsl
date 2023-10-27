@@ -3,7 +3,8 @@ layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
-uniform usampler2D continuum;
+// uniform usampler2D continuum;
+uniform sampler3D shadedVolume;
 uniform vec2 resolution;
 uniform vec3 color;
 uniform vec3 blockSize;
@@ -73,19 +74,17 @@ void main () {
 
 		const int numSteps = 700;
 		int iterationsToHit = 0;
-		vec3 samplePoint = blockUVMin + blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 0 ) * 0.001f;
-		vec3 final = vec3( 0.0f );
+		vec3 samplePoint = blockUVMin + blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 0 ) * 0.003f;
 		for ( ; iterationsToHit < numSteps; iterationsToHit++ ) {
-			samplePoint += stepSize * displacement;
-			float result = brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f );
-			if ( result > ( ( samplePoint.z - 0.5f ) * 2.0f ) ) {
+			// float result = brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f );
+			float result = brightness * ( texture( shadedVolume, samplePoint.xyz ).a );
+			if ( result > 0.5 ) ) { // alpha channel indicates surface intersection
 				break;
 			}
-			// vec3 iterationColor = brightness * result * color + vec3( 0.003f );
-			vec3 iterationColor = color;
-			final = mix( final, iterationColor, 0.01f );
+			samplePoint += stepSize * displacement;
 		}
 		// final = mix( final, brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f ) * color + vec3( 0.003f ), 0.2f );
+		vec3 final = color * exp( -distance( samplePoint, blockUVMax ) );
 		imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( final, 1.0f ) );
 	} else {
 		imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( 0.0, 0.0f, 0.0f, 1.0f ) );
