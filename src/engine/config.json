@@ -201,7 +201,7 @@
 		"screenHeight": 1080,
 		"screenWidth": 1920,
 		"showImGUIDemoWindow": false,
-		"showProfiler": false,
+		"showProfiler": true,
 		"startOnScreen": 1,
 		"vSyncEnable": true,
 		"windowOffset": {
