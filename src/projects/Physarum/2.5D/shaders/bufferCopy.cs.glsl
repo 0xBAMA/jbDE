@@ -77,8 +77,8 @@ void main () {
 		vec3 samplePoint = blockUVMin + blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 0 ) * 0.003f;
 		for ( ; iterationsToHit < numSteps; iterationsToHit++ ) {
 			// float result = brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f );
-			float result = brightness * ( texture( shadedVolume, samplePoint.xyz ).a );
-			if ( result > 0.5 ) ) { // alpha channel indicates surface intersection
+			float result = brightness * texture( shadedVolume, samplePoint.xyz ).a;
+			if ( result > 0.5 ) { // alpha channel indicates surface intersection
 				break;
 			}
 			samplePoint += stepSize * displacement;

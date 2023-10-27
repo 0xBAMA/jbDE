@@ -56,7 +56,7 @@ public:
 
 			// something to put some basic data in the accumulator texture - comes from the demo project
 			const string basePath = "./src/projects/Physarum/2.5D/shaders/";
-			shaders[ "Display" ]		= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
+			shaders[ "Display" ]			= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 			shaders[ "Lighting" ]			= computeShader( basePath + "lighting.cs.glsl" ).shaderHandle;

@@ -17,7 +17,7 @@ uniform vec3 lightDirection;
 
 void main () {
 	const vec3 sampleLocation = ( vec3( gl_GlobalInvocationID.xyz ) + vec3( 0.5f ) ) / imageSize( shadedVolume ).xyz;
-	uint myValue = texture( continuum, sampleLocation ).r;
+	uint myValue = texture( continuum, sampleLocation.xy ).r;
 	float densityFraction = myValue / 100.0f;
 
 	// first light
