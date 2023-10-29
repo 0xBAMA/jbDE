@@ -24,8 +24,8 @@
 				"g": 0.7,
 				"r": 1.0
 			},
-			"dimensionX": 1280,
-			"dimensionY": 720,
+			"dimensionX": 3840,
+			"dimensionY": 2160,
 			"thickness": 128,
 			"numAgents": 1048576
 		},
