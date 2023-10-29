@@ -12,8 +12,12 @@ uniform float brightness;
 uniform float zOffset;
 uniform vec3 lightDirection;
 
-// wanting to do some kind of visualization of the voxels
+// DDA voxel traversal
+// https://www.shadertoy.com/view/3sKXDK
 // https://www.shadertoy.com/view/NstSR8
+// https://www.shadertoy.com/view/ldl3DS
+// https://www.shadertoy.com/view/lsS3Dm
+// https://www.shadertoy.com/view/ct33Rn
 
 void main () {
 	const vec3 sampleLocation = ( vec3( gl_GlobalInvocationID.xyz ) + vec3( 0.5f ) ) / imageSize( shadedVolume ).xyz;

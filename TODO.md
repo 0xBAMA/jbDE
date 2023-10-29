@@ -330,11 +330,16 @@ This is a planning document for work on this project and in general, about the t
 	- [Z curve expansion](https://www.shadertoy.com/view/3tj3Rc)
 	- [CRT Postprocess (Lottes)](https://www.shadertoy.com/view/wdtfDf)
 
+- Aquaria
+	- [Fake Caustics](https://www.shadertoy.com/view/Wdy3zc)
+
 --------------------------------------------------------------------------------------------------
 
 ## More Vague Future Software Project Ideas
 
 - [OBS has a shader system](https://obsproject.com/forum/resources/obs-shaderfilter.1736/)? Very Interesting
+
+- [Binary search intersection for SDFs](https://www.shadertoy.com/view/wlGcWG)
 
 - More investigation into screenspace effects
 	- [Underwater Distort](https://www.shadertoy.com/view/4tG3WR)
