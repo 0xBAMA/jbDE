@@ -14,6 +14,40 @@ uniform mat3 invBasis;
 
 #include "intersect.h"
 
+// ==============================================================================================
+// explicit intersection primitives
+struct Intersection {
+	vec4 a;  // distance and normal at entry
+	vec4 b;  // distance and normal at exit
+};
+
+// false intersection
+const Intersection kEmpty = Intersection(
+	vec4( 1e20f, 0.0f, 0.0f, 0.0f ),
+	vec4( -1e20f, 0.0f, 0.0f, 0.0f )
+);
+
+bool IsEmpty ( Intersection i ) {
+	return i.b.x < i.a.x;
+}
+
+Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center, float radius ) {
+	// https://iquilezles.org/articles/intersectors/
+	vec3 oc = origin - center;
+	float b = dot( oc, direction );
+	float c = dot( oc, oc ) - radius * radius;
+	float h = b * b - c;
+	if ( h < 0.0f )
+		return kEmpty; // no intersection
+	h = sqrt( h );
+
+	// h is known to be positive at this point, b+h > b-h
+	float nearHit = -b - h; vec3 nearNormal = normalize( ( origin + direction * nearHit ) - center );
+	float farHit  = -b + h; vec3 farNormal  = normalize( ( origin + direction * farHit ) - center );
+
+	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
+}
+
 float RemapRange ( const float value, const float iMin, const float iMax, const float oMin, const float oMax ) {
 	return ( oMin + ( ( oMax - oMin ) / ( iMax - iMin ) ) * ( value - iMin ) );
 }
@@ -49,6 +83,18 @@ void main () {
 	float tMin, tMax;
 	vec3 Origin = invBasis * vec3( scale * uv, -2.0f );
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
+
+	// first, intersecting with a sphere, to refract
+	// const bool sHit = IntersectSphere( Origin, Direction, );
+	Intersection sHit = IntersectSphere( Origin, Direction, vec3( 0.0f ), 2.3f );
+	if ( !IsEmpty( sHit ) ) {
+		// update ray position to be at the sphere's surface
+		Origin = Origin + sHit.a.r * Direction;
+		// update ray direction to the refracted ray
+		Direction = refract( Direction, sHit.a.gba, 1.8f );
+	}
+
+	// then intersect with the AABB
 	const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
 	if ( hit ) { // texture sample
