@@ -46,7 +46,20 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 	float nearHit = -b - h; vec3 nearNormal = normalize( ( origin + direction * nearHit ) - center );
 	float farHit  = -b + h; vec3 farNormal  = normalize( ( origin + direction * farHit ) - center );
 
-	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
+// ==============================================================================================
+vec3 eliNormal ( in vec3 pos, in vec3 center, in vec3 radii ) {
+	return normalize( ( pos - center ) / ( radii * radii ) );
+}
+float eliIntersect ( in vec3 ro, in vec3 rd, in vec3 center, in vec3 radii ) {
+	vec3 oc = ro - center;
+	vec3 ocn = oc / radii;
+	vec3 rdn = rd / radii;
+	float a = dot( rdn, rdn );
+	float b = dot( ocn, rdn );
+	float c = dot( ocn, ocn );
+	float h = b * b - a * ( c - 1.0f );
+	if ( h < 0.0f ) return -1.0f;
+	return ( -b - sqrt( h ) ) / a;
 }
 
 float RemapRange ( const float value, const float iMin, const float iMax, const float oMin, const float oMax ) {
