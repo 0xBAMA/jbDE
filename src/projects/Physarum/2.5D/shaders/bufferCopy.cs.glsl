@@ -13,38 +13,75 @@ uniform float scale;
 uniform float IoR;
 uniform mat3 invBasis;
 
+#define PI 3.1415f
+
 #include "intersect.h"
 
 // ==============================================================================================
-// explicit intersection primitives
-struct Intersection {
-	vec4 a;  // distance and normal at entry
-	vec4 b;  // distance and normal at exit
-};
+// Hash by David_Hoskins
+#define UI0 1597334673U
+#define UI1 3812015801U
+#define UI2 uvec2(UI0, UI1)
+#define UI3 uvec3(UI0, UI1, 2798796415U)
+#define UIF (1.0 / float(0xffffffffU))
 
-// false intersection
-const Intersection kEmpty = Intersection(
-	vec4( 1e20f, 0.0f, 0.0f, 0.0f ),
-	vec4( -1e20f, 0.0f, 0.0f, 0.0f )
-);
-
-bool IsEmpty ( Intersection i ) {
-	return i.b.x < i.a.x;
+vec3 hash33( vec3 p ) {
+	uvec3 q = uvec3( ivec3( p ) ) * UI3;
+	q = ( q.x ^ q.y ^ q.z )*UI3;
+	return -1.0 + 2.0 * vec3( q ) * UIF;
 }
 
-Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center, float radius ) {
-	// https://iquilezles.org/articles/intersectors/
-	vec3 oc = origin - center;
-	float b = dot( oc, direction );
-	float c = dot( oc, oc ) - radius * radius;
-	float h = b * b - c;
-	if ( h < 0.0f )
-		return kEmpty; // no intersection
-	h = sqrt( h );
+// Gradient noise by iq (modified to be tileable)
+float gradientNoise( vec3 x, float freq ) {
+    // grid
+    vec3 p = floor( x );
+    vec3 w = fract( x );
+    
+    // quintic interpolant
+    vec3 u = w * w * w * ( w * ( w * 6.0 - 15.0 ) + 10.0 );
 
-	// h is known to be positive at this point, b+h > b-h
-	float nearHit = -b - h; vec3 nearNormal = normalize( ( origin + direction * nearHit ) - center );
-	float farHit  = -b + h; vec3 farNormal  = normalize( ( origin + direction * farHit ) - center );
+    // gradients
+    vec3 ga = hash33( mod( p + vec3( 0.0, 0.0, 0.0 ), freq ) );
+    vec3 gb = hash33( mod( p + vec3( 1.0, 0.0, 0.0 ), freq ) );
+    vec3 gc = hash33( mod( p + vec3( 0.0, 1.0, 0.0 ), freq ) );
+    vec3 gd = hash33( mod( p + vec3( 1.0, 1.0, 0.0 ), freq ) );
+    vec3 ge = hash33( mod( p + vec3( 0.0, 0.0, 1.0 ), freq ) );
+    vec3 gf = hash33( mod( p + vec3( 1.0, 0.0, 1.0 ), freq ) );
+    vec3 gg = hash33( mod( p + vec3( 0.0, 1.0, 1.0 ), freq ) );
+    vec3 gh = hash33( mod( p + vec3( 1.0, 1.0, 1.0 ), freq ) );
+    
+    // projections
+    float va = dot( ga, w - vec3( 0.0, 0.0, 0.0 ) );
+    float vb = dot( gb, w - vec3( 1.0, 0.0, 0.0 ) );
+    float vc = dot( gc, w - vec3( 0.0, 1.0, 0.0 ) );
+    float vd = dot( gd, w - vec3( 1.0, 1.0, 0.0 ) );
+    float ve = dot( ge, w - vec3( 0.0, 0.0, 1.0 ) );
+    float vf = dot( gf, w - vec3( 1.0, 0.0, 1.0 ) );
+    float vg = dot( gg, w - vec3( 0.0, 1.0, 1.0 ) );
+    float vh = dot( gh, w - vec3( 1.0, 1.0, 1.0 ) );
+	
+    // interpolation
+    return va + 
+           u.x * ( vb - va ) + 
+           u.y * ( vc - va ) + 
+           u.z * ( ve - va ) + 
+           u.x * u.y * ( va - vb - vc + vd ) + 
+           u.y * u.z * ( va - vc - ve + vg ) + 
+           u.z * u.x * ( va - vb - ve + vf ) + 
+           u.x * u.y * u.z * ( -va + vb + vc - vd + ve - vf - vg + vh );
+}
+
+float perlinfbm( vec3 p, float freq, int octaves ) {
+    float G = exp2( -0.85 );
+    float amp = 1.0;
+    float noise = 0.0;
+    for ( int i = 0; i < octaves; ++i ) {
+        noise += amp * gradientNoise( p * freq, freq );
+        freq *= 2.0;
+        amp *= G;
+    }
+    return noise;
+}
 
 // ==============================================================================================
 vec3 eliNormal ( in vec3 pos, in vec3 center, in vec3 radii ) {
@@ -150,8 +187,11 @@ void main () {
 				}
 				// vec3 iterationColor = brightness * result * color + vec3( 0.003f );
 				// vec3 iterationColor = color;
-				vec3 p = samplePoint * 100.0f;
-				vec3 iterationColor = mix( ( step( 0.0f, cos( PI * p.x + PI / 2.0f ) * cos( PI * p.y + PI / 2.0f ) ) == 0 ) ? color : vec3( 0.1f ), vec3( 1.0f, 0.0f, 0.0f ), sin( vec3( samplePoint.z * samplePoint.z ) ) );
+				vec3 p = samplePoint * 3.0f;
+				// vec3 iterationColor = ( step( 0.0f, cos( PI * p.x + PI / 2.0f ) * cos( PI * p.y + PI / 2.0f ) ) == 0 ) ? vec3( 0.618f ) : vec3( 0.1618f );
+				vec3 iterationColor = ( perlinfbm( p, 5.0f, 3 ) < 0.0f ) ? vec3( 0.618f ) : vec3( 0.1618f );
+				if ( samplePoint.z < 0.95f ) iterationColor = vec3( 1.0f, 0.0f, 0.0f );
+				// vec3 iterationColor = mix( ( step( 0.0f, cos( PI * p.x + PI / 2.0f ) * cos( PI * p.y + PI / 2.0f ) ) == 0 ) ? color : vec3( 0.1f ), vec3( 1.0f, 0.0f, 0.0f ), sin( vec3( samplePoint.z * samplePoint.z ) ) );
 				final = mix( final, iterationColor, 0.01f );
 			}
 			// final = mix( final, brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f ) * color + vec3( 0.003f ), 0.2f );
