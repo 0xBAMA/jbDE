@@ -1,5 +1,14 @@
 {
   "PhysarumPresets": [
+	{
+		"decayFactor": 0.9604095816612244,
+		"depositAmount": 65400,
+		"senseAngle": 1.6163198947906494,
+		"senseDistance": 0.004961645696312189,
+		"stepSize": 0.0005442271940410137,
+		"turnAngle": 1.992329716682434,
+		"writeBack": false
+	},
     {
       "decayFactor": 0.9875,
       "depositAmount": 1250,
@@ -178,15 +187,6 @@
       "senseDistance": 0.0021041836589574814,
       "stepSize": 0.0003243288956582546,
       "turnAngle": 2.115999937057495,
-      "writeBack": false
-    },
-    {
-      "decayFactor": 0.9604095816612244,
-      "depositAmount": 65400,
-      "senseAngle": 1.6163198947906494,
-      "senseDistance": 0.004961645696312189,
-      "stepSize": 0.0005442271940410137,
-      "turnAngle": 1.992329716682434,
       "writeBack": false
     },
     {
