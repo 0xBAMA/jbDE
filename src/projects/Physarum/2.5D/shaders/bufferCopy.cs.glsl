@@ -87,7 +87,12 @@ float blueNoiseRead ( ivec2 loc, int idx ) {
 
 void main () {
 	// remapped uv
-	vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + vec2( 0.5f ) ) / resolution.xy;
+	vec2 subpixelOffset = vec2(
+		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 1 ),
+		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 2 )
+	);
+	// vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + vec2( 0.5f ) ) / resolution.xy;
+	vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + subpixelOffset ) / resolution.xy;
 	uv = ( uv - 0.5f ) * 2.0f;
 
 	// aspect ratio correction
