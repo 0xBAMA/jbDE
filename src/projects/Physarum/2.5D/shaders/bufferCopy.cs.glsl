@@ -10,6 +10,7 @@ uniform vec3 color;
 uniform vec3 blockSize;
 uniform float brightness;
 uniform float scale;
+uniform float IoR;
 uniform mat3 invBasis;
 
 #include "intersect.h"

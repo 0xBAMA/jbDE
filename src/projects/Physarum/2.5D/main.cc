@@ -36,6 +36,7 @@ struct physarumConfig_t {
 	vec3 color;
 	float brightness;
 	float scale = 1.0f;
+	float IoR = 0.618f;
 };
 
 class Physarum : public engineBase {
@@ -268,6 +269,10 @@ public:
 		ImGui::ColorEdit3( "Color", ( float * ) &physarumConfig.color, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::SliderFloat( "Brightness", &physarumConfig.brightness, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 
+		ImGui::Text( " " );
+		ImGui::Text( " " );
+		ImGui::Text( " " );
+		ImGui::SliderFloat( "Bubble IoR", &physarumConfig.IoR, -4.0f, 4.0f, "%.4f", ImGuiSliderFlags_Logarithmic );
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -333,6 +338,7 @@ public:
 			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Raymarch" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
 			glUniform3f( glGetUniformLocation( shaders[ "Raymarch" ], "blockSize" ), physarumConfig.dimensionX / 1024.0f, physarumConfig.dimensionY / 1024.0f, physarumConfig.thickness / 1024.0f );
 			glUniform3f( glGetUniformLocation( shaders[ "Raymarch" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
+			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "IoR" ), physarumConfig.IoR );
 			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "brightness" ), physarumConfig.brightness );
 			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "scale" ), physarumConfig.scale );
 			glUniform2f( glGetUniformLocation( shaders[ "Raymarch" ], "resolution" ), config.width, config.height );
