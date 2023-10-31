@@ -42,12 +42,12 @@ public:
 
 		// draw the bar
 		cout << "[";
-		for( int i = 0; i <= numFill; i++ )					cout << doneChar;
-		for( int i = 0; i < reportWidth - numFill; i++ )	cout << undoneChar;
-		cout << "]";
+		for( int i = 0; i <= numFill; i++ )						cout << doneChar;
+		for( int i = 0; i < reportWidth - numFill - 1; i++ )	cout << undoneChar;
+		cout << "] ";
 		
 		// and report the percentage
-		cout << 100.0f * frac << "%";
+		cout << 100.0f * frac << "%                       ";
 		
 		// and timing if desired
 		// if ( reportTime )
