@@ -1,61 +1,112 @@
 #include "../../engine/engine.h"
 
-class engineDemo : public engineBase {	// example derived class
+class Aquaria : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	Aquaria () { Init(); OnInit(); PostInit(); }
+	~Aquaria () { Quit(); }
 
 	void OnInit () {
 		ZoneScoped;
 		{
 			Block Start( "Additional User Init" );
 
+			cout << endl;
+
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/EngineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
-		// very interesting - can call stuff from the command line
-		// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
+	// ================================================================================================================
+	// ==== Load Config ===============================================================================================
+	// ================================================================================================================
 
-			// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
-				// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
-				// something like bin/imageProcess <json path>, and have that json specify source file, a list of ops, and destination path
+	// ================================================================================================================
+	// ===== Sphere Packing ===========================================================================================
+	// ================================================================================================================
 
-			Image_4F testImage;
-			testImage.Load( "test.png" );
+			// clear out the buffer
+			const int maxSpheres = 65535; // 16-bit addressing
+			std::vector< vec4 > sphereLocationsPlusColors;
 
-			// extract the image's bytes out
-			std::vector< unsigned char > bytes;
-			for ( uint y = 0; y < testImage.Height(); y++ ) {
-				for ( uint x = 0; x < testImage.Width(); x++ ) {
+			// pick new palette, for the spheres
+			palette::PickRandomPalette( true );
 
-					color_4F color = testImage.GetAtXY( x, y );
-					float sourceData[ 4 ];
-					sourceData[ 0 ] = color[ red ];
-					sourceData[ 1 ] = color[ green ];
-					sourceData[ 2 ] = color[ blue ];
-					sourceData[ 3 ] = color[ alpha ];
+			// init the progress bar
+			progressBar bar;
+			bar.total = maxSpheres;
+			bar.label = string( " Sphere Packing: " );
 
-					for ( int i = 0; i < 4; i++ ) {
-						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 0 ) );
-						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 1 ) );
-						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 2 ) );
-						bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 3 ) );
+			// stochastic sphere packing, inside the volume
+			vec3 min = vec3( -8.0f, -1.5f, -8.0f );
+			vec3 max = vec3(  8.0f,  1.5f,  8.0f );
+			uint32_t maxIterations = 500;
+			float currentRadius = 1.3f;
+			rng paletteRefVal = rng( 0.0f, 1.0f );
+			int material = 6;
+			vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
+			while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
+				rng x = rng( min.x + currentRadius, max.x - currentRadius );
+				rng y = rng( min.y + currentRadius, max.y - currentRadius );
+				rng z = rng( min.z + currentRadius, max.z - currentRadius );
+				uint32_t iterations = maxIterations;
+				// redundant check, but I think it's the easiest way not to run over
+				while ( iterations-- && ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
+					// generate point inside the parent cube
+					vec3 checkP = vec3( x(), y(), z() );
+					// check for intersection against all other spheres
+					bool foundIntersection = false;
+					for ( uint idx = 0; idx < sphereLocationsPlusColors.size() / 2; idx++ ) {
+						vec4 otherSphere = sphereLocationsPlusColors[ 2 * idx ];
+						if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
+							// cout << "intersection found in iteration " << iterations << endl;
+							foundIntersection = true;
+							break;
+						}
+					}
+					// if there are no intersections, add it to the list with the current material
+					if ( !foundIntersection ) {
+						// cout << "adding sphere, " << currentRadius << endl;
+						sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
+						sphereLocationsPlusColors.push_back( currentMaterial );
+
+						// update and report
+						bar.done = sphereLocationsPlusColors.size() / 2;
+						if ( ( sphereLocationsPlusColors.size() / 2 ) % 50 == 0 || ( sphereLocationsPlusColors.size() / 2 ) == maxSpheres ) {
+							bar.writeCurrentState();
+						}
 					}
 				}
+				// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
+				currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
+				currentRadius /= 1.618f;
+				maxIterations *= 3;
+				
+				// doing this makes it pack flat
+				// min.y /= 1.5f;
+				// max.y /= 1.5f;
+
+				// slowly shrink bounds to accentuate the earlier placed spheres
+				min *= 0.95f;
+				max *= 0.95f;
 			}
 
-			// shuffle the bytes
-			std::random_shuffle( bytes.begin() + 1500000, bytes.end() - 1500000 );
+			// ================================================================================================================
+				// send the SSBO
+			// ================================================================================================================
+				// compute the distances / gradients / nearest IDs into the texture(s)
+			// ================================================================================================================
 
-			// put the bytes back into the array
-			for ( uint i = 0; i < bytes.size(); i += 4 ) {
-				uint8_t data[ 4 ] = { bytes[ i ], bytes[ i + 1 ], bytes[ i + 2 ], bytes[ i + 3 ] };
-				testImage.GetImageDataBasePtr()[ i / 4 ] = std::clamp( *( float* )&data[ 0 ], 0.0f, 1.0f );
-			}
-
-			// save the image back out
-			testImage.Save( "out.png" );
+			cout << endl << endl;
 		}
+
+	// ================================================================================================================
+	// ==== Physarum Init =============================================================================================
+	// ================================================================================================================
+		// agents, buffers
+
+	// ================================================================================================================
+	// ==== Fluid Sim Init - TBD ======================================================================================
+	// ================================================================================================================
+
 	}
 
 	void HandleCustomEvents () {
@@ -178,7 +229,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	Aquaria engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
