@@ -189,13 +189,14 @@ void main () {
 				// vec3 iterationColor = color;
 				vec3 p = samplePoint * 3.0f;
 				// vec3 iterationColor = ( step( 0.0f, cos( PI * p.x + PI / 2.0f ) * cos( PI * p.y + PI / 2.0f ) ) == 0 ) ? vec3( 0.618f ) : vec3( 0.1618f );
-				vec3 iterationColor = ( perlinfbm( p, 5.0f, 3 ) < 0.0f ) ? vec3( 0.618f ) : vec3( 0.1618f );
-				if ( samplePoint.z < 0.95f ) iterationColor = vec3( 1.0f, 0.0f, 0.0f );
+				// vec3 iterationColor = ( perlinfbm( p, 5.0f, 3 ) < 0.0f ) ? vec3( 0.618f ) : vec3( 0.1618f );
+				vec3 iterationColor = color;
 				// vec3 iterationColor = mix( ( step( 0.0f, cos( PI * p.x + PI / 2.0f ) * cos( PI * p.y + PI / 2.0f ) ) == 0 ) ? color : vec3( 0.1f ), vec3( 1.0f, 0.0f, 0.0f ), sin( vec3( samplePoint.z * samplePoint.z ) ) );
 				final = mix( final, iterationColor, 0.01f );
 			}
 			// final = mix( final, brightness * ( texture( continuum, samplePoint.xy ).r / 1000000.0f ) * color + vec3( 0.003f ), 0.2f );
 			// vec3 final = color * exp( -distance( samplePoint, Origin ) );
+			final = color * exp( -distance( samplePoint, Origin ) );
 			imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( final, 1.0f ) );
 		} else {
 			imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( vec3( 0.01618f ), 1.0f ) );

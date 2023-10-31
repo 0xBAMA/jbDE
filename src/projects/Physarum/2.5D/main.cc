@@ -120,13 +120,13 @@ public:
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 
-			// lighting volume
-			opts.dataType		= GL_RGBA16F;
-			opts.width			= physarumConfig.dimensionX;
-			opts.height			= physarumConfig.dimensionY;
-			opts.depth			= physarumConfig.thickness;
-			opts.textureType	= GL_TEXTURE_3D;
-			textureManager.Add( "Shaded Volume", opts );
+			// // lighting volume
+			// opts.dataType		= GL_RGBA16F;
+			// opts.width			= physarumConfig.dimensionX;
+			// opts.height			= physarumConfig.dimensionY;
+			// opts.depth			= physarumConfig.thickness;
+			// opts.textureType	= GL_TEXTURE_3D;
+			// textureManager.Add( "Shaded Volume", opts );
 		}
 	}
 
@@ -310,27 +310,27 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 
-		// update the display volume
-			// update the alpha, every frame - update the color more slowly... forward pt?
-			glUseProgram( shaders[ "Lighting" ] );
+		// // update the display volume
+		// 	// update the alpha, every frame - update the color more slowly... forward pt?
+		// 	glUseProgram( shaders[ "Lighting" ] );
 
-			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
-			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "brightness" ), physarumConfig.brightness );
+		// 	glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
+		// 	glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "brightness" ), physarumConfig.brightness );
 
-			static vec3 lightDirection = glm::normalize( vec3( 1.0f ) );
-			const float amt = 0.001f;
-			const float amt2 = 0.00451f;
-			const float amt3 = 0.001618f;
-			lightDirection = vec3( mat2( cos( amt ), -sin( amt ), sin( amt ), cos( amt ) ) * lightDirection.xy(), lightDirection.z );
-			lightDirection = vec3( lightDirection.x, mat2( cos( amt2 ), -sin( amt2 ), sin( amt2 ), cos( amt2 ) ) * lightDirection.yz() );
-			lightDirection = vec3( mat2( cos( amt3 ), -sin( amt3 ), sin( amt3 ), cos( amt3 ) ) * lightDirection.xy(), lightDirection.z );
-			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
+		// 	static vec3 lightDirection = glm::normalize( vec3( 1.0f ) );
+		// 	const float amt = 0.001f;
+		// 	const float amt2 = 0.00451f;
+		// 	const float amt3 = 0.001618f;
+		// 	lightDirection = vec3( mat2( cos( amt ), -sin( amt ), sin( amt ), cos( amt ) ) * lightDirection.xy(), lightDirection.z );
+		// 	lightDirection = vec3( lightDirection.x, mat2( cos( amt2 ), -sin( amt2 ), sin( amt2 ), cos( amt2 ) ) * lightDirection.yz() );
+		// 	lightDirection = vec3( mat2( cos( amt3 ), -sin( amt3 ), sin( amt3 ), cos( amt3 ) ) * lightDirection.xy(), lightDirection.z );
+		// 	glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
 
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Lighting" ], 2 );
-			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Lighting" ], 3 );
+		// 	textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Lighting" ], 2 );
+		// 	textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Lighting" ], 3 );
 
-			glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.thickness + 7 ) / 8 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// 	glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.thickness + 7 ) / 8 );
+		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 		// show the display volume
 			glUseProgram( shaders[ "Raymarch" ] );
@@ -342,7 +342,7 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "brightness" ), physarumConfig.brightness );
 			glUniform1f( glGetUniformLocation( shaders[ "Raymarch" ], "scale" ), physarumConfig.scale );
 			glUniform2f( glGetUniformLocation( shaders[ "Raymarch" ], "resolution" ), config.width, config.height );
-			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Raymarch" ], 3 );
+			// textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Raymarch" ], 3 );
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Raymarch" ], 2 );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
