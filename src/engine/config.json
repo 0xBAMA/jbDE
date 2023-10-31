@@ -6,6 +6,13 @@
 			"generatorThreshold": 0.2,
 			"numBitsActive": 32
 		},
+		"Aquaria": {
+			"dimensions": {
+				"x": 1280,
+				"y": 720,
+				"z": 128
+			}
+		},
 		"Physarum2D": {
 			"brightness": 1.0,
 			"color": {
