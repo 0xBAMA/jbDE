@@ -1,31 +1,70 @@
 #include "../../engine/engine.h"
 
+struct aquariaConfig_t {
+	ivec3 dimensions;
+	int maxSpheres = 65535;
+
+	// OpenGL Data
+	GLuint sphereSSBO;
+};
+
 class Aquaria : public engineBase {	// example derived class
 public:
 	Aquaria () { Init(); OnInit(); PostInit(); }
 	~Aquaria () { Quit(); }
 
+	aquariaConfig_t aquariaConfig;
+
 	void OnInit () {
 		ZoneScoped;
 		{
 			Block Start( "Additional User Init" );
-
 			cout << endl;
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Precompute" ] = computeShader( "./src/projects/Aquaria/shaders/precompute.cs.glsl" ).shaderHandle;
 
 	// ================================================================================================================
 	// ==== Load Config ===============================================================================================
 	// ================================================================================================================
+
+			// get the configuration from config.json
+			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			aquariaConfig.dimensions.x	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "x" ];
+			aquariaConfig.dimensions.y	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "y" ];
+			aquariaConfig.dimensions.z	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "z" ];
+
+	// ================================================================================================================
+	// ==== Create Textures ===========================================================================================
+	// ================================================================================================================
+			// textureOptions_t opts;
+			// opts.dataType		= GL_R32UI;
+			// opts.width			= aquariaConfig.dimension.x;
+			// opts.height			= aquariaConfig.dimension.y;
+			// opts.textureType	= GL_TEXTURE_2D;
+			// textureManager.Add( "Pheremone Continuum Buffer 0", opts );
+			// textureManager.Add( "Pheremone Continuum Buffer 1", opts );
+
+			textureOptions_t opts;
+			opts.dataType		= GL_RG32UI;
+			opts.textureType	= GL_TEXTURE_3D;
+			opts.width			= aquariaConfig.dimensions.x;
+			opts.height			= aquariaConfig.dimensions.y;
+			opts.depth			= aquariaConfig.dimensions.z;
+			textureManager.Add( "ID Buffer", opts );
+
+			opts.dataType		= GL_RGBA16F;
+			textureManager.Add( "Distance Buffer", opts );
 
 	// ================================================================================================================
 	// ===== Sphere Packing ===========================================================================================
 	// ================================================================================================================
 
 			// clear out the buffer
-			const int maxSpheres = 65535; // 16-bit addressing
-			std::vector< vec4 > sphereLocationsPlusColors;
+			const uint32_t padding = 100;
+			const uint32_t maxSpheres = aquariaConfig.maxSpheres + padding; // 16-bit addressing gives us 65k max
+			std::deque< vec4 > sphereLocationsPlusColors;
 
 			// pick new palette, for the spheres
 			palette::PickRandomPalette( true );
@@ -33,15 +72,16 @@ public:
 			// init the progress bar
 			progressBar bar;
 			bar.total = maxSpheres;
-			bar.label = string( " Sphere Packing: " );
+			bar.label = string( " Sphere Packing Compute: " );
 
 			// stochastic sphere packing, inside the volume
-			vec3 min = vec3( -8.0f, -1.5f, -8.0f );
-			vec3 max = vec3(  8.0f,  1.5f,  8.0f );
+			vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
+			vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
 			uint32_t maxIterations = 500;
-			float currentRadius = 1.3f;
+			// hacky, following the pattern from before
+			float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
 			rng paletteRefVal = rng( 0.0f, 1.0f );
-			int material = 6;
+			int material = 6; // this will need to be revisited, once I figure out what materials are going to look like for this
 			vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
 			while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
 				rng x = rng( min.x + currentRadius, max.x - currentRadius );
@@ -90,9 +130,38 @@ public:
 			}
 
 			// ================================================================================================================
-				// send the SSBO
+			
+			// send the SSBO
+				// because it's a deque, I can pop the front N off ( see padding, above )
+				// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
+			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &sphereLocationsPlusColors[ 0 ], GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			
 			// ================================================================================================================
-				// compute the distances / gradients / nearest IDs into the texture(s)
+
+			progressBar bar2;
+			bar2.total = aquariaConfig.dimensions.z;
+			cout << endl;
+			bar2.label = string( " Data Cache Precompute:  " );
+
+			// compute the distances / gradients / nearest IDs into the texture(s)
+			glUseProgram( shaders[ "Precompute" ] );
+
+			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
+			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
+			for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
+				glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
+				glDispatchCompute( ( aquariaConfig.dimensions.x + 15 ) / 16, ( aquariaConfig.dimensions.y + 15 ) / 16, 1 );
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+				// report current state
+				bar2.done = i + 1;
+				bar2.writeCurrentState();
+				// SDL_Delay( 10 );
+			}
+
 			// ================================================================================================================
 
 			cout << endl << endl;
@@ -102,10 +171,12 @@ public:
 	// ==== Physarum Init =============================================================================================
 	// ================================================================================================================
 		// agents, buffers
+		// sage jenson - "guided" physarum - segments generated by L-system write values into the pheremone buffer? something like this
 
-	// ================================================================================================================
-	// ==== Fluid Sim Init - TBD ======================================================================================
-	// ================================================================================================================
+		// more:
+			// vines, growing over the spheres
+			// fishies?
+			// forward PT ( caustics, lighting )
 
 	}
 
@@ -156,7 +227,9 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
+			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Dummy Draw" ], 3 );
+			// glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
