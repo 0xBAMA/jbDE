@@ -11,7 +11,8 @@
 				"x": 1280,
 				"y": 720,
 				"z": 128
-			}
+			},
+			"sphereTrim": 100
 		},
 		"Physarum2D": {
 			"brightness": 1.0,

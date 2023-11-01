@@ -36,6 +36,7 @@ public:
 			aquariaConfig.dimensions.x	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "x" ];
 			aquariaConfig.dimensions.y	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "y" ];
 			aquariaConfig.dimensions.z	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "z" ];
+			aquariaConfig.sphereTrim	= j[ "app" ][ "Aquaria" ][ "sphereTrim" ];
 
 	// ================================================================================================================
 	// ==== Create Textures ===========================================================================================
