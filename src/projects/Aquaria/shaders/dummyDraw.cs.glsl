@@ -92,6 +92,8 @@ void main () {
 		// what are the dimensions
 		const ivec3 blockDimensions = imageSize( dataCacheBuffer );
 
+		const float fogScalar = 0.0001f;
+
 		if ( hit ) { // texture sample
 			// for trimming edges
 			const float epsilon = 0.0001f;
@@ -109,16 +111,12 @@ void main () {
 				RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
 			);
 
-			// 1. confirm good hit
+			// confirm good hit - highlight volume, with thickness
 			const float thickness = abs( tMin - tMax );
-			col = vec3( thickness );
+			// col = vec3( 1.0f - exp( -thickness *  5.0f ) );
 
-			// 2. xor, pixelspace test pattern
-			// ivec3 t = ivec3( floor( blockUVMin ) );
-			// col = vec3( ( ( t.x ^ t.y ^ t.z ) % 255 ) / 255.0f );
-			// col = vec3( ( t.x % 2 == 0 || t.y % 2 == 0 ) ? 0.1618f : 0.618f );
-
-			// 3. DDA traversal
+			// DDA traversal
+			// from https://www.shadertoy.com/view/7sdSzH
 			vec3 deltaDist = 1.0f / abs( Direction );
 			ivec3 rayStep = ivec3( sign( Direction ) );
 			bvec3 mask0 = bvec3( false );
@@ -134,9 +132,11 @@ void main () {
 
 				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
-					col = vec3( 1.0f - exp( -i ) ) * read.rgb;
+					col = vec3( 1.0f - exp( -i * fogScalar ) ) + read.rgb;
 					// col = read.rgb;
 					break;
+				} else {
+					col = vec3( 1.0f - exp( -i * fogScalar ) );
 				}
 
 				sideDist0 = sideDist1;
