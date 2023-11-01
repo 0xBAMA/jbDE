@@ -17,6 +17,22 @@ uniform vec3 blockSize;
 
 #include "intersect.h"
 
+// ==============================================================================================
+vec3 eliNormal ( in vec3 pos, in vec3 center, in vec3 radii ) {
+	return normalize( ( pos - center ) / ( radii * radii ) );
+}
+float eliIntersect ( in vec3 ro, in vec3 rd, in vec3 center, in vec3 radii ) {
+	vec3 oc = ro - center;
+	vec3 ocn = oc / radii;
+	vec3 rdn = rd / radii;
+	float a = dot( rdn, rdn );
+	float b = dot( ocn, rdn );
+	float c = dot( ocn, ocn );
+	float h = b * b - a * ( c - 1.0f );
+	if ( h < 0.0f ) return -1.0f;
+	return ( -b - sqrt( h ) ) / a;
+}
+
 float RemapRange ( const float value, const float iMin, const float iMax, const float oMin, const float oMax ) {
 	return ( oMin + ( ( oMax - oMin ) / ( iMax - iMin ) ) * ( value - iMin ) );
 }
@@ -62,29 +78,72 @@ void main () {
 	vec3 Origin = invBasis * vec3( scale * uv, -2.0f );
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
 
-	// then intersect with the AABB
-	const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
+// if refraction is desired:
+	// float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
+	// if ( sHit > 0.0f ) {
+	// 	// update ray position to be at the sphere's surface
+	// 	Origin = Origin + sHit * Direction;
+	// 	// update ray direction to the refracted ray
+	// 	Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
 
-	if ( hit ) { // texture sample
-		// for trimming edges
-		const float epsilon = -0.003f; 
-		const vec3 hitpointMin = Origin + tMin * Direction;
-		const vec3 hitpointMax = Origin + tMax * Direction;
-		const vec3 blockUVMin = vec3(
-			RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0.0f - epsilon, 1.0f + epsilon )
-		);
+		// then intersect with the AABB
+		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
-		const vec3 blockUVMax = vec3(
-			RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0.0f - epsilon, 1.0f + epsilon )
-		);
+		// what are the dimensions
+		const ivec3 blockDimensions = imageSize( dataCacheBuffer );
 
-		const float thickness = abs( tMin - tMax );
-		col = vec3( thickness );
-	}
+		if ( hit ) { // texture sample
+			// for trimming edges
+			const float epsilon = 0.0001f;
+			const vec3 hitpointMin = Origin + tMin * Direction;
+			const vec3 hitpointMax = Origin + tMax * Direction;
+			const vec3 blockUVMin = vec3(
+				RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x ),
+				RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y ),
+				RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
+			);
+
+			const vec3 blockUVMax = vec3(
+				RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x ),
+				RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y ),
+				RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
+			);
+
+			// 1. confirm good hit
+			const float thickness = abs( tMin - tMax );
+			col = vec3( thickness );
+
+			// 2. xor, pixelspace test pattern
+			// ivec3 t = ivec3( floor( blockUVMin ) );
+			// col = vec3( ( ( t.x ^ t.y ^ t.z ) % 255 ) / 255.0f );
+			// col = vec3( ( t.x % 2 == 0 || t.y % 2 == 0 ) ? 0.1618f : 0.618f );
+
+			// 3. DDA traversal
+			vec3 deltaDist = 1.0f / abs( Direction );
+			ivec3 rayStep = ivec3( sign( Direction ) );
+			bvec3 mask0 = bvec3( false );
+			ivec3 mapPos0 = ivec3( floor( blockUVMin + 0.0f ) );
+			vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+
+			#define MAX_RAY_STEPS 1000
+			for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
+				// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
+				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
+				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
+				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
+
+				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
+				if ( read.a != 0.0f ) { // this should be the hit condition
+					col = vec3( clamp( 1.0f - ( i / 200.0f ), 0.0f, 1.0f ) ) * read.rgb;
+					// col = read.rgb;
+					break;
+				}
+
+				sideDist0 = sideDist1;
+				mapPos0 = mapPos1;
+			}
+		}
+	// }
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
