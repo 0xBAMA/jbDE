@@ -78,12 +78,13 @@ void main () {
 	vec3 Origin = invBasis * vec3( scale * uv, -2.0f );
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
 
-	float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
-	if ( sHit > 0.0f ) {
-		// update ray position to be at the sphere's surface
-		Origin = Origin + sHit * Direction;
-		// update ray direction to the refracted ray
-		Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
+// if refraction is desired:
+	// float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
+	// if ( sHit > 0.0f ) {
+	// 	// update ray position to be at the sphere's surface
+	// 	Origin = Origin + sHit * Direction;
+	// 	// update ray direction to the refracted ray
+	// 	Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
 
 		// then intersect with the AABB
 		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
@@ -133,7 +134,7 @@ void main () {
 
 				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
-					col = vec3( i / 500.0f ) * read.rgb;
+					col = vec3( clamp( 1.0f - ( i / 200.0f ), 0.0f, 1.0f ) ) * read.rgb;
 					// col = read.rgb;
 					break;
 				}
@@ -142,7 +143,7 @@ void main () {
 				mapPos0 = mapPos1;
 			}
 		}
-	}
+	// }
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );

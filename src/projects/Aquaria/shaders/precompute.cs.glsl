@@ -62,9 +62,6 @@ void main () {
 		if ( minDistance == d && d <= 0.0f ) {
 			color = vec4( spheres[ i ].colorMaterial.rgb, 1.0f );
 		}
-		// if ( distance( spheres[ i ].positionRadius.xyz, pos ) < spheres[ i ].positionRadius.w ) {
-			// color = spheres[ i ].colorMaterial.rgb;
-		// }
 	}
 
 	// if ( distance( pos, vec3( 0.0f ) ) < 100.0f ) {

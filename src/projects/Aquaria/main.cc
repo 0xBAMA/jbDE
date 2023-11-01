@@ -64,7 +64,7 @@ public:
 	// ================================================================================================================
 
 			// clear out the buffer
-			const uint32_t padding = 100;
+			const uint32_t padding = 0;
 			const uint32_t maxSpheres = aquariaConfig.maxSpheres + padding; // 16-bit addressing gives us 65k max
 			std::deque< vec4 > sphereLocationsPlusColors;
 
@@ -139,7 +139,7 @@ public:
 				// because it's a deque, I can pop the front N off ( see padding, above )
 				// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
 			
-			for ( int i = 0; i < padding; i++ ) {
+			for ( uint32_t i = 0; i < padding; i++ ) {
 				sphereLocationsPlusColors.pop_front();
 			}
 
