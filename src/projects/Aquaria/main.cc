@@ -238,8 +238,8 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
-		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= 0.99f; }
-		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= 0.99f; }
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= shift ? 0.9f : 0.99f; }
+		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= shift ? 0.9f : 0.99f; }
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ComputeUpdateOffsets();
