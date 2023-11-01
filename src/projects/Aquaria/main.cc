@@ -324,11 +324,11 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{ // show trident with current orientation
-			scopedTimer Start( "Trident" );
-			trident.Update( textureManager.Get( "Display Texture" ) );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
+		// { // show trident with current orientation
+		// 	scopedTimer Start( "Trident" );
+		// 	trident.Update( textureManager.Get( "Display Texture" ) );
+		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// }
 	}
 
 	void OnUpdate () {
