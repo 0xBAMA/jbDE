@@ -7,23 +7,19 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 layout( binding = 2, rg32ui ) uniform uimage3D idxBuffer;
 layout( binding = 3, rgba16f ) uniform image3D dataCacheBuffer;
 
-// uniform float time;
+uniform float time;
+uniform int slice;
+
+
 
 void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
+	vec3 col = vec3( 0.0f );
 
-	// some xor shit
-	uint x = uint( writeLoc.x ) % 256;
-	uint y = uint( writeLoc.y ) % 256;
-	uint xor = ( x ^ y );
+	// vec3 col = imageLoad( dataCacheBuffer, ivec3( writeLoc, slice ) ).rgb;
 
-	// get some blue noise going, for additional shits
-	vec3 col = ( xor < 128 ) ?
-		( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz / 255.0f ) :
-		vec3( xor / 255.0f );
 
-	col = imageLoad( dataCacheBuffer, ivec3( writeLoc, 64 ) ).rrr;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );

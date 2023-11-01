@@ -4,6 +4,8 @@ struct aquariaConfig_t {
 	ivec3 dimensions;
 	int maxSpheres = 65535;
 
+	int offset = 0;
+
 	// OpenGL Data
 	GLuint sphereSSBO;
 };
@@ -81,8 +83,9 @@ public:
 			// hacky, following the pattern from before
 			float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
 			rng paletteRefVal = rng( 0.0f, 1.0f );
-			int material = 6; // this will need to be revisited, once I figure out what materials are going to look like for this
-			vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
+			rngN paletteRefJitter = rngN( 0.0f, 0.01f );
+			float currentPaletteVal = paletteRefVal();
+
 			while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
 				rng x = rng( min.x + currentRadius, max.x - currentRadius );
 				rng y = rng( min.y + currentRadius, max.y - currentRadius );
@@ -104,9 +107,10 @@ public:
 					}
 					// if there are no intersections, add it to the list with the current material
 					if ( !foundIntersection ) {
-						// cout << "adding sphere, " << currentRadius << endl;
+						// cout << "adding sphere, " << checkP.x << " " << checkP.y << " " << checkP.z << " r: " << currentRadius << endl;
+						// cout << "               " << currentMaterial.x << " " << currentMaterial.y << " " << currentMaterial.z << " r: " << currentRadius << endl;
 						sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
-						sphereLocationsPlusColors.push_back( currentMaterial );
+						sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( currentPaletteVal + paletteRefJitter(), 0.0f, 1.0f ) ), 0.0f ) );
 
 						// update and report
 						bar.done = sphereLocationsPlusColors.size() / 2;
@@ -116,10 +120,10 @@ public:
 					}
 				}
 				// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
-				currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
+				currentPaletteVal = paletteRefVal();
 				currentRadius /= 1.618f;
 				maxIterations *= 3;
-				
+
 				// doing this makes it pack flat
 				// min.y /= 1.5f;
 				// max.y /= 1.5f;
@@ -134,9 +138,17 @@ public:
 			// send the SSBO
 				// because it's a deque, I can pop the front N off ( see padding, above )
 				// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
+			
+			std::vector< vec4 > vectorVersion;
+			for ( auto& val : sphereLocationsPlusColors ) {
+				cout << glm::to_string( val ) << endl;
+				vectorVersion.push_back( val );
+			}
+
 			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &sphereLocationsPlusColors[ 0 ], GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
+			// glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &sphereLocationsPlusColors[ 0 ], GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
 			
 			// ================================================================================================================
@@ -147,20 +159,26 @@ public:
 			bar2.label = string( " Data Cache Precompute:  " );
 
 			// compute the distances / gradients / nearest IDs into the texture(s)
-			glUseProgram( shaders[ "Precompute" ] );
+			// glUseProgram( shaders[ "Precompute" ] );
 
-			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
-			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
-			for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
-				glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
-				glDispatchCompute( ( aquariaConfig.dimensions.x + 15 ) / 16, ( aquariaConfig.dimensions.y + 15 ) / 16, 1 );
-				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
+			// 	glUseProgram( shaders[ "Precompute" ] );
 
-				// report current state
-				bar2.done = i + 1;
-				bar2.writeCurrentState();
-				// SDL_Delay( 10 );
-			}
+			// 	// buffer setup
+			// 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			// 	textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
+			// 	textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
+
+			// 	// other uniforms
+			// 	glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
+			// 	glDispatchCompute( ( aquariaConfig.dimensions.x + 15 ) / 16, ( aquariaConfig.dimensions.y + 15 ) / 16, 1 );
+			// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+			// 	// report current state
+			// 	bar2.done = i + 1;
+			// 	bar2.writeCurrentState();
+			// 	// SDL_Delay( 10 );
+			// }
 
 			// ================================================================================================================
 
@@ -188,12 +206,20 @@ public:
 		// const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// // current state of the modifier keys
-		// const SDL_Keymod k	= SDL_GetModState();
-		// const bool shift		= ( k & KMOD_SHIFT );
+		const SDL_Keymod k	= SDL_GetModState();
+		const bool shift		= ( k & KMOD_SHIFT );
 		// const bool alt		= ( k & KMOD_ALT );
-		// const bool control	= ( k & KMOD_CTRL );
+		const bool control		= ( k & KMOD_CTRL );
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
+
+		if ( shift ) {
+			aquariaConfig.offset++;
+		}
+		
+		if ( control ) {
+			aquariaConfig.offset--;
+		}
 
 	}
 
@@ -223,13 +249,46 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
+		{
+			static bool run = false;
+			if ( !run ) {
+				run = true;
+				progressBar bar;
+				bar.total = aquariaConfig.dimensions.z;
+				cout << endl;
+				bar.label = string( " Data Cache Precompute:  " );
+
+				for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
+					glUseProgram( shaders[ "Precompute" ] );
+
+					// buffer setup
+					glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+					textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
+					textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
+
+					// other uniforms
+					glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
+					glDispatchCompute( ( aquariaConfig.dimensions.x + 15 ) / 16, ( aquariaConfig.dimensions.y + 15 ) / 16, 1 );
+					// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+					// report current state
+					bar.done = i + 1;
+					bar.writeCurrentState();
+					// SDL_Delay( 10 );
+				}
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+				cout << endl;
+			}
+		}
+
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
 			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Dummy Draw" ], 3 );
-			// glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "slice" ), ( 64 + aquariaConfig.offset ) % aquariaConfig.dimensions.z );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
