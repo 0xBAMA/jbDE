@@ -4,7 +4,7 @@ struct aquariaConfig_t {
 	ivec3 dimensions;
 	int maxSpheres = 65535;
 
-	int offset = 0;
+	float scale = 1.0f;
 
 	// OpenGL Data
 	GLuint sphereSSBO;
@@ -203,23 +203,18 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
 		// // current state of the whole keyboard
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// // current state of the modifier keys
-		const SDL_Keymod k	= SDL_GetModState();
-		const bool shift		= ( k & KMOD_SHIFT );
+		// const SDL_Keymod k	= SDL_GetModState();
+		// const bool shift		= ( k & KMOD_SHIFT );
 		// const bool alt		= ( k & KMOD_ALT );
-		const bool control		= ( k & KMOD_CTRL );
+		// const bool control		= ( k & KMOD_CTRL );
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
-		if ( shift ) {
-			aquariaConfig.offset++;
-		}
-		
-		if ( control ) {
-			aquariaConfig.offset--;
-		}
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= 0.99f; }
+		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= 0.99f; }
 
 	}
 
@@ -288,7 +283,13 @@ public:
 			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Dummy Draw" ], 3 );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
-			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "slice" ), ( 64 + aquariaConfig.offset ) % aquariaConfig.dimensions.z );
+
+			const glm::mat3 inverseBasisMat = inverse( glm::mat3( -trident.basisX, -trident.basisY, -trident.basisZ ) );
+			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Dummy Draw" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
+			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blockSize" ), aquariaConfig.dimensions.x / 1024.0f,  aquariaConfig.dimensions.y / 1024.0f,  aquariaConfig.dimensions.z / 1024.0f );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "scale" ), aquariaConfig.scale );
+			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "resolution" ), config.width, config.height );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
