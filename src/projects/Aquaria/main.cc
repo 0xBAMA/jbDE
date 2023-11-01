@@ -249,15 +249,18 @@ public:
 		ZoneScoped;
 
 		{
-			static bool run = false;
-			if ( !run ) {
-				run = true;
-				progressBar bar;
-				bar.total = aquariaConfig.dimensions.z;
-				cout << endl;
-				bar.label = string( " Data Cache Precompute:  " );
+			// static bool run = false;
+			static int remaining = aquariaConfig.dimensions.z;
+			// if ( !run ) {
+			if ( remaining > 0 ) {
+				// run = true;
+				// progressBar bar;
+				// bar.total = aquariaConfig.dimensions.z;
+				// cout << endl;
+				// bar.label = string( " Data Cache Precompute:  " );
 
-				for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
+				// for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
+					remaining --;
 					glUseProgram( shaders[ "Precompute" ] );
 
 					// buffer setup
@@ -266,15 +269,16 @@ public:
 					textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
 
 					// other uniforms
-					glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
+					// glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
+					glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), remaining );
 					glDispatchCompute( ( aquariaConfig.dimensions.x + 15 ) / 16, ( aquariaConfig.dimensions.y + 15 ) / 16, 1 );
-					// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+					glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 					// report current state
-					bar.done = i + 1;
-					bar.writeCurrentState();
+					// bar.done = i + 1;
+					// bar.writeCurrentState();
 					// SDL_Delay( 10 );
-				}
+				// }
 				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 				cout << endl;
 			}
