@@ -9,6 +9,7 @@ struct aquariaConfig_t {
 
 	// for tiled update
 	int deferredRemaining = 8 * 8 * 8;
+	int lightingRemaining = 8 * 8 * 8;
 	std::vector< ivec3 > offsets;
 
 	// OpenGL Data
@@ -29,8 +30,9 @@ public:
 			cout << endl;
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-			shaders[ "Precompute" ] = computeShader( "./src/projects/Aquaria/shaders/precompute.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ]	= computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Precompute" ]	= computeShader( "./src/projects/Aquaria/shaders/precompute.cs.glsl" ).shaderHandle;
+			shaders[ "Lighting" ] 	= computeShader( "./src/projects/Aquaria/shaders/lighting.cs.glsl" ).shaderHandle;
 
 	// ================================================================================================================
 	// ==== Load Config ===============================================================================================
@@ -109,6 +111,7 @@ public:
 		// hacky, following the pattern from before
 		float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
 		rng paletteRefVal = rng( 0.0f, 1.0f );
+		rng alphaGen = rng( 0.5f, 1.0f );
 		rngN paletteRefJitter = rngN( 0.0f, 0.01f );
 		float currentPaletteVal = paletteRefVal();
 
@@ -134,7 +137,7 @@ public:
 				// if there are no intersections, add it to the list with the current material
 				if ( !foundIntersection ) {
 					sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
-					sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( currentPaletteVal + paletteRefJitter(), 0.0f, 1.0f ) ), 0.0f ) );
+					sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( currentPaletteVal + paletteRefJitter(), 0.0f, 1.0f ) ), alphaGen() ) );
 
 					// update and report
 					bar.done = sphereLocationsPlusColors.size() / 2;
@@ -331,7 +334,7 @@ public:
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Lighting" ], 3 );
 
 			// other uniforms
-			ivec3 offset = aquariaConfig.offsets[ aquariaConfig.deferredRemaining-- ];
+			ivec3 offset = aquariaConfig.offsets[ aquariaConfig.lightingRemaining-- ];
 			glUniform3i( glGetUniformLocation( shaders[ "Lighting" ], "offset" ), offset.x, offset.y, offset.z );
 			glDispatchCompute(
 				( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
