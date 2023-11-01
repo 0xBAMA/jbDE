@@ -1,5 +1,5 @@
 #version 430
-layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
+layout( local_size_x = 8, local_size_y = 8, local_size_z = 8 ) in;
 
 // utils
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
@@ -10,7 +10,7 @@ layout( binding = 2, rg32ui ) uniform uimage3D idxBuffer;
 layout( binding = 3, rgba16f ) uniform image3D dataCacheBuffer;
 
 // breaking up the work
-uniform int slice;
+uniform ivec3 offset;
 
 // sphere data
 const int numSpheres = 65535;
@@ -45,7 +45,7 @@ layout( binding = 0, std430 ) buffer sphereData {
 
 void main () {
 	// voxel location
-	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xy, slice );
+	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xyz ) * 8 + offset;
 	const vec3 pos = vec3( writeLoc ) + vec3( 0.5f ) - ( vec3( imageSize( dataCacheBuffer ) ) / 2.0f );
 
 	// iterate through the spheres
