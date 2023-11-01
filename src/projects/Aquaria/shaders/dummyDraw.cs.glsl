@@ -125,7 +125,7 @@ void main () {
 			ivec3 mapPos0 = ivec3( floor( blockUVMin + 0.0f ) );
 			vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-			#define MAX_RAY_STEPS 1000
+			#define MAX_RAY_STEPS 1200
 			for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
 				// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
 				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
@@ -134,7 +134,7 @@ void main () {
 
 				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
-					col = vec3( clamp( 1.0f - ( i / 200.0f ), 0.0f, 1.0f ) ) * read.rgb;
+					col = vec3( 1.0f - exp( -i ) ) * read.rgb;
 					// col = read.rgb;
 					break;
 				}
