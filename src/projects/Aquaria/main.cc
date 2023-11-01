@@ -139,6 +139,10 @@ public:
 				// because it's a deque, I can pop the front N off ( see padding, above )
 				// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
 			
+			for ( int i = 0; i < padding; i++ ) {
+				sphereLocationsPlusColors.pop_front();
+			}
+
 			std::vector< vec4 > vectorVersion;
 			for ( auto& val : sphereLocationsPlusColors ) {
 				cout << glm::to_string( val ) << endl;
