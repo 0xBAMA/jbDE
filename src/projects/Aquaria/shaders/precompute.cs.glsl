@@ -46,7 +46,7 @@ layout( binding = 0, std430 ) buffer sphereData {
 void main () {
 	// voxel location
 	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xy, slice );
-	const vec3 pos = vec3( writeLoc ) + vec3( 0.5f ) - ( vec3( imageSize( dataCacheBuffer ) ) / 2.0f ) + vec3( 0.0f, 0.0f, 64.0f );
+	const vec3 pos = vec3( writeLoc ) + vec3( 0.5f ) - ( vec3( imageSize( dataCacheBuffer ) ) / 2.0f );
 
 	// iterate through the spheres
 		// keep top four nearest
