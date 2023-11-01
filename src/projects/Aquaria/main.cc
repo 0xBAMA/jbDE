@@ -213,7 +213,8 @@ public:
 
 	void ComputeUpdateOffsets () {
 		aquariaConfig.offsets.clear();
-		// generate the list of offsets
+
+		// generate the list of offsets via shuffle
 		for ( int x = 0; x < 8; x++ )
 		for ( int y = 0; y < 8; y++ )
 		for ( int z = 0; z < 8; z++ ) {
@@ -221,6 +222,11 @@ public:
 		}
 		auto rng = std::default_random_engine {};
 		std::shuffle( std::begin( aquariaConfig.offsets ), std::end( aquariaConfig.offsets ), rng );
+
+		// manipulated bayer matrices... swap on 64's? that would be layer swaps
+			/// bit of a pain in the ass getting that converted to 2d offsets
+		// std::vector< uint8_t > dataSrc = BayerData( 8 );
+
 	}
 
 	void HandleCustomEvents () {
@@ -275,26 +281,6 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{
-			if ( aquariaConfig.deferredRemaining > 0 ) {
-				glUseProgram( shaders[ "Precompute" ] );
-
-				// buffer setup
-				glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-				textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
-				textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
-
-				// other uniforms
-				ivec3 offset = aquariaConfig.offsets[ aquariaConfig.deferredRemaining-- ];
-				glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
-				glDispatchCompute(
-					( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
-					( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
-					( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
-				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-			}
-		}
-
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
@@ -344,7 +330,45 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
+		if ( aquariaConfig.deferredRemaining >= 0 ) {
+			glUseProgram( shaders[ "Precompute" ] );
+
+			// buffer setup
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
+			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
+
+			// other uniforms
+			ivec3 offset = aquariaConfig.offsets[ aquariaConfig.deferredRemaining-- ];
+			glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
+			glDispatchCompute(
+				( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
+				( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
+				( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+			if ( aquariaConfig.deferredRemaining == 0 ) {
+				// block update finished, do lighting
+				aquariaConfig.lightingRemaining = 8 * 8 * 8;
+			}
+
+		} else if ( aquariaConfig.lightingRemaining >= 0 ) {
+			glUseProgram( shaders[ "Lighting" ] );
+
+			// buffer setup
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Lighting" ], 2 );
+			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Lighting" ], 3 );
+
+			// other uniforms
+			ivec3 offset = aquariaConfig.offsets[ aquariaConfig.deferredRemaining-- ];
+			glUniform3i( glGetUniformLocation( shaders[ "Lighting" ], "offset" ), offset.x, offset.y, offset.z );
+			glDispatchCompute(
+				( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
+				( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
+				( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
 	}
 
 	void OnRender () {
