@@ -65,25 +65,60 @@ void main () {
 	// then intersect with the AABB
 	const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
+	// what are the dimensions
+	const ivec3 blockDimensions = imageSize( dataCacheBuffer );
+
 	if ( hit ) { // texture sample
 		// for trimming edges
-		const float epsilon = -0.003f; 
+		const float epsilon = 0.0001f;
 		const vec3 hitpointMin = Origin + tMin * Direction;
 		const vec3 hitpointMax = Origin + tMax * Direction;
 		const vec3 blockUVMin = vec3(
-			RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0.0f - epsilon, 1.0f + epsilon )
+			RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x ),
+			RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y ),
+			RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
 		);
 
 		const vec3 blockUVMax = vec3(
-			RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0.0f - epsilon, 1.0f + epsilon ),
-			RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0.0f - epsilon, 1.0f + epsilon )
+			RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x ),
+			RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y ),
+			RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
 		);
 
+		// 1. confirm good hit
 		const float thickness = abs( tMin - tMax );
 		col = vec3( thickness );
+
+		// 2. xor, pixelspace test pattern
+		// ivec3 t = ivec3( floor( blockUVMin ) );
+		// col = vec3( ( ( t.x ^ t.y ^ t.z ) % 255 ) / 255.0f );
+		// col = vec3( ( t.x % 2 == 0 || t.y % 2 == 0 ) ? 0.1618f : 0.618f );
+
+		// 3. DDA traversal
+		vec3 deltaDist = 1.0f / abs( Direction );
+		ivec3 rayStep = ivec3( sign( Direction ) );
+		bvec3 mask0 = bvec3( false );
+		ivec3 mapPos0 = ivec3( floor( blockUVMin + 0.0f ) );
+		vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+
+		#define MAX_RAY_STEPS 1000
+		for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
+			// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
+			bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
+			vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
+			ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
+
+			vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
+			if ( read.a != 0.0f ) { // this should be the hit condition
+				col = vec3( i / 500.0f ) * read.rgb;
+				// col = read.rgb;
+				break;
+			}
+
+			sideDist0 = sideDist1;
+			mapPos0 = mapPos1;
+		}
+
 	}
 
 	// write the data to the image
