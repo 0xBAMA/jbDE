@@ -48,7 +48,7 @@ constexpr double pi = 3.14159265358979323846;
 #include "../utils/GLM/gtc/type_ptr.hpp"			// to send matricies gpu-side
 #include "../utils/GLM/gtx/rotate_vector.hpp"
 #include "../utils/GLM/gtx/transform.hpp"
-#include "../utils/GLM/gtx/string_cast.hpp"			// to_string for glm types
+#include "../utils/GLM/gtx/string_cast.hpp"			// to_string for glm types ( cout << glm::to_string( val ) )
 // #define GLX_GLEXT_PROTOTYPES 					// not sure as to the utility of this
 
 // convenience defines for GLM

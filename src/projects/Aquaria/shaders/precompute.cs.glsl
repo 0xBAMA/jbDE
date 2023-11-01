@@ -64,16 +64,7 @@ void main () {
 		}
 	}
 
-	// if ( distance( pos, vec3( 0.0f ) ) < 100.0f ) {
-		/// affirmative
-		// imageStore( dataCacheBuffer, writeLoc, vec4( vec3( ( writeLoc.x ^ writeLoc.y ^ writeLoc.z ) / 255.0f ), 1.0f ) );
-	// }
-
 	// write the data to the image - pack 16-bit ids into 32 bit storage
 	// imageStore( idxBuffer, writeLoc, uvec4( <closest> <second>, <third> <fourth>, 0.0f, 1.0f ) );
-	// imageStore( dataCacheBuffer, writeLoc, vec4( vec3( minDistance ), 1.0f ) );
-	// imageStore( dataCacheBuffer, writeLoc, vec4( vec3( ( minDistance < 0.0f ) ? 1.0f : 0.0f ), 1.0f ) );
-	// imageStore( dataCacheBuffer, writeLoc, vec4( vec3( ( writeLoc.x ^ writeLoc.y ^ writeLoc.z ) / 255.0f ), 1.0f ) );
-	// imageStore( dataCacheBuffer, writeLoc, vec4( pos, 1.0f ) );
 	imageStore( dataCacheBuffer, writeLoc, color );
 }

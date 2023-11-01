@@ -169,42 +169,12 @@ public:
 
 		std::vector< vec4 > vectorVersion;
 		for ( auto& val : sphereLocationsPlusColors ) {
-			// cout << glm::to_string( val ) << endl;
 			vectorVersion.push_back( val );
 		}
 
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-		
-		// ================================================================================================================
-
-		// progressBar bar2;
-		// bar2.total = aquariaConfig.dimensions.z;
-		// cout << endl;
-		// bar2.label = string( " Data Cache Precompute:  " );
-
-		// compute the distances / gradients / nearest IDs into the texture(s)
-		// glUseProgram( shaders[ "Precompute" ] );
-
-		// for ( int i = 0; i < aquariaConfig.dimensions.z; i++ ) {
-		// 	glUseProgram( shaders[ "Precompute" ] );
-
-		// 	// buffer setup
-		// 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-		// 	textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
-		// 	textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
-
-		// 	// other uniforms
-		// 	glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "slice" ), i );
-		// 	glDispatchCompute( ( aquariaConfig.dimensions.x + 15 ) / 16, ( aquariaConfig.dimensions.y + 15 ) / 16, 1 );
-		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-		// 	// report current state
-		// 	bar2.done = i + 1;
-		// 	bar2.writeCurrentState();
-		// 	// SDL_Delay( 10 );
-		// }
 
 		cout << endl << endl;
 
