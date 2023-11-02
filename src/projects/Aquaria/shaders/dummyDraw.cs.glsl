@@ -79,12 +79,16 @@ void main () {
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
 
 // if refraction is desired:
-	// float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
-	// if ( sHit > 0.0f ) {
-	// 	// update ray position to be at the sphere's surface
-	// 	Origin = Origin + sHit * Direction;
-	// 	// update ray direction to the refracted ray
-	// 	Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
+// #define REFRACTIVE_BUBBLE 1
+
+#ifdef REFRACTIVE_BUBBLE
+	float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
+	if ( sHit > 0.0f ) {
+		// update ray position to be at the sphere's surface
+		Origin = Origin + sHit * Direction;
+		// update ray direction to the refracted ray
+		Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
+#endif
 
 		// then intersect with the AABB
 		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
@@ -143,7 +147,9 @@ void main () {
 				mapPos0 = mapPos1;
 			}
 		}
-	// }
+#ifdef REFRACTIVE_BUBBLE
+	}
+#endif
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
