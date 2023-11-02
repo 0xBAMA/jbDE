@@ -73,7 +73,8 @@ public:
 
 			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
 			ComputeUpdateOffsets();
-			ComputeSpherePacking();
+			// ComputeSpherePacking();
+			ComputePerlinPacking();
 
 		}
 
@@ -184,6 +185,99 @@ public:
 		// ================================================================================================================
 	}
 
+	void ComputePerlinPacking () {
+
+		// clear out the buffer
+		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		std::deque< vec4 > sphereLocationsPlusColors;
+
+		// pick new palette, for the spheres
+		palette::PickRandomPalette( true );
+
+		// init the progress bar
+		progressBar bar;
+		bar.total = maxSpheres;
+		bar.label = string( " Sphere Packing Compute: " );
+
+		// stochastic sphere packing, inside the volume
+		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
+		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
+		uint32_t maxIterations = 1000000;
+		uint32_t iterations = maxIterations;
+
+		// data generation
+		rng alphaGen = rng( 0.5f, 1.0f );
+		rng radiusJitter = rng( 0.1f, 1.0f );
+		float padding = 20.0f;
+		PerlinNoise p;
+
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- ) {
+			rng x = rng( min.x + padding, max.x - padding );
+			rng y = rng( min.y + padding, max.y - padding );
+			rng z = rng( min.z + padding, max.z - padding );
+
+			// generate point inside the parent cube
+			vec3 checkP = vec3( x(), y(), z() );
+			float noiseValue = p.noise( checkP.x / 130.0f, checkP.y / 130.0f, checkP.z / 130.0f );
+			// float noiseValue = p.noise( checkP.x / 130.0f, checkP.y / 130.0f, 0.0f );
+
+			if ( noiseValue > 0.75f ) {
+				continue;
+			}
+
+			// determine radius, from the noise field
+			float currentRadius = std::pow( radiusJitter(), 2.0f ) * RemapRange( std::pow( noiseValue, 5.0f ), 0.0f, 1.0f, 0.618f, 14.0f ) * aquariaConfig.dimensions.z / 24.0f;
+
+			// check for intersection against all other spheres
+			bool foundIntersection = false;
+			for ( uint idx = 0; idx < sphereLocationsPlusColors.size() / 2; idx++ ) {
+				vec4 otherSphere = sphereLocationsPlusColors[ 2 * idx ];
+				if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
+					foundIntersection = true;
+					break;
+				}
+			}
+
+			// if there are no intersections, add it to the list with the current material
+			if ( !foundIntersection ) {
+				sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
+				// sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), alphaGen() ) );
+				sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
+
+				// update and report
+				bar.done = sphereLocationsPlusColors.size() / 2;
+				if ( ( sphereLocationsPlusColors.size() / 2 ) % 50 == 0 || ( sphereLocationsPlusColors.size() / 2 ) == maxSpheres ) {
+					bar.writeCurrentState();
+				}
+			}
+		}
+
+		// ================================================================================================================
+		
+		// send the SSBO
+			// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
+			// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
+		
+		for ( uint32_t i = 0; i < aquariaConfig.sphereTrim; i++ ) {
+			sphereLocationsPlusColors.pop_front();
+		}
+
+		std::vector< vec4 > vectorVersion;
+		for ( auto& val : sphereLocationsPlusColors ) {
+			vectorVersion.push_back( val );
+		}
+
+		vectorVersion.resize( aquariaConfig.maxSpheres * 2 );
+
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+
+		cout << endl << endl;
+
+		// ================================================================================================================
+	}
+
 	void ComputeUpdateOffsets () {
 		aquariaConfig.offsets.clear();
 
@@ -222,7 +316,8 @@ public:
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ComputeUpdateOffsets();
-			ComputeSpherePacking();
+			// ComputeSpherePacking();
+			ComputePerlinPacking();
 			aquariaConfig.deferredRemaining = 8 * 8 * 8;
 		}
 
