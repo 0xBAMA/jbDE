@@ -783,6 +783,13 @@ float de ( vec3 p ) {
 		// hitPointColor = vec3( 0.1f, 0.3f, 0.9f );
 
 		// hitPointSurfaceType = WOOD;
+
+		// if ( NormalizedRandomFloat() < 0.9f ) {
+		// 	hitPointSurfaceType = DIFFUSE;
+		// 	hitPointColor = vec3( 0.01618f );
+		// } else {
+		// 	hitPointSurfaceType = MIRROR;
+		// }
 	}
 
 	sceneDist = min( dOrbs, sceneDist );
