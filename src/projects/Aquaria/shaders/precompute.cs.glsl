@@ -252,7 +252,7 @@ void main () {
 	// grid
 	const bool x = ( writeLoc.x + 10 ) % 168 < 20;
 	const bool y = ( writeLoc.y + 10 ) % 128 < 16;
-	const bool z = ( writeLoc.z + 65 ) % 85 < 40;
+	const bool z = ( writeLoc.z ) % 132 < 40;
 	if ( ( x && y ) || ( x && z ) || ( y && z ) || writeLoc.x < 20 || writeLoc.y < 20 ) {
 		if ( perlinfbm( pos / 500.0f, 2.0f, 10 ) < 0.0f || writeLoc.x < 20 || writeLoc.y < 20 ) {
 			// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
