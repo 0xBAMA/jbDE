@@ -153,5 +153,6 @@ void main () {
 #endif
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, 0.9f ), 1.0f ) );
+	// imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, 0.9f ), 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
 }
