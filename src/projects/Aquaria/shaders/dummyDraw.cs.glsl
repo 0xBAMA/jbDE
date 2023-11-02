@@ -60,6 +60,7 @@ float blueNoiseRead ( ivec2 loc, int idx ) {
 void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
+	vec3 prevColor = imageLoad( accumulatorTexture, writeLoc ).rgb;
 	vec3 col = vec3( 0.0f );
 
 	// remapped uv
@@ -152,5 +153,5 @@ void main () {
 #endif
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, 0.9f ), 1.0f ) );
 }
