@@ -49,8 +49,8 @@ void main () {
 	// do a traversal through the image, accumulate optical depth
 		// shadowing comes from exp( -depth )
 	
-	// const vec3 Direction = normalize( vec3( 1.0f, 1.0f, 0.01f ) );
-	const vec3 Direction = normalize( vec3( 1280.0f, 720.0f, 128.0f ) / 2.0f - writeLoc );
+	const vec3 Direction = normalize( vec3( 1.0f, 1.0f, 0.85f ) );
+	// const vec3 Direction = normalize( vec3( 1280.0f, 720.0f, 128.0f ) / 2.0f - writeLoc );
 	const vec3 subvoxelOffset = vec3(
 		blueNoiseRead( writeLoc.xy, 0 ),
 		blueNoiseRead( writeLoc.xy, 1 ),
@@ -87,7 +87,7 @@ void main () {
 	}
 
 	// scale with the computed shadow and store it back
-	color.rgb *= exp( -opticalDepthSum * 0.1f );
+	color.rgb *= exp( -opticalDepthSum * 0.1f ) + 0.1f;
 
 	imageStore( dataCacheBuffer, writeLoc, color );
 }
