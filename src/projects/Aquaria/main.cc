@@ -62,7 +62,7 @@ public:
 			opts.width			= aquariaConfig.dimensions.x;
 			opts.height			= aquariaConfig.dimensions.y;
 			opts.depth			= aquariaConfig.dimensions.z;
-			textureManager.Add( "ID Buffer", opts );
+			// textureManager.Add( "ID Buffer", opts );
 
 			opts.dataType		= GL_RGBA16F;
 			textureManager.Add( "Distance Buffer", opts );
@@ -87,7 +87,8 @@ public:
 		// more:
 			// vines, growing over the spheres
 			// fishies?
-			// forward PT ( caustics, lighting )
+			// forward PT ( caustics from overhead water surface, other lighting )
+				// some kind of feedback, plant growth informed by environmental lighting
 
 	}
 
@@ -341,11 +342,6 @@ public:
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
-	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit
-	}
-
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -353,7 +349,7 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
-			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
+			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Dummy Draw" ], 3 );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
 
@@ -403,7 +399,7 @@ public:
 
 			// buffer setup
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
+			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
 
 			// other uniforms
@@ -425,7 +421,7 @@ public:
 
 			// buffer setup
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Lighting" ], 2 );
+			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Lighting" ], 2 );
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Lighting" ], 3 );
 
 			// other uniforms
@@ -442,7 +438,6 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
 		{
