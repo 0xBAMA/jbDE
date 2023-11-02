@@ -250,16 +250,16 @@ void main () {
 	vec4 color = vec4( 0.0f );
 
 	// grid
-	// const bool x = ( writeLoc.x + 10 ) % 168 < 20;
-	// const bool y = ( writeLoc.y + 10 ) % 128 < 16;
-	// const bool z = ( writeLoc.z + 15 ) % 85 < 40;
-	// if ( ( x && y ) || ( x && z ) || ( y && z ) ) {
-	// 	if ( perlinfbm( pos / 500.0f, 2.0f, 6 ) < 0.11f ) {
-	// 		// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
-	// 		vec3 c = matWood( pos / 40.0f );
-	// 		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
-	// 	}
-	// }
+	const bool x = ( writeLoc.x + 10 ) % 168 < 20;
+	const bool y = ( writeLoc.y + 10 ) % 128 < 16;
+	const bool z = ( writeLoc.z + 65 ) % 85 < 40;
+	if ( ( x && y ) || ( x && z ) || ( y && z ) || writeLoc.x < 20 || writeLoc.y < 20 ) {
+		if ( perlinfbm( pos / 500.0f, 2.0f, 10 ) < 0.0f || writeLoc.x < 20 || writeLoc.y < 20 ) {
+			// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
+			vec3 c = matWood( pos / 60.0f );
+			color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
+		}
+	}
 
 	// frame
 	// const int width = 168;
@@ -284,8 +284,23 @@ void main () {
 			float d = distance( pos, pr.xyz ) - pr.w;
 			minDistance = min( minDistance, d );
 			if ( minDistance == d && d <= 0.0f ) {
+			// if ( minDistance == d ) {
 				// color = vec4( spheres[ i ].colorMaterial.rgb, clamp( -minDistance, 0.0f, 1.0f ) );
 				color = spheres[ i ].colorMaterial;
+
+
+				// weird ugly thresholded voronoi thing
+				// vec3 c = matWood( pos.yzx / 40.0f );
+				// color.rgb = c;
+				// if ( spheres[ i ].colorMaterial.a > 0.5f )
+				// 	if ( d <=  0.0f ) {
+				// 		color = spheres[ i ].colorMaterial;
+				// 	} else {
+				// 		color.a = 0.0f;
+				// 	}
+				// else
+				// 	color.a = 1.0f + pow( dot( c, vec3( 0.299f, 0.587f, 0.114f ) ), 3.0f ) * 2.0f;
+
 
 				// // partially colored with curl noise... kinda sucks
 				// if ( i % 2 == 0 ){
@@ -295,7 +310,7 @@ void main () {
 				// }
 
 				// ... consider checking spheres in random order?
-				break; // I speculate that there is actually only ever one sphere affecting a voxel, this is a good optimization for now
+				// break; // I speculate that there is actually only ever one sphere affecting a voxel, this is a good optimization for now
 					// eventually I will want to disable this, when I'm collecting the nearest N spheres
 			}
 		}
