@@ -73,8 +73,8 @@ public:
 
 			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
 			ComputeUpdateOffsets();
-			// ComputeSpherePacking();
-			ComputePerlinPacking();
+			ComputeSpherePacking();
+			// ComputePerlinPacking();
 
 		}
 
@@ -207,7 +207,7 @@ public:
 		uint32_t iterations = maxIterations;
 
 		// data generation
-		rng alphaGen = rng( 0.5f, 1.0f );
+		rng alphaGen = rng( 0.01f, 1.9f );
 		rng radiusJitter = rng( 0.1f, 1.0f );
 		float padding = 20.0f;
 		PerlinNoise p;
@@ -222,9 +222,11 @@ public:
 			float noiseValue = p.noise( checkP.x / 130.0f, checkP.y / 130.0f, checkP.z / 130.0f );
 			// float noiseValue = p.noise( checkP.x / 130.0f, checkP.y / 130.0f, 0.0f );
 
-			if ( noiseValue > 0.75f ) {
-				continue;
-			}
+			checkP.z *= RemapRange( noiseValue, 0.0f, 1.0f, 0.25f, 1.2f );
+
+			// if ( noiseValue > 0.75f ) {
+				// continue;
+			// }
 
 			// determine radius, from the noise field
 			float currentRadius = std::pow( radiusJitter(), 2.0f ) * RemapRange( std::pow( noiseValue, 5.0f ), 0.0f, 1.0f, 0.618f, 14.0f ) * aquariaConfig.dimensions.z / 24.0f;
@@ -243,7 +245,8 @@ public:
 			if ( !foundIntersection ) {
 				sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
 				// sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), alphaGen() ) );
-				sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
+				// sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
+				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), noiseValue ) );
 
 				// update and report
 				bar.done = sphereLocationsPlusColors.size() / 2;
@@ -317,8 +320,8 @@ public:
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ComputeUpdateOffsets();
-			// ComputeSpherePacking();
-			ComputePerlinPacking();
+			ComputeSpherePacking();
+			// ComputePerlinPacking();
 			aquariaConfig.deferredRemaining = 8 * 8 * 8;
 		}
 
