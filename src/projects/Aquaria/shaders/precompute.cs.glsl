@@ -243,7 +243,7 @@ vec3 matWood(vec3 p) {
 
 void main () {
 	// voxel location
-	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xyz ) * 8 + offset;
+	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xyz ) + offset;
 	const vec3 pos = vec3( writeLoc ) + vec3( 0.5f ) - ( vec3( imageSize( dataCacheBuffer ) ) / 2.0f );
 
 	// running color

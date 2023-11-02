@@ -8,7 +8,9 @@ struct aquariaConfig_t {
 	float scale = 1.0f;
 
 	// for tiled update
-	int deferredRemaining = 8 * 8 * 8;
+	std::vector< ivec3 > updateTiles;
+
+	// for the bayer pattern analog thing, I prefer to do it this way
 	int lightingRemaining = 8 * 8 * 8;
 	std::vector< ivec3 > offsets;
 
@@ -75,6 +77,7 @@ public:
 			ComputeUpdateOffsets();
 			ComputeSpherePacking();
 			// ComputePerlinPacking();
+			ComputeTileList();
 
 		}
 
@@ -90,6 +93,18 @@ public:
 			// forward PT ( caustics from overhead water surface, other lighting )
 				// some kind of feedback, plant growth informed by environmental lighting
 
+	}
+
+	void ComputeTileList () {
+		for ( int x = 0; x < aquariaConfig.dimensions.x; x += 64 ){
+			for ( int y = 0; y < aquariaConfig.dimensions.y; y += 64 ){
+				for ( int z = 0; z < aquariaConfig.dimensions.z; z += 64 ){
+					aquariaConfig.updateTiles.push_back( ivec3( x, y, z ) );
+				}
+			}
+		}
+		// auto rng = std::default_random_engine {};
+		// std::shuffle( std::begin( aquariaConfig.updateTiles ), std::end( aquariaConfig.updateTiles ), rng );
 	}
 
 	void ComputeSpherePacking () {
@@ -322,7 +337,7 @@ public:
 			ComputeUpdateOffsets();
 			ComputeSpherePacking();
 			// ComputePerlinPacking();
-			aquariaConfig.deferredRemaining = 8 * 8 * 8;
+			ComputeTileList();
 		}
 
 	}
@@ -397,7 +412,7 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		if ( aquariaConfig.deferredRemaining >= 0 ) {
+		if ( aquariaConfig.updateTiles.size() != 0 ) {
 			glUseProgram( shaders[ "Precompute" ] );
 
 			// buffer setup
@@ -406,15 +421,13 @@ public:
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
 
 			// other uniforms
-			ivec3 offset = aquariaConfig.offsets[ aquariaConfig.deferredRemaining-- ];
+			ivec3 offset = aquariaConfig.updateTiles[ aquariaConfig.updateTiles.size() - 1 ];
+			aquariaConfig.updateTiles.pop_back();
 			glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
-			glDispatchCompute(
-				( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
-				( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
-				( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			glDispatchCompute( 8, 8, 8 );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
-			if ( aquariaConfig.deferredRemaining == 0 ) {
+			if ( aquariaConfig.updateTiles.size() == 0 ) {
 				// block update finished, do lighting
 				aquariaConfig.lightingRemaining = 8 * 8 * 8;
 			}
@@ -434,7 +447,7 @@ public:
 				( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
 				( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
 				( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
 
