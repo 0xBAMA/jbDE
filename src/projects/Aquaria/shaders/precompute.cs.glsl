@@ -88,6 +88,47 @@ float perlinfbm( vec3 p, float freq, int octaves ) {
     return noise;
 }
 
+float freq = 19.0;
+const int octaves = 2;
+float noise( vec3 p ) {
+	return perlinfbm( p, freq, octaves );
+}
+vec3 curlNoise( vec3 p ) {
+// my curl noise: https://www.shadertoy.com/view/ssKczW
+	vec3 col;
+
+	// general structure from: https://al-ro.github.io/projects/embers/
+	float n1, n2, a, b;
+	vec2 epsilon = vec2( 0.1, 0.0 );
+	n1 = noise( p + epsilon.yxy );
+	n2 = noise( p - epsilon.yxy );
+	a = ( n1 - n2 ) / ( 2.0 * epsilon.x );
+	n1 = noise( p + epsilon.yyx );
+	n2 = noise( p - epsilon.yyx );
+	b = ( n1 - n2 ) / ( 2.0 * epsilon.x );
+	col.x = a - b;
+
+	n1 = noise( p + epsilon.yyx );
+	n2 = noise( p - epsilon.yyx );
+	a = ( n1 - n2 ) / ( 2.0 * epsilon.x );
+	n1 = noise( p + epsilon.xyy );
+	n2 = noise( p - epsilon.xyy );
+	b = ( n1 - n2 ) / ( 2.0 * epsilon.x );
+	col.y = b - a;
+
+	n1 = noise( p + epsilon.xyy );
+	n2 = noise( p - epsilon.xyy );
+	a = ( n1 - n2 ) / ( 2.0 * epsilon.x );
+	n1 = noise( p + epsilon.yxy );
+	n2 = noise( p - epsilon.yxy );
+	b = ( n1 - n2 ) / ( 2.0 * epsilon.x );
+	col.z = a - b;
+
+	// Output to screen
+	// return normalize( col );
+	return col;
+}
+
 // uint topFourIDs[ 4 ] = { 0 };
 // float topFourDists[ 4 ] = { 0.0f };
 // #define REPLACES_FIRST	0
@@ -209,32 +250,56 @@ void main () {
 	vec4 color = vec4( 0.0f );
 
 	// grid
-	const bool x = ( writeLoc.x + 10 ) % 168 < 20;
-	const bool y = ( writeLoc.y + 10 ) % 128 < 16;
-	const bool z = ( writeLoc.z + 15 ) % 85 < 40;
-	if ( ( x && y ) || ( x && z ) || ( y && z ) ) {
-		if ( perlinfbm( pos / 500.0f, 2.0f, 6 ) < 0.11f ) {
-			// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
-			vec3 c = matWood( pos / 40.0f );
-			color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
-		}
-	}
+	// const bool x = ( writeLoc.x + 10 ) % 168 < 20;
+	// const bool y = ( writeLoc.y + 10 ) % 128 < 16;
+	// const bool z = ( writeLoc.z + 15 ) % 85 < 40;
+	// if ( ( x && y ) || ( x && z ) || ( y && z ) ) {
+	// 	if ( perlinfbm( pos / 500.0f, 2.0f, 6 ) < 0.11f ) {
+	// 		// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
+	// 		vec3 c = matWood( pos / 40.0f );
+	// 		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
+	// 	}
+	// }
+
+	// frame
+	// const int width = 168;
+	// bool skip = false;
+	// if ( writeLoc.y < 100 || writeLoc.y > ( imageSize( dataCacheBuffer ).y - 100 ) || writeLoc.x < 100 ) {
+	// 	if ( perlinfbm( pos / 900.0f, 2.0f, 10 ) < 0.0f ) {
+	// 		vec3 c = matWood( pos / 40.0f );
+	// 		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
+	// 		skip = true;
+	// 	}
+	// }
 
 	// iterate through the spheres
 		// keep top four nearest
 		// keep distance to nearest
 		// keep direction away from nearest
 
-	float minDistance = 10000.0f;
-	for ( int i = 0; i < numSpheres; i++ ) {
-		vec4 pr = spheres[ i ].positionRadius;
-		float d = distance( pos, pr.xyz ) - pr.w;
-		minDistance = min( minDistance, d );
-		if ( minDistance == d && d <= 0.0f ) {
-			// color = vec4( spheres[ i ].colorMaterial.rgb, clamp( -minDistance, 0.0f, 1.0f ) );
-			color = spheres[ i ].colorMaterial;
+	// if ( !skip ) {
+		float minDistance = 10000.0f;
+		for ( int i = 0; i < numSpheres; i++ ) {
+			vec4 pr = spheres[ i ].positionRadius;
+			float d = distance( pos, pr.xyz ) - pr.w;
+			minDistance = min( minDistance, d );
+			if ( minDistance == d && d <= 0.0f ) {
+				// color = vec4( spheres[ i ].colorMaterial.rgb, clamp( -minDistance, 0.0f, 1.0f ) );
+				color = spheres[ i ].colorMaterial;
+
+				// // partially colored with curl noise... kinda sucks
+				// if ( i % 2 == 0 ){
+				// 	color = vec4( curlNoise( pos / 3000.0f ) * 0.66f, spheres[ i ].colorMaterial.a );
+				// } else {
+				// 	color = spheres[ i ].colorMaterial;
+				// }
+
+				// ... consider checking spheres in random order?
+				break; // I speculate that there is actually only ever one sphere affecting a voxel, this is a good optimization for now
+					// eventually I will want to disable this, when I'm collecting the nearest N spheres
+			}
 		}
-	}
+	// }
 
 	// write the data to the image - pack 16-bit ids into 32 bit storage
 	// imageStore( idxBuffer, writeLoc, uvec4( <closest> <second>, <third> <fourth>, 0.0f, 1.0f ) );
