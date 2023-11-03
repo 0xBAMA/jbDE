@@ -454,6 +454,8 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
+		ControlsWindow();
+
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
@@ -550,6 +552,17 @@ public:
 				( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
 				( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
 				( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
+
+			// do a second one
+			if ( aquariaConfig.lightingRemaining >= 0 ) {
+				// other uniforms
+				offset = aquariaConfig.offsets[ aquariaConfig.lightingRemaining-- ];
+				glUniform3i( glGetUniformLocation( shaders[ "Lighting" ], "offset" ), offset.x, offset.y, offset.z );
+				glDispatchCompute(
+					( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
+					( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
+					( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
+			}
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
