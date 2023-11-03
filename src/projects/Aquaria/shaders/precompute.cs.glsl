@@ -59,7 +59,7 @@ float frame ( vec3 p ) {
 	pModInterval1( p.x, 100.0f, -3, 3 );
 	float pD = fCylinder( p, bSize.z / 7.0f, bSize.y );
 
-	return fOpUnionRound( fOpUnionRound( cD, rD, 33.0f ), pD, 33.0f );
+	return fOpUnionRound( fOpUnionRound( cD, rD, bSize.z / 4.0f ), pD, bSize.z / 5.0f );
 }
 
 void main () {
@@ -83,8 +83,15 @@ void main () {
 	// }
 
 	if ( frame( pos ) <= 0.0f ) {
-		vec3 c = matWood( pos / 60.0f );
+
+		// wood material
+		vec3 c = matWood( pos.zyx / 60.0f );
 		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
+
+		// marble type material
+		// color = vec4( abs( perlinfbm( pos / 500.0f, 2.0f, 10 ) ) );
+		// color.a = ( 2.0f - color.a ) * 1.2f;
+
 	} else {
 
 	// iterate through the spheres
