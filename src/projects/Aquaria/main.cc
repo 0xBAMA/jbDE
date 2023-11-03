@@ -31,10 +31,7 @@ public:
 			Block Start( "Additional User Init" );
 			cout << endl;
 
-			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ]	= computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-			shaders[ "Precompute" ]	= computeShader( "./src/projects/Aquaria/shaders/precompute.cs.glsl" ).shaderHandle;
-			shaders[ "Lighting" ] 	= computeShader( "./src/projects/Aquaria/shaders/lighting.cs.glsl" ).shaderHandle;
+			CompileShaders();
 
 	// ================================================================================================================
 	// ==== Load Config ===============================================================================================
@@ -95,9 +92,15 @@ public:
 
 	}
 
+	void CompileShaders () {
+		shaders[ "Dummy Draw" ]	= computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+		shaders[ "Precompute" ]	= computeShader( "./src/projects/Aquaria/shaders/precompute.cs.glsl" ).shaderHandle;
+		shaders[ "Lighting" ] 	= computeShader( "./src/projects/Aquaria/shaders/lighting.cs.glsl" ).shaderHandle;
+	}
+
 	void ComputeTileList () {
-		for ( int x = 0; x < aquariaConfig.dimensions.x; x += 64 ){
-			for ( int y = 0; y < aquariaConfig.dimensions.y; y += 64 ){
+		for ( int y = 0; y < aquariaConfig.dimensions.y; y += 64 ){
+			for ( int x = 0; x < aquariaConfig.dimensions.x; x += 64 ){
 				for ( int z = 0; z < aquariaConfig.dimensions.z; z += 64 ){
 					aquariaConfig.updateTiles.push_back( ivec3( x, y, z ) );
 				}
@@ -331,6 +334,9 @@ public:
 
 		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= shift ? 0.9f : 0.99f; }
 		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= shift ? 0.9f : 0.99f; }
+		if ( state[ SDL_SCANCODE_Y ] ) {
+			CompileShaders();
+		}
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ComputeUpdateOffsets();
