@@ -11,8 +11,7 @@
 				"x": 1280,
 				"y": 720,
 				"z": 128
-			},
-			"sphereTrim": 128
+			}
 		},
 		"Physarum2D": {
 			"brightness": 1.0,
@@ -206,8 +205,8 @@
 		"numMsDelayAfterCallback": 30,
 		"oneShot": false,
 		"reportPlatformInfo": true,
-		"screenHeight": 1080,
-		"screenWidth": 1920,
+		"screenHeight": 2160,
+		"screenWidth": 3840,
 		"showImGUIDemoWindow": false,
 		"showProfiler": true,
 		"startOnScreen": 1,
