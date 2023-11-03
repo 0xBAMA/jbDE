@@ -346,11 +346,74 @@ public:
 
 	}
 
+	void ControlsWindow () {
+		ImGui::Begin( "Controls", NULL, 0 );
+		if ( ImGui::BeginTabBar( "Config Sections", ImGuiTabBarFlags_None ) ) {
+			// ImGui::SameLine();
+			if ( ImGui::BeginTabItem( "Generation" ) ) {
+				// prototype palette browser
+				ImGui::SeparatorText( "Palette Browser" );
+				std::vector< const char * > paletteLabels;
+				if ( paletteLabels.size() == 0 ) {
+					for ( auto& entry : palette::paletteListLocal ) {
+						// copy to a cstr for use by imgui
+						char * d = new char[ entry.label.length() + 1 ];
+						std::copy( entry.label.begin(), entry.label.end(), d );
+						d[ entry.label.length() ] = '\0';
+						paletteLabels.push_back( d );
+					}
+				}
+
+				ImGui::Combo( "Palette", &palette::PaletteIndex, paletteLabels.data(), paletteLabels.size() );
+				ImGui::SameLine();
+				if ( ImGui::Button( "Random" ) ) {
+					palette::PickRandomPalette( true );
+				}
+				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
+				bool finished = false;
+				for ( int y = 0; y < 16; y++ ) {
+					ImGui::Text( " " );
+					for ( int x = 0; x < 16; x++ ) {
+
+						// terminate when you run out of colors
+						const uint index = x + 16 * y;
+						if ( index >= palette::paletteListLocal[ palette::PaletteIndex ].colors.size() ) {
+							finished = true;
+						}
+
+						// show color, or black if past the end of the list
+						ivec4 color = ivec4( 0 );
+						if ( !finished ) {
+							color = ivec4( palette::paletteListLocal[ palette::PaletteIndex ].colors[ index ], 255 );
+						} 
+						ImGui::SameLine();
+						ImGui::TextColored( ImVec4( color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f ), "@" );
+
+					}
+				}
+
+				ImGui::SeparatorText( "Sphere Packing Config" );
+				// build config struct, pass to the functions
+					// perlin or incremental version
+
+				ImGui::EndTabItem();
+			}
+			if ( ImGui::BeginTabItem( "Rendering" ) ) {
+				// controlling things like fog density, fog color
+				// lighting controls, button to recompute lighting
+					// or flag that gets set when a value changes with ImGui::IsItemEdited() etc
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+		ImGui::End();
+	}
+
 	void ImguiPass () {
 		ZoneScoped;
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
-		}
+		// if ( tonemap.showTonemapWindow ) {
+			// TonemapControlsWindow();
+		// }
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
