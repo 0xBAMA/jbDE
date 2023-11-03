@@ -70,35 +70,28 @@ void main () {
 	// running color
 	vec4 color = vec4( 0.0f );
 
-	// grid
-	const bool x = ( writeLoc.x + 10 ) % 168 < 20;
-	const bool y = ( writeLoc.y + 10 ) % 128 < 16;
-	const bool z = ( writeLoc.z ) % 132 < 40;
-	if ( ( x && y ) || ( x && z ) || ( y && z ) || writeLoc.x < 20 || writeLoc.y < 20 ) {
-		if ( perlinfbm( pos / 500.0f, 2.0f, 10 ) < 0.0f || writeLoc.x < 20 || writeLoc.y < 20 ) {
-			// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
-			vec3 c = matWood( pos / 60.0f );
-			color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
-		}
-	}
-
-	// frame
-	// const int width = 168;
-	// bool skip = false;
-	// if ( writeLoc.y < 100 || writeLoc.y > ( imageSize( dataCacheBuffer ).y - 100 ) || writeLoc.x < 100 ) {
-	// 	if ( perlinfbm( pos / 900.0f, 2.0f, 10 ) < 0.0f ) {
-	// 		vec3 c = matWood( pos / 40.0f );
+	// // grid
+	// const bool x = ( writeLoc.x + 10 ) % 168 < 20;
+	// const bool y = ( writeLoc.y + 10 ) % 128 < 16;
+	// const bool z = ( writeLoc.z ) % 132 < 40;
+	// if ( ( x && y ) || ( x && z ) || ( y && z ) || writeLoc.x < 20 || writeLoc.y < 20 ) {
+	// 	if ( perlinfbm( pos / 500.0f, 2.0f, 10 ) < 0.0f || writeLoc.x < 20 || writeLoc.y < 20 ) {
+	// 		// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
+	// 		vec3 c = matWood( pos / 60.0f );
 	// 		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
-	// 		skip = true;
 	// 	}
 	// }
+
+	if ( frame( pos ) <= 0.0f ) {
+		vec3 c = matWood( pos / 60.0f );
+		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
+	} else {
 
 	// iterate through the spheres
 		// keep top four nearest
 		// keep distance to nearest
-		// keep direction away from nearest
+		// keep direction away from nearest as normal
 
-	// if ( !skip ) {
 		float minDistance = 10000.0f;
 		for ( int i = 0; i < numSpheres; i++ ) {
 			vec4 pr = spheres[ i ].positionRadius;
@@ -135,7 +128,7 @@ void main () {
 					// eventually I will want to disable this, when I'm collecting the nearest N spheres
 			}
 		}
-	// }
+	}
 
 	// write the data to the image - pack 16-bit ids into 32 bit storage
 	// imageStore( idxBuffer, writeLoc, uvec4( <closest> <second>, <third> <fourth>, 0.0f, 1.0f ) );
