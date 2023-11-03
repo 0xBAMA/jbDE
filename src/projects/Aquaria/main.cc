@@ -194,6 +194,9 @@ public:
 			vectorVersion.push_back( val );
 		}
 
+		// if we aborted from running out of iterations, avoid seg fault in glBufferData
+		vectorVersion.resize( aquariaConfig.maxSpheres * 2 );
+
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
