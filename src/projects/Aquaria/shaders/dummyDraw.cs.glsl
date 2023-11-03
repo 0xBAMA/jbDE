@@ -98,23 +98,23 @@ void main () {
 		// what are the dimensions
 		const ivec3 blockDimensions = imageSize( dataCacheBuffer );
 
-		const float fogScalar = 0.0001f;
+		const float fogScalar = 0.0002f;
 
 		if ( hit ) { // texture sample
 			// for trimming edges
-			const float epsilon = 0.0001f;
+			const float epsilon = 0.001f;
 			const vec3 hitpointMin = Origin + tMin * Direction;
 			const vec3 hitpointMax = Origin + tMax * Direction;
 			const vec3 blockUVMin = vec3(
-				RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x ),
-				RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y ),
-				RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
+				RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x - epsilon ),
+				RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y - epsilon ),
+				RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z - epsilon )
 			);
 
 			const vec3 blockUVMax = vec3(
-				RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x ),
-				RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y ),
-				RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z )
+				RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, 0 + epsilon, blockDimensions.x - epsilon ),
+				RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, 0 + epsilon, blockDimensions.y - epsilon ),
+				RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z - epsilon )
 			);
 
 			// confirm good hit - highlight volume, with thickness
