@@ -1,9 +1,34 @@
 #include "../../engine/engine.h"
 
+struct spherePackConfig_t {
+	// color picking
+	float paletteRefMin = 0.0f;
+	float paletteRefMax = 1.0f;
+	float paletteRefJitter = 0.01f;
+	float alphaGenMin = 0.5f;
+	float alphaGenMax = 1.0f;
+
+	// sizing
+	float radiiInitialValue = 50.0f;
+	float radiiStepShrink = 1.0f / 1.618f;
+
+	// bounds manip
+	vec3 boundsStepShrink = vec3( 0.95f );
+
+	// termination
+	// uint32_t maxIterations = 1000000;
+	uint32_t sphereTrim = 100;
+};
+
+// struct perlinPackConfig_t {
+	// TODO
+// };
+
 struct aquariaConfig_t {
 	ivec3 dimensions;
+
+	// leaving this global for now, because I still want to do the 16-bit addressing thing, at some point
 	uint32_t maxSpheres = 65535;
-	uint32_t sphereTrim;
 
 	float scale = 1.0f;
 
@@ -110,14 +135,11 @@ public:
 		// std::shuffle( std::begin( aquariaConfig.updateTiles ), std::end( aquariaConfig.updateTiles ), rng );
 	}
 
-	void ComputeSpherePacking () {
+	void ComputeSpherePacking ( spherePackConfig_t pConfig = spherePackConfig_t() ) {
 
 		// clear out the buffer
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		const uint32_t maxSpheres = aquariaConfig.maxSpheres + pConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
-
-		// pick new palette, for the spheres
-		palette::PickRandomPalette( true );
 
 		// init the progress bar
 		progressBar bar;
@@ -128,11 +150,12 @@ public:
 		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
 		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
 		uint32_t maxIterations = 500;
-		// hacky, following the pattern from before
-		float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
-		rng paletteRefVal = rng( 0.0f, 1.0f );
-		rng alphaGen = rng( 0.5f, 1.0f );
-		rngN paletteRefJitter = rngN( 0.0f, 0.01f );
+
+		// float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
+		float currentRadius = pConfig.radiiInitialValue;
+		rng paletteRefVal = rng( pConfig.paletteRefMin, pConfig.paletteRefMax );
+		rng alphaGen = rng( pConfig.alphaGenMin, pConfig.alphaGenMax );
+		rngN paletteRefJitter = rngN( 0.0f, pConfig.paletteRefJitter );
 		float currentPaletteVal = paletteRefVal();
 
 		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
@@ -168,25 +191,30 @@ public:
 			}
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
 			currentPaletteVal = paletteRefVal();
-			currentRadius /= 1.618f;
+			currentRadius *= pConfig.radiiStepShrink;
 			maxIterations *= 3;
+
+			// this replaces the below
+			min.x *= pConfig.boundsStepShrink.x; max.x *= pConfig.boundsStepShrink.x;
+			min.y *= pConfig.boundsStepShrink.y; max.y *= pConfig.boundsStepShrink.y;
+			min.z *= pConfig.boundsStepShrink.z; max.z *= pConfig.boundsStepShrink.z;
 
 			// doing this makes it pack flat
 			// min.z /= 1.25f;
 			// max.z /= 1.25f;
 
 			// slowly shrink bounds to accentuate the earlier placed spheres
-			min *= 0.95f;
-			max *= 0.95f;
+			// min *= 0.95f;
+			// max *= 0.95f;
 		}
 
 		// ================================================================================================================
-		
+
 		// send the SSBO
 			// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
 			// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
-		
-		for ( uint32_t i = 0; i < aquariaConfig.sphereTrim; i++ ) {
+
+		for ( uint32_t i = 0; i < pConfig.sphereTrim; i++ ) {
 			sphereLocationsPlusColors.pop_front();
 		}
 
@@ -214,7 +242,7 @@ public:
 		std::deque< vec4 > sphereLocationsPlusColors;
 
 		// pick new palette, for the spheres
-		palette::PickRandomPalette( true );
+		// palette::PickRandomPalette( true );
 
 		// init the progress bar
 		progressBar bar;
