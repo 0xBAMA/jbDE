@@ -64,11 +64,18 @@ void main () {
 	vec3 prevColor = imageLoad( accumulatorTexture, writeLoc ).rgb;
 	vec3 col = vec3( 0.0f );
 
-	// remapped uv
-	vec2 subpixelOffset = vec2(
+	vec4 blue = vec4(
+		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 0 ),
 		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 1 ),
-		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 2 )
+		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 2 ),
+		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 3 )
 	);
+
+	// used later
+	vec3 ditherValue = blue.xyz / 64.0f - vec3( 1.0f / 128.0f );
+
+	// remapped uv
+	vec2 subpixelOffset = blue.xy;
 	vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + subpixelOffset ) / resolution.xy;
 	uv = ( uv - 0.5f ) * 2.0f;
 
@@ -138,11 +145,11 @@ void main () {
 
 				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
-					col = vec3( 1.0f - exp( -i * fogScalar ) ) + read.rgb;
+					col = vec3( 1.0f - exp( -i * fogScalar ) ) + ditherValue + read.rgb;
 					// col = read.rgb;
 					break;
 				} else {
-					col = vec3( 1.0f - exp( -i * fogScalar ) );
+					col = vec3( 1.0f - exp( -i * fogScalar ) ) + ditherValue;
 				}
 
 				sideDist0 = sideDist1;
@@ -153,7 +160,8 @@ void main () {
 	}
 #endif
 
+
 	// write the data to the image
-	// imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, 0.9f ), 1.0f ) );
-	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
+	// imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, 0.9f ), 1.0f ) );
 }
