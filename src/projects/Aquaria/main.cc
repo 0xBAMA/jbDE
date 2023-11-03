@@ -98,6 +98,7 @@ public:
 	}
 
 	void ComputeTileList () {
+		aquariaConfig.updateTiles.clear();
 		for ( int y = 0; y < aquariaConfig.dimensions.y; y += 64 ){
 			for ( int x = 0; x < aquariaConfig.dimensions.x; x += 64 ){
 				for ( int z = 0; z < aquariaConfig.dimensions.z; z += 64 ){
