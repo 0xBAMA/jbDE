@@ -222,7 +222,6 @@ public:
 		uint32_t iterations = maxIterations;
 
 		// data generation
-		rng alphaGen = rng( 0.01f, 1.9f );
 		rng radiusJitter = rng( 0.1f, 1.0f );
 		float padding = 20.0f;
 		PerlinNoise p;
@@ -367,9 +366,13 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
+
 			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
 			textureManager.BindImageForShader( "Distance Buffer", "dataCacheBuffer", shaders[ "Dummy Draw" ], 3 );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+
+			static rng blueNoiseOffset = rng( 0, 512 );
+			glUniform2i( glGetUniformLocation( shaders[ "Dummy Draw" ], "noiseOffset" ), blueNoiseOffset(), blueNoiseOffset() );
 
 			const glm::mat3 inverseBasisMat = inverse( glm::mat3( -trident.basisX, -trident.basisY, -trident.basisZ ) );
 			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Dummy Draw" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );

@@ -37,8 +37,9 @@ float RemapRange ( const float value, const float iMin, const float iMax, const 
 	return ( oMin + ( ( oMax - oMin ) / ( iMax - iMin ) ) * ( value - iMin ) );
 }
 
+uniform ivec2 noiseOffset;
 float blueNoiseRead ( ivec2 loc, int idx ) {
-	ivec2 wrappedLoc = loc % imageSize( blueNoiseTexture );
+	ivec2 wrappedLoc = ( loc + noiseOffset ) % imageSize( blueNoiseTexture );
 	uvec4 sampleValue = imageLoad( blueNoiseTexture, wrappedLoc );
 	switch ( idx ) {
 	case 0:
