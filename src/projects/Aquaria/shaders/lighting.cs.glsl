@@ -89,5 +89,8 @@ void main () {
 	// scale with the computed shadow and store it back
 	color.rgb *= exp( -opticalDepthSum * 0.1f ) + 0.1f;
 
+	// colored lights, valid
+	// color.rgb *= vec3( 0.675f, 0.5f, 0.1f ) * ( exp( -opticalDepthSum * 0.1f ) + 0.1f );
+
 	imageStore( dataCacheBuffer, writeLoc, color );
 }
