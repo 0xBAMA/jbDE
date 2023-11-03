@@ -129,7 +129,7 @@ void main () {
 			vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
 			#define MAX_RAY_STEPS 1200
-			for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
+			for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, imageSize( dataCacheBuffer ) ) ) ); i++ ) {
 				// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
 				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
