@@ -11,6 +11,7 @@ struct spherePackConfig_t {
 	// sizing
 	float radiiInitialValue = 63.0f;
 	float radiiStepShrink = 1.0f / 1.618f;
+	float iterationMultiplier = 2.3f;
 
 	// bounds manip
 	vec3 boundsStepShrink = vec3( 0.99f, 0.99f, 0.92f );
@@ -34,6 +35,9 @@ struct aquariaConfig_t {
 	float thinLensIntensity = 0.1f;
 	float thinLensDistance = 2.0f;
 	float blendAmount = 0.9f;
+
+	bool refractiveBubble = false;
+	float IoR = 4.0f;
 
 	// for tiled update
 	std::vector< ivec3 > updateTiles;
@@ -183,13 +187,14 @@ public:
 		rngN paletteRefJitter = rngN( 0.0f, pConfig.paletteRefJitter );
 		float currentPaletteVal = paletteRefVal();
 
-		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && attemptsRemaining-- ) {
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
 			rng x = rng( min.x + currentRadius, max.x - currentRadius );
 			rng y = rng( min.y + currentRadius, max.y - currentRadius );
 			rng z = rng( min.z + currentRadius, max.z - currentRadius );
 			uint32_t iterations = maxIterations;
+
 			// redundant check, but I think it's the easiest way not to run over
-			while ( iterations-- && ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
+			while ( iterations-- && ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && attemptsRemaining-- ) {
 				// generate point inside the parent cube
 				vec3 checkP = vec3( x(), y(), z() );
 				// check for intersection against all other spheres
@@ -211,13 +216,16 @@ public:
 					bar.done = sphereLocationsPlusColors.size() / 2;
 					if ( ( sphereLocationsPlusColors.size() / 2 ) % 50 == 0 || ( sphereLocationsPlusColors.size() / 2 ) == maxSpheres ) {
 						bar.writeCurrentState();
+						cout << "attempts remaining: " << attemptsRemaining << "              ";
 					}
 				}
+				if ( !attemptsRemaining ) break;
 			}
+			if ( !attemptsRemaining ) break;
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
 			currentPaletteVal = paletteRefVal();
 			currentRadius *= pConfig.radiiStepShrink;
-			maxIterations *= 3;
+			maxIterations *= pConfig.iterationMultiplier;
 
 			// this replaces the below
 			min.x *= pConfig.boundsStepShrink.x; max.x *= pConfig.boundsStepShrink.x;
@@ -419,7 +427,7 @@ public:
 				ImGui::Combo( "Palette", &palette::PaletteIndex, paletteLabels.data(), paletteLabels.size() );
 				ImGui::SameLine();
 				if ( ImGui::Button( "Random" ) ) {
-					palette::PickRandomPalette( true );
+					palette::PickRandomPalette( false );
 				}
 				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
 				bool finished = false;
@@ -467,6 +475,8 @@ public:
 
 					ImGui::SliderFloat( "Initial Radius", &pConfig.radiiInitialValue, 1.0f, 300.0f );
 					ImGui::SliderFloat( "Radius Step Shrink", &pConfig.radiiStepShrink, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Iteration Count Multiplier", &pConfig.iterationMultiplier, 0.0f, 10.0f );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &pConfig.maxAllowedTotalIterations, 0, 100000000 );
 
 					ImGui::Text( " " );
 
@@ -496,6 +506,8 @@ public:
 				ImGui::SliderFloat( "Distance", &aquariaConfig.thinLensDistance, 0.0f, 5.0f, "%.3f" );
 				ImGui::SeparatorText( " Other Rendering " );
 				ImGui::SliderFloat( "Blend Amount", &aquariaConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+				ImGui::Checkbox( "Bubble", &aquariaConfig.refractiveBubble );
+				ImGui::SliderFloat( "Bubble IoR", &aquariaConfig.IoR, -6.0f, 6.0f );
 				
 				ImGui::EndTabItem();
 			}
@@ -547,6 +559,8 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blendAmount" ), aquariaConfig.blendAmount );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensDistance" ), aquariaConfig.thinLensDistance );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensIntensity" ), aquariaConfig.thinLensIntensity );
+			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "refractiveBubble" ), aquariaConfig.refractiveBubble );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "IoR" ), aquariaConfig.IoR );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
