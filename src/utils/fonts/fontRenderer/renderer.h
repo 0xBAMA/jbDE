@@ -289,6 +289,17 @@ public:
 		fontWriteShader = shader;
 	}
 
+	void DrawBlackBackedString ( int offset, string s ) {
+		// std::stringstream ss;
+		// ss << " total: " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << ms << "ms";
+		// layers[ 1 ].WriteString( glm::uvec2( layers[ 1 ].width - ss.str().length(), 0 ), glm::uvec2( layers[ 1 ].width, 0 ), ss.str(), WHITE );
+
+		const size_t w = s.length();
+		layers[ 0 ].DrawRectConstant( glm::uvec2( layers[ 0 ].width - w, offset ), glm::uvec2( layers[ 0 ].width, offset ), cChar( BLACK, FILL_100 ) );
+		layers[ 1 ].WriteString( glm::uvec2( layers[ 1 ].width - w, offset ), glm::uvec2( layers[ 1 ].width, offset ), s, WHITE );
+
+	}
+
 	void Update ( float seconds ) {
 		// std::string fps( "60.00 fps " );
 		// std::string ms( "16.666 ms " );
@@ -309,7 +320,7 @@ public:
 		}
 
 		std::stringstream ss;
-		ss << " total: " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << ms << "ms";
+		ss << " frame total: " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << ms << "ms";
 		layers[ 0 ].DrawRectConstant( glm::uvec2( layers[ 0 ].width - ss.str().length(), 0 ), glm::uvec2( layers[ 0 ].width, 0 ), cChar( BLACK, FILL_100 ) );
 		layers[ 1 ].WriteString( glm::uvec2( layers[ 1 ].width - ss.str().length(), 0 ), glm::uvec2( layers[ 1 ].width, 0 ), ss.str(), WHITE );
 
