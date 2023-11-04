@@ -118,7 +118,7 @@ void main () {
 			// update ray position to be at the sphere's surface
 			Origin = Origin + sHit * Direction;
 			// update ray direction to the refracted ray
-			Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
+			Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), bubbleIoR );
 		}
 	}
 
