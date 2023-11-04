@@ -63,12 +63,15 @@ public:
 
 			// prep reporter shit
 			generateBar.reportWidth = evaluateBar.reportWidth = lightingBar.reportWidth = 16;
-			generateBar.label = string( "Generate: " );
-			evaluateBar.label = string( "Evaluate: " );
-			lightingBar.label = string( "Lighting: " );
+			generateBar.label = string( "Generate: " ); generateBar.total = 65535;
+			evaluateBar.label = string( "Evaluate: " ); // evaluateBar.total = ; ... number of tiles
+			lightingBar.label = string( "Lighting: " ); lightingBar.total = 8 * 8 * 8;
 
 			// compile shaders
 			CompileShaders();
+
+			// get some initial palette selected
+			palette::PickRandomPalette();
 
 	// ================================================================================================================
 	// ==== Load Config ===============================================================================================
@@ -146,6 +149,7 @@ public:
 				}
 			}
 		}
+		evaluateBar.total = aquariaConfig.updateTiles.size() - 1;
 		// auto rng = std::default_random_engine {};
 		// std::shuffle( std::begin( aquariaConfig.updateTiles ), std::end( aquariaConfig.updateTiles ), rng );
 	}
@@ -341,6 +345,7 @@ public:
 
 	void ComputeUpdateOffsets () {
 		aquariaConfig.offsets.clear();
+		aquariaConfig.lightingRemaining = 8 * 8 * 8;
 
 		// generate the list of offsets via shuffle
 		for ( int x = 0; x < 8; x++ )
@@ -473,8 +478,6 @@ public:
 					}
 				}
 
-
-
 				ImGui::EndTabItem();
 			}
 			if ( ImGui::BeginTabItem( "Rendering" ) ) {
@@ -554,6 +557,17 @@ public:
 			// get status from engine local progress bars, write them above the timestamp
 				// updated from worker thread, so we don't lock up like before
 
+			// generateBar.done = ;
+			if ( aquariaConfig.updateTiles.empty() )
+				evaluateBar.done = evaluateBar.total = 1.0f;
+			else
+				evaluateBar.done = evaluateBar.total - aquariaConfig.updateTiles.size();
+			lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
+
+			textRenderer.DrawBlackBackedString( 3, generateBar.currentState() );
+			textRenderer.DrawBlackBackedString( 2, evaluateBar.currentState() );
+			textRenderer.DrawBlackBackedString( 1, lightingBar.currentState() );
+
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 
@@ -583,11 +597,6 @@ public:
 			glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
 			glDispatchCompute( 8, 8, 8 );
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-			if ( aquariaConfig.updateTiles.size() == 0 ) {
-				// block update finished, do lighting
-				aquariaConfig.lightingRemaining = 8 * 8 * 8;
-			}
 
 		} else if ( aquariaConfig.lightingRemaining >= 0 ) {
 			glUseProgram( shaders[ "Lighting" ] );
