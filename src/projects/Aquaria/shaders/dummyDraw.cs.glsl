@@ -111,9 +111,9 @@ void main () {
 	// if ( hexSdf( blue.zw ) > 0.5f ) { // this rejection sampling just acts weird, unconstrained hex grid is not a reasonable choice
 		vec3 focusPoint = Origin + thinLensDistance * Direction;
 		// Origin = invBasis * vec3( scale * uv + blue.zw * thinLensIntensity, -2.0f );
-		// Origin = invBasis * vec3( scale * uv + randomInUnitDisk() * thinLensIntensity, -2.0f );
 		// Origin = invBasis * vec3( scale * uv + pow( randomInUnitDisk(), vec2( 0.2f ) ) * thinLensIntensity, -2.0f ); // pushes bokeh out towards edge of the ring
-		Origin = invBasis * vec3( scale * uv + pow( randomInUnitDisk(), vec2( 2.0f ) ) * thinLensIntensity, -2.0f );
+		// Origin = invBasis * vec3( scale * uv + pow( randomInUnitDisk(), vec2( 2.0f ) ) * thinLensIntensity, -2.0f );
+		Origin = invBasis * vec3( scale * uv + randomInUnitDisk() * thinLensIntensity, -2.0f );
 		Direction = focusPoint - Origin;
 	// }
 
