@@ -50,12 +50,24 @@ public:
 
 	aquariaConfig_t aquariaConfig;
 
+	// for visually monitoring worker thread, GPU work, etc
+	progressBar generateBar;
+	progressBar evaluateBar;
+	progressBar lightingBar;
+
 	void OnInit () {
 		ZoneScoped;
 		{
 			Block Start( "Additional User Init" );
 			cout << endl;
 
+			// prep reporter shit
+			generateBar.reportWidth = evaluateBar.reportWidth = lightingBar.reportWidth = 16;
+			generateBar.label = string( "Generate: " );
+			evaluateBar.label = string( "Evaluate: " );
+			lightingBar.label = string( "Lighting: " );
+
+			// compile shaders
 			CompileShaders();
 
 	// ================================================================================================================
@@ -95,6 +107,9 @@ public:
 	// ================================================================================================================
 
 			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
+
+			// kick off worker thread
+
 			ComputeUpdateOffsets();
 			ComputeSpherePacking();
 			// ComputePerlinPacking();
@@ -535,8 +550,13 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
+
+			// get status from engine local progress bars, write them above the timestamp
+				// updated from worker thread, so we don't lock up like before
+
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
+
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
