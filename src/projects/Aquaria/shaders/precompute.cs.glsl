@@ -56,7 +56,7 @@ float frame ( vec3 p ) {
 	pMirror( p.y, 0.0f );
 	float rD = fCylinder( p.yxz - vec3( bSize.y / 2, 0.0f, 0.0f ), bSize.z / 5.0f, bSize.x );
 	p = pCache;
-	pModInterval1( p.x, 100.0f, -3, 3 );
+	pModInterval1( p.x, 100.0f, -10, 10 );
 	float pD = fCylinder( p, bSize.z / 7.0f, bSize.y );
 
 	return fOpUnionRound( fOpUnionRound( cD, rD, bSize.z / 4.0f ), pD, bSize.z / 5.0f );
