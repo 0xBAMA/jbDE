@@ -34,21 +34,26 @@ public:
 	float done = 0.0f;
 	float total = 0.0f;
 
-	void writeCurrentState () {
-		// calculate completion percentage
-		cout << "\r" << label;
+	string currentState () {
+		stringstream ss;
 		const float frac = float( done ) / float( total );
 		int numFill = std::floor( reportWidth * frac ) - 1;
 
 		// draw the bar
-		cout << "[";
-		for( int i = 0; i <= numFill; i++ )						cout << doneChar;
-		for( int i = 0; i < reportWidth - numFill - 1; i++ )	cout << undoneChar;
-		cout << "] ";
+		ss << "[";
+		for( int i = 0; i <= numFill; i++ )						ss << doneChar;
+		for( int i = 0; i < reportWidth - numFill - 1; i++ )	ss << undoneChar;
+		ss << "] ";
 		
 		// and report the percentage
-		cout << 100.0f * frac << "%                       ";
-		
+		ss << 100.0f * frac << "%                       ";
+		return ss.str();
+	}
+
+	void writeCurrentState () {
+		// calculate completion percentage
+		cout << "\r" << label << currentState();
+
 		// and timing if desired
 		// if ( reportTime )
 			// cout << " in " << Tock() / 1000.0f << "s" << std::flush;
