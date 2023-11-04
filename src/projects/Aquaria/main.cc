@@ -9,11 +9,11 @@ struct spherePackConfig_t {
 	float alphaGenMax = 1.0f;
 
 	// sizing
-	float radiiInitialValue = 50.0f;
+	float radiiInitialValue = 63.0f;
 	float radiiStepShrink = 1.0f / 1.618f;
 
 	// bounds manip
-	vec3 boundsStepShrink = vec3( 0.95f );
+	vec3 boundsStepShrink = vec3( 0.99f, 0.99f, 0.92f );
 
 	// termination
 	// uint32_t maxIterations = 1000000;
@@ -238,7 +238,8 @@ public:
 	void ComputePerlinPacking () {
 
 		// clear out the buffer
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		// const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
 
 		// pick new palette, for the spheres
@@ -307,18 +308,11 @@ public:
 		// ================================================================================================================
 		
 		// send the SSBO
-			// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
-			// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
-		
-		for ( uint32_t i = 0; i < aquariaConfig.sphereTrim; i++ ) {
-			sphereLocationsPlusColors.pop_front();
-		}
-
 		std::vector< vec4 > vectorVersion;
 		for ( auto& val : sphereLocationsPlusColors ) {
 			vectorVersion.push_back( val );
 		}
-
+		// pad out the rest of the buffer, if we had an early termination
 		vectorVersion.resize( aquariaConfig.maxSpheres * 2 );
 
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
@@ -427,6 +421,44 @@ public:
 				ImGui::SeparatorText( "Sphere Packing Config" );
 				// build config struct, pass to the functions
 					// perlin or incremental version
+
+				// do something to switch modes, when both are implemented - only show the controls for one at a time, to read easier
+
+				{	// sphere version
+					static spherePackConfig_t pConfig;
+
+					// manipulate values
+					ImGui::SliderFloat( "Palette Min", &pConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &pConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &pConfig.paletteRefJitter, 0.0f, 0.2f );
+
+					ImGui::Text( " " );
+
+					ImGui::SliderFloat( "Alpha Min", &pConfig.alphaGenMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Max", &pConfig.alphaGenMax, 0.0f, 1.0f );
+
+					ImGui::Text( " " );
+
+					ImGui::SliderFloat( "Initial Radius", &pConfig.radiiInitialValue, 1.0f, 300.0f );
+					ImGui::SliderFloat( "Radius Step Shrink", &pConfig.radiiStepShrink, 0.0f, 1.0f );
+
+					ImGui::Text( " " );
+
+					ImGui::SliderFloat( "X Bounds Step Shrink", &pConfig.boundsStepShrink.x, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Y Bounds Step Shrink", &pConfig.boundsStepShrink.y, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Z Bounds Step Shrink", &pConfig.boundsStepShrink.z, 0.0f, 1.0f );
+
+					ImGui::Text( " " );
+					ImGui::SliderInt( "Trim", ( int* ) &pConfig.sphereTrim, 0, 100000 );
+
+					if ( ImGui::Button( " Do It " ) ) {
+						ComputeSpherePacking( pConfig );
+						ComputeUpdateOffsets();
+						ComputeTileList(); // this will reset the execution - not calling this will allow you to interrupt mid-pass
+					}
+				}
+
+
 
 				ImGui::EndTabItem();
 			}
