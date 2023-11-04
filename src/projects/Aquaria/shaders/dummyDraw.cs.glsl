@@ -15,6 +15,8 @@ uniform vec3 blockSize;
 uniform float thinLensIntensity;
 uniform float thinLensDistance;
 uniform float blendAmount;
+uniform int refractiveBubble;
+uniform float IoR;
 
 #define PI 3.1415f
 
@@ -60,6 +62,14 @@ float blueNoiseRead ( ivec2 loc, int idx ) {
 	}
 }
 
+// for hexagon rejection sampling - trying hex grid, sort of experimental
+float hexSdf ( vec2 p ) {
+	p.x *= 0.57735f * 2.0f;
+	p.y += mod( floor( p.x ), 2.0f ) * 0.5f;
+	p = abs( ( mod( p, 1.0f ) - 0.5f ) );
+	return abs( max( p.x * 1.5f + p.y, p.y * 2.0f ) - 1.0f );
+}
+
 void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
@@ -90,22 +100,26 @@ void main () {
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
 
 	// thin lens calculations
-	vec3 focusPoint = Origin + thinLensDistance * Direction;
-	Origin = invBasis * vec3( scale * uv + blue.zw * thinLensIntensity, -2.0f );
-	Direction = focusPoint - Origin;
+	if ( hexSdf( blue.zw ) > 0.5f ) {
+		vec3 focusPoint = Origin + thinLensDistance * Direction;
+		Origin = invBasis * vec3( scale * uv + blue.zw * thinLensIntensity, -2.0f );
+		Direction = focusPoint - Origin;
+	}
 
+	bool hitBubble = false;
+	if ( refractiveBubble != 0 ) {
+		float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
+		if ( sHit > 0.0f ) {
+			// the ray hits
+			hitBubble = true;
+			// update ray position to be at the sphere's surface
+			Origin = Origin + sHit * Direction;
+			// update ray direction to the refracted ray
+			Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
+		}
+	}
 
-// if refraction is desired:
-// #define REFRACTIVE_BUBBLE 1
-
-#ifdef REFRACTIVE_BUBBLE
-	float sHit = eliIntersect( Origin, Direction, vec3( 0.0f ), ( blockSize / 2.0f ) );
-	if ( sHit > 0.0f ) {
-		// update ray position to be at the sphere's surface
-		Origin = Origin + sHit * Direction;
-		// update ray direction to the refracted ray
-		Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), 4.0f );
-#endif
+	if ( hitBubble && refractiveBubble != 0 || refractiveBubble == 0 ) {
 
 		// then intersect with the AABB
 		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
@@ -164,11 +178,8 @@ void main () {
 				mapPos0 = mapPos1;
 			}
 		}
-#ifdef REFRACTIVE_BUBBLE
+
 	}
-#endif
-
-
 	// write the data to the image
 	// imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
 	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, blendAmount ), 1.0f ) );
