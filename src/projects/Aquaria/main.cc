@@ -16,7 +16,7 @@ struct spherePackConfig_t {
 	vec3 boundsStepShrink = vec3( 0.99f, 0.99f, 0.92f );
 
 	// termination
-	// uint32_t maxIterations = 1000000;
+	uint32_t maxAllowedTotalIterations = 1000000;
 	uint32_t sphereTrim = 100;
 };
 
@@ -170,6 +170,9 @@ public:
 		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
 		uint32_t maxIterations = 500;
 
+		// I think this is the easiest way to handle things that don't terminate on their own
+		uint32_t attemptsRemaining = pConfig.maxAllowedTotalIterations;
+
 		// float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
 		float currentRadius = pConfig.radiiInitialValue;
 		rng paletteRefVal = rng( pConfig.paletteRefMin, pConfig.paletteRefMax );
@@ -177,7 +180,7 @@ public:
 		rngN paletteRefJitter = rngN( 0.0f, pConfig.paletteRefJitter );
 		float currentPaletteVal = paletteRefVal();
 
-		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && attemptsRemaining-- ) {
 			rng x = rng( min.x + currentRadius, max.x - currentRadius );
 			rng y = rng( min.y + currentRadius, max.y - currentRadius );
 			rng z = rng( min.z + currentRadius, max.z - currentRadius );
