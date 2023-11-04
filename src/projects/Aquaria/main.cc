@@ -525,6 +525,35 @@ public:
 				ImGui::SliderFloat( "Bubble IoR", &aquariaConfig.IoR, -6.0f, 6.0f );
 				ImGui::SliderFloat( "Fog Scalar", &aquariaConfig.fogScalar, -0.001f, 0.001f, "%.6f", ImGuiSliderFlags_Logarithmic );
 				ImGui::ColorEdit3( "Fog Color", ( float * ) &aquariaConfig.fogColor, ImGuiColorEditFlags_PickerHueWheel );
+				ImGui::SeparatorText( " Tonemapping " );
+					const char* tonemapModesList[] = {
+		"None (Linear)",
+		"ACES (Narkowicz 2015)",
+		"Unreal Engine 3",
+		"Unreal Engine 4",
+		"Uncharted 2",
+		"Gran Turismo",
+		"Modified Gran Turismo",
+		"Rienhard",
+		"Modified Rienhard",
+		"jt",
+		"robobo1221s",
+		"robo",
+		"reinhardRobo",
+		"jodieRobo",
+		"jodieRobo2",
+		"jodieReinhard",
+		"jodieReinhard2"
+	};
+				ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
+				ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
+				ImGui::SliderFloat( "PostExposure", &tonemap.postExposure, 0.0f, 5.0f );
+				ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
+				// ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
+				ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
+				if ( ImGui::Button( "Reset to Defaults" ) ) {
+					TonemapDefaults();
+				}
 				ImGui::SeparatorText( " Other Rendering " );
 				ImGui::SliderFloat( "Blend Amount", &aquariaConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 				

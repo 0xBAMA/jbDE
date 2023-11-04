@@ -23,6 +23,7 @@ uniform vec3 fogColor;
 #define PI 3.1415f
 
 #include "intersect.h"
+#include "random.h"
 
 // ==============================================================================================
 vec3 eliNormal ( in vec3 pos, in vec3 center, in vec3 radii ) {
