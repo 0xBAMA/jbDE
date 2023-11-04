@@ -10,6 +10,7 @@ layout( binding = 3, rgba16f ) uniform image3D dataCacheBuffer;
 uniform float time;
 uniform vec2 resolution;
 uniform float scale;
+uniform vec2 viewOffset;
 uniform mat3 invBasis;
 uniform vec3 blockSize;
 uniform float thinLensIntensity;
@@ -22,8 +23,9 @@ uniform vec3 fogColor;
 
 #define PI 3.1415f
 
-#include "intersect.h"
+uniform int wangSeed;
 #include "random.h"
+#include "intersect.h"
 
 // ==============================================================================================
 vec3 eliNormal ( in vec3 pos, in vec3 center, in vec3 radii ) {
@@ -86,12 +88,15 @@ void main () {
 		blueNoiseRead( ivec2( gl_GlobalInvocationID.xy ), 3 )
 	);
 
+	// intialize the rng
+	seed = uint( wangSeed * 10 + writeLoc.x * 69 + writeLoc.y * 420 + blue.x * 255 + blue.y * 255 + blue.z * 255 + blue.w * 255 );
+
 	// used later
 	vec3 ditherValue = blue.xyz / 64.0f - vec3( 1.0f / 128.0f );
 
 	// remapped uv
 	vec2 subpixelOffset = blue.xy;
-	vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + subpixelOffset ) / resolution.xy;
+	vec2 uv = ( vec2( gl_GlobalInvocationID.xy ) + subpixelOffset + viewOffset ) / resolution.xy;
 	uv = ( uv - 0.5f ) * 2.0f;
 
 	// aspect ratio correction

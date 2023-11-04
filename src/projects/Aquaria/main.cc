@@ -35,6 +35,8 @@ struct aquariaConfig_t {
 	float thinLensIntensity = 0.1f;
 	float thinLensDistance = 2.0f;
 	float blendAmount = 0.9f;
+	vec2 viewOffset = vec2( 0.0f );
+	rngi wangSeeder = rngi( 0, 69420 );
 
 	// scene setupz
 	bool refractiveBubble = false;
@@ -396,18 +398,28 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+		// zoom in and out
 		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= shift ? 0.9f : 0.99f; }
 		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= shift ? 0.9f : 0.99f; }
+
+		// vim-style x,y offsetting
+		if ( state[ SDL_SCANCODE_H ] ) { aquariaConfig.viewOffset.x += shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_J ] ) { aquariaConfig.viewOffset.y -= shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_K ] ) { aquariaConfig.viewOffset.y += shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_L ] ) { aquariaConfig.viewOffset.x -= shift ? 5.0f : 1.0f; }
+
+		// hot recompile
 		if ( state[ SDL_SCANCODE_Y ] ) {
 			CompileShaders();
 		}
 
-		if ( state[ SDL_SCANCODE_R ] && shift ) {
-			ComputeUpdateOffsets();
-			ComputeSpherePacking();
-			// ComputePerlinPacking();
-			ComputeTileList();
-		}
+		// // this is better done through the menus now
+		// if ( state[ SDL_SCANCODE_R ] && shift ) {
+		// 	ComputeUpdateOffsets();
+		// 	ComputeSpherePacking();
+		// 	// ComputePerlinPacking();
+		// 	ComputeTileList();
+		// }
 
 	}
 
@@ -603,6 +615,8 @@ public:
 			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Dummy Draw" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
 			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blockSize" ), aquariaConfig.dimensions.x / 1024.0f,  aquariaConfig.dimensions.y / 1024.0f,  aquariaConfig.dimensions.z / 1024.0f );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "scale" ), aquariaConfig.scale );
+			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "viewOffset" ), aquariaConfig.viewOffset.x, aquariaConfig.viewOffset.y );
+			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "wangSeed" ), aquariaConfig.wangSeeder() );
 			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "resolution" ), config.width, config.height );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blendAmount" ), aquariaConfig.blendAmount );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensDistance" ), aquariaConfig.thinLensDistance );
