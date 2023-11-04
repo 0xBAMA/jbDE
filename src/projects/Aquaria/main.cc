@@ -486,9 +486,15 @@ public:
 				// build config struct, pass to the functions
 					// perlin or incremental version
 
-				// do something to switch modes, when both are implemented - only show the controls for one at a time, to read easier
+				static int mode = 0;
+				ImGui::Text( " Method: " );
+				ImGui::SameLine();
+				ImGui::RadioButton( " Incremental ", &mode, 0 );
+				ImGui::SameLine();
+				ImGui::RadioButton( " Perlin ", &mode, 1 );
 
-				{	// sphere version
+				// only show the controls for one at a time, to read easier
+				if ( mode == 0 ) {	// incremental version
 					// manipulate values
 					ImGui::SliderFloat( "Palette Min", &pConfig.paletteRefMin, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Palette Max", &pConfig.paletteRefMax, 0.0f, 1.0f );
@@ -520,6 +526,8 @@ public:
 						ComputeUpdateOffsets();
 						ComputeTileList(); // this will reset the execution - not calling this will allow you to interrupt mid-pass
 					}
+				} else if ( mode == 1 ) { // perlin
+
 				}
 
 				ImGui::EndTabItem();
