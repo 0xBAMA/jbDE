@@ -12,6 +12,9 @@ uniform vec2 resolution;
 uniform float scale;
 uniform mat3 invBasis;
 uniform vec3 blockSize;
+uniform float thinLensIntensity;
+uniform float thinLensDistance;
+uniform float blendAmount;
 
 #define PI 3.1415f
 
@@ -57,7 +60,6 @@ float blueNoiseRead ( ivec2 loc, int idx ) {
 	}
 }
 
-
 void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
@@ -86,6 +88,12 @@ void main () {
 	float tMin, tMax;
 	vec3 Origin = invBasis * vec3( scale * uv, -2.0f );
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
+
+	// thin lens calculations
+	vec3 focusPoint = Origin + thinLensDistance * Direction;
+	Origin = invBasis * vec3( scale * uv + blue.zw * thinLensIntensity, -2.0f );
+	Direction = focusPoint - Origin;
+
 
 // if refraction is desired:
 // #define REFRACTIVE_BUBBLE 1
@@ -163,5 +171,5 @@ void main () {
 
 	// write the data to the image
 	// imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
-	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, 0.9f ), 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, blendAmount ), 1.0f ) );
 }

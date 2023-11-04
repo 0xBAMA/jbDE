@@ -31,6 +31,9 @@ struct aquariaConfig_t {
 	uint32_t maxSpheres = 65535;
 
 	float scale = 1.0f;
+	float thinLensIntensity = 0.1f;
+	float thinLensDistance = 2.0f;
+	float blendAmount = 0.9f;
 
 	// for tiled update
 	std::vector< ivec3 > updateTiles;
@@ -487,6 +490,13 @@ public:
 				// controlling things like fog density, fog color
 				// lighting controls, button to recompute lighting
 					// or flag that gets set when a value changes with ImGui::IsItemEdited() etc
+
+				ImGui::SeparatorText( " Thin Lens " );
+				ImGui::SliderFloat( "Intensity", &aquariaConfig.thinLensIntensity, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+				ImGui::SliderFloat( "Distance", &aquariaConfig.thinLensDistance, 0.0f, 5.0f, "%.3f" );
+				ImGui::SeparatorText( " Other Rendering " );
+				ImGui::SliderFloat( "Blend Amount", &aquariaConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+				
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -534,6 +544,9 @@ public:
 			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blockSize" ), aquariaConfig.dimensions.x / 1024.0f,  aquariaConfig.dimensions.y / 1024.0f,  aquariaConfig.dimensions.z / 1024.0f );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "scale" ), aquariaConfig.scale );
 			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "resolution" ), config.width, config.height );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blendAmount" ), aquariaConfig.blendAmount );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensDistance" ), aquariaConfig.thinLensDistance );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensIntensity" ), aquariaConfig.thinLensIntensity );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
