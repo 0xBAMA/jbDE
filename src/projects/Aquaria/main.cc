@@ -578,10 +578,6 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		// if ( tonemap.showTonemapWindow ) {
-			// TonemapControlsWindow();
-		// }
-
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
 			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
