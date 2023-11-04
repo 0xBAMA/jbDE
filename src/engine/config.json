@@ -179,7 +179,7 @@
 		"OpenGLVersionMinor": 5,
 		"SDLDisplayModeDump": false,
 		"SDL_WINDOW_BORDERLESS": false,
-		"SDL_WINDOW_FULLSCREEN": true,
+		"SDL_WINDOW_FULLSCREEN": false,
 		"SDL_WINDOW_FULLSCREEN_DESKTOP": false,
 		"SDL_WINDOW_INPUT_GRABBED": false,
 		"SDL_WINDOW_RESIZABLE": true,
@@ -205,15 +205,15 @@
 		"numMsDelayAfterCallback": 30,
 		"oneShot": false,
 		"reportPlatformInfo": true,
-		"screenHeight": 2160,
-		"screenWidth": 3840,
+		"screenHeight": 1080,
+		"screenWidth": 1920,
 		"showImGUIDemoWindow": false,
 		"showProfiler": true,
 		"startOnScreen": 1,
 		"vSyncEnable": true,
 		"windowOffset": {
-			"x": 100,
-			"y": 200
+			"x": 0,
+			"y": 0
 		},
 		"windowTitle": "jbDE"
 	}
