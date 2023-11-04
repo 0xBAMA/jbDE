@@ -445,12 +445,12 @@ public:
 				size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
 
 				bool finished = false;
-				for ( int y = 0; y < 16; y++ ) {
+				for ( int y = 0; y < 8; y++ ) {
 					ImGui::Text( " " );
-					for ( int x = 0; x < 16; x++ ) {
+					for ( int x = 0; x < 32; x++ ) {
 
 						// terminate when you run out of colors
-						const uint index = x + 16 * y;
+						const uint index = x + 32 * y;
 						if ( index >= paletteSize ) {
 							finished = true;
 						}
