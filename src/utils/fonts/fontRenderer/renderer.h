@@ -289,6 +289,42 @@ public:
 		fontWriteShader = shader;
 	}
 
+	void DrawProgressBarString ( int offset, progressBar p ) {
+		// background
+		layers[ 0 ].DrawRectConstant( glm::uvec2( layers[ 0 ].width - p.currentState().length(), offset ), glm::uvec2( layers[ 0 ].width, offset ), cChar( BLACK, FILL_100 ) );
+
+		float fraction = p.getFraction();
+
+		vec3 color;
+		if ( fraction < 0.5f ) {
+			color = mix( vec3( 0.57f, 0.00f, 0.29f ), vec3( 0.74f, 0.59f, 0.17f ), fraction * 2.0f );
+		} else {
+			color = mix( vec3( 0.74f, 0.59f, 0.17f ), vec3( 0.15f, 0.60f, 0.05f ), ( fraction - 0.5f ) * 2.0f );
+		}
+		ivec3 c = ivec3( color.r * 255.0f, color.g * 255.0f, color.b * 255.0f );
+
+		string combo = p.label + string( "[" );
+		string filled = p.getFilledBarPortion();
+		string empty = p.getEmptyBarPortion() + string( "] " );
+		string percentage = p.getPercentageString();
+
+		int x =  layers[ 1 ].width - p.currentState().length();
+		layers[ 1 ].WriteString( glm::uvec2( x, offset ), glm::uvec2( layers[ 1 ].width, offset ), combo, WHITE );
+
+		x += combo.length();
+		layers[ 1 ].WriteString( glm::uvec2( x, offset ), glm::uvec2( layers[ 1 ].width, offset ), filled, c );
+
+		x += filled.length();
+		layers[ 1 ].WriteString( glm::uvec2( x, offset ), glm::uvec2( layers[ 1 ].width, offset ), empty, WHITE );
+
+		x += empty.length();
+		layers[ 1 ].WriteString( glm::uvec2( x, offset ), glm::uvec2( layers[ 1 ].width, offset ), percentage, c );
+
+		x += percentage.length();
+		layers[ 1 ].WriteString( glm::uvec2( x, offset ), glm::uvec2( layers[ 1 ].width, offset ), string( "%" ), WHITE );
+
+	}
+
 	void DrawBlackBackedString ( int offset, string s ) {
 		// std::stringstream ss;
 		// ss << " total: " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << ms << "ms";

@@ -38,19 +38,44 @@ public:
 		return std::clamp( float( done ) / float( total ), 0.0f, 1.0f );
 	}
 
-	string currentState () {
+	string getFilledBarPortion () {
 		stringstream ss;
 		const float frac = getFraction();
 		int numFill = std::floor( reportWidth * frac ) - 1;
+		for( int i = 0; i <= numFill; i++ )
+			ss << doneChar;
+		return ss.str();
+	}
+
+	string getEmptyBarPortion () {
+		stringstream ss;
+		const float frac = getFraction();
+		int numFill = std::floor( reportWidth * frac ) - 1;
+		for ( int i = 0; i < reportWidth - numFill - 1; i++ )
+			ss << undoneChar;
+		return ss.str();
+	}
+
+	string getPercentageString () {
+		stringstream ss;
+		const float frac = getFraction();
+		ss << fixedWidthNumberString( std::floor( 100.0f * frac ), 3, ' ' ) << "." << fixedWidthNumberString( int( 10000.0f * frac ) - std::floor( 100.0f * frac ) * 100, 2 );
+		return ss.str();
+	}
+
+	string currentState () {
+		stringstream ss;
+		// const float frac = getFraction();
+		// int numFill = std::floor( reportWidth * frac ) - 1;
 
 		// draw the bar
 		ss << label << "[";
-		for( int i = 0; i <= numFill; i++ )						ss << doneChar;
-		for( int i = 0; i < reportWidth - numFill - 1; i++ )	ss << undoneChar;
+		ss << getFilledBarPortion();
+		ss << getEmptyBarPortion();
 		ss << "] ";
 
 		// and report the percentage
-		ss << fixedWidthNumberString( std::floor( 100.0f * frac ), 3, ' ' ) << "." << fixedWidthNumberString( int( 10000.0f * frac ) - std::floor( 100.0f * frac ) * 100, 2 ) << "%";
+		ss << getPercentageString() << "%";
 		return ss.str();
 	}
 

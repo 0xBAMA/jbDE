@@ -564,9 +564,9 @@ public:
 				evaluateBar.done = evaluateBar.total - aquariaConfig.updateTiles.size();
 			lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
 
-			textRenderer.DrawBlackBackedString( 3, generateBar.currentState() );
-			textRenderer.DrawBlackBackedString( 2, evaluateBar.currentState() );
-			textRenderer.DrawBlackBackedString( 1, lightingBar.currentState() );
+			textRenderer.DrawProgressBarString( 3, generateBar );
+			textRenderer.DrawProgressBarString( 2, evaluateBar );
+			textRenderer.DrawProgressBarString( 1, lightingBar );
 
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
