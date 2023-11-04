@@ -38,19 +38,29 @@ struct aquariaConfig_t {
 	vec2 viewOffset = vec2( 0.0f );
 	rngi wangSeeder = rngi( 0, 69420 );
 
-	// scene setupz
+	// worker thread/generation stuff
+	int jobType = 0;
+	bool workerThreadShouldRun = false;
+	bool bufferReady = false;
+	std::vector< vec4 > sphereBuffer;
+
+	// config structs
+	spherePackConfig_t pConfig;
+
+	// scene setup
 	bool refractiveBubble = false;
 	float IoR = 4.0f;
 
 	// volumetric effect
-	float fogScalar = 0.0002f;
+	float fogScalar = 0.0001618f;
 	vec3 fogColor = vec3( 1.0f );
 
 	// for tiled update
 	std::vector< ivec3 > updateTiles;
+	size_t numTiles;
 
 	// for the bayer pattern analog thing, I prefer to do it this way
-	int lightingRemaining = 8 * 8 * 8;
+	int lightingRemaining = 0;
 	std::vector< ivec3 > offsets;
 
 	// OpenGL Data
@@ -77,9 +87,9 @@ public:
 
 			// prep reporter shit
 			generateBar.reportWidth = evaluateBar.reportWidth = lightingBar.reportWidth = 16;
-			generateBar.label = string( "Generate: " ); generateBar.total = 65535;
-			evaluateBar.label = string( "Evaluate: " ); // evaluateBar.total = ; ... number of tiles
-			lightingBar.label = string( "Lighting: " ); lightingBar.total = 8 * 8 * 8;
+			generateBar.label = string( "Generate: " );
+			evaluateBar.label = string( "Evaluate: " );
+			lightingBar.label = string( "Lighting: " );
 
 			// compile shaders
 			CompileShaders();
@@ -125,12 +135,14 @@ public:
 
 			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
 
-			// kick off worker thread
+			{
+				// yucky, yucky, whatever
+				ComputeTileList(); aquariaConfig.updateTiles.clear();
+				ComputeUpdateOffsets(); aquariaConfig.offsets.clear();
+			}
 
-			ComputeUpdateOffsets();
-			ComputeSpherePacking();
-			// ComputePerlinPacking();
-			ComputeTileList();
+			// kick off worker thread, ready to go
+			aquariaConfig.workerThreadShouldRun = true;
 
 		}
 
@@ -163,21 +175,14 @@ public:
 				}
 			}
 		}
-		evaluateBar.total = aquariaConfig.updateTiles.size() - 1;
+		evaluateBar.total = aquariaConfig.numTiles = aquariaConfig.updateTiles.size();
 		// auto rng = std::default_random_engine {};
 		// std::shuffle( std::begin( aquariaConfig.updateTiles ), std::end( aquariaConfig.updateTiles ), rng );
 	}
 
-	void ComputeSpherePacking ( spherePackConfig_t pConfig = spherePackConfig_t() ) {
-
-		// clear out the buffer
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres + pConfig.sphereTrim; // 16-bit addressing gives us 65k max
+	void ComputeSpherePacking () {
+		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.pConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
-
-		// init the progress bar
-		progressBar bar;
-		bar.total = maxSpheres;
-		bar.label = string( " Sphere Packing Compute: " );
 
 		// stochastic sphere packing, inside the volume
 		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
@@ -185,23 +190,23 @@ public:
 		uint32_t maxIterations = 500;
 
 		// I think this is the easiest way to handle things that don't terminate on their own
-		uint32_t attemptsRemaining = pConfig.maxAllowedTotalIterations;
+		uint32_t attemptsRemaining = aquariaConfig.pConfig.maxAllowedTotalIterations;
 
 		// float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
-		float currentRadius = pConfig.radiiInitialValue;
-		rng paletteRefVal = rng( pConfig.paletteRefMin, pConfig.paletteRefMax );
-		rng alphaGen = rng( pConfig.alphaGenMin, pConfig.alphaGenMax );
-		rngN paletteRefJitter = rngN( 0.0f, pConfig.paletteRefJitter );
+		float currentRadius = aquariaConfig.pConfig.radiiInitialValue;
+		rng paletteRefVal = rng( aquariaConfig.pConfig.paletteRefMin, aquariaConfig.pConfig.paletteRefMax );
+		rng alphaGen = rng( aquariaConfig.pConfig.alphaGenMin, aquariaConfig.pConfig.alphaGenMax );
+		rngN paletteRefJitter = rngN( 0.0f, aquariaConfig.pConfig.paletteRefJitter );
 		float currentPaletteVal = paletteRefVal();
 
-		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres ) {
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && !pQuit ) { // watch for program quit
 			rng x = rng( min.x + currentRadius, max.x - currentRadius );
 			rng y = rng( min.y + currentRadius, max.y - currentRadius );
 			rng z = rng( min.z + currentRadius, max.z - currentRadius );
 			uint32_t iterations = maxIterations;
 
 			// redundant check, but I think it's the easiest way not to run over
-			while ( iterations-- && ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && attemptsRemaining-- ) {
+			while ( iterations-- && ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && attemptsRemaining-- && !pQuit ) {
 				// generate point inside the parent cube
 				vec3 checkP = vec3( x(), y(), z() );
 				// check for intersection against all other spheres
@@ -209,7 +214,6 @@ public:
 				for ( uint idx = 0; idx < sphereLocationsPlusColors.size() / 2; idx++ ) {
 					vec4 otherSphere = sphereLocationsPlusColors[ 2 * idx ];
 					if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
-						// cout << "intersection found in iteration " << iterations << endl;
 						foundIntersection = true;
 						break;
 					}
@@ -218,72 +222,61 @@ public:
 				if ( !foundIntersection ) {
 					sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
 					sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( currentPaletteVal + paletteRefJitter(), 0.0f, 1.0f ) ), alphaGen() ) );
-
-					// update and report
-					bar.done = sphereLocationsPlusColors.size() / 2;
-					if ( ( sphereLocationsPlusColors.size() / 2 ) % 50 == 0 || ( sphereLocationsPlusColors.size() / 2 ) == maxSpheres ) {
-						bar.writeCurrentState();
-						cout << "attempts remaining: " << attemptsRemaining << "              ";
-					}
 				}
+
+			// need to determine which is the greater percentage:
+				// number of spheres / max spheres
+				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
+				// number of attempts taken as a fraction of max attempts
+				float attemptFrac = float( aquariaConfig.pConfig.maxAllowedTotalIterations - attemptsRemaining ) / float( aquariaConfig.pConfig.maxAllowedTotalIterations );
+
+				// the greater of the two should set the level on the progress bar
+				generateBar.done = std::max( sphereFrac, attemptFrac );
+				generateBar.total = 1.0f;
+
 				if ( !attemptsRemaining ) break;
 			}
 			if ( !attemptsRemaining ) break;
+
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
 			currentPaletteVal = paletteRefVal();
-			currentRadius *= pConfig.radiiStepShrink;
-			maxIterations *= pConfig.iterationMultiplier;
+			currentRadius *= aquariaConfig.pConfig.radiiStepShrink;
+			maxIterations *= aquariaConfig.pConfig.iterationMultiplier;
 
-			// this replaces the below
-			min.x *= pConfig.boundsStepShrink.x; max.x *= pConfig.boundsStepShrink.x;
-			min.y *= pConfig.boundsStepShrink.y; max.y *= pConfig.boundsStepShrink.y;
-			min.z *= pConfig.boundsStepShrink.z; max.z *= pConfig.boundsStepShrink.z;
+			// this replaces explicit shrinking on each axis
+			min.x *= aquariaConfig.pConfig.boundsStepShrink.x; max.x *= aquariaConfig.pConfig.boundsStepShrink.x;
+			min.y *= aquariaConfig.pConfig.boundsStepShrink.y; max.y *= aquariaConfig.pConfig.boundsStepShrink.y;
+			min.z *= aquariaConfig.pConfig.boundsStepShrink.z; max.z *= aquariaConfig.pConfig.boundsStepShrink.z;
 
-			// doing this makes it pack flat
-			// min.z /= 1.25f;
-			// max.z /= 1.25f;
-
-			// slowly shrink bounds to accentuate the earlier placed spheres
-			// min *= 0.95f;
-			// max *= 0.95f;
 		}
 
 		// ================================================================================================================
 
-		// send the SSBO
-			// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
-			// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
+		// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
+		// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
 
-		for ( uint32_t i = 0; i < pConfig.sphereTrim; i++ ) {
+		for ( uint32_t i = 0; i < aquariaConfig.pConfig.sphereTrim; i++ ) {
 			sphereLocationsPlusColors.pop_front();
 		}
 
-		std::vector< vec4 > vectorVersion;
+		aquariaConfig.sphereBuffer.resize( 0 );
+		aquariaConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
 		for ( auto& val : sphereLocationsPlusColors ) {
-			vectorVersion.push_back( val );
+			aquariaConfig.sphereBuffer.push_back( val );
 		}
 
 		// if we aborted from running out of iterations, avoid seg fault in glBufferData
-		vectorVersion.resize( aquariaConfig.maxSpheres * 2 );
+		aquariaConfig.sphereBuffer.resize( aquariaConfig.maxSpheres * 2 );
 
-		glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-
-		cout << endl << endl;
+			// make sure that the generate progress bar reports 100% at this stage
 
 		// ================================================================================================================
 	}
 
 	void ComputePerlinPacking () {
-
-		// clear out the buffer
 		// const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
-
-		// pick new palette, for the spheres
-		// palette::PickRandomPalette( true );
 
 		// init the progress bar
 		progressBar bar;
@@ -359,14 +352,12 @@ public:
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
 
-		cout << endl << endl;
-
 		// ================================================================================================================
 	}
 
 	void ComputeUpdateOffsets () {
 		aquariaConfig.offsets.clear();
-		aquariaConfig.lightingRemaining = 8 * 8 * 8;
+		aquariaConfig.lightingRemaining = lightingBar.total = 8 * 8 * 8;
 
 		// generate the list of offsets via shuffle
 		for ( int x = 0; x < 8; x++ )
@@ -412,23 +403,11 @@ public:
 		if ( state[ SDL_SCANCODE_Y ] ) {
 			CompileShaders();
 		}
-
-		// // this is better done through the menus now
-		// if ( state[ SDL_SCANCODE_R ] && shift ) {
-		// 	ComputeUpdateOffsets();
-		// 	ComputeSpherePacking();
-		// 	// ComputePerlinPacking();
-		// 	ComputeTileList();
-		// }
-
 	}
 
 	void ControlsWindow () {
-		static spherePackConfig_t pConfig;
-
 		ImGui::Begin( "Controls", NULL, 0 );
 		if ( ImGui::BeginTabBar( "Config Sections", ImGuiTabBarFlags_None ) ) {
-			// ImGui::SameLine();
 			if ( ImGui::BeginTabItem( "Generation" ) ) {
 				// prototype palette browser
 				ImGui::SeparatorText( "Palette Browser" );
@@ -451,8 +430,8 @@ public:
 				const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
 				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
 				// handle max < min
-				float realSelectedMin = std::min( pConfig.paletteRefMin, pConfig.paletteRefMax );
-				float realSelectedMax = std::max( pConfig.paletteRefMin, pConfig.paletteRefMax );
+				float realSelectedMin = std::min( aquariaConfig.pConfig.paletteRefMin, aquariaConfig.pConfig.paletteRefMax );
+				float realSelectedMax = std::max( aquariaConfig.pConfig.paletteRefMin, aquariaConfig.pConfig.paletteRefMax );
 				size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
 				size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
 
@@ -486,50 +465,47 @@ public:
 				// build config struct, pass to the functions
 					// perlin or incremental version
 
-				static int mode = 0;
 				ImGui::Text( " Method: " );
 				ImGui::SameLine();
-				ImGui::RadioButton( " Incremental ", &mode, 0 );
+				ImGui::RadioButton( " Incremental ", &aquariaConfig.jobType, 0 );
 				ImGui::SameLine();
-				ImGui::RadioButton( " Perlin ", &mode, 1 );
+				ImGui::RadioButton( " Perlin ", &aquariaConfig.jobType, 1 );
 
 				// only show the controls for one at a time, to read easier
-				if ( mode == 0 ) {	// incremental version
+				if ( aquariaConfig.jobType == 0 ) {	// incremental version
 					// manipulate values
-					ImGui::SliderFloat( "Palette Min", &pConfig.paletteRefMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Max", &pConfig.paletteRefMax, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Jitter", &pConfig.paletteRefJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Palette Min", &aquariaConfig.pConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &aquariaConfig.pConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.pConfig.paletteRefJitter, 0.0f, 0.2f );
 
 					ImGui::Text( " " );
 
-					ImGui::SliderFloat( "Alpha Min", &pConfig.alphaGenMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Alpha Max", &pConfig.alphaGenMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Min", &aquariaConfig.pConfig.alphaGenMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Max", &aquariaConfig.pConfig.alphaGenMax, 0.0f, 1.0f );
 
 					ImGui::Text( " " );
 
-					ImGui::SliderFloat( "Initial Radius", &pConfig.radiiInitialValue, 1.0f, 300.0f );
-					ImGui::SliderFloat( "Radius Step Shrink", &pConfig.radiiStepShrink, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Iteration Count Multiplier", &pConfig.iterationMultiplier, 0.0f, 10.0f );
-					ImGui::SliderInt( "Max Total Iterations", ( int * ) &pConfig.maxAllowedTotalIterations, 0, 100000000 );
+					ImGui::SliderFloat( "Initial Radius", &aquariaConfig.pConfig.radiiInitialValue, 1.0f, 300.0f );
+					ImGui::SliderFloat( "Radius Step Shrink", &aquariaConfig.pConfig.radiiStepShrink, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Iteration Count Multiplier", &aquariaConfig.pConfig.iterationMultiplier, 0.0f, 10.0f );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.pConfig.maxAllowedTotalIterations, 0, 100000000 );
 
 					ImGui::Text( " " );
 
-					ImGui::SliderFloat( "X Bounds Step Shrink", &pConfig.boundsStepShrink.x, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Y Bounds Step Shrink", &pConfig.boundsStepShrink.y, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Z Bounds Step Shrink", &pConfig.boundsStepShrink.z, 0.0f, 1.0f );
+					ImGui::SliderFloat( "X Bounds Step Shrink", &aquariaConfig.pConfig.boundsStepShrink.x, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Y Bounds Step Shrink", &aquariaConfig.pConfig.boundsStepShrink.y, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Z Bounds Step Shrink", &aquariaConfig.pConfig.boundsStepShrink.z, 0.0f, 1.0f );
 
 					ImGui::Text( " " );
-					ImGui::SliderInt( "Trim", ( int* ) &pConfig.sphereTrim, 0, 100000 );
+					ImGui::SliderInt( "Trim", ( int* ) &aquariaConfig.pConfig.sphereTrim, 0, 100000 );
 
 					if ( ImGui::Button( " Do It " ) ) {
-						ComputeSpherePacking( pConfig );
-						ComputeUpdateOffsets();
-						ComputeTileList(); // this will reset the execution - not calling this will allow you to interrupt mid-pass
+						// worker thread sees this and begins work
+						aquariaConfig.workerThreadShouldRun = true;
 					}
-				} else if ( mode == 1 ) { // perlin
+				} else if ( aquariaConfig.jobType == 1 ) { // perlin mode
 
 				}
-
 				ImGui::EndTabItem();
 			}
 			if ( ImGui::BeginTabItem( "Rendering" ) ) {
@@ -546,25 +522,25 @@ public:
 				ImGui::SliderFloat( "Fog Scalar", &aquariaConfig.fogScalar, -0.001f, 0.001f, "%.6f", ImGuiSliderFlags_Logarithmic );
 				ImGui::ColorEdit3( "Fog Color", ( float * ) &aquariaConfig.fogColor, ImGuiColorEditFlags_PickerHueWheel );
 				ImGui::SeparatorText( " Tonemapping " );
-					const char* tonemapModesList[] = {
-		"None (Linear)",
-		"ACES (Narkowicz 2015)",
-		"Unreal Engine 3",
-		"Unreal Engine 4",
-		"Uncharted 2",
-		"Gran Turismo",
-		"Modified Gran Turismo",
-		"Rienhard",
-		"Modified Rienhard",
-		"jt",
-		"robobo1221s",
-		"robo",
-		"reinhardRobo",
-		"jodieRobo",
-		"jodieRobo2",
-		"jodieReinhard",
-		"jodieReinhard2"
-	};
+				const char* tonemapModesList[] = {
+					"None (Linear)",
+					"ACES (Narkowicz 2015)",
+					"Unreal Engine 3",
+					"Unreal Engine 4",
+					"Uncharted 2",
+					"Gran Turismo",
+					"Modified Gran Turismo",
+					"Rienhard",
+					"Modified Rienhard",
+					"jt",
+					"robobo1221s",
+					"robo",
+					"reinhardRobo",
+					"jodieRobo",
+					"jodieRobo2",
+					"jodieReinhard",
+					"jodieReinhard2"
+				};
 				ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
 				ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
 				ImGui::SliderFloat( "PostExposure", &tonemap.postExposure, 0.0f, 5.0f );
@@ -630,7 +606,6 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogScalar" ), aquariaConfig.fogScalar );
 			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogColor" ), aquariaConfig.fogColor.r, aquariaConfig.fogColor.g, aquariaConfig.fogColor.b );
 
-
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -656,13 +631,6 @@ public:
 			// get status from engine local progress bars, write them above the timestamp
 				// updated from worker thread, so we don't lock up like before
 
-			// generateBar.done = ;
-			if ( aquariaConfig.updateTiles.empty() )
-				evaluateBar.done = evaluateBar.total = 1.0f;
-			else
-				evaluateBar.done = evaluateBar.total - aquariaConfig.updateTiles.size();
-			lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
-
 			textRenderer.DrawProgressBarString( 3, generateBar );
 			textRenderer.DrawProgressBarString( 2, evaluateBar );
 			textRenderer.DrawProgressBarString( 1, lightingBar );
@@ -680,9 +648,60 @@ public:
 		// }
 	}
 
+	// update thread
+	std::thread workerThread { [=] () {
+		while ( !pQuit ) { // while the program is running
+			if ( !aquariaConfig.workerThreadShouldRun ) { // waiting
+				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+			} else {
+
+			// 	auto tstart = std::chrono::high_resolution_clock::now();
+
+				// reset the bars
+				generateBar.done = evaluateBar.done = lightingBar.done = 0.0f;
+
+				if ( aquariaConfig.jobType == 0 ) { // incremental version
+					ComputeSpherePacking();
+				} else if ( aquariaConfig.jobType == 1 ) {
+
+				}
+
+			// 	float msLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
+			// 		std::chrono::high_resolution_clock::now() - tstart ).count();
+
+				// and the data is ready
+				aquariaConfig.bufferReady = true;
+				aquariaConfig.workerThreadShouldRun = false;
+			}
+		}
+	}};
+
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		if ( aquariaConfig.updateTiles.size() != 0 ) {
+
+		// generate bar is updated internal to the generate functions - this is hacky but whatever
+		if ( aquariaConfig.workerThreadShouldRun || aquariaConfig.bufferReady ) {
+			evaluateBar.done = lightingBar.done= 0.0f;
+		} else {
+			evaluateBar.done = aquariaConfig.numTiles - aquariaConfig.updateTiles.size();
+			lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
+		}
+
+		if ( aquariaConfig.bufferReady ) {
+
+			// update state
+			aquariaConfig.bufferReady = false;
+			aquariaConfig.workerThreadShouldRun = false;
+
+			// send the data to the SSBO
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &aquariaConfig.sphereBuffer.data()[ 0 ], GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+
+			ComputeTileList(); // ready to go to the next stage
+			ComputeUpdateOffsets();
+
+		} else if ( aquariaConfig.updateTiles.size() != 0 ) {
 			glUseProgram( shaders[ "Precompute" ] );
 
 			// buffer setup
@@ -714,7 +733,7 @@ public:
 				( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
 
 			// do a second one
-			if ( aquariaConfig.lightingRemaining >= 0 ) {
+			if ( aquariaConfig.lightingRemaining >= 0 && !( aquariaConfig.workerThreadShouldRun || aquariaConfig.bufferReady ) ) {
 				// other uniforms
 				offset = aquariaConfig.offsets[ aquariaConfig.lightingRemaining-- ];
 				glUniform3i( glGetUniformLocation( shaders[ "Lighting" ], "offset" ), offset.x, offset.y, offset.z );
@@ -762,5 +781,9 @@ public:
 int main ( int argc, char *argv[] ) {
 	Aquaria engineInstance;
 	while( !engineInstance.MainLoop() );
+
+	// program has terminated, time to die
+	engineInstance.workerThread.join();
+
 	return 0;
 }
