@@ -16,7 +16,9 @@ uniform float thinLensIntensity;
 uniform float thinLensDistance;
 uniform float blendAmount;
 uniform int refractiveBubble;
-uniform float IoR;
+uniform float bubbleIoR;
+uniform float fogScalar;
+uniform vec3 fogColor;
 
 #define PI 3.1415f
 
@@ -100,11 +102,11 @@ void main () {
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
 
 	// thin lens calculations
-	if ( hexSdf( blue.zw ) > 0.5f ) {
+	// if ( hexSdf( blue.zw ) > 0.5f ) { // this rejection sampling just acts weird, unconstrained hex grid is not a reasonable choice
 		vec3 focusPoint = Origin + thinLensDistance * Direction;
 		Origin = invBasis * vec3( scale * uv + blue.zw * thinLensIntensity, -2.0f );
 		Direction = focusPoint - Origin;
-	}
+	// }
 
 	bool hitBubble = false;
 	if ( refractiveBubble != 0 ) {
@@ -127,8 +129,6 @@ void main () {
 		// what are the dimensions
 		const ivec3 blockDimensions = imageSize( dataCacheBuffer );
 
-		const float fogScalar = 0.0002f;
-
 		if ( hit ) { // texture sample
 			// for trimming edges
 			const float epsilon = 0.001f;
@@ -146,10 +146,6 @@ void main () {
 				RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, 0 + epsilon, blockDimensions.z - epsilon )
 			);
 
-			// confirm good hit - highlight volume, with thickness
-			const float thickness = abs( tMin - tMax );
-			// col = vec3( 1.0f - exp( -thickness *  5.0f ) );
-
 			// DDA traversal
 			// from https://www.shadertoy.com/view/7sdSzH
 			vec3 deltaDist = 1.0f / abs( Direction );
@@ -165,13 +161,14 @@ void main () {
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
+				// consider using distance to bubble hit, when bubble is enabled
 				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
-					col = vec3( 1.0f - exp( -i * fogScalar ) ) + ditherValue + read.rgb;
+					col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue + read.rgb;
 					// col = read.rgb;
 					break;
 				} else {
-					col = vec3( 1.0f - exp( -i * fogScalar ) ) + ditherValue;
+					col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue;
 				}
 
 				sideDist0 = sideDist1;

@@ -36,8 +36,13 @@ struct aquariaConfig_t {
 	float thinLensDistance = 2.0f;
 	float blendAmount = 0.9f;
 
+	// scene setupz
 	bool refractiveBubble = false;
 	float IoR = 4.0f;
+
+	// volumetric effect
+	float fogScalar = 0.0002f;
+	vec3 fogColor = vec3( 1.0f );
 
 	// for tiled update
 	std::vector< ivec3 > updateTiles;
@@ -407,6 +412,8 @@ public:
 	}
 
 	void ControlsWindow () {
+		static spherePackConfig_t pConfig;
+
 		ImGui::Begin( "Controls", NULL, 0 );
 		if ( ImGui::BeginTabBar( "Config Sections", ImGuiTabBarFlags_None ) ) {
 			// ImGui::SameLine();
@@ -429,7 +436,14 @@ public:
 				if ( ImGui::Button( "Random" ) ) {
 					palette::PickRandomPalette( false );
 				}
+				const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
 				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
+				// handle max < min
+				float realSelectedMin = std::min( pConfig.paletteRefMin, pConfig.paletteRefMax );
+				float realSelectedMax = std::max( pConfig.paletteRefMin, pConfig.paletteRefMax );
+				size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
+				size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
+
 				bool finished = false;
 				for ( int y = 0; y < 16; y++ ) {
 					ImGui::Text( " " );
@@ -437,7 +451,7 @@ public:
 
 						// terminate when you run out of colors
 						const uint index = x + 16 * y;
-						if ( index >= palette::paletteListLocal[ palette::PaletteIndex ].colors.size() ) {
+						if ( index >= paletteSize ) {
 							finished = true;
 						}
 
@@ -445,6 +459,10 @@ public:
 						ivec4 color = ivec4( 0 );
 						if ( !finished ) {
 							color = ivec4( palette::paletteListLocal[ palette::PaletteIndex ].colors[ index ], 255 );
+							// determine if it is in the active range
+							if ( index < minShownIdx || index > maxShownIdx ) {
+								color.a = 64; // dim inactive entries
+							}
 						} 
 						ImGui::SameLine();
 						ImGui::TextColored( ImVec4( color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f ), "@" );
@@ -459,8 +477,6 @@ public:
 				// do something to switch modes, when both are implemented - only show the controls for one at a time, to read easier
 
 				{	// sphere version
-					static spherePackConfig_t pConfig;
-
 					// manipulate values
 					ImGui::SliderFloat( "Palette Min", &pConfig.paletteRefMin, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Palette Max", &pConfig.paletteRefMax, 0.0f, 1.0f );
@@ -504,10 +520,13 @@ public:
 				ImGui::SeparatorText( " Thin Lens " );
 				ImGui::SliderFloat( "Intensity", &aquariaConfig.thinLensIntensity, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 				ImGui::SliderFloat( "Distance", &aquariaConfig.thinLensDistance, 0.0f, 5.0f, "%.3f" );
-				ImGui::SeparatorText( " Other Rendering " );
-				ImGui::SliderFloat( "Blend Amount", &aquariaConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+				ImGui::SeparatorText( " Scene " );
 				ImGui::Checkbox( "Bubble", &aquariaConfig.refractiveBubble );
 				ImGui::SliderFloat( "Bubble IoR", &aquariaConfig.IoR, -6.0f, 6.0f );
+				ImGui::SliderFloat( "Fog Scalar", &aquariaConfig.fogScalar, -0.001f, 0.001f, "%.6f", ImGuiSliderFlags_Logarithmic );
+				ImGui::ColorEdit3( "Fog Color", ( float * ) &aquariaConfig.fogColor, ImGuiColorEditFlags_PickerHueWheel );
+				ImGui::SeparatorText( " Other Rendering " );
+				ImGui::SliderFloat( "Blend Amount", &aquariaConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 				
 				ImGui::EndTabItem();
 			}
@@ -560,7 +579,10 @@ public:
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensDistance" ), aquariaConfig.thinLensDistance );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensIntensity" ), aquariaConfig.thinLensIntensity );
 			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "refractiveBubble" ), aquariaConfig.refractiveBubble );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "IoR" ), aquariaConfig.IoR );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "bubbleIoR" ), aquariaConfig.IoR );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogScalar" ), aquariaConfig.fogScalar );
+			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogColor" ), aquariaConfig.fogColor.r, aquariaConfig.fogColor.g, aquariaConfig.fogColor.b );
+
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
