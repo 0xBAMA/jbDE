@@ -32,7 +32,7 @@ public:
 	}
 
 	float done = 0.0f;
-	float total = 0.0f;
+	float total = 1.0f;
 
 	float getFraction () {
 		return std::clamp( float( done ) / float( total ), 0.0f, 1.0f );
