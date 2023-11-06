@@ -92,7 +92,8 @@ void main () {
 	seed = uint( wangSeed * 10 + writeLoc.x * 69 + writeLoc.y * 420 + blue.x * 255 + blue.y * 255 + blue.z * 255 + blue.w * 255 );
 
 	// used later
-	vec3 ditherValue = blue.xyz / 64.0f - vec3( 1.0f / 128.0f );
+	// vec3 ditherValue = blue.xyz / 64.0f - vec3( 1.0f / 128.0f );
+	vec3 ditherValue = blue.xyz / 32.0f - vec3( 1.0f / 64.0f );
 
 	// remapped uv
 	vec2 subpixelOffset = blue.xy;
@@ -109,6 +110,7 @@ void main () {
 
 	// thin lens calculations
 	// if ( hexSdf( blue.zw ) > 0.5f ) { // this rejection sampling just acts weird, unconstrained hex grid is not a reasonable choice
+		// vec3 focusPoint = Origin + ( thinLensDistance * uv.x * uv.y ) * Direction; // FUCKED
 		vec3 focusPoint = Origin + thinLensDistance * Direction;
 		// Origin = invBasis * vec3( scale * uv + blue.zw * thinLensIntensity, -2.0f );
 		// Origin = invBasis * vec3( scale * uv + pow( randomInUnitDisk(), vec2( 0.2f ) ) * thinLensIntensity, -2.0f ); // pushes bokeh out towards edge of the ring
@@ -163,7 +165,7 @@ void main () {
 			ivec3 mapPos0 = ivec3( floor( blockUVMin + 0.0f ) );
 			vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-			#define MAX_RAY_STEPS 1200
+			#define MAX_RAY_STEPS 2200
 			for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, imageSize( dataCacheBuffer ) ) ) ); i++ ) {
 				// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
 				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
