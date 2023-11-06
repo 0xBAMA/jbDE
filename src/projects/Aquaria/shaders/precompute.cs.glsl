@@ -82,7 +82,7 @@ float frame ( vec3 p ) {
 
 	vec3 pCache = p;
 	pMod1( p.x, 120.0f );
-	p = Rotate3D( pCache.x / 333.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * p;
+	p = Rotate3D( pCache.x / 600.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * p;
 
 	return fOpUnionRound( fCylinder( p, bSize.z / 14.0f, bSize.y * 0.35f ), max( fCylinder( p.yxz, bSize.z, bSize.x ), -fCylinder( p.yxz, bSize.z - 69.0f, bSize.x ) ), 69.0f );
 }
