@@ -359,19 +359,93 @@ public:
 		aquariaConfig.offsets.clear();
 		aquariaConfig.lightingRemaining = lightingBar.total = 8 * 8 * 8;
 
-		// generate the list of offsets via shuffle
+		// // generate the list of offsets via shuffle
+		// for ( int x = 0; x < 8; x++ )
+		// for ( int y = 0; y < 8; y++ )
+		// for ( int z = 0; z < 8; z++ ) {
+		// 	aquariaConfig.offsets.push_back( ivec3( x, y, z ) );
+		// }
+		// auto rng = std::default_random_engine {};
+		// std::shuffle( std::begin( aquariaConfig.offsets ), std::end( aquariaConfig.offsets ), rng );
+
+		// ======================================================================
+
+		// probably move this to the bayer header - also rewrite that, for the 2d case, to generalize it to any power of 2 size
+
+		// simplify shit below
+		#define index3(v,n) (uint32_t(v.x)+uint32_t(v.y)*n+uint32_t(v.z)*n*n)
+
+		// derived from 2d bayer, the recursive construction
+		// 0: 1->2, 1:  2->4, 2: 4->8
+		std::vector< uint32_t > values = { 0 };
+		for ( int i = 0; i < 3; i++ ) {
+			// the size is x8 each step
+			const size_t prevSize = values.size();
+			std::vector< uint32_t > newValues;
+			newValues.resize( prevSize * 8 );
+
+			// source edge size is 2^i, 1, 2, 4 for the three iterations
+			const int64_t edgeSizePrev = intPow( 2, i );
+			const int64_t edgeSizeNext = intPow( 2, i + 1 );
+
+			// the cantidate pattern
+			const ivec3 iPattern [] = {
+				ivec3( 0, 0, 1 ),
+				ivec3( 1, 1, 0 ),
+				ivec3( 0, 1, 1 ),
+				ivec3( 1, 0, 0 ),
+				ivec3( 0, 1, 0 ),
+				ivec3( 1, 0, 1 ),
+				ivec3( 0, 0, 0 ),
+				ivec3( 1, 1, 1 ),
+			};
+
+			// for each value in the current set of offsets in iPattern
+			for ( int x = 0; x < edgeSizePrev; x++ )
+			for ( int y = 0; y < edgeSizePrev; y++ )
+			for ( int z = 0; z < edgeSizePrev; z++ ) {
+				ivec3 basePt = ivec3( x, y, z );
+				uint32_t v = values[ index3( basePt, edgeSizePrev ) ];
+
+				for ( int i = 0; i < 8; i++ ) {
+					ivec3 pt = basePt + iPattern[ i ] * int( edgeSizePrev );
+					newValues[ index3( pt, edgeSizeNext ) ] = v * 8 + i;
+				}
+			}
+
+			// prep for next iteration
+			values.clear();
+			values = newValues;
+		}
+
+		// for ( int z = 0; z < 8; z++ ) {
+		// 	for ( int y = 0; y < 8; y++ ) {
+		// 		for ( int x = 0; x < 8; x++ ) {
+		// 			cout << fixedWidthNumberString( values[ index3( ivec3( x, y, z ), 8 ) ], 3, ' ' ) << " ";
+		// 		}
+		// 		cout << endl;
+		// 	}
+		// 	cout << endl;
+		// }
+
+		// iterate through all of them, and get the result as ivec3s in aquariaConfig.offsets
+		aquariaConfig.offsets.resize( 8 * 8 * 8 );
 		for ( int x = 0; x < 8; x++ )
 		for ( int y = 0; y < 8; y++ )
 		for ( int z = 0; z < 8; z++ ) {
-			aquariaConfig.offsets.push_back( ivec3( x, y, z ) );
+			ivec3 loc = ivec3( x, y, z );
+			uint32_t idx = index3( loc, 8 );
+			aquariaConfig.offsets[ values[ idx ] ] = loc;
 		}
-		auto rng = std::default_random_engine {};
-		std::shuffle( std::begin( aquariaConfig.offsets ), std::end( aquariaConfig.offsets ), rng );
 
-		// manipulated bayer matrices... swap on 64's? that would be layer swaps
-			/// bit of a pain in the ass getting that converted to 2d offsets
-		// std::vector< uint8_t > dataSrc = BayerData( 8 );
+		// cout << "Offsets List:" << endl;
+		// for ( auto& v : aquariaConfig.offsets ) {
+		// 	cout << "  " << glm::to_string( v ) << endl;
+		// }
 
+
+		#undef index
+		#undef index3
 	}
 
 	void HandleCustomEvents () {
