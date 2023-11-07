@@ -9,20 +9,37 @@ uint wangHash () {
 	return seed;
 }
 
-float normalizedRandomFloat () {
+float NormalizedRandomFloat () {
 	return float( wangHash() ) / 4294967296.0f;
 }
 
 const float pi = 3.14159265358979323846f;
-vec3 randomUnitVector () {
-	float z = normalizedRandomFloat() * 2.0f - 1.0f;
-	float a = normalizedRandomFloat() * 2.0f * pi;
+vec3 RandomUnitVector () {
+	float z = NormalizedRandomFloat() * 2.0f - 1.0f;
+	float a = NormalizedRandomFloat() * 2.0f * pi;
 	float r = sqrt( 1.0f - z * z );
 	float x = r * cos( a );
 	float y = r * sin( a );
 	return vec3( x, y, z );
 }
 
-vec2 randomInUnitDisk () {
-	return randomUnitVector().xy;
+// note that this is not uniformly distributed, ring shaped
+vec2 RandomInUnitDisk () {
+	return RandomUnitVector().xy;
+}
+
+// size, corner rounding radius
+float sdHexagon ( vec2 p, float s, float r ) {
+	const vec3 k = vec3( -0.866025404f, 0.5f, 0.577350269f );
+	p = abs( p );
+	p -= 2.0f * min( dot( k.xy, p ), 0.0f ) * k.xy;
+	p -= vec2( clamp( p.x, -k.z * s, k.z * s ), s );
+	return length( p ) * sign( p.y ) - r;
+}
+
+vec2 RejectionSampleHexOffset () {
+	vec2 cantidate;
+	// generate points in a unit square, till one is inside a hexagon
+	while ( sdHexagon( cantidate = vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) - vec2( 0.5f ), 0.3f, 0.0f ) > 0.0f );
+	return 2.0f * cantidate;
 }
