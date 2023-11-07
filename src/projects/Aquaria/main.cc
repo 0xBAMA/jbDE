@@ -1,5 +1,8 @@
 #include "../../engine/engine.h"
 
+// ================================================================================================================
+// ==== Config Structs ============================================================================================
+// ================================================================================================================
 struct spherePackConfig_t {
 	// color picking
 	float paletteRefMin = 0.0f;
@@ -12,6 +15,7 @@ struct spherePackConfig_t {
 	float radiiInitialValue = 63.0f;
 	float radiiStepShrink = 1.0f / 1.618f;
 	float iterationMultiplier = 2.3f;
+	int rngSeed = 0;
 
 	// bounds manip
 	vec3 boundsStepShrink = vec3( 0.99f, 0.99f, 0.92f );
@@ -21,9 +25,21 @@ struct spherePackConfig_t {
 	uint32_t sphereTrim = 100;
 };
 
-// struct perlinPackConfig_t {
-	// TODO
-// };
+struct perlinPackConfig_t {
+	// color picking
+	float paletteRefMin = 0.0f;
+	float paletteRefMax = 1.0f;
+	float paletteRefJitter = 0.01f;
+	float alphaGenMin = 0.5f;
+	float alphaGenMax = 1.0f;
+
+	// sizing
+	float radiiInitialValue = 63.0f;
+	float radiiStepShrink = 1.0f / 1.618f;
+	float iterationMultiplier = 2.3f;
+	int rngSeed = 0;
+
+};
 
 struct aquariaConfig_t {
 	bool userRequestedScreenshot = false;
@@ -46,7 +62,8 @@ struct aquariaConfig_t {
 	std::vector< vec4 > sphereBuffer;
 
 	// config structs
-	spherePackConfig_t pConfig;
+	spherePackConfig_t incrementalConfig;
+	perlinPackConfig_t perlinConfig;
 
 	// scene setup
 	bool refractiveBubble = false;
@@ -68,6 +85,16 @@ struct aquariaConfig_t {
 	GLuint sphereSSBO;
 };
 
+// ================================================================================================================
+// ==== Aquaria ===================================================================================================
+// ================================================================================================================
+// Very similar in apparance to recent versions of Voraldo, in a lot of ways - they share no code, beyond the AABB
+// intersection codefor the voxel bounds. This does a forward DDA traversal to the first voxel with a nonzero alpha
+// value. The color value is taken from that voxel, and a volume term is added to it, based on the length of the
+// traversal. There is no blending, and no transparency - the illusion comes from the translucency in baked into
+// the volume. The shadows and lighting are computed as a separate pass, destructivelsy baked into the albedo,
+// informed by Beer's law and traversals towards a given light direction.
+// ================================================================================================================
 class Aquaria : public engineBase {	// example derived class
 public:
 	Aquaria () { Init(); OnInit(); PostInit(); }
@@ -182,7 +209,7 @@ public:
 	}
 
 	void ComputeSpherePacking () {
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.pConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.incrementalConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
 
 		// stochastic sphere packing, inside the volume
@@ -191,13 +218,13 @@ public:
 		uint32_t maxIterations = 500;
 
 		// I think this is the easiest way to handle things that don't terminate on their own
-		uint32_t attemptsRemaining = aquariaConfig.pConfig.maxAllowedTotalIterations;
+		uint32_t attemptsRemaining = aquariaConfig.incrementalConfig.maxAllowedTotalIterations;
 
 		// float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
-		float currentRadius = aquariaConfig.pConfig.radiiInitialValue;
-		rng paletteRefVal = rng( aquariaConfig.pConfig.paletteRefMin, aquariaConfig.pConfig.paletteRefMax );
-		rng alphaGen = rng( aquariaConfig.pConfig.alphaGenMin, aquariaConfig.pConfig.alphaGenMax );
-		rngN paletteRefJitter = rngN( 0.0f, aquariaConfig.pConfig.paletteRefJitter );
+		float currentRadius = aquariaConfig.incrementalConfig.radiiInitialValue;
+		rng paletteRefVal = rng( aquariaConfig.incrementalConfig.paletteRefMin, aquariaConfig.incrementalConfig.paletteRefMax );
+		rng alphaGen = rng( aquariaConfig.incrementalConfig.alphaGenMin, aquariaConfig.incrementalConfig.alphaGenMax );
+		rngN paletteRefJitter = rngN( 0.0f, aquariaConfig.incrementalConfig.paletteRefJitter );
 		float currentPaletteVal = paletteRefVal();
 
 		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && !pQuit ) { // watch for program quit
@@ -229,7 +256,7 @@ public:
 				// number of spheres / max spheres
 				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
 				// number of attempts taken as a fraction of max attempts
-				float attemptFrac = float( aquariaConfig.pConfig.maxAllowedTotalIterations - attemptsRemaining ) / float( aquariaConfig.pConfig.maxAllowedTotalIterations );
+				float attemptFrac = float( aquariaConfig.incrementalConfig.maxAllowedTotalIterations - attemptsRemaining ) / float( aquariaConfig.incrementalConfig.maxAllowedTotalIterations );
 
 				// the greater of the two should set the level on the progress bar
 				generateBar.done = std::max( sphereFrac, attemptFrac );
@@ -241,13 +268,13 @@ public:
 
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
 			currentPaletteVal = paletteRefVal();
-			currentRadius *= aquariaConfig.pConfig.radiiStepShrink;
-			maxIterations *= aquariaConfig.pConfig.iterationMultiplier;
+			currentRadius *= aquariaConfig.incrementalConfig.radiiStepShrink;
+			maxIterations *= aquariaConfig.incrementalConfig.iterationMultiplier;
 
 			// this replaces explicit shrinking on each axis
-			min.x *= aquariaConfig.pConfig.boundsStepShrink.x; max.x *= aquariaConfig.pConfig.boundsStepShrink.x;
-			min.y *= aquariaConfig.pConfig.boundsStepShrink.y; max.y *= aquariaConfig.pConfig.boundsStepShrink.y;
-			min.z *= aquariaConfig.pConfig.boundsStepShrink.z; max.z *= aquariaConfig.pConfig.boundsStepShrink.z;
+			min.x *= aquariaConfig.incrementalConfig.boundsStepShrink.x; max.x *= aquariaConfig.incrementalConfig.boundsStepShrink.x;
+			min.y *= aquariaConfig.incrementalConfig.boundsStepShrink.y; max.y *= aquariaConfig.incrementalConfig.boundsStepShrink.y;
+			min.z *= aquariaConfig.incrementalConfig.boundsStepShrink.z; max.z *= aquariaConfig.incrementalConfig.boundsStepShrink.z;
 
 		}
 
@@ -256,7 +283,7 @@ public:
 		// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
 		// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
 
-		for ( uint32_t i = 0; i < aquariaConfig.pConfig.sphereTrim; i++ ) {
+		for ( uint32_t i = 0; i < aquariaConfig.incrementalConfig.sphereTrim; i++ ) {
 			sphereLocationsPlusColors.pop_front();
 		}
 
@@ -509,8 +536,8 @@ public:
 				const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
 				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
 				// handle max < min
-				float realSelectedMin = std::min( aquariaConfig.pConfig.paletteRefMin, aquariaConfig.pConfig.paletteRefMax );
-				float realSelectedMax = std::max( aquariaConfig.pConfig.paletteRefMin, aquariaConfig.pConfig.paletteRefMax );
+				float realSelectedMin = std::min( aquariaConfig.incrementalConfig.paletteRefMin, aquariaConfig.incrementalConfig.paletteRefMax );
+				float realSelectedMax = std::max( aquariaConfig.incrementalConfig.paletteRefMin, aquariaConfig.incrementalConfig.paletteRefMax );
 				size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
 				size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
 
@@ -553,33 +580,34 @@ public:
 				// only show the controls for one at a time, to read easier
 				if ( aquariaConfig.jobType == 0 ) {	// incremental version
 					// manipulate values
-					ImGui::SliderFloat( "Palette Min", &aquariaConfig.pConfig.paletteRefMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Max", &aquariaConfig.pConfig.paletteRefMax, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.pConfig.paletteRefJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Palette Min", &aquariaConfig.incrementalConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &aquariaConfig.incrementalConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.incrementalConfig.paletteRefJitter, 0.0f, 0.2f );
 
 					ImGui::Text( " " );
 
-					ImGui::SliderFloat( "Alpha Min", &aquariaConfig.pConfig.alphaGenMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Alpha Max", &aquariaConfig.pConfig.alphaGenMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Min", &aquariaConfig.incrementalConfig.alphaGenMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Max", &aquariaConfig.incrementalConfig.alphaGenMax, 0.0f, 1.0f );
 
 					ImGui::Text( " " );
 
-					ImGui::SliderFloat( "Initial Radius", &aquariaConfig.pConfig.radiiInitialValue, 1.0f, 300.0f );
-					ImGui::SliderFloat( "Radius Step Shrink", &aquariaConfig.pConfig.radiiStepShrink, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Iteration Count Multiplier", &aquariaConfig.pConfig.iterationMultiplier, 0.0f, 10.0f );
-					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.pConfig.maxAllowedTotalIterations, 0, 100000000 );
+					ImGui::SliderFloat( "Initial Radius", &aquariaConfig.incrementalConfig.radiiInitialValue, 1.0f, 300.0f );
+					ImGui::SliderFloat( "Radius Step Shrink", &aquariaConfig.incrementalConfig.radiiStepShrink, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Iteration Count Multiplier", &aquariaConfig.incrementalConfig.iterationMultiplier, 0.0f, 10.0f );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.incrementalConfig.maxAllowedTotalIterations, 0, 100000000 );
 
 					ImGui::Text( " " );
 
-					ImGui::SliderFloat( "X Bounds Step Shrink", &aquariaConfig.pConfig.boundsStepShrink.x, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Y Bounds Step Shrink", &aquariaConfig.pConfig.boundsStepShrink.y, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Z Bounds Step Shrink", &aquariaConfig.pConfig.boundsStepShrink.z, 0.0f, 1.0f );
+					ImGui::SliderFloat( "X Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.x, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Y Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.y, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Z Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.z, 0.0f, 1.0f );
 
 					ImGui::Text( " " );
-					ImGui::SliderInt( "Trim", ( int* ) &aquariaConfig.pConfig.sphereTrim, 0, 100000 );
+					ImGui::SliderInt( "Trim", ( int* ) &aquariaConfig.incrementalConfig.sphereTrim, 0, 100000 );
 
 					if ( ImGui::Button( " Do It " ) ) {
 						// worker thread sees this and begins work
+						aquariaConfig.incrementalConfig.rngSeed = aquariaConfig.wangSeeder();
 						aquariaConfig.workerThreadShouldRun = true;
 					}
 				} else if ( aquariaConfig.jobType == 1 ) { // perlin mode
@@ -740,22 +768,15 @@ public:
 			if ( !aquariaConfig.workerThreadShouldRun ) { // waiting
 				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 			} else {
-
-			// 	auto tstart = std::chrono::high_resolution_clock::now();
-
 				// reset the bars
 				generateBar.done = evaluateBar.done = lightingBar.done = 0.0f;
-
-				if ( aquariaConfig.jobType == 0 ) { // incremental version
+				if ( aquariaConfig.jobType == 0 ) // incremental version
 					ComputeSpherePacking();
-				} else if ( aquariaConfig.jobType == 1 ) {
-
-				}
-
-			// 	float msLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
-			// 		std::chrono::high_resolution_clock::now() - tstart ).count();
-
-				// and the data is ready
+				else if ( aquariaConfig.jobType == 1 ) // perlin verison
+					ComputePerlinPacking();
+				// else
+					// blah blah, other generators
+				// and the data is ready to send
 				aquariaConfig.bufferReady = true;
 				aquariaConfig.workerThreadShouldRun = false;
 			}
@@ -799,6 +820,7 @@ public:
 			ivec3 offset = aquariaConfig.updateTiles[ aquariaConfig.updateTiles.size() - 1 ];
 			aquariaConfig.updateTiles.pop_back();
 			glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
+			glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "wangSeed" ), aquariaConfig.incrementalConfig.rngSeed );
 			glDispatchCompute( 8, 8, 8 );
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
