@@ -26,6 +26,7 @@ struct spherePackConfig_t {
 // };
 
 struct aquariaConfig_t {
+	bool userRequestedScreenshot = false;
 	ivec3 dimensions;
 
 	// leaving this global for now, because I still want to do the 16-bit addressing thing, at some point
@@ -463,6 +464,10 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+		// screenshot
+		aquariaConfig.userRequestedScreenshot = false; // one shot, repeated trigger is not desired
+		if ( state[ SDL_SCANCODE_T ] && shift ) { aquariaConfig.userRequestedScreenshot = true; }
+
 		// zoom in and out
 		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= shift ? 0.9f : 0.99f; }
 		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= shift ? 0.9f : 0.99f; }
@@ -693,6 +698,13 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
+		if ( aquariaConfig.userRequestedScreenshot ) {
+			aquariaConfig.userRequestedScreenshot = false;
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			SDL_Delay( 30 );
+			ColorScreenShotWithFilename( string( "Output-" ) + timeDateString() + string( ".png" ) );
+		}
+
 		// shader to apply dithering
 			// ...
 
@@ -818,6 +830,21 @@ public:
 			}
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
+	}
+
+	void ColorScreenShotWithFilename ( const string filename ) {
+		std::vector< float > imageBytesToSave;
+		imageBytesToSave.resize( config.width * config.height * 4, 0 );
+		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
+		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+		Image_4F screenshot( config.width, config.height, &imageBytesToSave.data()[ 0 ] );
+		screenshot.FlipVertical();
+
+		// we have it as floats, now do gamma to match the visual in the framebuffer
+		if ( config.SRGBFramebuffer )
+			screenshot.GammaCorrect( 2.2f );
+		
+		screenshot.Save( filename );
 	}
 
 	void OnRender () {
