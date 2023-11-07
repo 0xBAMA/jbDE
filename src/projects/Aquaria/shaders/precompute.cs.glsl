@@ -89,7 +89,7 @@ float frame ( vec3 p ) {
 
 void main () {
 	seed = wangSeed;
-	vec3 noiseOffset = 1000.0f * vec3( normalizedRandomFloat(), normalizedRandomFloat(), normalizedRandomFloat() );
+	vec3 noiseOffset = 1000.0f * vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 
 	// voxel location
 	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xyz ) + offset;
