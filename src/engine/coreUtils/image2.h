@@ -290,6 +290,18 @@ public:
 		}
 	}
 
+	void GammaCorrect ( const float gamma ) {
+		for ( uint32_t y { 0 }; y < height; y++ ){
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color src = GetAtXY( x, y );
+				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
+					src[ c ] = std::pow( src[ c ], 1.0f / gamma );
+				}
+				SetAtXY( x, y, src );
+			}
+		}
+	}
+
 //======= Esoterica ===================================================================================================
 
 	void Swizzle ( const char swizzle [ numChannels ] ) {
