@@ -73,33 +73,7 @@ mat3 Rotate3D ( const float angle, const vec3 axis ) {
 	);
 }
 
-// random utilites
-uint seed = 0;
-uint WangHash () {
-	seed = uint( seed ^ uint( 61 ) ) ^ uint( seed >> uint( 16 ) );
-	seed *= uint( 9 );
-	seed = seed ^ ( seed >> 4 );
-	seed *= uint( 0x27d4eb2d );
-	seed = seed ^ ( seed >> 15 );
-	return seed;
-}
-
-float NormalizedRandomFloat () {
-	return float( WangHash() ) / 4294967296.0f;
-}
-
-vec3 RandomUnitVector () {
-	const float z = NormalizedRandomFloat() * 2.0f - 1.0f;
-	const float a = NormalizedRandomFloat() * 2.0f * PI;
-	const float r = sqrt( 1.0f - z * z );
-	const float x = r * cos( a );
-	const float y = r * sin( a );
-	return vec3( x, y, z );
-}
-
-vec2 RandomInUnitDisk () {
-	return RandomUnitVector().xy;
-}
+#include "random.h"
 
 vec3 GetColorForTemperature ( const float temperature ) {
 	mat3 m = ( temperature <= 6500.0f )
@@ -373,7 +347,8 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	if ( thinLensEnable || cameraType == SPHEREBUG ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
 		// thin lens adjustment
 		vec3 focuspoint = r.origin + ( ( r.direction * thinLensFocusDistance ) / dot( r.direction, basisZ ) );
-		vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
+		// vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
+		vec2 diskOffset = thinLensJitterRadius * RejectionSampleHexOffset();
 		r.origin += diskOffset.x * basisX + diskOffset.y * basisY;
 		r.direction = normalize( focuspoint - r.origin );
 	}
