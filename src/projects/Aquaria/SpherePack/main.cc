@@ -1,4 +1,4 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 
 // ================================================================================================================
 // ==== Config Structs ============================================================================================
@@ -74,7 +74,6 @@ struct torusPackConfig_t {
 	// float majorRadiusMax = 200.0;
 
 	// other
-	float padding = 20.0f;
 	vec3 noiseScalar = vec3( 120.0f );
 	vec3 noiseOffset = vec3( 0.0f );
 	int rngSeed = 0;
@@ -137,7 +136,7 @@ struct aquariaConfig_t {
 // the volume. The shadows and lighting are computed as a separate pass, destructivelsy baked into the albedo,
 // informed by Beer's law and traversals towards a given light direction.
 // ================================================================================================================
-class Aquaria : public engineBase {	// example derived class
+class Aquaria : public engineBase {
 public:
 	Aquaria () { Init(); OnInit(); PostInit(); }
 	~Aquaria () { Quit(); }
@@ -231,9 +230,9 @@ public:
 	}
 
 	void CompileShaders () {
-		shaders[ "Dummy Draw" ]	= computeShader( "./src/projects/Aquaria/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-		shaders[ "Precompute" ]	= computeShader( "./src/projects/Aquaria/shaders/precompute.cs.glsl" ).shaderHandle;
-		shaders[ "Lighting" ] 	= computeShader( "./src/projects/Aquaria/shaders/lighting.cs.glsl" ).shaderHandle;
+		shaders[ "Dummy Draw" ]	= computeShader( "./src/projects/Aquaria/SpherePack/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+		shaders[ "Precompute" ]	= computeShader( "./src/projects/Aquaria/SpherePack/shaders/precompute.cs.glsl" ).shaderHandle;
+		shaders[ "Lighting" ] 	= computeShader( "./src/projects/Aquaria/SpherePack/shaders/lighting.cs.glsl" ).shaderHandle;
 	}
 
 	void ComputeTileList () {
@@ -442,7 +441,7 @@ public:
 		// initial impl can just be this kind of almost-uniform point in a torus thing
 		rng theta 	= rng( 0.0f, 2.0f * pi );
 		rng phi 	= rng( 0.0f, 2.0f * pi );
-		rng r 		= rng( 0.0f, aquariaConfig.torusConfig.minorRadius );
+		rng r 		= rng( 0.0f, 1.0f );
 
 		uint32_t maxIterations = aquariaConfig.torusConfig.maxAllowedTotalIterations;
 		uint32_t iterations = maxIterations;
@@ -456,10 +455,9 @@ public:
 		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
 
 			// generating a point inside the torus
-			// vec3 checkP = vec3( x(), y(), z() );
 			vec3 checkP;
 			// sqrt is normalizing factor, so as not to concentrate at the center of the ring
-			checkP = vec3( sqrt( r() * aquariaConfig.torusConfig.minorRadius ), 0.0f, 0.0f );
+			checkP = vec3( sqrt( r() ) * aquariaConfig.torusConfig.minorRadius, 0.0f, 0.0f );
 			checkP = ( glm::rotate( phi(), vec3( 0.0f, 0.0f, 1.0f ) ) * vec4( checkP, 1.0f ) ).xyz();
 			checkP.x += aquariaConfig.torusConfig.majorRadius;
 			checkP = ( glm::rotate( theta(), vec3( 0.0f, 1.0f, 0.0f ) ) * vec4( checkP, 1.0f ) ).xzy();
@@ -758,10 +756,26 @@ public:
 					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.perlinConfig.maxAllowedTotalIterations, 0, 100000000 );
 
 				} else if ( aquariaConfig.jobType == 2 ) {
+
 					// torus mode
+					ImGui::SliderFloat( "Palette Min", &aquariaConfig.torusConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &aquariaConfig.torusConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.torusConfig.paletteRefJitter, 0.0f, 0.2f );
 					ImGui::Text( " " );
-					ImGui::SeparatorText( " TODO " );
+					ImGui::SliderFloat( "Minor Radius", &aquariaConfig.torusConfig.minorRadius, 0.0f, 500.0f );
+					ImGui::SliderFloat( "Major Radius", &aquariaConfig.torusConfig.majorRadius, 0.0f, 500.0f );
 					ImGui::Text( " " );
+					ImGui::SliderFloat( "Radius Min", &aquariaConfig.torusConfig.sphereRadiusMin, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Max", &aquariaConfig.torusConfig.sphereRadiusMax, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Jitter", &aquariaConfig.torusConfig.sphereRadiusJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Ramp Power", &aquariaConfig.torusConfig.rampPower, 0.0f, 0.2f );
+					ImGui::Text( " " );
+					ImGui::SliderFloat( "X Noise Scale", &aquariaConfig.torusConfig.noiseScalar.x, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Y Noise Scale", &aquariaConfig.torusConfig.noiseScalar.y, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Z Noise Scale", &aquariaConfig.torusConfig.noiseScalar.z, -1000.0f, 1000.0f );
+					ImGui::Text( " " );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.torusConfig.maxAllowedTotalIterations, 0, 100000000 );
+
 				}
 				
 				// move outside the dynamic area

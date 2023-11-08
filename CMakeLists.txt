@@ -197,13 +197,25 @@ target_link_libraries( CABitPlanes
 )
 
 # =================================================================================================
-# Aquaria
+# Aquaria_SpherePack
 # =================================================================================================
-add_executable( Aquaria
-	src/projects/Aquaria/main.cc
+add_executable( Aquaria_SpherePack
+	src/projects/Aquaria/SpherePack/main.cc
 )
 
-target_link_libraries( Aquaria
+target_link_libraries( Aquaria_SpherePack
+	PUBLIC
+	engineBase
+)
+
+# =================================================================================================
+# Aquaria_BVH
+# =================================================================================================
+add_executable( Aquaria_BVH
+	src/projects/Aquaria/BVH/main.cc
+)
+
+target_link_libraries( Aquaria_BVH
 	PUBLIC
 	engineBase
 )
