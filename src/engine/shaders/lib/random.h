@@ -43,3 +43,10 @@ vec2 RejectionSampleHexOffset () {
 	while ( sdHexagon( cantidate = vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) - vec2( 0.5f ), 0.3f, 0.0f ) > 0.0f );
 	return 2.0f * cantidate;
 }
+
+// uniform sampled hex from fadaaszhi on GP discord
+vec2 UniformSampleHexagon ( vec2 u ) {
+	u = 2.0f * u - 1.0f;
+	float a = sqrt( 3.0f ) - sqrt( 3.0f - 2.25f * abs( u.x ) );
+	return vec2( sign( u.x ) * a, u.y * ( 1.0f - a / sqrt( 3.0f ) ) );
+}

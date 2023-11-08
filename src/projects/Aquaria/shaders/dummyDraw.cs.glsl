@@ -117,7 +117,8 @@ void main () {
 		// Origin = invBasis * vec3( scale * uv + pow( randomInUnitDisk(), vec2( 2.0f ) ) * thinLensIntensity, -2.0f );
 		
 		// Origin = invBasis * vec3( scale * uv + randomInUnitDisk() * thinLensIntensity, -2.0f );
-		Origin = invBasis * vec3( scale * uv + RejectionSampleHexOffset() * thinLensIntensity, -2.0f );
+		// Origin = invBasis * vec3( scale * uv + RejectionSampleHexOffset() * thinLensIntensity, -2.0f );
+		Origin = invBasis * vec3( scale * uv + UniformSampleHexagon( blue.zw ) * thinLensIntensity, -2.0f );
 		Direction = focusPoint - Origin;
 	// }
 
