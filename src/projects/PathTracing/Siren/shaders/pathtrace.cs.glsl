@@ -812,6 +812,7 @@ vec3 SimpleRayScatter ( const vec3 n ) {
 
 // ==============================================================================================
 // raymarches to the next hit
+// another interesting one, potentially good for a bit of speedup - https://www.shadertoy.com/view/cdsGRs
 // ==============================================================================================
 float Raymarch ( const vec3 origin, vec3 direction ) {
 	float dQuery = 0.0f;
