@@ -749,7 +749,6 @@ public:
 		if ( aquariaConfig.userRequestedScreenshot ) {
 			aquariaConfig.userRequestedScreenshot = false;
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-			SDL_Delay( 30 );
 			ColorScreenShotWithFilename( string( "Output-" ) + timeDateString() + string( ".png" ) );
 		}
 
