@@ -599,39 +599,62 @@ public:
 
 				// only show the controls for one at a time, to read easier
 				if ( aquariaConfig.jobType == 0 ) {	// incremental version
-					// manipulate values
+
 					ImGui::SliderFloat( "Palette Min", &aquariaConfig.incrementalConfig.paletteRefMin, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Palette Max", &aquariaConfig.incrementalConfig.paletteRefMax, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.incrementalConfig.paletteRefJitter, 0.0f, 0.2f );
-
 					ImGui::Text( " " );
-
 					ImGui::SliderFloat( "Alpha Min", &aquariaConfig.incrementalConfig.alphaGenMin, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Alpha Max", &aquariaConfig.incrementalConfig.alphaGenMax, 0.0f, 1.0f );
-
 					ImGui::Text( " " );
-
 					ImGui::SliderFloat( "Initial Radius", &aquariaConfig.incrementalConfig.radiiInitialValue, 1.0f, 300.0f );
 					ImGui::SliderFloat( "Radius Step Shrink", &aquariaConfig.incrementalConfig.radiiStepShrink, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Iteration Count Multiplier", &aquariaConfig.incrementalConfig.iterationMultiplier, 0.0f, 10.0f );
 					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.incrementalConfig.maxAllowedTotalIterations, 0, 100000000 );
-
 					ImGui::Text( " " );
-
 					ImGui::SliderFloat( "X Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.x, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Y Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.y, 0.0f, 1.0f );
 					ImGui::SliderFloat( "Z Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.z, 0.0f, 1.0f );
-
 					ImGui::Text( " " );
 					ImGui::SliderInt( "Trim", ( int* ) &aquariaConfig.incrementalConfig.sphereTrim, 0, 100000 );
 
-					if ( ImGui::Button( " Do It " ) ) {
-						// worker thread sees this and begins work
-						aquariaConfig.incrementalConfig.rngSeed = aquariaConfig.wangSeeder();
-						aquariaConfig.workerThreadShouldRun = true;
-					}
 				} else if ( aquariaConfig.jobType == 1 ) { // perlin mode
 
+					ImGui::SliderFloat( "Palette Min", &aquariaConfig.perlinConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &aquariaConfig.perlinConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.perlinConfig.paletteRefJitter, 0.0f, 0.2f );
+					ImGui::Text( " " );
+					ImGui::SliderFloat( "Radius Min", &aquariaConfig.perlinConfig.radiusMin, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Max", &aquariaConfig.perlinConfig.radiusMax, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Jitter", &aquariaConfig.perlinConfig.radiusJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Ramp Power", &aquariaConfig.perlinConfig.rampPower, 0.0f, 0.2f );
+					ImGui::Text( " " );
+					ImGui::SliderFloat( "zSquash Min", &aquariaConfig.perlinConfig.zSquashMin, 0.0f, 2.0f );
+					ImGui::SliderFloat( "zSquash Max", &aquariaConfig.perlinConfig.zSquashMax, 0.0f, 2.0f );
+					ImGui::SliderFloat( "Padding", &aquariaConfig.perlinConfig.padding, 0.0f, 200.0f );
+					ImGui::Text( " " );
+					ImGui::SliderFloat( "X Noise Scale", &aquariaConfig.perlinConfig.noiseScalar.x, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Y Noise Scale", &aquariaConfig.perlinConfig.noiseScalar.y, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Z Noise Scale", &aquariaConfig.perlinConfig.noiseScalar.z, -1000.0f, 1000.0f );
+					ImGui::Text( " " );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.perlinConfig.maxAllowedTotalIterations, 0, 100000000 );
+
+				}
+				
+				// move outside the dynamic area
+				if ( ImGui::Button( " Do It " ) ) {
+						// eventually manage seeds better than this
+					aquariaConfig.incrementalConfig.rngSeed = aquariaConfig.wangSeeder();
+					aquariaConfig.perlinConfig.rngSeed = aquariaConfig.wangSeeder();
+
+					// so the noise is not uniform run-to-run
+					aquariaConfig.perlinConfig.noiseOffset = vec3(
+						aquariaConfig.noiseOffset(),
+						aquariaConfig.noiseOffset(),
+						aquariaConfig.noiseOffset() );
+
+					// worker thread sees this and begins work
+					aquariaConfig.workerThreadShouldRun = true;
 				}
 				ImGui::EndTabItem();
 			}
