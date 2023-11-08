@@ -118,17 +118,18 @@ void main () {
 
 
 	// } else if ( frame( pos ) <= 0.0f ) {
-	if ( frame( pos ) <= 0.0f ) {
+	// if ( frame( pos ) <= 0.0f ) {
 
-		// wood material
-		vec3 c = matWood( ( pos.zyx + noiseOffset ) / 60.0f );
-		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
+	// 	// wood material
+	// 	vec3 c = matWood( ( pos.zyx + noiseOffset ) / 60.0f );
+	// 	color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
 
-		// marble type material
-		// color = vec4( abs( perlinfbm( pos / 500.0f, 2.0f, 10 ) ) );
-		// color.a = ( 2.0f - color.a ) * 1.2f;
+	// 	// marble type material
+	// 	// color = vec4( abs( perlinfbm( pos / 500.0f, 2.0f, 10 ) ) );
+	// 	// color.a = ( 2.0f - color.a ) * 1.2f;
 
-	} else {
+	// } else {
+	{
 
 	// iterate through the spheres
 		// keep top four nearest
@@ -145,15 +146,8 @@ void main () {
 				// color = vec4( spheres[ i ].colorMaterial.rgb, clamp( -minDistance, 0.0f, 1.0f ) );
 				color = spheres[ i ].colorMaterial;
 
-				// // partially colored with curl noise... kinda sucks
-				// if ( i % 2 == 0 ){
-				// 	color = vec4( curlNoise( pos / 3000.0f ) * 0.66f, spheres[ i ].colorMaterial.a );
-				// } else {
-				// 	color = spheres[ i ].colorMaterial;
-				// }
-
 				// ... consider checking spheres in random order?
-				// break; // I speculate that there is actually only ever one sphere affecting a voxel, this is a good optimization for now
+				break; // I speculate that there is actually only ever one sphere affecting a voxel, this is a good optimization for now
 					// eventually I will want to disable this, when I'm collecting the nearest N spheres
 			}
 		}
