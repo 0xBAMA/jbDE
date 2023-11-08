@@ -30,15 +30,24 @@ struct perlinPackConfig_t {
 	float paletteRefMin = 0.0f;
 	float paletteRefMax = 1.0f;
 	float paletteRefJitter = 0.01f;
-	float alphaGenMin = 0.5f;
-	float alphaGenMax = 1.0f;
 
 	// sizing
-	float radiiInitialValue = 63.0f;
-	float radiiStepShrink = 1.0f / 1.618f;
-	float iterationMultiplier = 2.3f;
+	float radiusMin = 1.618f;
+	float radiusMax = 10.0f;
+	float radiusJitter = 0.2f;
+	float rampPower = 5.0f;
+	float zSquashMin = 0.25f;
+	float zSquashMax = 1.2f;
+
+	// may eventually want to plumb this into all generators, to make everything deterministic ( sphere placement, etc )
 	int rngSeed = 0;
 
+	// other
+	float padding = 20.0f;
+	vec3 noiseScalar = vec3( 100.0f );
+	vec3 noiseOffset = vec3( 0.0f );
+
+	uint32_t maxAllowedTotalIterations = 1000000;
 };
 
 struct aquariaConfig_t {
@@ -54,9 +63,10 @@ struct aquariaConfig_t {
 	float blendAmount = 0.9f;
 	vec2 viewOffset = vec2( 0.0f );
 	rngi wangSeeder = rngi( 0, 69420 );
+	rng noiseOffset = rng( -1000.0f, 1000.0f );
 
 	// worker thread/generation stuff
-	int jobType = 0;
+	int jobType = 1;
 	bool workerThreadShouldRun = false;
 	bool bufferReady = false;
 	std::vector< vec4 > sphereBuffer;
@@ -304,7 +314,7 @@ public:
 	void ComputePerlinPacking () {
 		// const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
-		std::deque< vec4 > sphereLocationsPlusColors;
+		std::vector< vec4 > sphereLocationsPlusColors;
 
 		// init the progress bar
 		progressBar bar;
@@ -314,32 +324,37 @@ public:
 		// stochastic sphere packing, inside the volume
 		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
 		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
-		uint32_t maxIterations = 1000000;
+		uint32_t maxIterations = aquariaConfig.perlinConfig.maxAllowedTotalIterations;
 		uint32_t iterations = maxIterations;
 
 		// data generation
-		rng radiusJitter = rng( 0.1f, 1.0f );
-		float padding = 20.0f;
+		rng radiusGen = rng( 0.25f, 1.25f );
+		rngN radiusJitter = rngN( 0.0f, aquariaConfig.perlinConfig.radiusJitter );
+		rngN paletteJitter = rngN( 0.0f, aquariaConfig.perlinConfig.paletteRefJitter );
+		float padding = aquariaConfig.perlinConfig.padding;
 		PerlinNoise p;
 
-		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- ) {
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
 			rng x = rng( min.x + padding, max.x - padding );
 			rng y = rng( min.y + padding, max.y - padding );
 			rng z = rng( min.z + padding, max.z - padding );
 
 			// generate point inside the parent cube
 			vec3 checkP = vec3( x(), y(), z() );
-			float noiseValue = p.noise( checkP.x / 130.0f, checkP.y / 130.0f, checkP.z / 130.0f );
-			// float noiseValue = p.noise( checkP.x / 130.0f, checkP.y / 130.0f, 0.0f );
+			float noiseValue = p.noise(
+				checkP.x / aquariaConfig.perlinConfig.noiseScalar.x + aquariaConfig.perlinConfig.noiseOffset.x,
+				checkP.y / aquariaConfig.perlinConfig.noiseScalar.y + aquariaConfig.perlinConfig.noiseOffset.y,
+				checkP.z / aquariaConfig.perlinConfig.noiseScalar.z + aquariaConfig.perlinConfig.noiseOffset.z );
 
-			checkP.z *= RemapRange( noiseValue, 0.0f, 1.0f, 0.25f, 1.2f );
+			checkP.z *= RemapRange( noiseValue, 0.0f, 1.0f, aquariaConfig.perlinConfig.zSquashMin, aquariaConfig.perlinConfig.zSquashMax );
 
+			// something to skip spheres outside of a certain range
 			// if ( noiseValue > 0.75f ) {
 				// continue;
 			// }
 
 			// determine radius, from the noise field
-			float currentRadius = std::pow( radiusJitter(), 2.0f ) * RemapRange( std::pow( noiseValue, 5.0f ), 0.0f, 1.0f, 0.618f, 14.0f ) * aquariaConfig.dimensions.z / 24.0f;
+			float currentRadius = ( radiusGen() * RemapRange( std::pow( noiseValue, aquariaConfig.perlinConfig.rampPower ), 0.0f, 1.0f, aquariaConfig.perlinConfig.radiusMin, aquariaConfig.perlinConfig.radiusMax ) + radiusJitter() ) * aquariaConfig.dimensions.z / 24.0f;
 
 			// check for intersection against all other spheres
 			bool foundIntersection = false;
@@ -356,29 +371,31 @@ public:
 				sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
 				// sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), alphaGen() ) );
 				// sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
-				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), noiseValue ) );
+				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( RemapRange( std::clamp( noiseValue, 0.0f, 1.0f ), 0.0f, 1.0f, aquariaConfig.perlinConfig.paletteRefMin, aquariaConfig.perlinConfig.paletteRefMax ) + paletteJitter() ), noiseValue ) );
 
-				// update and report
-				bar.done = sphereLocationsPlusColors.size() / 2;
-				if ( ( sphereLocationsPlusColors.size() / 2 ) % 50 == 0 || ( sphereLocationsPlusColors.size() / 2 ) == maxSpheres ) {
-					bar.writeCurrentState();
-				}
+			// need to determine which is the greater percentage:
+				// number of spheres / max spheres
+				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
+				// number of attempts taken as a fraction of max attempts
+				float attemptFrac = float( aquariaConfig.perlinConfig.maxAllowedTotalIterations - iterations ) / float( aquariaConfig.perlinConfig.maxAllowedTotalIterations );
+
+				// the greater of the two should set the level on the progress bar
+				generateBar.done = std::max( sphereFrac, attemptFrac );
+				generateBar.total = 1.0f;
 			}
 		}
 
 		// ================================================================================================================
-		
-		// send the SSBO
-		std::vector< vec4 > vectorVersion;
-		for ( auto& val : sphereLocationsPlusColors ) {
-			vectorVersion.push_back( val );
-		}
-		// pad out the rest of the buffer, if we had an early termination
-		vectorVersion.resize( aquariaConfig.maxSpheres * 2 );
 
-		glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &vectorVersion.data()[ 0 ], GL_DYNAMIC_COPY );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+		// send the SSBO
+		aquariaConfig.sphereBuffer.resize( 0 );
+		aquariaConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
+		for ( auto& val : sphereLocationsPlusColors ) {
+			aquariaConfig.sphereBuffer.push_back( val );
+		}
+
+		// if we aborted from running out of iterations, avoid seg fault in glBufferData
+		aquariaConfig.sphereBuffer.resize( aquariaConfig.maxSpheres * 2 );
 
 		// ================================================================================================================
 	}
@@ -536,8 +553,11 @@ public:
 				const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
 				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
 				// handle max < min
-				float realSelectedMin = std::min( aquariaConfig.incrementalConfig.paletteRefMin, aquariaConfig.incrementalConfig.paletteRefMax );
-				float realSelectedMax = std::max( aquariaConfig.incrementalConfig.paletteRefMin, aquariaConfig.incrementalConfig.paletteRefMax );
+				const  bool isIncremental = ( aquariaConfig.jobType == 0 );
+				float minVal = isIncremental ? aquariaConfig.incrementalConfig.paletteRefMin : aquariaConfig.perlinConfig.paletteRefMin;
+				float maxVal = isIncremental ? aquariaConfig.incrementalConfig.paletteRefMax : aquariaConfig.perlinConfig.paletteRefMax;
+				float realSelectedMin = std::min( minVal, maxVal );
+				float realSelectedMax = std::max( minVal, maxVal );
 				size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
 				size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
 
