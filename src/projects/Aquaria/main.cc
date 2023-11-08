@@ -44,9 +44,40 @@ struct perlinPackConfig_t {
 
 	// other
 	float padding = 20.0f;
-	vec3 noiseScalar = vec3( 100.0f );
+	vec3 noiseScalar = vec3( 120.0f );
 	vec3 noiseOffset = vec3( 0.0f );
 
+	uint32_t maxAllowedTotalIterations = 1000000;
+};
+
+struct torusPackConfig_t {
+	// color picking
+	float paletteRefMin = 0.0f;
+	float paletteRefMax = 1.0f;
+	float paletteRefJitter = 0.01f;
+
+	// sphere sizing
+	float sphereRadiusMin = 1.0f;
+	float sphereRadiusMax = 10.0f;
+	float sphereRadiusJitter = 0.2f;
+	float rampPower = 5.0f;
+
+	// torus sizing
+	float minorRadius = 69.0f;
+	float majorRadius = 168.0f;
+
+	// stuff about torus major and minor radii variation
+		// vary radii with noise, sampled at the angle - map noise to this range
+	// float minorRadiusMin = 100.0;
+	// float minorRadiusMax = 100.0;
+	// float majorRadiusMin = 200.0;
+	// float majorRadiusMax = 200.0;
+
+	// other
+	float padding = 20.0f;
+	vec3 noiseScalar = vec3( 120.0f );
+	vec3 noiseOffset = vec3( 0.0f );
+	int rngSeed = 0;
 	uint32_t maxAllowedTotalIterations = 1000000;
 };
 
@@ -66,7 +97,7 @@ struct aquariaConfig_t {
 	rng noiseOffset = rng( -1000.0f, 1000.0f );
 
 	// worker thread/generation stuff
-	int jobType = 1;
+	int jobType = 2;
 	bool workerThreadShouldRun = false;
 	bool bufferReady = false;
 	std::vector< vec4 > sphereBuffer;
@@ -74,6 +105,7 @@ struct aquariaConfig_t {
 	// config structs
 	spherePackConfig_t incrementalConfig;
 	perlinPackConfig_t perlinConfig;
+	torusPackConfig_t torusConfig;
 
 	// scene setup
 	bool refractiveBubble = false;
@@ -99,7 +131,7 @@ struct aquariaConfig_t {
 // ==== Aquaria ===================================================================================================
 // ================================================================================================================
 // Very similar in apparance to recent versions of Voraldo, in a lot of ways - they share no code, beyond the AABB
-// intersection codefor the voxel bounds. This does a forward DDA traversal to the first voxel with a nonzero alpha
+// intersection code for the voxel bounds. This does a forward DDA traversal to the first voxel with a nonzero alpha
 // value. The color value is taken from that voxel, and a volume term is added to it, based on the length of the
 // traversal. There is no blending, and no transparency - the illusion comes from the translucency in baked into
 // the volume. The shadows and lighting are computed as a separate pass, destructivelsy baked into the albedo,
@@ -219,6 +251,7 @@ public:
 	}
 
 	void ComputeSpherePacking () {
+
 		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.incrementalConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
 
@@ -316,11 +349,6 @@ public:
 		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
 		std::vector< vec4 > sphereLocationsPlusColors;
 
-		// init the progress bar
-		progressBar bar;
-		bar.total = maxSpheres;
-		bar.label = string( " Sphere Packing Compute: " );
-
 		// stochastic sphere packing, inside the volume
 		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
 		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
@@ -334,12 +362,12 @@ public:
 		float padding = aquariaConfig.perlinConfig.padding;
 		PerlinNoise p;
 
-		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
-			rng x = rng( min.x + padding, max.x - padding );
-			rng y = rng( min.y + padding, max.y - padding );
-			rng z = rng( min.z + padding, max.z - padding );
+		// generate point inside the parent cube
+		rng x = rng( min.x + padding, max.x - padding );
+		rng y = rng( min.y + padding, max.y - padding );
+		rng z = rng( min.z + padding, max.z - padding );
 
-			// generate point inside the parent cube
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
 			vec3 checkP = vec3( x(), y(), z() );
 			float noiseValue = p.noise(
 				checkP.x / aquariaConfig.perlinConfig.noiseScalar.x + aquariaConfig.perlinConfig.noiseOffset.x,
@@ -378,6 +406,94 @@ public:
 				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
 				// number of attempts taken as a fraction of max attempts
 				float attemptFrac = float( aquariaConfig.perlinConfig.maxAllowedTotalIterations - iterations ) / float( aquariaConfig.perlinConfig.maxAllowedTotalIterations );
+
+				// the greater of the two should set the level on the progress bar
+				generateBar.done = std::max( sphereFrac, attemptFrac );
+				generateBar.total = 1.0f;
+			}
+		}
+
+		// ================================================================================================================
+
+		// send the SSBO
+		aquariaConfig.sphereBuffer.resize( 0 );
+		aquariaConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
+		for ( auto& val : sphereLocationsPlusColors ) {
+			aquariaConfig.sphereBuffer.push_back( val );
+		}
+
+		// if we aborted from running out of iterations, avoid seg fault in glBufferData
+		aquariaConfig.sphereBuffer.resize( aquariaConfig.maxSpheres * 2 );
+
+		// ================================================================================================================
+	}
+
+	void ComputeTorusPacking () {
+		// point in a torus, would be a cool extension to the packing logic
+			// theta, phi, for placement on the torus surface - additional term for distance along that minor radius
+		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
+		std::vector< vec4 > sphereLocationsPlusColors;
+
+		// ================================================================================================================
+		// the idea is basically the same as the others, but based on points generated in a torus, rather than uniformly
+		// in an AABB in space. I think this should  be fairly straightforward, I think tight packing is probably the easiest
+		// case, but I am imagining that you could vary the radii about the major and minor axes with noise reads in space.
+
+		// initial impl can just be this kind of almost-uniform point in a torus thing
+		rng theta 	= rng( 0.0f, 2.0f * pi );
+		rng phi 	= rng( 0.0f, 2.0f * pi );
+		rng r 		= rng( 0.0f, aquariaConfig.torusConfig.minorRadius );
+
+		uint32_t maxIterations = aquariaConfig.torusConfig.maxAllowedTotalIterations;
+		uint32_t iterations = maxIterations;
+
+		// data generation
+		rng radiusGen = rng( 0.25f, 1.25f );
+		rngN radiusJitter = rngN( 0.0f, aquariaConfig.torusConfig.sphereRadiusJitter );
+		rngN paletteJitter = rngN( 0.0f, aquariaConfig.torusConfig.paletteRefJitter );
+		PerlinNoise p;
+
+		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
+
+			// generating a point inside the torus
+			// vec3 checkP = vec3( x(), y(), z() );
+			vec3 checkP;
+			// sqrt is normalizing factor, so as not to concentrate at the center of the ring
+			checkP = vec3( sqrt( r() * aquariaConfig.torusConfig.minorRadius ), 0.0f, 0.0f );
+			checkP = ( glm::rotate( phi(), vec3( 0.0f, 0.0f, 1.0f ) ) * vec4( checkP, 1.0f ) ).xyz();
+			checkP.x += aquariaConfig.torusConfig.majorRadius;
+			checkP = ( glm::rotate( theta(), vec3( 0.0f, 1.0f, 0.0f ) ) * vec4( checkP, 1.0f ) ).xzy();
+
+			float noiseValue = p.noise(
+				checkP.x / aquariaConfig.torusConfig.noiseScalar.x + aquariaConfig.torusConfig.noiseOffset.x,
+				checkP.y / aquariaConfig.torusConfig.noiseScalar.y + aquariaConfig.torusConfig.noiseOffset.y,
+				checkP.z / aquariaConfig.torusConfig.noiseScalar.z + aquariaConfig.torusConfig.noiseOffset.z );
+
+			// determine radius, from the noise field
+			float currentRadius = ( radiusGen() * RemapRange( std::pow( noiseValue, aquariaConfig.torusConfig.rampPower ), 0.0f, 1.0f, aquariaConfig.torusConfig.sphereRadiusMin, aquariaConfig.torusConfig.sphereRadiusMax ) + radiusJitter() ) * aquariaConfig.dimensions.z / 24.0f;
+
+			// check for intersection against all other spheres
+			bool foundIntersection = false;
+			for ( uint idx = 0; idx < sphereLocationsPlusColors.size() / 2; idx++ ) {
+				vec4 otherSphere = sphereLocationsPlusColors[ 2 * idx ];
+				if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
+					foundIntersection = true;
+					break;
+				}
+			}
+
+			// if there are no intersections, add it to the list with the current material
+			if ( !foundIntersection ) {
+				sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
+				// sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), alphaGen() ) );
+				// sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
+				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( RemapRange( std::clamp( noiseValue, 0.0f, 1.0f ), 0.0f, 1.0f, aquariaConfig.torusConfig.paletteRefMin, aquariaConfig.torusConfig.paletteRefMax ) + paletteJitter() ), noiseValue ) );
+
+			// need to determine which is the greater percentage:
+				// number of spheres / max spheres
+				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
+				// number of attempts taken as a fraction of max attempts
+				float attemptFrac = float( aquariaConfig.torusConfig.maxAllowedTotalIterations - iterations ) / float( aquariaConfig.torusConfig.maxAllowedTotalIterations );
 
 				// the greater of the two should set the level on the progress bar
 				generateBar.done = std::max( sphereFrac, attemptFrac );
@@ -596,6 +712,8 @@ public:
 				ImGui::RadioButton( " Incremental ", &aquariaConfig.jobType, 0 );
 				ImGui::SameLine();
 				ImGui::RadioButton( " Perlin ", &aquariaConfig.jobType, 1 );
+				ImGui::SameLine();
+				ImGui::RadioButton( " Torus ", &aquariaConfig.jobType, 2 );
 
 				// only show the controls for one at a time, to read easier
 				if ( aquariaConfig.jobType == 0 ) {	// incremental version
@@ -639,6 +757,11 @@ public:
 					ImGui::Text( " " );
 					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.perlinConfig.maxAllowedTotalIterations, 0, 100000000 );
 
+				} else if ( aquariaConfig.jobType == 2 ) {
+					// torus mode
+					ImGui::Text( " " );
+					ImGui::SeparatorText( " TODO " );
+					ImGui::Text( " " );
 				}
 				
 				// move outside the dynamic area
@@ -816,6 +939,8 @@ public:
 					ComputeSpherePacking();
 				else if ( aquariaConfig.jobType == 1 ) // perlin verison
 					ComputePerlinPacking();
+				else if ( aquariaConfig.jobType == 2 ) // torus version
+					ComputeTorusPacking();
 				// else
 					// blah blah, other generators
 				// and the data is ready to send
