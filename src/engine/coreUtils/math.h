@@ -86,6 +86,25 @@ inline int64_t intPow ( int64_t base, uint8_t exp ) {
 	}
 }
 
+
+// // from fadaaszhi on GP discord 11/8/2023
+// vec2 randHex() {
+// #ifdef ANALYTIC
+// 	float x = rand1f() * 2.0 - 1.0;
+// 	float a = sqrt(3.0) - sqrt(3.0 - 2.25 * abs(x));
+// 	return vec2(sign(x) * a, (rand1f() * 2.0 - 1.0) * (1.0 - a / sqrt(3.0)));
+// #else
+// 	while (true) {
+// 		float x = (rand1f() - 0.5) * sqrt(3.0);
+// 		float y = rand1f() * 2.0 - 1.0;
+		
+// 		if (abs(x) < min(sqrt(0.75), sqrt(3.0) * (1.0 - abs(y)))) {
+// 			return vec2(x, y);
+// 		}
+// 	}
+// #endif
+// }
+
 // other curves? there were some things
 	// Bias and Gain Functions - https://arxiv.org/abs/2010.09714
 	// iq's Usful Functions - https://iquilezles.org/articles/functions/
