@@ -152,7 +152,6 @@ public:
 		ZoneScoped;
 		{
 			Block Start( "Additional User Init" );
-			cout << endl;
 
 			// prep reporter shit
 			generateBar.reportWidth = evaluateBar.reportWidth = lightingBar.reportWidth = 16;
