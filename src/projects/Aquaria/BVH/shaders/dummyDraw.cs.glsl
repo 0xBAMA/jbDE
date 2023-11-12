@@ -175,14 +175,21 @@ void main () {
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-				// consider using distance to bubble hit, when bubble is enabled
+				// // consider using distance to bubble hit, when bubble is enabled
+				// vec4 read = imageLoad( colorBuffer, mapPos0 );
+				// if ( read.a != 0.0f ) { // this should be the hit condition
+				// 	col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue + read.rgb;
+				// 	// col = read.rgb;
+				// 	break;
+				// } else {
+				// 	col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue;
+				// }
+
 				vec4 read = imageLoad( colorBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
-					col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue + read.rgb;
-					// col = read.rgb;
-					break;
-				} else {
-					col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue;
+					col.r += read.r * read.a * 0.01f;
+					col.g += read.g * read.a * 0.01f;
+					col.b += read.b * read.a * 0.01f;
 				}
 
 				sideDist0 = sideDist1;
