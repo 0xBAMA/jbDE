@@ -1230,15 +1230,29 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			case CHECKER:
 			{
 				// diffuse material
-				const float thresh = 0.032f;
-				const float thresh2 = 0.01618f;
-				// vec3 p = rayOrigin - vec3( 0.5f );
+				const float thresh = 0.01;
+				const float thresh2 = 0.005;
 				vec3 p = rayOrigin;
-				vec3 color = ( ( abs( p.x ) < thresh ) || ( abs( p.y ) < thresh ) || ( abs( p.z ) < thresh ) || ( abs( mod( p.x, 5.0f ) ) < thresh2 ) || ( abs( mod( p.y, 5.0f ) ) < thresh2 ) || ( abs( mod( p.z, 5.0f ) ) < thresh2 ) ) ? vec3( 1.0f, 0.1f, 0.1f ) : ( ( step( 0.0f, cos( PI * p.x + PI / 2.0f ) * cos( PI * p.y + PI / 2.0 ) * cos( PI * p.z + PI / 2.0f ) ) == 0 ) ? vec3( 0.1618f ) : vec3( 0.618f ) );
-				// bool blackOrWhite = ( ( uint( abs( rayOrigin.x ) ) ^ uint( abs( rayOrigin.y ) ) ^ uint( abs( rayOrigin.z ) ) ) & 1u ) == 0;
-				// vec3 color = ( abs( rayOrigin.x ) < thresh || abs( rayOrigin.y ) < thresh || abs( rayOrigin.z ) < thresh ) ? vec3( 1.0f, 0.1f, 0.1f ) : blackOrWhite ? vec3( 0.1618f ) : vec3( 0.618f );
+
+				bool redLines = (
+					// thick lines at zero
+					( abs( p.x ) < thresh ) ||
+					( abs( p.y ) < thresh ) ||
+					( abs( p.z ) < thresh ) ||
+					// thinner lines every 5
+					( abs( mod( p.x, 5.0f ) ) < thresh2 ) ||
+					( abs( mod( p.y, 5.0f ) ) < thresh2 ) ||
+					( abs( mod( p.z, 5.0f ) ) < thresh2 ) );
+
+				// the checkerboard
+				bool blackOrWhite = ( step( 0.0f,
+					cos( PI * p.x + PI / 2.0f ) *
+					cos( PI * p.y + PI / 2.0f ) *
+					cos( PI * p.z + PI / 2.0f ) ) == 0 );
+
+				vec3 color = redLines ? vec3( 1.0f, 0.1f, 0.1f ) : ( blackOrWhite ? vec3( 0.618f ) : vec3( 0.1618f ) );
 				throughput *= color;
-				rayDirection = randomVectorDiffuse;
+				rayDirection = ( blackOrWhite || redLines ) ? randomVectorDiffuse : reflectedVector;
 				break;
 			}
 
