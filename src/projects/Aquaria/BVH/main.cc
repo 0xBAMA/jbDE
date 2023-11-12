@@ -178,24 +178,26 @@ public:
 	// ================================================================================================================
 	// ==== Create Textures ===========================================================================================
 	// ================================================================================================================
-			// textureOptions_t opts;
-			// opts.dataType		= GL_R32UI;
-			// opts.width			= aquariaConfig.dimension.x;
-			// opts.height			= aquariaConfig.dimension.y;
-			// opts.textureType	= GL_TEXTURE_2D;
-			// textureManager.Add( "Pheremone Continuum Buffer 0", opts );
-			// textureManager.Add( "Pheremone Continuum Buffer 1", opts );
-
 			textureOptions_t opts;
-			opts.dataType		= GL_RG32UI;
 			opts.textureType	= GL_TEXTURE_3D;
 			opts.width			= aquariaConfig.dimensions.x;
 			opts.height			= aquariaConfig.dimensions.y;
 			opts.depth			= aquariaConfig.dimensions.z;
-			// textureManager.Add( "ID Buffer", opts );
 
+			// baked primitive IDs
+			opts.dataType		= GL_RG32UI;
+			textureManager.Add( "ID Buffer", opts );
+
+			// forward pt buffers
+			opts.dataType		= GL_R32UI;
+			textureManager.Add( "Red Atomic", opts );
+			textureManager.Add( "Blue Atomic", opts );
+			textureManager.Add( "Green Atomic", opts );
+			textureManager.Add( "Count Atomic", opts );
+
+			// output color
 			opts.dataType		= GL_RGBA16F;
-			textureManager.Add( "Distance Buffer", opts );
+			textureManager.Add( "Color Buffer", opts );
 
 	// ================================================================================================================
 	// ===== Sphere Packing ===========================================================================================
