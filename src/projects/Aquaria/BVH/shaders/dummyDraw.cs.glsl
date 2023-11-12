@@ -5,7 +5,7 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 layout( binding = 2, rg32ui ) uniform uimage3D idxBuffer;
-layout( binding = 3, rgba16f ) uniform image3D dataCacheBuffer;
+layout( binding = 3, rgba16f ) uniform image3D colorBuffer;
 
 uniform float time;
 uniform vec2 resolution;
@@ -141,7 +141,7 @@ void main () {
 		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
 		// what are the dimensions
-		const ivec3 blockDimensions = imageSize( dataCacheBuffer );
+		const ivec3 blockDimensions = imageSize( colorBuffer );
 
 		if ( hit ) { // texture sample
 			// for trimming edges
@@ -169,14 +169,14 @@ void main () {
 			vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
 			#define MAX_RAY_STEPS 2200
-			for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, imageSize( dataCacheBuffer ) ) ) ); i++ ) {
+			for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, imageSize( colorBuffer ) ) ) ); i++ ) {
 				// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
 				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
 				// consider using distance to bubble hit, when bubble is enabled
-				vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
+				vec4 read = imageLoad( colorBuffer, mapPos0 );
 				if ( read.a != 0.0f ) { // this should be the hit condition
 					col = vec3( 1.0f - exp( -i * fogScalar ) ) * fogColor + ditherValue + read.rgb;
 					// col = read.rgb;

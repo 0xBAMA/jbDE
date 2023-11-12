@@ -7,7 +7,7 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 // results of the precompute step
 layout( binding = 2, rg32ui ) uniform uimage3D idxBuffer;
-layout( binding = 3, rgba16f ) uniform image3D dataCacheBuffer;
+layout( binding = 3, rgba16f ) uniform image3D colorBuffer;
 
 // breaking up the work
 uniform ivec3 offset;
@@ -44,7 +44,7 @@ float blueNoiseRead ( ivec2 loc, int idx ) {
 void main () {
 	// voxel location
 	const ivec3 writeLoc = ivec3( gl_GlobalInvocationID.xyz ) * 8 + offset;
-	vec4 color = imageLoad( dataCacheBuffer, writeLoc );
+	vec4 color = imageLoad( colorBuffer, writeLoc );
 
 	// do a traversal through the image, accumulate optical depth
 		// shadowing comes from exp( -depth )
@@ -73,7 +73,7 @@ void main () {
 		vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-		vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
+		vec4 read = imageLoad( colorBuffer, mapPos0 );
 		opticalDepthSum += clamp( read.a, 0.0f, 1.0f );
 
 		// if ( read.a != 0.0f ) { // this should be the hit condition
@@ -92,5 +92,5 @@ void main () {
 	// colored lights, valid
 	// color.rgb *= vec3( 0.675f, 0.5f, 0.1f ) * ( exp( -opticalDepthSum * 0.1f ) + 0.1f );
 
-	imageStore( dataCacheBuffer, writeLoc, color );
+	imageStore( colorBuffer, writeLoc, color );
 }
