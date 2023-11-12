@@ -989,7 +989,8 @@ public:
 			glUniform2i( glGetUniformLocation( shaders[ "Ray" ], "noiseOffset" ), blueNoiseOffset(), blueNoiseOffset() );
 			glUniform1i( glGetUniformLocation( shaders[ "Ray" ], "wangSeed" ), aquariaConfig.wangSeeder() );
 
-			glDispatchCompute( 16, 16, 1 );
+			// glDispatchCompute( 16, 16, 1 );
+			glDispatchCompute( 4, 4, 1 );
 		}
 
 		{
