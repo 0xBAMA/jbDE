@@ -231,9 +231,11 @@ public:
 	}
 
 	void CompileShaders () {
-		shaders[ "Dummy Draw" ]	= computeShader( "./src/projects/Aquaria/BVH/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-		shaders[ "Precompute" ]	= computeShader( "./src/projects/Aquaria/BVH/shaders/precompute.cs.glsl" ).shaderHandle;
-		shaders[ "Lighting" ] 	= computeShader( "./src/projects/Aquaria/BVH/shaders/lighting.cs.glsl" ).shaderHandle;
+		shaders[ "Dummy Draw" ]		= computeShader( "./src/projects/Aquaria/BVH/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+		shaders[ "Precompute" ]		= computeShader( "./src/projects/Aquaria/BVH/shaders/precompute.cs.glsl" ).shaderHandle;
+		shaders[ "Lighting" ]		= computeShader( "./src/projects/Aquaria/BVH/shaders/lighting.cs.glsl" ).shaderHandle;
+		shaders[ "Ray" ]			= computeShader( "./src/projects/Aquaria/BVH/shaders/ray.cs.glsl" ).shaderHandle;
+		shaders[ "Buffer Copy" ]	= computeShader( "./src/projects/Aquaria/BVH/shaders/bufferCopy.cs.glsl" ).shaderHandle;
 	}
 
 	void ComputeTileList () {
