@@ -62,6 +62,8 @@ void main () {
 	// init rng
 	seed = wangSeed + myLoc.x * 168 + myLoc.y * 451 + blueU.x * 69 + blueU.y * 420;
 
+	const vec3 colorScalars = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
+
 	// generate ray source point
 	const vec2 hexOffset = UniformSampleHexagon( blue.xy );
 	const vec3 startingPoint = ( vec3( hexOffset.x, 0.0f, hexOffset.y ) * 10.0f ) + ( vec3( imageSize( redAtomic ) ) / 2.0f );
@@ -73,10 +75,10 @@ void main () {
 	// do the traversal
 
 		// write some test values
-		imageAtomicAdd( redAtomic, ivec3( startingPoint ), 100 );
-		imageAtomicAdd( greenAtomic, ivec3( startingPoint ), 22 );
-		imageAtomicAdd( blueAtomic, ivec3( startingPoint ), 69 );
-		imageAtomicAdd( countAtomic, ivec3( startingPoint ), 100 );
+		imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 100 ) );
+		imageAtomicAdd( greenAtomic, mapPos0, uint( colorScalars.y * 22 ) );
+		imageAtomicAdd( blueAtomic, mapPos0, uint( colorScalars.z * 69 ) );
+		imageAtomicAdd( countAtomic, mapPos0, 100 );
 
 	// imageStore( colorBuffer, ivec3( startingPoint ), vec4( 1.0f, 0.1f, 0.1f, 1.0f ) );
 
