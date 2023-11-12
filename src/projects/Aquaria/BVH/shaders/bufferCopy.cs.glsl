@@ -24,8 +24,7 @@ void main () {
 		float( bVal ) / float( cVal )
 	);
 
-	// color = vec3( rVal, gVal, bVal );
-
 	// imageStore( colorBuffer, myLoc, vec4( color, 1.0f ) );
-	imageStore( colorBuffer, myLoc, vec4( color, cVal / 100.0f ) );
+	// imageStore( colorBuffer, myLoc, vec4( color, ( cVal > 0 ) ? 1.0f : 0.0f ) );
+	imageStore( colorBuffer, myLoc, vec4( color, cVal / 10000.0f ) );
 }
