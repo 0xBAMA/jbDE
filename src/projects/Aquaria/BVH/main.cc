@@ -628,6 +628,7 @@ public:
 		// screenshot
 		aquariaConfig.userRequestedScreenshot = false; // one shot, repeated trigger is not desired
 		if ( state[ SDL_SCANCODE_T ] && shift ) { aquariaConfig.userRequestedScreenshot = true; }
+		if ( state[ SDL_SCANCODE_R ] && shift ) { ResetForwardPtBuffers(); }
 
 		// zoom in and out
 		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= shift ? 0.9f : 0.99f; }
@@ -643,6 +644,22 @@ public:
 		if ( state[ SDL_SCANCODE_Y ] ) {
 			CompileShaders();
 		}
+	}
+
+	void ResetForwardPtBuffers () {
+		Image_4U zeroes( aquariaConfig.dimensions.x, aquariaConfig.dimensions.y * aquariaConfig.dimensions.z );
+		GLuint handle = textureManager.Get( "Red Atomic" );
+		glBindTexture( GL_TEXTURE_3D, handle );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		handle = textureManager.Get( "Blue Atomic" );
+		glBindTexture( GL_TEXTURE_3D, handle );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		handle = textureManager.Get( "Green Atomic" );
+		glBindTexture( GL_TEXTURE_3D, handle );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		handle = textureManager.Get( "Count Atomic" );
+		glBindTexture( GL_TEXTURE_3D, handle );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
 	}
 
 	void ControlsWindow () {
