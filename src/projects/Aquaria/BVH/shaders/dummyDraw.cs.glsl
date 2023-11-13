@@ -92,8 +92,8 @@ void main () {
 	seed = uint( wangSeed * 10 + writeLoc.x * 69 + writeLoc.y * 420 + blue.x * 255 + blue.y * 255 + blue.z * 255 + blue.w * 255 );
 
 	// used later
-	// vec3 ditherValue = blue.xyz / 64.0f - vec3( 1.0f / 128.0f );
-	vec3 ditherValue = blue.xyz / 32.0f - vec3( 1.0f / 64.0f );
+	vec3 ditherValue = blue.xyz / 64.0f - vec3( 1.0f / 128.0f );
+	// vec3 ditherValue = blue.xyz / 32.0f - vec3( 1.0f / 64.0f );
 
 	// remapped uv
 	vec2 subpixelOffset = blue.xy;
@@ -200,5 +200,5 @@ void main () {
 	}
 	// write the data to the image
 	// imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
-	imageStore( accumulatorTexture, writeLoc, vec4( mix( col, prevColor, blendAmount ), 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( mix( col + ditherValue, prevColor, blendAmount ), 1.0f ) );
 }
