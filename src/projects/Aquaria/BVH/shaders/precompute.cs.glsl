@@ -69,17 +69,6 @@ mat3 Rotate3D ( const float angle, const vec3 axis ) {
 
 float frame ( vec3 p ) {
 	ivec3 bSize = imageSize( dataCacheBuffer );
-	// vec3 pCache = p;
-	// pMirror( p.x, 0.0f );
-	// float cD = fCylinder( p - vec3( bSize.x / 2, 0.0f, 0.0f ), bSize.z / 2.0f, bSize.y );
-	// pModInterval1( p.y, 160.0f, -2, 2 );
-	// float rD = fCylinder( p.yxz, bSize.z / 5.0f, bSize.x );
-	// p = pCache;
-	// pModInterval1( p.x, 100.0f, -10, 10 );
-	// float pD = fCylinder( p, bSize.z / 7.0f, bSize.y * 0.35f );
-
-	// return fOpUnionRound( fOpUnionRound( cD, rD, bSize.z / 4.0f ), pD, bSize.z / 5.0f );
-
 	vec3 pCache = p;
 	pMod1( p.x, 120.0f );
 	p = Rotate3D( pCache.x / 600.0f, vec3( 1.0f, 0.0f, 0.0f ) ) * p;
@@ -97,38 +86,8 @@ void main () {
 
 	// running color
 	vec4 color = vec4( 0.0f );
+	uint indexOfNearest = 0;
 
-	// // grid
-	// const bool x = ( writeLoc.x + 10 ) % 168 < 20;
-	// const bool y = ( writeLoc.y + 10 ) % 128 < 16;
-	// const bool z = ( writeLoc.z ) % 132 < 40;
-	// if ( ( x && y ) || ( x && z ) || ( y && z ) || writeLoc.x < 20 || writeLoc.y < 20 ) {
-	// // if ( ( x && y ) || ( x && z ) || ( y && z ) || writeLoc.x < 20 || writeLoc.y < 20 || frame( pos ) <= 0.0f ) {
-	// 		// color = vec4( vec3( 0.618f + perlinfbm( pos / 300.0f, 2.0f, 3 ) ), 1.0f );
-	// 		vec3 c = matWood( pos / 60.0f );
-	// 		color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
-	// 	}
-
-	// if ( any( greaterThanEqual( curlNoise( pos / 3000.0f ), vec3( 0.3f ) ) ) ) {
-		// float noiseValue = perlinfbm( ( pos + noiseOffset ) / imageSize( dataCacheBuffer ).x, 4.0f, 12 ); 
-		// if ( abs( noiseValue + 0.5f ) < 0.1618f ) {
-			// color = vec4( abs( perlinfbm( ( pos + noiseOffset ) / 333.0f, 3.3f, 15 ) ) ) * vec4( spheres[ 0 ].colorMaterial.rgb, 1.0f );
-			// color.rgb = spheres[ 0 ].colorMaterial.rgb * curlNoise( pos / 300.0f );
-		// }
-
-
-	// } else if ( frame( pos ) <= 0.0f ) {
-	// if ( frame( pos ) <= 0.0f ) {
-
-	// 	// wood material
-	// 	vec3 c = matWood( ( pos.zyx + noiseOffset ) / 60.0f );
-	// 	color = vec4( c, 1.0f + dot( c, vec3( 0.299f, 0.587f, 0.114f ) ) ); // luma to set alpha
-
-	// 	// marble type material
-	// 	// color = vec4( abs( perlinfbm( pos / 500.0f, 2.0f, 10 ) ) );
-	// 	// color.a = ( 2.0f - color.a ) * 1.2f;
-
-	// } else {
 	{
 
 	// iterate through the spheres
