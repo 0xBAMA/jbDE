@@ -25,6 +25,42 @@ layout( binding = 0, std430 ) buffer sphereData {
 	sphere_t spheres[];
 };
 
+vec2 RaySphereIntersect ( vec3 r0, vec3 rd, vec3 s0, float sr ) {
+	// r0 is ray origin
+	// rd is ray direction
+	// s0 is sphere center
+	// sr is sphere radius
+	// return is the roots of the quadratic, includes negative hits
+	float a = dot( rd, rd );
+	vec3 s0_r0 = r0 - s0;
+	float b = 2.0f * dot( rd, s0_r0 );
+	float c = dot( s0_r0, s0_r0 ) - ( sr * sr );
+	float disc = b * b - 4.0f * a * c;
+	if ( disc < 0.0f ) {
+		return vec2( -1.0f, -1.0f );
+	} else {
+		return vec2( -b - sqrt( disc ), -b + sqrt( disc ) ) / ( 2.0f * a );
+	}
+}
+
+mat3 Rotate3D ( const float angle, const vec3 axis ) {
+	const vec3 a = normalize( axis );
+	const float s = sin( angle );
+	const float c = cos( angle );
+	const float r = 1.0f - c;
+	return mat3(
+		a.x * a.x * r + c,
+		a.y * a.x * r + a.z * s,
+		a.z * a.x * r - a.y * s,
+		a.x * a.y * r - a.z * s,
+		a.y * a.y * r + c,
+		a.z * a.y * r + a.x * s,
+		a.x * a.z * r + a.y * s,
+		a.y * a.z * r - a.x * s,
+		a.z * a.z * r + c
+	);
+}
+
 uniform ivec2 noiseOffset;
 uvec4 blueNoiseRead ( ivec2 loc ) {
 	ivec2 wrappedLoc = ( loc + noiseOffset ) % imageSize( blueNoiseTexture );
@@ -81,19 +117,22 @@ void main () {
 	// init rng
 	seed = wangSeed + myLoc.x * 168 + myLoc.y * 451 + blueU.x * 69 + blueU.y * 420;
 
-	const vec3 colorScalars = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
+	vec3 colorScalars = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 
 	// generate ray source point
-	const vec2 hexOffset = UniformSampleHexagon( blue.xy );
-	const vec3 startingPoint = ( vec3( hexOffset.x, 0.0f, hexOffset.y ) * 25.0f ) + ( vec3( size ) / 10.0f );
-	vec3 Direction = vec3( 1.0f, 1.0f, 0.0f );
+	const mat3 rot = Rotate3D( 1.0f, vec3( 0.0f, 0.0f, 1.0f ) );
+	// const vec2 hexOffset = vec3( UniformSampleHexagon( blue.xy ).xy, 0.0f );
+	const vec3 offset = RandomUnitVector();
+	vec3 Origin = ( offset * 90.0f ) + vec3( 30.0f, 30.0f, 100.0f );
+	// const vec3 Origin = ( vec3( hexOffset.x, 0.0f, hexOffset.y ) * 25.0f ) + ( vec3( size ) / vec3( 10.0f, 2.0f, 2.0f ) );
+	vec3 Direction = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
 
 	// do the traversal
 	vec3 deltaDist = 1.0f / abs( Direction );
 	ivec3 rayStep = ivec3( sign( Direction ) );
 	bvec3 mask0 = bvec3( false );
-	ivec3 mapPos0 = ivec3( floor( startingPoint + 0.0f ) );
-	vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - startingPoint ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+	ivec3 mapPos0 = ivec3( floor( Origin + 0.0f ) );
+	vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - Origin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
 	#define MAX_RAY_STEPS 2200
 	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, size ) ) ); i++ ) {
@@ -104,33 +143,79 @@ void main () {
 
 		// write some test values
 		imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 100 ) );
-		imageAtomicAdd( greenAtomic, mapPos0, uint( colorScalars.y * 22 ) );
-		imageAtomicAdd( blueAtomic, mapPos0, uint( colorScalars.z * 69 ) );
+		imageAtomicAdd( greenAtomic, mapPos0, uint( colorScalars.y * 100 ) );
+		imageAtomicAdd( blueAtomic, mapPos0, uint( colorScalars.z * 100 ) );
 		imageAtomicAdd( countAtomic, mapPos0, 100 );
 
-		// evaluate chance to scatter, recompute traversal vars
-		if ( NormalizedRandomFloat() < 0.001f ) {
-			// multiply throughput by the albedo, if scattering occurs
-			Direction = SimpleRayScatter( Direction );
-			// Direction = HenyeyGreensteinSampleSphere( Direction, 0.76f );
-			deltaDist = 1.0f / abs( Direction );
-			rayStep = ivec3( sign( Direction ) );
-			mask0 = bvec3( false );
-			// mapPos0 = mapPos0;
-			// sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - vec3( mapPos0 ) ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
-			sideDist0 = ( ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
-		}
+		// // evaluate chance to scatter, recompute traversal vars
+		// if ( NormalizedRandomFloat() < 0.001f ) {
+		// 	// multiply throughput by the albedo, if scattering occurs
+		// 	Direction = SimpleRayScatter( Direction );
+		// 	// Direction = HenyeyGreensteinSampleSphere( Direction, 0.76f );
+		// 	deltaDist = 1.0f / abs( Direction );
+		// 	rayStep = ivec3( sign( Direction ) );
+		// 	mask0 = bvec3( false );
+		// 	sideDist0 = ( ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+		// }
+
+		// const vec3 centerPt = vec3( 300, 300, 100 );
+		// if ( distance( centerPt, mapPos0 ) < 80.0f ) {
+		// 	vec2 cantidateHit = RaySphereIntersect( vec3( mapPos0 ), Direction, centerPt, 78.0f );
+		// 	if ( cantidateHit.x >= 0.0f ) {
+		// 		vec3 pos = vec3( mapPos0 ) + cantidateHit.x * Direction;
+		// 		vec3 normal = normalize( pos - centerPt );
+		// 		pos += 0.01f * normal;
+
+		// 		if ( NormalizedRandomFloat() < 0.5f ) {
+		// 			Direction = normalize( reflect( Direction, normal ) );
+		// 		} else {
+		// 			Direction = normalize( refract( Direction, normal, 1.0f / 1.3f ) );
+		// 		}
+
+		// 		colorScalars *= vec3( 1.0f, 0.3f, 0.1f );
+
+		// 		// update traversal parameters
+		// 		deltaDist = 1.0f / abs( Direction );
+		// 		rayStep = ivec3( sign( Direction ) );
+		// 		mask0 = bvec3( false );
+		// 		ivec3 mapPos0 = ivec3( floor( pos + 0.0f ) );
+		// 		imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 10000 ) );
+		// 		vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - pos ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+		// 	}
+		// }
+
+
 
 	// load from the idx buffer to see if we need to check against a primitive
-		// uvec2 read = imageLoad( idxBuffer, mapPos0 ).xy;
-		// if ( read.r & 0xFFFF000 != 0.0f ) {
+		uvec2 read = imageLoad( idxBuffer, mapPos0 ).xy;
+		if ( read.r != 0 ) {
 			// this should be the hit condition
-		// }
+			// break;
+
+			// colorScalars *= spheres[ read.x ].colorMaterial.rgb * pow( spheres[ read.x ].colorMaterial.a, 5.0f );
+			colorScalars = spheres[ read.x ].colorMaterial.rgb;
+
+			vec3 offset = imageSize( idxBuffer ) / 2.0f;
+			vec2 d = RaySphereIntersect( Origin, Direction, spheres[ read.x ].positionRadius.xyz + offset, spheres[ read.x ].positionRadius.w );
+			if ( d.x >= 0.0 ) {
+				Origin = Origin + Direction * d.x;
+				vec3 Normal = normalize( Origin - ( spheres[ read.x ].positionRadius.xyz + offset ) );
+				Origin += 0.01f * Normal;
+				Direction = reflect( Direction, Normal );
+
+				deltaDist = 1.0f / abs( Direction );
+				rayStep = ivec3( sign( Direction ) );
+				mask0 = bvec3( false );
+				mapPos0 = ivec3( floor( Origin + 0.0f ) );
+				sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - Origin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+
+			}
+		}
 
 		sideDist0 = sideDist1;
 		mapPos0 = mapPos1;
 	}
 
-	// imageStore( colorBuffer, ivec3( startingPoint ), vec4( 1.0f, 0.1f, 0.1f, 1.0f ) );
+	// imageStore( colorBuffer, ivec3( Origin ), vec4( 1.0f, 0.1f, 0.1f, 1.0f ) );
 
 }

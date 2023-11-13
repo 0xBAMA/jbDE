@@ -13,18 +13,19 @@ layout( r32ui ) uniform uimage3D countAtomic;
 
 void main () {
 	const ivec3 myLoc = ivec3( gl_GlobalInvocationID.xyz );
+	const vec4 colorVal = imageLoad( colorBuffer, myLoc );
 	const uint rVal = imageLoad( redAtomic, myLoc ).r;
 	const uint gVal = imageLoad( greenAtomic, myLoc ).r;
 	const uint bVal = imageLoad( blueAtomic, myLoc ).r;
 	const uint cVal = imageLoad( countAtomic, myLoc ).r;
+	const uint idxVal = imageLoad( idxBuffer, myLoc ).r;
 
-	vec3 color = vec3(
+	vec4 color = vec4(
 		float( rVal ) / float( cVal ),
 		float( gVal ) / float( cVal ),
-		float( bVal ) / float( cVal )
+		float( bVal ) / float( cVal ),
+		cVal / 100000.0f
 	);
 
-	// imageStore( colorBuffer, myLoc, vec4( color, 1.0f ) );
-	// imageStore( colorBuffer, myLoc, vec4( color, ( cVal > 0 ) ? 1.0f : 0.0f ) );
-	imageStore( colorBuffer, myLoc, vec4( color, cVal / 10000.0f ) );
+	imageStore( colorBuffer, myLoc, color );
 }

@@ -1027,43 +1027,45 @@ public:
 		}
 
 
-		// // generate bar is updated internal to the generate functions - this is hacky but whatever
-		// if ( aquariaConfig.workerThreadShouldRun || aquariaConfig.bufferReady ) {
-		// 	evaluateBar.done = lightingBar.done= 0.0f;
-		// } else {
-		// 	evaluateBar.done = aquariaConfig.numTiles - aquariaConfig.updateTiles.size();
-		// 	lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
-		// }
+		// generate bar is updated internal to the generate functions - this is hacky but whatever
+		if ( aquariaConfig.workerThreadShouldRun || aquariaConfig.bufferReady ) {
+			evaluateBar.done = lightingBar.done= 0.0f;
+		} else {
+			evaluateBar.done = aquariaConfig.numTiles - aquariaConfig.updateTiles.size();
+			lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
+		}
 
-		// if ( aquariaConfig.bufferReady ) {
+		if ( aquariaConfig.bufferReady ) {
 
-		// 	// update state
-		// 	aquariaConfig.bufferReady = false;
-		// 	aquariaConfig.workerThreadShouldRun = false;
+			// update state
+			aquariaConfig.bufferReady = false;
+			aquariaConfig.workerThreadShouldRun = false;
 
-		// 	// send the data to the SSBO
-		// 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
-		// 	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &aquariaConfig.sphereBuffer.data()[ 0 ], GL_DYNAMIC_COPY );
-		// 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			// send the data to the SSBO
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &aquariaConfig.sphereBuffer.data()[ 0 ], GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
 
-		// 	ComputeTileList(); // ready to go to the next stage
-		// 	ComputeUpdateOffsets();
+			ComputeTileList(); // ready to go to the next stage
+			ComputeUpdateOffsets();
 
-		// } else if ( aquariaConfig.updateTiles.size() != 0 ) {
-		// 	glUseProgram( shaders[ "Precompute" ] );
+		} else if ( aquariaConfig.updateTiles.size() != 0 ) {
+			glUseProgram( shaders[ "Precompute" ] );
 
-		// 	// buffer setup
-		// 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
-		// 	// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
-		// 	textureManager.BindImageForShader( "Color Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
+			// buffer setup
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
+			textureManager.BindImageForShader( "Color Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
 
-		// 	// other uniforms
-		// 	ivec3 offset = aquariaConfig.updateTiles[ aquariaConfig.updateTiles.size() - 1 ];
-		// 	aquariaConfig.updateTiles.pop_back();
-		// 	glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
-		// 	glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "wangSeed" ), aquariaConfig.incrementalConfig.rngSeed );
-		// 	glDispatchCompute( 8, 8, 8 );
-		// 	// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// other uniforms
+			ivec3 offset = aquariaConfig.updateTiles[ aquariaConfig.updateTiles.size() - 1 ];
+			aquariaConfig.updateTiles.pop_back();
+			glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
+			glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "wangSeed" ), aquariaConfig.incrementalConfig.rngSeed );
+			glDispatchCompute( 8, 8, 8 );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		}
 
 		// } else if ( aquariaConfig.lightingRemaining >= 0 ) {
 		// 	glUseProgram( shaders[ "Lighting" ] );
