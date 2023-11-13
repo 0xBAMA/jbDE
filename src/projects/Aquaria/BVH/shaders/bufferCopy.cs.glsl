@@ -24,7 +24,7 @@ void main () {
 		float( rVal ) / float( cVal ),
 		float( gVal ) / float( cVal ),
 		float( bVal ) / float( cVal ),
-		cVal / 100000.0f
+		cVal / 1000000.0f
 	);
 
 	imageStore( colorBuffer, myLoc, color );

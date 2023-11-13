@@ -120,100 +120,130 @@ void main () {
 	vec3 colorScalars = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 
 	// generate ray source point
-	const mat3 rot = Rotate3D( 1.0f, vec3( 0.0f, 0.0f, 1.0f ) );
-	// const vec2 hexOffset = vec3( UniformSampleHexagon( blue.xy ).xy, 0.0f );
 	const vec3 offset = RandomUnitVector();
-	vec3 Origin = ( offset * 90.0f ) + vec3( 30.0f, 30.0f, 100.0f );
-	// const vec3 Origin = ( vec3( hexOffset.x, 0.0f, hexOffset.y ) * 25.0f ) + ( vec3( size ) / vec3( 10.0f, 2.0f, 2.0f ) );
-	vec3 Direction = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
+	// vec3 Origin = ( offset * 10.0f ) + vec3( 30.0f, 30.0f, 100.0f );
+	// vec3 Direction = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
 
-	// do the traversal
-	vec3 deltaDist = 1.0f / abs( Direction );
-	ivec3 rayStep = ivec3( sign( Direction ) );
-	bvec3 mask0 = bvec3( false );
-	ivec3 mapPos0 = ivec3( floor( Origin + 0.0f ) );
-	vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - Origin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
+	// vec3 Origin = vec3( 300.0f, 300.0f, 10.0f );
+	// vec3 Direction = normalize( RandomUnitVector() + vec3( 0.1f, 0.3f, 0.75f ) );
+
+
+	// vec3 Origin = vec3( NormalizedRandomFloat() * 600, 590, NormalizedRandomFloat() * 300 );
+	// vec3 Direction = normalize( vec3( 0.0f, -1.0f, 0.0f ) + 0.2f * RandomUnitVector() );
+
+
+	// const bool pick = ( NormalizedRandomFloat() < 0.1f );
+	// vec3 Origin = pick ? ( ( offset * 10.0f ) + vec3( 30.0f, 30.0f, 100.0f ) ) : vec3( NormalizedRandomFloat() * 600, 590, NormalizedRandomFloat() * 300 );
+	// vec3 Direction = pick ? normalize( vec3( 1.0f, 1.0f, 0.0f ) + 0.2f * RandomUnitVector() ) : normalize( vec3( 0.0f, -1.0f, 0.0f ) + 0.2f * RandomUnitVector() );
+
+
+	const ivec2 d = imageSize( idxBuffer ).xy;
+	vec3 sources[ 4 ] = vec3[](
+		vec3( 30.0f, 30.0f, 100.0f ),
+		vec3( d.x - 30.0f, 30.0f, 100.0f ),
+		vec3( 30.0f, d.y - 30.0f, 100.0f ),
+		vec3( d.x - 30.0f, d.y - 30.0f, 100.0f )
+	);
+	const int pick = int( floor( NormalizedRandomFloat() * 3.99999f ) );
+	// vec3 Origin = sources[ pick ] + RandomUnitVector();
+	vec3 Origin = vec3( 300.0f, 300.0f, 100.0f ) + RandomUnitVector() * 10.0f;
+	vec3 Direction = normalize( normalize( vec3( 300.0f, 300.0f, 100.0f ) - sources[ pick ] ) + 0.2f * RandomUnitVector() );
+
+
+
+	#define MAX_BOUNCES 5
 	#define MAX_RAY_STEPS 2200
-	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, size ) ) ); i++ ) {
-		// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
-		bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
-		vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
-		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
+	for ( int b = 0; b < MAX_BOUNCES; b++ ) {
+		// do the traversal
+		vec3 deltaDist = 1.0f / abs( Direction );
+		ivec3 rayStep = ivec3( sign( Direction ) );
+		bvec3 mask0 = bvec3( false );
+		ivec3 mapPos0 = ivec3( floor( Origin + 0.0f ) );
+		vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - Origin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-		// write some test values
-		imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 100 ) );
-		imageAtomicAdd( greenAtomic, mapPos0, uint( colorScalars.y * 100 ) );
-		imageAtomicAdd( blueAtomic, mapPos0, uint( colorScalars.z * 100 ) );
-		imageAtomicAdd( countAtomic, mapPos0, 100 );
+		for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, size ) ) ); i++ ) {
+			// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
+			bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
+			vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
+			ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-		// // evaluate chance to scatter, recompute traversal vars
-		// if ( NormalizedRandomFloat() < 0.001f ) {
-		// 	// multiply throughput by the albedo, if scattering occurs
-		// 	Direction = SimpleRayScatter( Direction );
-		// 	// Direction = HenyeyGreensteinSampleSphere( Direction, 0.76f );
-		// 	deltaDist = 1.0f / abs( Direction );
-		// 	rayStep = ivec3( sign( Direction ) );
-		// 	mask0 = bvec3( false );
-		// 	sideDist0 = ( ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
-		// }
+			// write some test values
+			imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 100 ) );
+			imageAtomicAdd( greenAtomic, mapPos0, uint( colorScalars.y * 100 ) );
+			imageAtomicAdd( blueAtomic, mapPos0, uint( colorScalars.z * 100 ) );
+			imageAtomicAdd( countAtomic, mapPos0, 100 );
 
-		// const vec3 centerPt = vec3( 300, 300, 100 );
-		// if ( distance( centerPt, mapPos0 ) < 80.0f ) {
-		// 	vec2 cantidateHit = RaySphereIntersect( vec3( mapPos0 ), Direction, centerPt, 78.0f );
-		// 	if ( cantidateHit.x >= 0.0f ) {
-		// 		vec3 pos = vec3( mapPos0 ) + cantidateHit.x * Direction;
-		// 		vec3 normal = normalize( pos - centerPt );
-		// 		pos += 0.01f * normal;
+			// // evaluate chance to scatter, recompute traversal vars
+			// if ( NormalizedRandomFloat() < 0.001f ) {
+			// 	// multiply throughput by the albedo, if scattering occurs
+			// 	Direction = SimpleRayScatter( Direction );
+			// 	// Direction = HenyeyGreensteinSampleSphere( Direction, 0.76f );
+			// 	deltaDist = 1.0f / abs( Direction );
+			// 	rayStep = ivec3( sign( Direction ) );
+			// 	mask0 = bvec3( false );
+			// 	sideDist0 = ( ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+			// }
 
-		// 		if ( NormalizedRandomFloat() < 0.5f ) {
-		// 			Direction = normalize( reflect( Direction, normal ) );
-		// 		} else {
-		// 			Direction = normalize( refract( Direction, normal, 1.0f / 1.3f ) );
-		// 		}
+			// const vec3 centerPt = vec3( 300, 300, 100 );
+			// if ( distance( centerPt, mapPos0 ) < 80.0f ) {
+			// 	vec2 cantidateHit = RaySphereIntersect( vec3( mapPos0 ), Direction, centerPt, 78.0f );
+			// 	if ( cantidateHit.x >= 0.0f ) {
+			// 		vec3 pos = vec3( mapPos0 ) + cantidateHit.x * Direction;
+			// 		vec3 normal = normalize( pos - centerPt );
+			// 		pos += 0.01f * normal;
 
-		// 		colorScalars *= vec3( 1.0f, 0.3f, 0.1f );
+			// 		if ( NormalizedRandomFloat() < 0.5f ) {
+			// 			Direction = normalize( reflect( Direction, normal ) );
+			// 		} else {
+			// 			Direction = normalize( refract( Direction, normal, 1.0f / 1.3f ) );
+			// 		}
 
-		// 		// update traversal parameters
-		// 		deltaDist = 1.0f / abs( Direction );
-		// 		rayStep = ivec3( sign( Direction ) );
-		// 		mask0 = bvec3( false );
-		// 		ivec3 mapPos0 = ivec3( floor( pos + 0.0f ) );
-		// 		imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 10000 ) );
-		// 		vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - pos ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
-		// 	}
-		// }
+			// 		colorScalars *= vec3( 1.0f, 0.3f, 0.1f );
+
+			// 		// update traversal parameters
+			// 		deltaDist = 1.0f / abs( Direction );
+			// 		rayStep = ivec3( sign( Direction ) );
+			// 		mask0 = bvec3( false );
+			// 		ivec3 mapPos0 = ivec3( floor( pos + 0.0f ) );
+			// 		imageAtomicAdd( redAtomic, mapPos0, uint( colorScalars.x * 10000 ) );
+			// 		vec3 sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - pos ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+			// 	}
+			// }
 
 
 
-	// load from the idx buffer to see if we need to check against a primitive
-		uvec2 read = imageLoad( idxBuffer, mapPos0 ).xy;
-		if ( read.r != 0 ) {
-			// this should be the hit condition
-			// break;
+		// load from the idx buffer to see if we need to check against a primitive
+			uvec2 read = imageLoad( idxBuffer, mapPos0 ).xy;
+			if ( read.r != 0 ) {
+				// this should be the hit condition
+				// break;
 
-			// colorScalars *= spheres[ read.x ].colorMaterial.rgb * pow( spheres[ read.x ].colorMaterial.a, 5.0f );
-			colorScalars = spheres[ read.x ].colorMaterial.rgb;
+				// colorScalars *= spheres[ read.x ].colorMaterial.rgb * pow( spheres[ read.x ].colorMaterial.a, 5.0f );
+				colorScalars = spheres[ read.x ].colorMaterial.rgb;
 
-			vec3 offset = imageSize( idxBuffer ) / 2.0f;
-			vec2 d = RaySphereIntersect( Origin, Direction, spheres[ read.x ].positionRadius.xyz + offset, spheres[ read.x ].positionRadius.w );
-			if ( d.x >= 0.0 ) {
-				Origin = Origin + Direction * d.x;
-				vec3 Normal = normalize( Origin - ( spheres[ read.x ].positionRadius.xyz + offset ) );
-				Origin += 0.01f * Normal;
-				Direction = reflect( Direction, Normal );
+				vec3 offset = imageSize( idxBuffer ) / 2.0f;
+				vec2 d = RaySphereIntersect( Origin, Direction, spheres[ read.x ].positionRadius.xyz + offset, spheres[ read.x ].positionRadius.w );
+				if ( d.x >= 0.0 ) {
+					Origin = Origin + Direction * d.x;
+					vec3 Normal = normalize( Origin - ( spheres[ read.x ].positionRadius.xyz + offset ) );
+					Origin += 0.01f * Normal;
+					Direction = reflect( Direction, Normal );
 
-				deltaDist = 1.0f / abs( Direction );
-				rayStep = ivec3( sign( Direction ) );
-				mask0 = bvec3( false );
-				mapPos0 = ivec3( floor( Origin + 0.0f ) );
-				sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - Origin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
+					deltaDist = 1.0f / abs( Direction );
+					rayStep = ivec3( sign( Direction ) );
+					mask0 = bvec3( false );
+					mapPos0 = ivec3( floor( Origin + 0.0f ) );
+					sideDist0 = ( sign( Direction ) * ( vec3( mapPos0 ) - Origin ) + ( sign( Direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
+					break;
+
+				}
 			}
-		}
 
-		sideDist0 = sideDist1;
-		mapPos0 = mapPos1;
+			sideDist0 = sideDist1;
+			mapPos0 = mapPos1;
+		}
 	}
 
 	// imageStore( colorBuffer, ivec3( Origin ), vec4( 1.0f, 0.1f, 0.1f, 1.0f ) );
