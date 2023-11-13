@@ -96,7 +96,7 @@ void main () {
 		// keep direction away from nearest as normal
 
 		float minDistance = 10000.0f;
-		for ( int i = 0; i < numSpheres; i++ ) {
+		for ( uint i = 0; i < numSpheres; i++ ) {
 			vec4 pr = spheres[ i ].positionRadius;
 			float d = distance( pos, pr.xyz ) - pr.w;
 			minDistance = min( minDistance, d );
@@ -104,6 +104,7 @@ void main () {
 			// if ( minDistance == d ) {
 				// color = vec4( spheres[ i ].colorMaterial.rgb, clamp( -minDistance, 0.0f, 1.0f ) );
 				color = spheres[ i ].colorMaterial;
+				indexOfNearest = i;
 
 				// ... consider checking spheres in random order?
 				break; // I speculate that there is actually only ever one sphere affecting a voxel, this is a good optimization for now
@@ -114,5 +115,6 @@ void main () {
 
 	// write the data to the image - pack 16-bit ids into 32 bit storage
 	// imageStore( idxBuffer, writeLoc, uvec4( <closest> <second>, <third> <fourth>, 0.0f, 1.0f ) );
+	imageStore( idxBuffer, writeLoc, uvec4( indexOfNearest, 0, 0, 0 ) );
 	imageStore( dataCacheBuffer, writeLoc, color );
 }
