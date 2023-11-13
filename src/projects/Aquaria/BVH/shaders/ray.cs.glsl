@@ -146,9 +146,10 @@ void main () {
 		vec3( d.x - 30.0f, d.y - 30.0f, 100.0f )
 	);
 	const int pick = int( floor( NormalizedRandomFloat() * 3.99999f ) );
-	// vec3 Origin = sources[ pick ] + RandomUnitVector();
-	vec3 Origin = vec3( 300.0f, 300.0f, 100.0f ) + RandomUnitVector() * 10.0f;
-	vec3 Direction = normalize( normalize( vec3( 300.0f, 300.0f, 100.0f ) - sources[ pick ] ) + 0.2f * RandomUnitVector() );
+	// vec3 Origin = vec3( 300.0f, 300.0f, 100.0f ) + RandomUnitVector() * 10.0f;
+	vec3 Origin = sources[ pick ] + 35.0f * RandomUnitVector();
+	// Origin.z = 200 * NormalizedRandomFloat();
+	vec3 Direction = normalize( normalize( vec3( 300.0f, 300.0f, 100.0f ) - sources[ pick ] ) + 0.3f * RandomUnitVector() );
 
 
 
@@ -228,7 +229,8 @@ void main () {
 					Origin = Origin + Direction * d.x;
 					vec3 Normal = normalize( Origin - ( spheres[ read.x ].positionRadius.xyz + offset ) );
 					Origin += 0.01f * Normal;
-					Direction = reflect( Direction, Normal );
+					// Direction = reflect( Direction, Normal );
+					Direction = normalize( Normal * 1.001f + RandomUnitVector() );
 
 					deltaDist = 1.0f / abs( Direction );
 					rayStep = ivec3( sign( Direction ) );
