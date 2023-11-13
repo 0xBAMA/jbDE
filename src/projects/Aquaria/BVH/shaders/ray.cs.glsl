@@ -88,6 +88,7 @@ float blueNoiseRead ( ivec2 loc, int idx ) {
 
 uniform int wangSeed;
 #include "random.h"
+#include "wood.h"
 
 vec3 HenyeyGreensteinSampleSphere ( const vec3 n, const float g ) {
 	float t = ( 0.5f - g *0.5) / ( 0.5f - g + 0.5f * g * NormalizedRandomFloat() );
@@ -120,17 +121,17 @@ void main () {
 	vec3 colorScalars = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 
 	// generate ray source point
-	const vec3 offset = RandomUnitVector();
-	// vec3 Origin = ( offset * 10.0f ) + vec3( 30.0f, 30.0f, 100.0f );
-	// vec3 Direction = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
+	// const vec3 offset = RandomUnitVector();
+	// vec3 Origin = ( offset * 20.0f ) + vec3( 30.0f, 30.0f, 100.0f );
+	// vec3 Direction = normalize( vec3( 1.0f, 2.3f, 0.0f ) );
 
 
 	// vec3 Origin = vec3( 300.0f, 300.0f, 10.0f );
 	// vec3 Direction = normalize( RandomUnitVector() + vec3( 0.1f, 0.3f, 0.75f ) );
 
 
-	// vec3 Origin = vec3( NormalizedRandomFloat() * 600, 590, NormalizedRandomFloat() * 300 );
-	// vec3 Direction = normalize( vec3( 0.0f, -1.0f, 0.0f ) + 0.2f * RandomUnitVector() );
+	vec3 Origin = vec3( NormalizedRandomFloat() * 600, 590, NormalizedRandomFloat() * 500 );
+	vec3 Direction = normalize( vec3( 0.0f, -1.0f, 0.2f ) + 0.1618f * RandomUnitVector() );
 
 
 	// const bool pick = ( NormalizedRandomFloat() < 0.1f );
@@ -138,22 +139,16 @@ void main () {
 	// vec3 Direction = pick ? normalize( vec3( 1.0f, 1.0f, 0.0f ) + 0.2f * RandomUnitVector() ) : normalize( vec3( 0.0f, -1.0f, 0.0f ) + 0.2f * RandomUnitVector() );
 
 
-	const ivec2 d = imageSize( idxBuffer ).xy;
-	vec3 sources[ 4 ] = vec3[](
-		vec3( 30.0f, 30.0f, 100.0f ),
-		vec3( d.x - 30.0f, 30.0f, 100.0f ),
-		vec3( 30.0f, d.y - 30.0f, 100.0f ),
-		vec3( d.x - 30.0f, d.y - 30.0f, 100.0f )
-	);
-	const int pick = int( floor( NormalizedRandomFloat() * 3.99999f ) );
-	// vec3 Origin = vec3( 300.0f, 300.0f, 100.0f ) + RandomUnitVector() * 10.0f;
-	vec3 Origin = sources[ pick ] + 35.0f * RandomUnitVector();
-	// Origin.z = 200 * NormalizedRandomFloat();
-	vec3 Direction = normalize( normalize( vec3( 300.0f, 300.0f, 100.0f ) - sources[ pick ] ) + 0.3f * RandomUnitVector() );
+	// vec3 Origin = vec3( UniformSampleHexagon( blue.xy ) * 100.0f + vec2( 300.0f, 300.0f ), NormalizedRandomFloat() * 20.0f + 90.0f );
+	// vec3 Direction = normalize( Origin - vec3( 300.0f, 300.0f, 100.0f ) );
 
 
 
-	#define MAX_BOUNCES 5
+	// vec3 Origin = vec3( UniformSampleHexagon( blue.xy ) * 250.0f + vec2( 300.0f, 300.0f ), NormalizedRandomFloat() * 20.0f + 90.0f );
+	// vec3 Direction = normalize( vec3( 300.0f, 300.0f, 100.0f ) - Origin );
+
+
+	#define MAX_BOUNCES 20
 	#define MAX_RAY_STEPS 2200
 	for ( int b = 0; b < MAX_BOUNCES; b++ ) {
 		// do the traversal
@@ -222,6 +217,7 @@ void main () {
 
 				// colorScalars *= spheres[ read.x ].colorMaterial.rgb * pow( spheres[ read.x ].colorMaterial.a, 5.0f );
 				colorScalars = spheres[ read.x ].colorMaterial.rgb;
+				// colorScalars = matWood( mapPos0 / 600.0f );
 
 				vec3 offset = imageSize( idxBuffer ) / 2.0f;
 				vec2 d = RaySphereIntersect( Origin, Direction, spheres[ read.x ].positionRadius.xyz + offset, spheres[ read.x ].positionRadius.w );
@@ -229,8 +225,12 @@ void main () {
 					Origin = Origin + Direction * d.x;
 					vec3 Normal = normalize( Origin - ( spheres[ read.x ].positionRadius.xyz + offset ) );
 					Origin += 0.01f * Normal;
-					// Direction = reflect( Direction, Normal );
-					Direction = normalize( Normal * 1.001f + RandomUnitVector() );
+
+					if ( read.r % 2 == 0 ) {
+						Direction = reflect( Direction, Normal );
+					} else {
+						Direction = normalize( Normal * 1.001f + RandomUnitVector() );
+					}
 
 					deltaDist = 1.0f / abs( Direction );
 					rayStep = ivec3( sign( Direction ) );
