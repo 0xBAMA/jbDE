@@ -44,6 +44,9 @@ vec2 RejectionSampleHexOffset () {
 	return 2.0f * cantidate;
 }
 
+// more of these uniform remapping functions
+// https://www.shadertoy.com/view/7lGXWK
+
 // uniform sampled hex from fadaaszhi on GP discord
 vec2 UniformSampleHexagon ( vec2 u ) {
 	u = 2.0f * u - 1.0f;

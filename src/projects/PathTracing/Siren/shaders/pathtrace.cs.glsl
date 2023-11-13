@@ -1216,6 +1216,17 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				break;
 			}
 
+// something based on using blue noise like this - nearest sampling
+// https://www.shadertoy.com/view/4lcyR7
+// vec3 fractalColor ( vec3 p ) {
+// 	float iters = 5.0f;
+// 	vec3 c = texture( iChannel1, p ).rgb;
+// 	for ( float i = 0.0f; i < iters; i++ ) {
+// 		c += texture( iChannel1, p * pow( 2.0f, i ) ).rgb * pow( 0.8f, i );
+// 	}
+// 	return c;
+// }
+
 			case MALACHITE:
 			{
 				if ( NormalizedRandomFloat() < 0.1f ) {

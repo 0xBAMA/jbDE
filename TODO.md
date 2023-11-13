@@ -517,6 +517,46 @@ This is a planning document for work on this project and in general, about the t
 
 - Random Shadertoy Inspiration
 	- cool pixel effect [Antipod - MAGFest #08 by Flopine](https://www.shadertoy.com/view/dtS3WG)
+	- [Gaudi Pillar Profile](https://www.shadertoy.com/view/llG3zK) / [Towards 2026: completing Gaudi's Sagrada Familia Basilica Video](https://www.youtube.com/watch?v=UZq5iOV3-bs)
+	- [Interesting Surface Plotter](https://www.shadertoy.com/view/ttKyzh)
+	- [Periodic Minimal Surfaces](https://www.shadertoy.com/view/ctsBzB)
+	- [Box-Frustum Intersection](https://www.shadertoy.com/view/MllczB)
+	- [Analytical Volumetric Shadows](https://www.shadertoy.com/view/msdXzH) / [Similar](https://www.shadertoy.com/view/mdVGRc) / [2D](https://www.shadertoy.com/view/DlXXRf)
+	- [Truchet Pipes](https://www.shadertoy.com/view/WsSyDt)
+
+	- Raymarching Variations
+		- [Opportunistic Raymarching](https://www.shadertoy.com/view/cdsGRs)
+
+- Raytracing Intersectors:
+
+	- Basic:
+		- [Line Segment](https://www.shadertoy.com/view/tslXRj)
+		- [Disk](https://www.shadertoy.com/view/4tsBD7)
+		- [Triangle / Triangle Functions](https://www.shadertoy.com/view/4d2Szd)
+		- [Torus](https://www.shadertoy.com/view/dlSyzt) / [Torus Arc](https://www.shadertoy.com/view/7tyBRW)
+		- [Hyperboloid](https://www.shadertoy.com/view/Dt3GzN)
+		- [Parabola](https://www.shadertoy.com/view/Mt33Ws)
+		- [Paraboloid](https://www.shadertoy.com/view/sdyfDR) / [Variation](https://www.shadertoy.com/view/dstGW2)
+		- [Wedge Shape](https://www.shadertoy.com/view/clsGR8)
+		- [N-Sided Prism](https://www.shadertoy.com/view/dlffzn)
+		- [Monkey Saddle](https://www.shadertoy.com/view/cljfzK)
+		- [Infinite Cylinder](https://www.shadertoy.com/view/ctXyWX) / [Unit Length](https://www.shadertoy.com/view/Dl2yzz)
+		
+
+	- More Complicated:
+		- [Cayley Cubic Surface](https://www.shadertoy.com/view/cl2BDD)
+		- [Clebsh Surface](https://www.shadertoy.com/view/dtjfW1)
+		- [Riemann's Surface](https://www.shadertoy.com/view/DlcyzX)
+		- [Cubic Surface](https://www.shadertoy.com/view/dt2BW1)
+		- [Barth Sextic](https://www.shadertoy.com/view/DlfXzB) / [Alternative](https://www.shadertoy.com/view/wdd3zB) / / [Another One](https://www.shadertoy.com/view/DlXXR2)
+		- [Barth Decic](https://www.shadertoy.com/view/dtlXzB)
+		- [Quintic Surface Intersect](https://www.shadertoy.com/view/Nd2GWd)
+		- [Analytic Cubic Raytracer](https://www.shadertoy.com/view/4s2yRm)
+		- [Nodal Surface](https://www.shadertoy.com/view/fsj3Ry)
+		- [Trilinear Isosurface](https://www.shadertoy.com/view/ssSXWh)
+		- [Bilinear Patch](https://www.shadertoy.com/view/3dXGWs)
+		- [Chmutov Surfaces](https://www.shadertoy.com/view/tddBRH)
+		- [Goursat Quartic Surface](https://www.shadertoy.com/view/wsXGWS) / [Alternative](https://www.shadertoy.com/view/dtjfzc)
 
 --------------------------------------------------------------------------------------------------
 
