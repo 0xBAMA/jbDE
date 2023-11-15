@@ -18,7 +18,7 @@ uniform int wangSeed;
 #include "hg_sdf.glsl"
 
 // sphere data
-const int numSpheres = 1000;
+const int numSpheres = 65535;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;

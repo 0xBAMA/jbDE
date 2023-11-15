@@ -891,7 +891,7 @@ public:
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Dummy Draw" ] );
 
-			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
+			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Dummy Draw" ], 2 );
 			textureManager.BindImageForShader( "Color Buffer", "colorBuffer", shaders[ "Dummy Draw" ], 3 );
 			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
 

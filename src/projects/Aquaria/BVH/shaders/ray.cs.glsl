@@ -130,8 +130,19 @@ void main () {
 	// vec3 Direction = normalize( RandomUnitVector() + vec3( 0.1f, 0.3f, 0.75f ) );
 
 
-	vec3 Origin = vec3( NormalizedRandomFloat() * 600, 590, NormalizedRandomFloat() * 500 );
-	vec3 Direction = normalize( vec3( 0.0f, -1.0f, 0.2f ) + 0.1618f * RandomUnitVector() );
+	// vec3 Origin = vec3( NormalizedRandomFloat() * size.x / 10.0f + size.x / 2.0f, NormalizedRandomFloat() * size.y / 10.0f + size.y / 2.0f, NormalizedRandomFloat() * size.z + size.z / 2.0f );
+	// vec3 Origin = vec3( ( NormalizedRandomFloat() - 0.5f ) * size.x / 10.0f + size.x / 2.0f, ( NormalizedRandomFloat() - 0.5f ) * size.y / 10.0f + size.y / 2.0f,  ( NormalizedRandomFloat() - 0.5f ) * size.z / 10.0f + size.z / 2.0f );
+	// vec3 Origin = vec3( NormalizedRandomFloat() * size.x, NormalizedRandomFloat() * size.y, 5.0f );
+	// vec3 Direction = normalize( vec3( RandomInUnitDisk(), 0.0f ) + 0.618f * RandomUnitVector() ).yzx;
+	// vec3 Direction = RandomUnitVector();
+	// vec3 Direction = vec3( RandomInUnitDisk(), 0.0f );
+	// vec3 Direction = vec3( 0.0f, 0.0f, -1.0f );
+
+	// vec3 Origin = size / 2.0f + 10.0f * RandomUnitVector();
+	// vec3 Direction = vec3( RandomInUnitDisk(), 0.0f );
+	// Direction.xy = sign( Direction.xy );
+
+	
 
 
 	// const bool pick = ( NormalizedRandomFloat() < 0.1f );
