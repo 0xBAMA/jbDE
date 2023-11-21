@@ -523,6 +523,7 @@ This is a planning document for work on this project and in general, about the t
 	- [Box-Frustum Intersection](https://www.shadertoy.com/view/MllczB)
 	- [Analytical Volumetric Shadows](https://www.shadertoy.com/view/msdXzH) / [Similar](https://www.shadertoy.com/view/mdVGRc) / [2D](https://www.shadertoy.com/view/DlXXRf)
 	- [Truchet Pipes](https://www.shadertoy.com/view/WsSyDt)
+	- [Interesting Parallax Viewing of Heightmaps](https://www.shadertoy.com/view/4sSGD1)
 
 	- Raymarching Variations
 		- [Opportunistic Raymarching](https://www.shadertoy.com/view/cdsGRs)
