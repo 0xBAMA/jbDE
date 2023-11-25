@@ -36,6 +36,10 @@ public:
 			// 		sourceData[ 3 ] = color[ alpha ];
 
 			// 		for ( int i = 0; i < 4; i++ ) {
+
+						// probably mess with this again, but with a low chance for random bit flips
+							// needs nan checking, etc
+
 			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 0 ) );
 			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 1 ) );
 			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 2 ) );
@@ -56,9 +60,10 @@ public:
 			// // save the image back out
 			// testImage.Save( "out.png" );
 
+
 		// report platform specific sized long floats
 			// ( quad must be at least as precise as double, double as precise as float - only guarantee in the spec )
-			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;; 
+			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
 
 		}
 
