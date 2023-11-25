@@ -60,7 +60,31 @@ public:
 			// ( quad must be at least as precise as double, double as precise as float - only guarantee in the spec )
 			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;; 
 
-		}
+			Image_4U fontAtlas( "./src/utils/fonts/fontRenderer/whiteOnClear.png" );
+			cout << "uint data[ 1024 ] = uint[](" << endl;
+			for ( int y = 0; y < 256; y++ ) { // for each row
+				cout << "\t";
+				uint value;
+				// four bytes, encoding the row
+				for ( uint i = 0; i < 4; i++ ) {
+					value = 0;
+
+					uint base = i  * 32;
+					for ( uint p = base; p < base + 32; p++ ) {
+						bool pixelValue = fontAtlas.GetAtXY( p, y )[ alpha ];
+						cout << pixelValue ? "true" : "false";
+						value = ( value << 1 ) + ( pixelValue ? 1u : 0u );
+					}
+					cout << value << "u, ";
+				}
+				cout << endl;
+			}
+			cout << ");";
+
+
+
+
+
 	}
 
 	void HandleCustomEvents () {
