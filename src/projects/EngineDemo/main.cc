@@ -85,6 +85,33 @@ public:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			// string data = string( "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus pharetra fringilla risus, sit amet dignissim risus dictum eget. Nullam rutrum vulputate massa eget pulvinar. In eget dictum ante. Nunc aliquam quis augue ac ornare. Pellentesque luctus pretium libero ut consectetur. Nulla a odio ac orci molestie imperdiet a in leo. Sed eu interdum leo. Curabitur fringilla eget justo eget tincidunt. Morbi posuere sit amet dui in vulputate. Phasellus imperdiet quam at risus lacinia accumsan. Vestibulum tincidunt quis dolor ac euismod. Nunc eleifend, ipsum nec consequat tristique, erat elit vestibulum nulla, vel aliquam sapien eros nec ligula. Aenean ac ex nec massa accumsan iaculis." );
+
+			// cout << "const uint loremIpsum[ 500 ] = uint[](" << endl;
+			// int count = 0;
+			// for ( auto& c : data ) {
+			// 	count++;
+			// 	if ( count == 501 ) break;
+			// 	cout << int( c ) << "u, ";
+			// }
+			// cout << ");";
+		}
+
 	}
 
 	void HandleCustomEvents () {
