@@ -783,6 +783,8 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
+	return 1000.0f;
+
 	return sceneDist;
 }
 
@@ -931,8 +933,35 @@ Intersection iPlane ( in vec3 ro, in vec3 rd, vec4 pla ) {
 	float k1 = dot( ro, pla.xyz );
 	float k2 = dot( rd, pla.xyz );
 	float t = ( pla.w - k1 ) / k2;
-	vec2 ab = ( k2 > 0.0f ) ? vec2( t, 1e20f ) : vec2( -1e20f, t );
+	vec2 ab = ( k2 > 0.0f ) ? vec2( t, 1e20f ) : vec2( -1e20f, t ); // backface hits
 	return Intersection( vec4( ab.x, -pla.xyz ), vec4( ab.y, pla.xyz ) );
+}
+
+// get the vector for the fibonacci distribution of points on a sphere
+vec3 sphericalFibonacci ( float i, float num ) { // get the vec3 direction
+	float phi = 2.0f * PI * i * ( 2.0f / ( 3.0f - sqrt( 5.0f ) ) );
+	float theta = acos( 1.0f - 2.0f * i / num );
+	return vec3( sin( theta ) * cos( phi ), sin( theta ) * sin( phi ), cos( theta ) );
+}
+
+Intersection IntersectFibbonacciShape ( in vec3 origin, in vec3 direction ) {
+	Intersection current = kEmpty;
+	for ( int i = 0; i < 10; i++ ) {
+		vec3 normal = sphericalFibonacci( i, 10 );
+		float dist = 2.0f;
+		Intersection planeIntersect = iPlane( origin, direction, vec4( normal, dist ) );
+		bool backfaceHit = ( planeIntersect.a.x == -1e20f );
+		if ( backfaceHit ) {
+			if ( planeIntersect.b.x < current.b.x ) {
+				current.b = planeIntersect.b;
+			}
+		} else {
+			if ( planeIntersect.a.x < current.a.x ) {
+				current.a = planeIntersect.a;
+			}
+		}
+	}
+	return current;
 }
 
 
@@ -1015,12 +1044,24 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 		}
 	}
 
+	Intersection t = IntersectFibbonacciShape( origin, direction );
+	if ( !IsEmpty( t ) ) {
+		nearestOverallHit = t.a.x;
+		iResult = t;
+	}
+
 	sceneIntersection result;
-	result.dTravel = nearestOverallHit;
-	result.normal = ( iResult.a.x == nearestOverallHit ) ? iResult.a.yzw : iResult.b.yzw;
-	result.i = iResult;
-	result.material = int( spheres[ indexOfHit ].colorMaterial.w );
-	result.color = spheres[ indexOfHit ].colorMaterial.xyz;
+	// result.dTravel = nearestOverallHit;
+	// result.normal = ( iResult.a.x == nearestOverallHit ) ? iResult.a.yzw : iResult.b.yzw;
+	// result.i = iResult;
+	// result.material = int( spheres[ indexOfHit ].colorMaterial.w );
+	// result.color = spheres[ indexOfHit ].colorMaterial.xyz;
+
+	result.dTravel = t.a.x;
+	result.i = t;
+	result.normal = t.a.yzw;
+	result.color = vec3( 1.0f, 0.0f, 0.0f );
+	result.material = DIFFUSE;
 
 
 	// // trying to debug the issues with the refractive box - why is it black?
