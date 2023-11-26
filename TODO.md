@@ -232,6 +232,8 @@ This is a planning document for work on this project and in general, about the t
 		- [Realistic Camera ( PBRT )](https://pbr-book.org/3ed-2018/Camera_Models/Realistic_Cameras)
 		- [uv distort from iq](https://www.shadertoy.com/view/Xsf3Rn)
 		- [Another One](https://www.shadertoy.com/view/wlVSz3)
+		- [Faceted Eye](https://www.shadertoy.com/view/4lfcR7)
+			- [Hexagonal Spherical Facets](https://www.shadertoy.com/view/Wstfzj)
 		- [Shattered Mirror Effect](https://www.shadertoy.com/view/tlVcDd)
 		- Some stuff like barrel distortion to just mess with the existing camera
 			- [Lens distortion + chrom abb tutorial](https://blog.yarsalabs.com/lens-distortion-and-chromatic-aberration-unity-part1/)
