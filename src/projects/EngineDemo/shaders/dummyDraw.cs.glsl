@@ -50,6 +50,8 @@ void main () {
 
 #endif
 
+	col = vec3( 0.0f );
+
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
 }
