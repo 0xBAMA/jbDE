@@ -138,34 +138,7 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
-			// textRenderer.Update( ImGui::GetIO().DeltaTime );
-			for ( int i  = 0; i < 1; i++ ) {
-				// add some random lines
-				static rngi xPick = rngi( 0, textRenderer.numBinsWidth - 1 );
-				static rngi yPick = rngi( 0, textRenderer.numBinsHeight - 1 );
-				static rngi rPick = rngi( 22, 255 );
-				static rngi gPick = rngi( 4, 128 );
-				static rngi bPick = rngi( 0, 255 );
-				static rngi wPick = rngi( 5, 100 );
-				static rngi hPick = rngi( 0, 2 );
-				static rngi lPick = rngi( 176, 223 );
-				static rngi type = rngi( 0, 1 );
-				static rngi wordPick = rngi( 0, colorWords.size() - 1 );
-
-				ivec2 basePt = ivec2( xPick(), yPick() );
-				if ( type() == 0 ) {
-					textRenderer.layers[ type() ].DrawRectConstant( uvec2( basePt ), uvec2( basePt ) + uvec2( wPick(), 0 ), cChar( RED, ( unsigned char ) lPick() ) );
-					textRenderer.layers[ type() ].DrawRectConstant( uvec2( basePt ), uvec2( basePt ) + uvec2( wPick(), hPick() * 4 ), cChar( WHITE, ( unsigned char ) lPick() ) );
-					textRenderer.layers[ type() ].DrawRectConstant( uvec2( basePt ), uvec2( basePt ) + uvec2( hPick(), 0 ), cChar( ivec3( rPick(), gPick(), bPick() ), ( unsigned char ) lPick() ) );
-
-					string word = colorWords[ wordPick() ];
-					basePt = ivec2( xPick(), yPick() );
-					textRenderer.layers[ 1 ].WriteString( uvec2( basePt ), uvec2( basePt ) + uvec2( word.size(), 1 ), word, ivec3( bPick() ) );
-				} else {
-					textRenderer.layers[ type() ].DrawRectConstant( uvec2( basePt ), uvec2( basePt ) + uvec2( 0, wPick() ), cChar( RED, ( unsigned char ) lPick() ) );
-				}
-			}
-
+			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
