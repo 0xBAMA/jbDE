@@ -149,8 +149,8 @@ public:
 			glGenBuffers( 1, &sirenConfig.sphereSSBO ); // create the corresponding SSBO and populate it
 			SendSphereSSBO();
 
+			// create the stack
 			PrepGlyphBuffer();
-			SendGlyphBuffer();
 		}
 	}
 
@@ -1243,11 +1243,104 @@ public:
 		// 	}
 		// }
 
+		// block dimensions
+		uint32_t texW = 64;
+		uint32_t texH = 96;
+		uint32_t texD = 32;
 
-	}
+		// create a texture, and send the data
+		textureOptions_t opts;
+		opts.width = texW;
+		opts.height = texH * texD;
 
-	void SendGlyphBuffer () {
-		// update the 3d texture
+		Image_4U data( opts.width, opts.height );
+
+		// create the voxel model
+			// update the data
+		const uint32_t numOps = 1000;
+		rngi opPick = rngi( 0, 5 );
+		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 1, 20 );
+		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 12 );
+		rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 1, 10 );
+		rngi glyphPick = rngi( 176, 223 );
+		rngi thinPick = rngi( 0, 2 );
+		rngi rPick = rngi( 22, 255 );
+		rngi gPick = rngi( 4, 128 );
+		rngi bPick = rngi( 0, 255 );
+
+		color_4U col = color_4U( { 0, 0, 0, 0 } );
+		uint32_t length = 0;
+
+		// do N randomly selected
+		for ( uint32_t op = 0; op < numOps; op++ ) {
+			switch ( opPick() ) {
+			case 0: // white AABB
+			{
+				col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				ivec3 dims = ivec3( xDPick(), yDPick(), zDPick() );
+				for ( uint8_t x = base.x; x < base.x + dims.x; x++ )
+				for ( uint8_t y = base.y; y < base.y + dims.y; y++ )
+				for ( uint8_t z = base.z; z < base.z + dims.z; z++ )
+					data.SetAtXY( x, y + z * texH, col );
+				break;
+			}
+
+			case 1: // red lines
+			{
+				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
+				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				length = xDPick();
+				for ( uint8_t x = base.x; x < base.x + length; x++ )
+					data.SetAtXY( x, base.y + base.z * texH, col );
+				break;
+			}
+
+			case 2: // other red lines
+			{
+				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
+				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				length = yDPick();
+				for ( uint8_t y = base.y; y < base.y + length; y++ )
+					data.SetAtXY( base.x, y + base.z * texH, col );
+				break;
+			}
+
+			case 3: // more other-er red lines
+			{
+				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
+				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				length = zDPick();
+				for ( uint8_t z = base.z; z < base.z + length; z++ )
+					data.SetAtXY( base.x, base.y + z * texH, col );
+				break;
+			}
+
+			case 4: // little purpley bits
+			{
+				col = color_4U( { ( uint8_t ) rPick(), ( uint8_t ) gPick(), ( uint8_t ) bPick(), ( uint8_t ) glyphPick() } );
+				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				ivec3 dims = ivec3( thinPick() + 1, thinPick() + 1, thinPick() + 1 );
+				for ( uint8_t x = base.x; x < base.x + dims.x; x++ )
+				for ( uint8_t y = base.y; y < base.y + dims.y; y++ )
+				for ( uint8_t z = base.z; z < base.z + dims.z; z++ )
+					data.SetAtXY( x, y + z * texH, col );
+				break;
+			}
+
+			case 5: // string text
+				// todo
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		// data.Save( "test.png" );
+
+		// texture is ready to be used in the pathtrace
+
 	}
 
 	void OnRender () {
