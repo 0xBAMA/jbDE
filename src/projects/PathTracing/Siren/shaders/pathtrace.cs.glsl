@@ -4,6 +4,7 @@ layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 layout( rgba32f ) uniform image2D accumulatorColor;
 layout( rgba32f ) uniform image2D accumulatorNormalsAndDepth;
 layout( rgba8ui ) uniform uimage2D blueNoise;
+layout( rgba8ui ) uniform uimage2D textBuffer;
 
 #include "hg_sdf.glsl" // SDF modeling functions
 #include "twigl.glsl" // noise etc utils

@@ -1067,6 +1067,7 @@ public:
 		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 0 );
 		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
+		textureManager.BindImageForShader( "TextBuffer", "textBuffer", shader, 3 );
 	}
 
 	void InitSphereData () {
@@ -1223,14 +1224,19 @@ public:
 
 		// create a texture, and send the data
 		textureOptions_t opts;
-		opts.width = texW;
-		opts.height = texH * texD;
+		opts.width			= texW;
+		opts.height			= texH * texD;
+		opts.dataType		= GL_RGBA8UI;
+		opts.minFilter		= GL_NEAREST;
+		opts.magFilter		= GL_NEAREST;
+		opts.textureType	= GL_TEXTURE_2D;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
 
 		Image_4U data( opts.width, opts.height );
 
-		// create the voxel model
+		// create the voxel model inside the flat image
 			// update the data
-		const uint32_t numOps = 1000;
+		const uint32_t numOps = 10000;
 		rngi opPick = rngi( 0, 5 );
 		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 1, 20 );
 		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 12 );
@@ -1252,9 +1258,9 @@ public:
 				col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
 				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
 				ivec3 dims = ivec3( xDPick(), yDPick(), zDPick() );
-				for ( uint8_t x = base.x; x < base.x + dims.x; x++ )
-				for ( uint8_t y = base.y; y < base.y + dims.y; y++ )
-				for ( uint8_t z = base.z; z < base.z + dims.z; z++ )
+				for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
+				for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
+				for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
 					data.SetAtXY( x, y + z * texH, col );
 				break;
 			}
@@ -1262,9 +1268,9 @@ public:
 			case 1: // red lines
 			{
 				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				ivec3 base = ivec3( xPick(), yPick(), zPick() );
 				length = xDPick();
-				for ( uint8_t x = base.x; x < base.x + length; x++ )
+				for ( uint32_t x = base.x; x < base.x + length; x++ )
 					data.SetAtXY( x, base.y + base.z * texH, col );
 				break;
 			}
@@ -1272,9 +1278,9 @@ public:
 			case 2: // other red lines
 			{
 				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				ivec3 base = ivec3( xPick(), yPick(), zPick() );
 				length = yDPick();
-				for ( uint8_t y = base.y; y < base.y + length; y++ )
+				for ( uint32_t y = base.y; y < base.y + length; y++ )
 					data.SetAtXY( base.x, y + base.z * texH, col );
 				break;
 			}
@@ -1282,9 +1288,9 @@ public:
 			case 3: // more other-er red lines
 			{
 				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				ivec3 base = ivec3( xPick(), yPick(), zPick() );
 				length = zDPick();
-				for ( uint8_t z = base.z; z < base.z + length; z++ )
+				for ( uint32_t z = base.z; z < base.z + length; z++ )
 					data.SetAtXY( base.x, base.y + z * texH, col );
 				break;
 			}
@@ -1292,27 +1298,34 @@ public:
 			case 4: // little purpley bits
 			{
 				col = color_4U( { ( uint8_t ) rPick(), ( uint8_t ) gPick(), ( uint8_t ) bPick(), ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				ivec3 base = ivec3( xPick(), yPick(), zPick() );
 				ivec3 dims = ivec3( thinPick() + 1, thinPick() + 1, thinPick() + 1 );
-				for ( uint8_t x = base.x; x < base.x + dims.x; x++ )
-				for ( uint8_t y = base.y; y < base.y + dims.y; y++ )
-				for ( uint8_t z = base.z; z < base.z + dims.z; z++ )
+				for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
+				for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
+				for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
 					data.SetAtXY( x, y + z * texH, col );
 				break;
 			}
 
 			case 5: // string text
 				// todo
+
+		// 	static rngi wordPick = rngi( 0, colorWords.size() - 1 );
+		// 		string word = colorWords[ wordPick() ];
+		// 		basePt = ivec2( xPick(), yPick() );
+		// 		textRenderer.layers[ 1 ].WriteString( uvec2( basePt ), uvec2( basePt ) + uvec2( word.size(), 1 ), word, ivec3( bPick() ) );
 				break;
+
+			// scooping out? something to create some more negative space
 
 			default:
 				break;
 			}
 		}
 
-		// data.Save( "test.png" );
-
 		// texture is ready to be used in the pathtrace
+		opts.initialData = ( void * ) data.GetImageDataBasePtr();
+		textureManager.Add( "TextBuffer", opts );
 
 	}
 
