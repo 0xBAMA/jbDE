@@ -870,7 +870,7 @@ public:
 			const size_t baseIndex = ( x + y * width ) * numChannels;
 			for ( uint8_t c { 0 }; c < numChannels; c++ ) // populate values
 				data[ baseIndex + c ] = col[ c ];
-		} else { cout << "Out of Bounds Write :(\n"; }
+		} // else { cout << "Out of Bounds Write :(\n"; }
 	}
 
 	// getting filtered samples
