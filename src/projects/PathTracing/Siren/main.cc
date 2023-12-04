@@ -129,8 +129,6 @@ public:
 			opts.minFilter		= GL_LINEAR;
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
-			// opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
-			// opts.wrap			= GL_CLAMP_TO_EDGE;
 			opts.wrap			= GL_CLAMP_TO_BORDER;
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
@@ -805,8 +803,6 @@ public:
 		opts.minFilter		= GL_LINEAR;
 		opts.magFilter		= GL_LINEAR;
 		opts.textureType	= GL_TEXTURE_2D;
-		// opts.wrap			= GL_MIRROR_CLAMP_TO_EDGE;
-		// opts.wrap			= GL_CLAMP_TO_EDGE;
 		opts.wrap			= GL_CLAMP_TO_BORDER;
 		textureManager.Add( "Depth/Normals Accumulator", opts );
 		textureManager.Add( "Color Accumulator", opts );
