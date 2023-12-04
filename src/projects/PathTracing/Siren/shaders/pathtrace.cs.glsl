@@ -88,6 +88,7 @@ vec3 GetColorForTemperature ( const float temperature ) {
 }
 
 #include "wood.h"
+#include "glyphs.h"
 
 // other cool procedural materials to explore/learn from:
 // marble:
