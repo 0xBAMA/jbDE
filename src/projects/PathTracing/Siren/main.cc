@@ -1218,8 +1218,8 @@ public:
 	void PrepGlyphBuffer () {
 
 		// block dimensions
-		uint32_t texW = 64;
-		uint32_t texH = 96;
+		uint32_t texW = 96;
+		uint32_t texH = 64;
 		uint32_t texD = 32;
 
 		// create a texture, and send the data
