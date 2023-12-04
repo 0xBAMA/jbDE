@@ -697,8 +697,8 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
-	// return sceneDist;
-	return ( 1000.0f );
+	return sceneDist;
+	// return ( 1000.0f );
 }
 
 
@@ -1005,28 +1005,41 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 
 
 	// iterate through the planes
+	Intersection closest;
+	vec4 temp = vec4( 0.0f, 0.0f, 0.0f, 1000000.0f );
 
 	int i = 0;
-	for ( ; i < 2; i++ ) {
-		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 1.0f ) ), 0.01f * float( i ) ) );
+	for ( ; i < 32; i++ ) {
+		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 0.0f, 1.0f ) ), 0.01f * float( i ) ) );
 		float planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? 1000000.0f : plane.b.x : plane.a.x;
-		if ( planeHit > 0.0f ) {
+		if ( planeHit > 0.0f && planeHit != 1000000.0f ) {
 
 			vec3 hitPoint = origin + planeHit * direction;
 			ivec3 pxIdx = ivec3( floor( hitPoint * 250.0f ) );
 
+			ivec2 bin = ivec2( floor( pxIdx.xy / vec2( 8.0f, 16.0f ) ) );
+			ivec2 offset = ivec2( pxIdx.xy ) % ivec2( 8, 16 );
+
 			// get the sample
-			uvec4 sampleValue = imageLoad( textBuffer, pxIdx.xz );
-			bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( 96 * 8 ) || pxIdx.z >= ( 64 * 16 );
+			uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, 64 * i ) );
+			int onGlyph = fontRef( sampleValue.a, offset );
+			bool reject = pxIdx.x < 0 || pxIdx.y < 0 || pxIdx.x >= ( 96 * 8 ) || pxIdx.y >= ( 64 * 16 ) || ( onGlyph <= 0 );
 
 			if ( !reject ) {
-				result.dTravel = planeHit;
-				result.i = plane;
-				result.normal = ( planeHit == plane.a.x ) ? plane.a.yzw : plane.b.yzw;
-				result.material = DIFFUSE;
-				result.color = vec3( sampleValue.xyz ) / 255.0f;
+
+				closest = plane;
+				temp =  vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit ) );
+
 			}
 		}
+	}
+
+	if ( temp.a != 1000000.0f ) {
+		result.dTravel = temp.a;
+		result.i = closest;
+		result.normal = ( temp.a == closest.a.x ) ? closest.a.yzw : closest.b.yzw;
+		result.material = DIFFUSE;
+		result.color = temp.rgb;
 	}
 
 
