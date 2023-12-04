@@ -697,9 +697,8 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
-	return 1000.0f;
-
-	return sceneDist;
+	// return sceneDist;
+	return ( 1000.0f );
 }
 
 
@@ -860,11 +859,20 @@ vec3 sphericalFibonacci ( float i, float num ) { // get the vec3 direction
 
 Intersection IntersectFibbonacciShape ( in vec3 origin, in vec3 direction ) {
 	Intersection current = kEmpty;
-	for ( int i = 0; i < 10; i++ ) {
-		vec3 normal = sphericalFibonacci( i, 10 );
-		float dist = 2.0f;
-		Intersection planeIntersect = iPlane( origin, direction, vec4( normal, dist ) );
-		bool backfaceHit = ( planeIntersect.a.x == -1e20f );
+	// vec4 planes[ 2 ] = vec4[ 2 ](
+	vec4 planes = vec4(
+		// vec4( 0.0f, 1.0f, 0.0f, 1.0f ),
+		vec4( 1.0f, 0.0f, 0.0f, 0.0f )
+		// vec4( 0.0f, -1.0f, 0.0f, 1.0f )
+	);
+
+	// for ( int i = 0; i < 2; i++ ) {
+		// vec3 normal = sphericalFibonacci( i, 10 );
+		// float dist = 2.0f;
+		// Intersection planeIntersect = iPlane( origin, direction, vec4( normal, dist ) );
+		// Intersection planeIntersect = iPlane( origin, direction, planes[ i ] );
+		Intersection planeIntersect = iPlane( origin, direction, planes );
+		bool backfaceHit = ( dot( planes.xyz, direction ) > 0.0f );
 		if ( backfaceHit ) {
 			if ( planeIntersect.b.x < current.b.x ) {
 				current.b = planeIntersect.b;
@@ -874,7 +882,9 @@ Intersection IntersectFibbonacciShape ( in vec3 origin, in vec3 direction ) {
 				current.a = planeIntersect.a;
 			}
 		}
-	}
+	// }
+
+	// current = iPlane( origin, direction, vec4( 0.0f, 1.0f, 0.0f, 0.0f ) );
 	return current;
 }
 
@@ -930,6 +940,22 @@ Intersection opSubtraction ( Intersection b, Intersection a, out int r ) {
 	}
 }
 
+// #include "intersect.h"
+// vec4 rayPlaneCompositeIntersect ( vec3 origin, vec3 direction ) {
+// 	vec4 nearest = vec4( -1.0f );
+// 	vec3 centerBase = vec3( 0.0f );
+// 	for ( int i = 0; i < 32; i++ ) {
+// 		float dHit = diskIntersect( origin, direction, centerBase + vec3( 0.0f, 0.0f, 0.01f * float( i ) ), vec3( 0.0f, 0.0f, 1.0f ), 1.0f );
+// 		if ( dHit > 0.0f ) {
+// 			if ( dHit == ( nearest.a = min( nearest.a, dHit ) ) ) {
+// 				nearest = vec4( vec3( 1.0f, 0.0f, 0.0f ), dHit );
+// 			}
+// 		}
+// 		// uvec4 sample = imageLoad();
+// 	}
+// 	return nearest;
+// }
+
 // ==============================================================================================
 struct sceneIntersection {
 	float dTravel;
@@ -944,25 +970,19 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	// something's wrong here, I can't seem to get the behavior I'm wanting from the intersection of two spheres
 	// return opIntersection( IntersectSphere( origin, direction, vec3( offset, 0.0f, 0.0f ), radius ), IntersectSphere( origin, direction, vec3( -offset, 0.0f, 0.0f ), radius ), r );
 
-	Intersection iResult = kEmpty;
-	int indexOfHit = -1;
-	float nearestOverallHit = 1000000.0f;
-	for ( int i = 30; i < numSpheres; i++ ) {
-		Intersection current = IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
-		// Intersection current = ( i % 2 == 0 ) ? IntersectBox( origin, direction, spheres[ i ].positionRadius.xyz, vec3( spheres[ i ].positionRadius.w ) ) : IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
-		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;
-		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
-		if ( currentNearestPositive == nearestOverallHit ) {
-			iResult = current;
-			indexOfHit = i;
-		}
-	}
-
-	Intersection t = IntersectFibbonacciShape( origin, direction );
-	if ( !IsEmpty( t ) ) {
-		nearestOverallHit = t.a.x;
-		iResult = t;
-	}
+	// Intersection iResult = kEmpty;
+	// int indexOfHit = -1;
+	// float nearestOverallHit = 1000000.0f;
+	// for ( int i = 30; i < numSpheres; i++ ) {
+	// 	Intersection current = IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
+	// 	// Intersection current = ( i % 2 == 0 ) ? IntersectBox( origin, direction, spheres[ i ].positionRadius.xyz, vec3( spheres[ i ].positionRadius.w ) ) : IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
+	// 	const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1000000.0f : current.b.x : current.a.x;
+	// 	nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
+	// 	if ( currentNearestPositive == nearestOverallHit ) {
+	// 		iResult = current;
+	// 		indexOfHit = i;
+	// 	}
+	// }
 
 	sceneIntersection result;
 	// result.dTravel = nearestOverallHit;
@@ -971,12 +991,64 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	// result.material = int( spheres[ indexOfHit ].colorMaterial.w );
 	// result.color = spheres[ indexOfHit ].colorMaterial.xyz;
 
-	result.dTravel = t.a.x;
-	result.i = t;
-	result.normal = t.a.yzw;
-	result.color = vec3( 1.0f, 0.0f, 0.0f );
-	result.material = DIFFUSE;
 
+	// Intersection t = IntersectFibbonacciShape( origin, direction );
+	// if ( !IsEmpty( t ) ) {
+	// 	nearestOverallHit = t.a.x;
+	// 	iResult = t;
+
+	// 	result.color = vec3( 1.0f, 0.0f, 0.0f );
+	// 	if ( dot( direction, vec3( 0.0f, 1.0f, 0.0f ) ) < 0.0f ) {
+	// 		result.color = vec3( 0.0f, 1.0f, 0.0f );
+	// 	}
+	// }
+
+
+	// iterate through the planes
+
+	int i = 0;
+	for ( ; i < 2; i++ ) {
+		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 1.0f ) ), 0.01f * float( i ) ) );
+		float planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? 1000000.0f : plane.b.x : plane.a.x;
+		if ( planeHit > 0.0f ) {
+
+			vec3 hitPoint = origin + planeHit * direction;
+			ivec3 pxIdx = ivec3( floor( hitPoint * 250.0f ) );
+
+			// get the sample
+			uvec4 sampleValue = imageLoad( textBuffer, pxIdx.xz );
+			bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( 96 * 8 ) || pxIdx.z >= ( 64 * 16 );
+
+			if ( !reject ) {
+				result.dTravel = planeHit;
+				result.i = plane;
+				result.normal = ( planeHit == plane.a.x ) ? plane.a.yzw : plane.b.yzw;
+				result.material = DIFFUSE;
+				result.color = vec3( sampleValue.xyz ) / 255.0f;
+			}
+		}
+	}
+
+
+
+
+	// vec4 rayPlaneCompositeHit = rayPlaneCompositeIntersect( origin, direction );
+	// if ( rayPlaneCompositeHit.a > 0.0f && rayPlaneCompositeHit.a < nearestOverallHit ) {
+	// 	result.dTravel = rayPlaneCompositeHit.a;
+	// 	result.normal = ( dot( direction, vec3( 0.0f, 0.0f, 1.0f ) ) < 0.0f ) ? vec3( 0.0f, 0.0f, 1.0f ) : vec3( 0.0f, 0.0f, -1.0f );
+	// 	result.i = Intersection(
+	// 		vec4( result.dTravel, result.normal ),
+	// 		vec4( result.dTravel + 0.1f, -result.normal )
+	// 	);
+	// 	result.material = DIFFUSE;
+	// 	result.color = rayPlaneCompositeHit.rgb;
+	// }
+
+
+	// result.dTravel = t.a.x;
+	// result.i = t;
+	// result.normal = t.a.yzw;
+	// result.material = DIFFUSE;
 
 	// // trying to debug the issues with the refractive box - why is it black?
 	// Intersection iResult = IntersectBox( origin, direction, vec3( 0.0f ), vec3( 1.0f ) );
