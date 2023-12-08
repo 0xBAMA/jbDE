@@ -205,6 +205,10 @@ public:
 			ReloadShaders();
 		}
 
+		if ( state[ SDL_SCANCODE_Z ] ) {
+			PrepGlyphBuffer();
+		}
+
 		// quaternion based rotation via retained state in the basis vectors - much easier to use than euler angles or the trident
 		const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
 		if ( state[ SDL_SCANCODE_W ] ) {
@@ -1216,44 +1220,44 @@ public:
 		// block dimensions
 		uint32_t texW = 96;
 		uint32_t texH = 64;
-		uint32_t texD = 32;
+		uint32_t texD = 64;
 
-		// create a texture, and send the data
-		textureOptions_t opts;
-		opts.width			= texW;
-		opts.height			= texH * texD;
-		opts.dataType		= GL_RGBA8UI;
-		opts.minFilter		= GL_NEAREST;
-		opts.magFilter		= GL_NEAREST;
-		opts.textureType	= GL_TEXTURE_2D;
-		opts.wrap			= GL_CLAMP_TO_BORDER;
+		// uint32_t texW = 100;
+		// uint32_t texH = 50;
+		// uint32_t texD = 50;
 
-		Image_4U data( opts.width, opts.height );
+		Image_4U data( texW, texH * texD );
 
 		// create the voxel model inside the flat image
 			// update the data
-		const uint32_t numOps = 10000;
-		rngi opPick = rngi( 0, 5 );
+		const uint32_t numOps = 3000;
+		rngi opPick = rngi( 0, 24 );
 		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 1, 20 );
 		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 12 );
 		rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 1, 10 );
 		rngi glyphPick = rngi( 176, 223 );
 		rngi thinPick = rngi( 0, 2 );
-		rngi rPick = rngi( 22, 255 );
-		rngi gPick = rngi( 4, 128 );
-		rngi bPick = rngi( 0, 255 );
+		// rngi rPick = rngi( 22, 255 );
+		// rngi gPick = rngi( 4, 128 );
+		// rngi bPick = rngi( 0, 255 );
+		rng pPick = rng( 0.1f, 0.9f );
 
 		color_4U col = color_4U( { 0, 0, 0, 0 } );
 		uint32_t length = 0;
 
 		// do N randomly selected
+		palette::PickRandomPalette( true );
 		for ( uint32_t op = 0; op < numOps; op++ ) {
+			vec3 c = palette::paletteRef( pPick() ) * 255.0f;
 			switch ( opPick() ) {
-			case 0: // white AABB
+			case 0: // AABB
+			case 1:
 			{
-				col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
-				ivec3 dims = ivec3( xDPick(), yDPick(), zDPick() );
+				// col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+				col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+
+				uvec3 base = uvec3( xPick(),  yPick(),  zPick() );
+				uvec3 dims = uvec3( xDPick(), yDPick(), zDPick() );
 				for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
 				for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
 				for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
@@ -1261,41 +1265,58 @@ public:
 				break;
 			}
 
-			case 1: // red lines
+			case 2: // lines
+			case 3:
+			case 4:
+			case 5:
+			case 6:
 			{
-				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(), yPick(), zPick() );
+				col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+				uvec3 base = uvec3( xPick(), yPick(), zPick() );
 				length = xDPick();
 				for ( uint32_t x = base.x; x < base.x + length; x++ )
 					data.SetAtXY( x, base.y + base.z * texH, col );
 				break;
 			}
 
-			case 2: // other red lines
+			case 7: // other lines
+			case 8:
+			case 9:
+			case 10:
+			case 11:
 			{
-				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(), yPick(), zPick() );
+				col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+				uvec3 base = uvec3( xPick(), yPick(), zPick() );
 				length = yDPick();
 				for ( uint32_t y = base.y; y < base.y + length; y++ )
 					data.SetAtXY( base.x, y + base.z * texH, col );
 				break;
 			}
 
-			case 3: // more other-er red lines
+			case 12: // more other-er lines
+			case 13:
+			case 14:
+			case 15:
+			case 16:
+			case 17:
 			{
-				col = color_4U( { 255u, 0u, 0u, ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(), yPick(), zPick() );
+				col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+				uvec3 base = uvec3( xPick(), yPick(), zPick() );
 				length = zDPick();
 				for ( uint32_t z = base.z; z < base.z + length; z++ )
 					data.SetAtXY( base.x, base.y + z * texH, col );
 				break;
 			}
 
-			case 4: // little purpley bits
+			case 18: // should come out emissive
+			case 20:
+			case 21:
 			{
-				col = color_4U( { ( uint8_t ) rPick(), ( uint8_t ) gPick(), ( uint8_t ) bPick(), ( uint8_t ) glyphPick() } );
-				ivec3 base = ivec3( xPick(), yPick(), zPick() );
-				ivec3 dims = ivec3( thinPick() + 1, thinPick() + 1, thinPick() + 1 );
+				col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+				// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+
+				uvec3 base = uvec3( xPick(), yPick(), zPick() );
+				uvec3 dims = uvec3( thinPick() + 1, thinPick() + 1, thinPick() + 1 );
 				for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
 				for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
 				for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
@@ -1303,16 +1324,48 @@ public:
 				break;
 			}
 
-			case 5: // string text
-				// todo
-
-		// 	static rngi wordPick = rngi( 0, colorWords.size() - 1 );
-		// 		string word = colorWords[ wordPick() ];
-		// 		basePt = ivec2( xPick(), yPick() );
-		// 		textRenderer.layers[ 1 ].WriteString( uvec2( basePt ), uvec2( basePt ) + uvec2( word.size(), 1 ), word, ivec3( bPick() ) );
+			case 22: // string text
+			case 23:
+			case 24:
+			case 25:
+			case 26:
+			{
+				static rngi wordPick = rngi( 0, colorWords.size() - 1 );
+				string word = colorWords[ wordPick() ];
+				uvec3 basePt = uvec3( xPick(), yPick(), zPick() );
+				for ( size_t i = 0; i < word.length(); i++ ) {
+					col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) word[ i ] } );
+					data.SetAtXY( basePt.x + i, basePt.y + basePt.z * texH, col );
+				}
 				break;
+			}
 
-			// scooping out? something to create some more negative space
+			case 27:
+			case 28:
+			case 29:
+			case 30:
+			case 31:
+			case 32:
+			case 33:
+			case 34:
+			{	// clear out an AABB
+				col = color_4U( { 0u, 0u, 0u, 0u } );
+				uvec3 base = uvec3( xPick(),  yPick(),  zPick() );
+				uvec3 dims = uvec3( xDPick(), yDPick(), zDPick() );
+				for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
+				for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
+				for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
+					data.SetAtXY( x, y + z * texH, col );
+				break;
+			}
+
+			case 35:
+			{
+				col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+				ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+				data.SetAtXY( base.x, base.y + base.z * texH, col );
+				break;
+			}
 
 			default:
 				break;
@@ -1320,9 +1373,25 @@ public:
 		}
 
 		// texture is ready to be used in the pathtrace
-		opts.initialData = ( void * ) data.GetImageDataBasePtr();
-		textureManager.Add( "TextBuffer", opts );
-
+			// create a texture, and send the data
+		static bool firstRun = true;
+		if ( firstRun ) {
+			firstRun = false;
+			textureOptions_t opts;
+			opts.width			= texW;
+			opts.height			= texH * texD;
+			opts.dataType		= GL_RGBA8UI;
+			opts.minFilter		= GL_NEAREST;
+			opts.magFilter		= GL_NEAREST;
+			opts.textureType	= GL_TEXTURE_2D;
+			opts.wrap			= GL_CLAMP_TO_BORDER;
+			opts.initialData = ( void * ) data.GetImageDataBasePtr();
+			textureManager.Add( "TextBuffer", opts );
+		} else {
+			// pass the new generated texture data to the existing texture
+			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "TextBuffer" ) );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, data.Width(), data.Height(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) data.GetImageDataBasePtr() );
+		}
 	}
 
 	void OnRender () {

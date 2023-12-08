@@ -95,5 +95,5 @@ int fontRef ( in uint c, in ivec2 offset, in bvec2 invert ) {
 }
 
 int fontRef ( uint c, ivec2 offset ) {
-    return fontRef( c, offset, bvec2( false, true ) );
+    return fontRef( c, offset, bvec2( false, false ) );
 }

@@ -1119,7 +1119,49 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.normal = Normal( origin + raymarchDistance * direction );
 	}
 
-	// if they both escape, we take the nohit result from the first if at the top of the function
+	// get the distance to the masked composite plane
+	Intersection closest;
+	vec4 temp = vec4( 0.0f, 0.0f, 0.0f, 1000000.0f );
+	const uvec3 texDims = uvec3( 96, 64, 64 );
+	uint i = 0;
+	// iterate through the planes
+	for ( ; i < texDims.z; i++ ) {
+		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) ) );
+		float planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? 1000000.0f : plane.b.x : plane.a.x;
+		if ( planeHit > 0.0f && planeHit != 1000000.0f ) {
+
+			vec3 hitPoint = ( origin + planeHit * direction ) + vec3( 3.0f, 4.0f, 3.0f );
+
+			// nonlinear distorted remap
+			// hitPoint = vec3( hitPoint.x * hitPoint.y, hitPoint.x * hitPoint.x, hitPoint.z );
+
+			ivec3 pxIdx = ivec3( floor( hitPoint * 128.0f ) );
+
+			ivec2 bin = ivec2( floor( pxIdx.xz / vec2( 8.0f, 16.0f ) ) );
+			ivec2 offset = ivec2( pxIdx.xz ) % ivec2( 8, 16 );
+
+			// get the sample
+			uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
+			int onGlyph = fontRef( sampleValue.a, offset );
+			bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+
+			if ( !reject ) {
+				closest = plane;
+				temp =  vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit ) );
+			}
+		}
+	}
+
+	if ( temp.a != 1000000.0f && temp.a < result.dTravel ) {
+		// result.i = closest;
+		result.dTravel = temp.a;
+		result.normal = ( temp.a == closest.a.x ) ? closest.a.yzw : closest.b.yzw;
+		result.color = temp.rgb;
+		result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+	}
+
+
+	// if all intersectors escape, we take the nohit result from the first if at the top of the function
 	// if the explicit result is closer than the raymarch result, we already have the correct information in the result struct
 
 	// return the struct with the correct data
