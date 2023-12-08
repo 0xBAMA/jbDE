@@ -77,8 +77,12 @@ struct sirenConfig_t {
 	float raymarchEpsilon;
 	float raymarchUnderstep;
 
-	vec3 skylightColor = vec3( 0.0f );		// ray escape color
 	vec4 backgroundColor = vec4( vec3( 0.01618f ), 1.0f );	// background color for the image view
+	vec3 skylightColor = vec3( 0.0f );		// ray escape color
+
+	// informs the location of the sun
+	float skyTime = 0.5;
+	ivec2 skyDims = ivec2( 1024, 512 );
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
@@ -136,6 +140,12 @@ public:
 			// and for the display texture, LDR
 			opts.dataType		= GL_RGBA8;
 			textureManager.Add( "Display Texture", opts );
+
+			// and the cache texture, for the 2:1 rectilinear mapping of the sky color
+			opts.dataType		= GL_RGBA16F;
+			opts.width			= sirenConfig.skyDims.x;
+			opts.height			= sirenConfig.skyDims.y;
+			textureManager.Add( "Sky Cache", opts );
 
 			// setup performance monitor
 			sirenConfig.timeHistory.resize( sirenConfig.performanceHistorySamples );
@@ -653,6 +663,23 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
+		{	// dispatch the shader to update the sky, if needed
+			scopedTimer Start( "Sky Update" );
+			// static float skyTime_cache = 0.0f; // reenble latch once done debugging
+			// if ( skyTime_cache != sirenConfig.skyTime ) {
+				// skyTime_cache = sirenConfig.skyTime;
+				const GLuint shader = shaders[ "Sky Cache" ];
+				glUseProgram( shader );
+
+				// uniforms
+				glUniform1f( glGetUniformLocation( shader, "skyTime" ), sirenConfig.skyTime );
+				textureManager.BindImageForShader( "Sky Cache", "skyCache", shader, 0 );
+
+				// dispatch
+				glDispatchCompute( ( sirenConfig.skyDims.x + 15 ) / 16, ( sirenConfig.skyDims.y + 15 ) / 16, 1 );
+			// }
+		}
+
 		{
 			scopedTimer Start( "Tiled Update" );
 			const GLuint shader = shaders[ "Pathtrace" ];
@@ -823,8 +850,9 @@ public:
 
 	void ReloadShaders () {
 		ZoneScoped;
-		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
-		shaders[ "Postprocess" ] = computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
+		shaders[ "Sky Cache" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/skyCache.cs.glsl" ).shaderHandle;
+		shaders[ "Pathtrace" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Postprocess" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 	}
 
 	void ReloadDefaultConfig () {

@@ -225,34 +225,36 @@ vec3 tldg ( vec3 l, float t ) {
 	return normalize( vec3( l.x * cos( t ) + l.y * sin( t ), l.x * ( -sin( t ) ) + l.y * cos( t ), 0.0f ) );
 }
 
+// from here, down, makes some assumptions about the uniform environment available to the shader ( skyTime, skyCache )
+
 vec4 scatter ( vec2 u ) {
-	u.y=1.-u.y;
-	vec3 s = vec3(1,(u.x*2.-1.)*pi,u.y*pi), d = s2c( s );
+	u.y = 1.0f - u.y;
+	vec3 s = vec3( 1.0f, ( u.x * 2.0f - 1.0f ) * pi, u.y * pi ), d = s2c( s );
 	s = vec3( 0.0f, PLANET_RADIUS, 0.0 );
-	return 10.0f * scat( s, s + d * irsfd2( s, d, ATMOSPHERE_RADIUS ).y, vec4( KRayleigh, KMie ), vec2( H0Rayleigh, H0Mie ), tldg( normalize( lightPosition0.xyz ) ) );
+	return 10.0f * scat( s, s + d * irsfd2( s, d, ATMOSPHERE_RADIUS ).y, vec4( KRayleigh, KMie ), vec2( H0Rayleigh, H0Mie ), tldg( normalize( lightPosition0.xyz ), skyTime ) );
 }
 
-
-float ratio ( vec2 res ) {
+float ratio () {
+	vec2 res = vec2( imageSize( skyCache ).xy );
 	return mix( res.x / res.y ,res.y / res.x, step( res.x, res.y ) );
 }
 
-vec3 skyColorForUV ( vec2 uv, float timeOfDay ) {
-	// vec2 uv=v/iResolution.xy;
+vec3 skyColor () {
+	vec2 uv = vec2( gl_GlobalInvocationID.xy ) / imageSize( skyCache ).xy;
 	uv.y = 1.0f - uv.y;
 	vec3 sphericalDirection = vec3( 1.0f, ( uv.x * 2.0f - 1.0f ) * pi, uv.y * pi );
 	vec3 d = s2c( sphericalDirection );
 	vec3 l = normalize( lightPosition0.xyz ); //sunDirection
 	vec3 s = vec3( 0.0f, PLANET_RADIUS, 0.0f );
 	const float fov = 90.0f; //looks as if this was cobbled from many sources - two, different spherical mappings
-	vec2 w = u2( ( v + 0.5f ) / iResolution.xy ) * vec2( ratio( vec2( 1.0f /*fixme with actual resolution*/ ) ), -1.0f );
+	vec2 w = u2( ( vec2( gl_GlobalInvocationID.xy ) + 0.5f ) / imageSize( skyCache ).xy ) * vec2( ratio(), -1.0f );
 	vec2 p = w * tan( fov * pi / 360.0f );
 	vec3 rayOrigin = vec3( 0.0f );
 	vec3 rayDirection = normalize( vec3( p, -1 ) - rayOrigin );
 	vec2 f = c2s( rayDirection ).yz / pi;
 	f.x = u5( f.x );
 	vec4 c = scatter( f );
-	vec3 sunPos = vec3( l.x * cos( timeOfDay ) + l.y * sin( timeOfDay ), -l.x * sin( timeOfDay ) + l.y * cos( timeOfDay ), 0.0f );
+	vec3 sunPos = vec3( l.x * cos( skyTime ) + l.y * sin( skyTime ), -l.x * sin( skyTime ) + l.y * cos( skyTime ), 0.0f );
 	float m = dot( d, -sunPos );
 	return c.xyz * RayleighPhase( m ) + c.www * MiePhase( m );
 }
