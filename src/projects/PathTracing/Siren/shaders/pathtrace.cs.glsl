@@ -41,6 +41,7 @@ uniform float raymarchUnderstep;
 
 // scene parameters
 uniform vec3 skylightColor;
+uniform sampler2D skyCache;
 
 // CPU-generated sphere array
 	// I want to generalize this:
@@ -1098,6 +1099,15 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 }
 
 // ==============================================================================================
+vec3 getEscapeColor ( vec3 dir ) {
+	if ( skylightColor == vec3( 0.0f ) ) {
+		// black as a reserve value, to sample the sky
+		
+	} else {
+		return skylightColor;
+	}
+}
+// ==============================================================================================
 
 vec3 ColorSample ( const vec2 uvIn ) {
 
@@ -1133,7 +1143,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		// update new ray origin ( at hit point )
 		rayOrigin = rayOriginPrevious + result.dTravel * rayDirectionPrevious;
 
-		// epsilon bump, along the normal vector
+		// epsilon bump, along the normal vector, for non-refractive surfaces
 		if ( result.material != REFRACTIVE && result.material != REFRACTIVE_BACKFACE )
 			rayOrigin += 2.0f * raymarchEpsilon * result.normal;
 
@@ -1150,7 +1160,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 		if ( result.dTravel >= raymarchMaxDistance ) {
 
 			// ray escaped - break out of loop, since you will not bounce
-			finalColor += throughput * skylightColor;
+			finalColor += throughput * getEscapeColor( rayDirection );
 			break;
 
 		} else {

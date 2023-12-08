@@ -1096,6 +1096,7 @@ public:
 		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 1 );
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 2 );
 		textureManager.BindImageForShader( "TextBuffer", "textBuffer", shader, 3 );
+		textureManager.BindTexForShader( "Sky Cache", "skyCache", shader, 4 );
 	}
 
 	void InitSphereData () {
