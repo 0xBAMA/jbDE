@@ -80,7 +80,7 @@ struct torusPackConfig_t {
 	uint32_t maxAllowedTotalIterations = 1000000;
 };
 
-struct aquariaConfig_t {
+struct cellarDoorConfig_t {
 	bool userRequestedScreenshot = false;
 	ivec3 dimensions;
 
@@ -127,7 +127,7 @@ struct aquariaConfig_t {
 };
 
 // ================================================================================================================
-// ==== Aquaria ===================================================================================================
+// ==== CellarDoor ================================================================================================
 // ================================================================================================================
 // Very similar in apparance to recent versions of Voraldo, in a lot of ways - they share no code, beyond the AABB
 // intersection code for the voxel bounds. This does a forward DDA traversal to the first voxel with a nonzero alpha
@@ -136,12 +136,12 @@ struct aquariaConfig_t {
 // the volume. The shadows and lighting are computed as a separate pass, destructivelsy baked into the albedo,
 // informed by Beer's law and traversals towards a given light direction.
 // ================================================================================================================
-class Aquaria : public engineBase {
+class cellarDoor : public engineBase {
 public:
-	Aquaria () { Init(); OnInit(); PostInit(); }
-	~Aquaria () { Quit(); }
+	cellarDoor () { Init(); OnInit(); PostInit(); }
+	~cellarDoor () { Quit(); }
 
-	aquariaConfig_t aquariaConfig;
+	cellarDoorConfig_t cellarDoorConfig;
 
 	// for visually monitoring worker thread, GPU work, etc
 	progressBar generateBar;
@@ -171,18 +171,18 @@ public:
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			aquariaConfig.dimensions.x	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "x" ];
-			aquariaConfig.dimensions.y	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "y" ];
-			aquariaConfig.dimensions.z	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "z" ];
+			cellarDoorConfig.dimensions.x	= j[ "app" ][ "cellarDoor" ][ "dimensions" ][ "x" ];
+			cellarDoorConfig.dimensions.y	= j[ "app" ][ "cellarDoor" ][ "dimensions" ][ "y" ];
+			cellarDoorConfig.dimensions.z	= j[ "app" ][ "cellarDoor" ][ "dimensions" ][ "z" ];
 
 	// ================================================================================================================
 	// ==== Create Textures ===========================================================================================
 	// ================================================================================================================
 			textureOptions_t opts;
 			opts.textureType	= GL_TEXTURE_3D;
-			opts.width			= aquariaConfig.dimensions.x;
-			opts.height			= aquariaConfig.dimensions.y;
-			opts.depth			= aquariaConfig.dimensions.z;
+			opts.width			= cellarDoorConfig.dimensions.x;
+			opts.height			= cellarDoorConfig.dimensions.y;
+			opts.depth			= cellarDoorConfig.dimensions.z;
 
 			// baked primitive IDs
 			opts.dataType		= GL_RG32UI;
@@ -203,16 +203,16 @@ public:
 	// ===== Sphere Packing ===========================================================================================
 	// ================================================================================================================
 
-			glGenBuffers( 1, &aquariaConfig.sphereSSBO );
+			glGenBuffers( 1, &cellarDoorConfig.sphereSSBO );
 
 			{
 				// yucky, yucky, whatever
-				ComputeTileList(); aquariaConfig.updateTiles.clear();
-				ComputeUpdateOffsets(); aquariaConfig.offsets.clear();
+				ComputeTileList(); cellarDoorConfig.updateTiles.clear();
+				ComputeUpdateOffsets(); cellarDoorConfig.offsets.clear();
 			}
 
 			// kick off worker thread, ready to go
-			aquariaConfig.workerThreadShouldRun = true;
+			cellarDoorConfig.workerThreadShouldRun = true;
 
 		}
 
@@ -231,45 +231,45 @@ public:
 	}
 
 	void CompileShaders () {
-		shaders[ "Dummy Draw" ]		= computeShader( "./src/projects/Aquaria/BVH/shaders/dummyDraw.cs.glsl" ).shaderHandle;
-		shaders[ "Precompute" ]		= computeShader( "./src/projects/Aquaria/BVH/shaders/precompute.cs.glsl" ).shaderHandle;
-		shaders[ "Lighting" ]		= computeShader( "./src/projects/Aquaria/BVH/shaders/lighting.cs.glsl" ).shaderHandle;
-		shaders[ "Ray" ]			= computeShader( "./src/projects/Aquaria/BVH/shaders/ray.cs.glsl" ).shaderHandle;
-		shaders[ "Buffer Copy" ]	= computeShader( "./src/projects/Aquaria/BVH/shaders/bufferCopy.cs.glsl" ).shaderHandle;
+		shaders[ "Dummy Draw" ]		= computeShader( "./src/projects/PathTracing/CellarDoor/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+		shaders[ "Precompute" ]		= computeShader( "./src/projects/PathTracing/CellarDoor/shaders/precompute.cs.glsl" ).shaderHandle;
+		shaders[ "Lighting" ]		= computeShader( "./src/projects/PathTracing/CellarDoor/shaders/lighting.cs.glsl" ).shaderHandle;
+		shaders[ "Ray" ]			= computeShader( "./src/projects/PathTracing/CellarDoor/shaders/ray.cs.glsl" ).shaderHandle;
+		shaders[ "Buffer Copy" ]	= computeShader( "./src/projects/PathTracing/CellarDoor/shaders/bufferCopy.cs.glsl" ).shaderHandle;
 	}
 
 	void ComputeTileList () {
-		aquariaConfig.updateTiles.clear();
-		for ( int y = 0; y < aquariaConfig.dimensions.y; y += 64 ){
-			for ( int x = 0; x < aquariaConfig.dimensions.x; x += 64 ){
-				for ( int z = 0; z < aquariaConfig.dimensions.z; z += 64 ){
-					aquariaConfig.updateTiles.push_back( ivec3( x, y, z ) );
+		cellarDoorConfig.updateTiles.clear();
+		for ( int y = 0; y < cellarDoorConfig.dimensions.y; y += 64 ){
+			for ( int x = 0; x < cellarDoorConfig.dimensions.x; x += 64 ){
+				for ( int z = 0; z < cellarDoorConfig.dimensions.z; z += 64 ){
+					cellarDoorConfig.updateTiles.push_back( ivec3( x, y, z ) );
 				}
 			}
 		}
-		evaluateBar.total = aquariaConfig.numTiles = aquariaConfig.updateTiles.size();
+		evaluateBar.total = cellarDoorConfig.numTiles = cellarDoorConfig.updateTiles.size();
 		// auto rng = std::default_random_engine {};
-		// std::shuffle( std::begin( aquariaConfig.updateTiles ), std::end( aquariaConfig.updateTiles ), rng );
+		// std::shuffle( std::begin( cellarDoorConfig.updateTiles ), std::end( cellarDoorConfig.updateTiles ), rng );
 	}
 
 	void ComputeSpherePacking () {
 
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.incrementalConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		const uint32_t maxSpheres = cellarDoorConfig.maxSpheres + cellarDoorConfig.incrementalConfig.sphereTrim; // 16-bit addressing gives us 65k max
 		std::deque< vec4 > sphereLocationsPlusColors;
 
 		// stochastic sphere packing, inside the volume
-		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
-		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
+		vec3 min = vec3( -cellarDoorConfig.dimensions.x / 2.0f, -cellarDoorConfig.dimensions.y / 2.0f, -cellarDoorConfig.dimensions.z / 2.0f );
+		vec3 max = vec3(  cellarDoorConfig.dimensions.x / 2.0f,  cellarDoorConfig.dimensions.y / 2.0f,  cellarDoorConfig.dimensions.z / 2.0f );
 		uint32_t maxIterations = 500;
 
 		// I think this is the easiest way to handle things that don't terminate on their own
-		uint32_t attemptsRemaining = aquariaConfig.incrementalConfig.maxAllowedTotalIterations;
+		uint32_t attemptsRemaining = cellarDoorConfig.incrementalConfig.maxAllowedTotalIterations;
 
-		// float currentRadius = 0.866f * aquariaConfig.dimensions.z / 2.0f;
-		float currentRadius = aquariaConfig.incrementalConfig.radiiInitialValue;
-		rng paletteRefVal = rng( aquariaConfig.incrementalConfig.paletteRefMin, aquariaConfig.incrementalConfig.paletteRefMax );
-		rng alphaGen = rng( aquariaConfig.incrementalConfig.alphaGenMin, aquariaConfig.incrementalConfig.alphaGenMax );
-		rngN paletteRefJitter = rngN( 0.0f, aquariaConfig.incrementalConfig.paletteRefJitter );
+		// float currentRadius = 0.866f * cellarDoorConfig.dimensions.z / 2.0f;
+		float currentRadius = cellarDoorConfig.incrementalConfig.radiiInitialValue;
+		rng paletteRefVal = rng( cellarDoorConfig.incrementalConfig.paletteRefMin, cellarDoorConfig.incrementalConfig.paletteRefMax );
+		rng alphaGen = rng( cellarDoorConfig.incrementalConfig.alphaGenMin, cellarDoorConfig.incrementalConfig.alphaGenMax );
+		rngN paletteRefJitter = rngN( 0.0f, cellarDoorConfig.incrementalConfig.paletteRefJitter );
 		float currentPaletteVal = paletteRefVal();
 
 		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && !pQuit ) { // watch for program quit
@@ -299,9 +299,9 @@ public:
 
 			// need to determine which is the greater percentage:
 				// number of spheres / max spheres
-				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
+				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( cellarDoorConfig.maxSpheres );
 				// number of attempts taken as a fraction of max attempts
-				float attemptFrac = float( aquariaConfig.incrementalConfig.maxAllowedTotalIterations - attemptsRemaining ) / float( aquariaConfig.incrementalConfig.maxAllowedTotalIterations );
+				float attemptFrac = float( cellarDoorConfig.incrementalConfig.maxAllowedTotalIterations - attemptsRemaining ) / float( cellarDoorConfig.incrementalConfig.maxAllowedTotalIterations );
 
 				// the greater of the two should set the level on the progress bar
 				generateBar.done = std::max( sphereFrac, attemptFrac );
@@ -313,33 +313,33 @@ public:
 
 			// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
 			currentPaletteVal = paletteRefVal();
-			currentRadius *= aquariaConfig.incrementalConfig.radiiStepShrink;
-			maxIterations *= aquariaConfig.incrementalConfig.iterationMultiplier;
+			currentRadius *= cellarDoorConfig.incrementalConfig.radiiStepShrink;
+			maxIterations *= cellarDoorConfig.incrementalConfig.iterationMultiplier;
 
 			// this replaces explicit shrinking on each axis
-			min.x *= aquariaConfig.incrementalConfig.boundsStepShrink.x; max.x *= aquariaConfig.incrementalConfig.boundsStepShrink.x;
-			min.y *= aquariaConfig.incrementalConfig.boundsStepShrink.y; max.y *= aquariaConfig.incrementalConfig.boundsStepShrink.y;
-			min.z *= aquariaConfig.incrementalConfig.boundsStepShrink.z; max.z *= aquariaConfig.incrementalConfig.boundsStepShrink.z;
+			min.x *= cellarDoorConfig.incrementalConfig.boundsStepShrink.x; max.x *= cellarDoorConfig.incrementalConfig.boundsStepShrink.x;
+			min.y *= cellarDoorConfig.incrementalConfig.boundsStepShrink.y; max.y *= cellarDoorConfig.incrementalConfig.boundsStepShrink.y;
+			min.z *= cellarDoorConfig.incrementalConfig.boundsStepShrink.z; max.z *= cellarDoorConfig.incrementalConfig.boundsStepShrink.z;
 
 		}
 
 		// ================================================================================================================
 
-		// because it's a deque, I can pop the front N off ( see aquariaConfig.sphereTrim, above )
+		// because it's a deque, I can pop the front N off ( see cellarDoorConfig.sphereTrim, above )
 		// also, if I've got some kind of off by one issue, however I want to handle the zero reserve value, that'll be easy
 
-		for ( uint32_t i = 0; i < aquariaConfig.incrementalConfig.sphereTrim; i++ ) {
+		for ( uint32_t i = 0; i < cellarDoorConfig.incrementalConfig.sphereTrim; i++ ) {
 			sphereLocationsPlusColors.pop_front();
 		}
 
-		aquariaConfig.sphereBuffer.resize( 0 );
-		aquariaConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
+		cellarDoorConfig.sphereBuffer.resize( 0 );
+		cellarDoorConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
 		for ( auto& val : sphereLocationsPlusColors ) {
-			aquariaConfig.sphereBuffer.push_back( val );
+			cellarDoorConfig.sphereBuffer.push_back( val );
 		}
 
 		// if we aborted from running out of iterations, avoid seg fault in glBufferData
-		aquariaConfig.sphereBuffer.resize( aquariaConfig.maxSpheres * 2 );
+		cellarDoorConfig.sphereBuffer.resize( cellarDoorConfig.maxSpheres * 2 );
 
 			// make sure that the generate progress bar reports 100% at this stage
 
@@ -347,21 +347,21 @@ public:
 	}
 
 	void ComputePerlinPacking () {
-		// const uint32_t maxSpheres = aquariaConfig.maxSpheres + aquariaConfig.sphereTrim; // 16-bit addressing gives us 65k max
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
+		// const uint32_t maxSpheres = cellarDoorConfig.maxSpheres + cellarDoorConfig.sphereTrim; // 16-bit addressing gives us 65k max
+		const uint32_t maxSpheres = cellarDoorConfig.maxSpheres; // 16-bit addressing gives us 65k max
 		std::vector< vec4 > sphereLocationsPlusColors;
 
 		// stochastic sphere packing, inside the volume
-		vec3 min = vec3( -aquariaConfig.dimensions.x / 2.0f, -aquariaConfig.dimensions.y / 2.0f, -aquariaConfig.dimensions.z / 2.0f );
-		vec3 max = vec3(  aquariaConfig.dimensions.x / 2.0f,  aquariaConfig.dimensions.y / 2.0f,  aquariaConfig.dimensions.z / 2.0f );
-		uint32_t maxIterations = aquariaConfig.perlinConfig.maxAllowedTotalIterations;
+		vec3 min = vec3( -cellarDoorConfig.dimensions.x / 2.0f, -cellarDoorConfig.dimensions.y / 2.0f, -cellarDoorConfig.dimensions.z / 2.0f );
+		vec3 max = vec3(  cellarDoorConfig.dimensions.x / 2.0f,  cellarDoorConfig.dimensions.y / 2.0f,  cellarDoorConfig.dimensions.z / 2.0f );
+		uint32_t maxIterations = cellarDoorConfig.perlinConfig.maxAllowedTotalIterations;
 		uint32_t iterations = maxIterations;
 
 		// data generation
 		rng radiusGen = rng( 0.25f, 1.25f );
-		rngN radiusJitter = rngN( 0.0f, aquariaConfig.perlinConfig.radiusJitter );
-		rngN paletteJitter = rngN( 0.0f, aquariaConfig.perlinConfig.paletteRefJitter );
-		float padding = aquariaConfig.perlinConfig.padding;
+		rngN radiusJitter = rngN( 0.0f, cellarDoorConfig.perlinConfig.radiusJitter );
+		rngN paletteJitter = rngN( 0.0f, cellarDoorConfig.perlinConfig.paletteRefJitter );
+		float padding = cellarDoorConfig.perlinConfig.padding;
 		PerlinNoise p;
 
 		// generate point inside the parent cube
@@ -372,11 +372,11 @@ public:
 		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
 			vec3 checkP = vec3( x(), y(), z() );
 			float noiseValue = p.noise(
-				checkP.x / aquariaConfig.perlinConfig.noiseScalar.x + aquariaConfig.perlinConfig.noiseOffset.x,
-				checkP.y / aquariaConfig.perlinConfig.noiseScalar.y + aquariaConfig.perlinConfig.noiseOffset.y,
-				checkP.z / aquariaConfig.perlinConfig.noiseScalar.z + aquariaConfig.perlinConfig.noiseOffset.z );
+				checkP.x / cellarDoorConfig.perlinConfig.noiseScalar.x + cellarDoorConfig.perlinConfig.noiseOffset.x,
+				checkP.y / cellarDoorConfig.perlinConfig.noiseScalar.y + cellarDoorConfig.perlinConfig.noiseOffset.y,
+				checkP.z / cellarDoorConfig.perlinConfig.noiseScalar.z + cellarDoorConfig.perlinConfig.noiseOffset.z );
 
-			checkP.z *= RemapRange( noiseValue, 0.0f, 1.0f, aquariaConfig.perlinConfig.zSquashMin, aquariaConfig.perlinConfig.zSquashMax );
+			checkP.z *= RemapRange( noiseValue, 0.0f, 1.0f, cellarDoorConfig.perlinConfig.zSquashMin, cellarDoorConfig.perlinConfig.zSquashMax );
 
 			// something to skip spheres outside of a certain range
 			// if ( noiseValue > 0.75f ) {
@@ -384,7 +384,7 @@ public:
 			// }
 
 			// determine radius, from the noise field
-			float currentRadius = ( radiusGen() * RemapRange( std::pow( noiseValue, aquariaConfig.perlinConfig.rampPower ), 0.0f, 1.0f, aquariaConfig.perlinConfig.radiusMin, aquariaConfig.perlinConfig.radiusMax ) + radiusJitter() ) * aquariaConfig.dimensions.z / 24.0f;
+			float currentRadius = ( radiusGen() * RemapRange( std::pow( noiseValue, cellarDoorConfig.perlinConfig.rampPower ), 0.0f, 1.0f, cellarDoorConfig.perlinConfig.radiusMin, cellarDoorConfig.perlinConfig.radiusMax ) + radiusJitter() ) * cellarDoorConfig.dimensions.z / 24.0f;
 
 			// check for intersection against all other spheres
 			bool foundIntersection = false;
@@ -401,13 +401,13 @@ public:
 				sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
 				// sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), alphaGen() ) );
 				// sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
-				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( RemapRange( std::clamp( noiseValue, 0.0f, 1.0f ), 0.0f, 1.0f, aquariaConfig.perlinConfig.paletteRefMin, aquariaConfig.perlinConfig.paletteRefMax ) + paletteJitter() ), noiseValue ) );
+				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( RemapRange( std::clamp( noiseValue, 0.0f, 1.0f ), 0.0f, 1.0f, cellarDoorConfig.perlinConfig.paletteRefMin, cellarDoorConfig.perlinConfig.paletteRefMax ) + paletteJitter() ), noiseValue ) );
 
 			// need to determine which is the greater percentage:
 				// number of spheres / max spheres
-				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
+				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( cellarDoorConfig.maxSpheres );
 				// number of attempts taken as a fraction of max attempts
-				float attemptFrac = float( aquariaConfig.perlinConfig.maxAllowedTotalIterations - iterations ) / float( aquariaConfig.perlinConfig.maxAllowedTotalIterations );
+				float attemptFrac = float( cellarDoorConfig.perlinConfig.maxAllowedTotalIterations - iterations ) / float( cellarDoorConfig.perlinConfig.maxAllowedTotalIterations );
 
 				// the greater of the two should set the level on the progress bar
 				generateBar.done = std::max( sphereFrac, attemptFrac );
@@ -418,14 +418,14 @@ public:
 		// ================================================================================================================
 
 		// send the SSBO
-		aquariaConfig.sphereBuffer.resize( 0 );
-		aquariaConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
+		cellarDoorConfig.sphereBuffer.resize( 0 );
+		cellarDoorConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
 		for ( auto& val : sphereLocationsPlusColors ) {
-			aquariaConfig.sphereBuffer.push_back( val );
+			cellarDoorConfig.sphereBuffer.push_back( val );
 		}
 
 		// if we aborted from running out of iterations, avoid seg fault in glBufferData
-		aquariaConfig.sphereBuffer.resize( aquariaConfig.maxSpheres * 2 );
+		cellarDoorConfig.sphereBuffer.resize( cellarDoorConfig.maxSpheres * 2 );
 
 		// ================================================================================================================
 	}
@@ -433,7 +433,7 @@ public:
 	void ComputeTorusPacking () {
 		// point in a torus, would be a cool extension to the packing logic
 			// theta, phi, for placement on the torus surface - additional term for distance along that minor radius
-		const uint32_t maxSpheres = aquariaConfig.maxSpheres; // 16-bit addressing gives us 65k max
+		const uint32_t maxSpheres = cellarDoorConfig.maxSpheres; // 16-bit addressing gives us 65k max
 		std::vector< vec4 > sphereLocationsPlusColors;
 
 		// ================================================================================================================
@@ -446,13 +446,13 @@ public:
 		rng phi 	= rng( 0.0f, 2.0f * pi );
 		rng r 		= rng( 0.0f, 1.0f );
 
-		uint32_t maxIterations = aquariaConfig.torusConfig.maxAllowedTotalIterations;
+		uint32_t maxIterations = cellarDoorConfig.torusConfig.maxAllowedTotalIterations;
 		uint32_t iterations = maxIterations;
 
 		// data generation
 		rng radiusGen = rng( 0.25f, 1.25f );
-		rngN radiusJitter = rngN( 0.0f, aquariaConfig.torusConfig.sphereRadiusJitter );
-		rngN paletteJitter = rngN( 0.0f, aquariaConfig.torusConfig.paletteRefJitter );
+		rngN radiusJitter = rngN( 0.0f, cellarDoorConfig.torusConfig.sphereRadiusJitter );
+		rngN paletteJitter = rngN( 0.0f, cellarDoorConfig.torusConfig.paletteRefJitter );
 		PerlinNoise p;
 
 		while ( ( sphereLocationsPlusColors.size() / 2 ) < maxSpheres && iterations-- && !pQuit ) {
@@ -460,18 +460,18 @@ public:
 			// generating a point inside the torus
 			vec3 checkP;
 			// sqrt is normalizing factor, so as not to concentrate at the center of the ring
-			checkP = vec3( sqrt( r() ) * aquariaConfig.torusConfig.minorRadius, 0.0f, 0.0f );
+			checkP = vec3( sqrt( r() ) * cellarDoorConfig.torusConfig.minorRadius, 0.0f, 0.0f );
 			checkP = ( glm::rotate( phi(), vec3( 0.0f, 0.0f, 1.0f ) ) * vec4( checkP, 1.0f ) ).xyz();
-			checkP.x += aquariaConfig.torusConfig.majorRadius;
+			checkP.x += cellarDoorConfig.torusConfig.majorRadius;
 			checkP = ( glm::rotate( theta(), vec3( 0.0f, 1.0f, 0.0f ) ) * vec4( checkP, 1.0f ) ).xzy();
 
 			float noiseValue = p.noise(
-				checkP.x / aquariaConfig.torusConfig.noiseScalar.x + aquariaConfig.torusConfig.noiseOffset.x,
-				checkP.y / aquariaConfig.torusConfig.noiseScalar.y + aquariaConfig.torusConfig.noiseOffset.y,
-				checkP.z / aquariaConfig.torusConfig.noiseScalar.z + aquariaConfig.torusConfig.noiseOffset.z );
+				checkP.x / cellarDoorConfig.torusConfig.noiseScalar.x + cellarDoorConfig.torusConfig.noiseOffset.x,
+				checkP.y / cellarDoorConfig.torusConfig.noiseScalar.y + cellarDoorConfig.torusConfig.noiseOffset.y,
+				checkP.z / cellarDoorConfig.torusConfig.noiseScalar.z + cellarDoorConfig.torusConfig.noiseOffset.z );
 
 			// determine radius, from the noise field
-			float currentRadius = ( radiusGen() * RemapRange( std::pow( noiseValue, aquariaConfig.torusConfig.rampPower ), 0.0f, 1.0f, aquariaConfig.torusConfig.sphereRadiusMin, aquariaConfig.torusConfig.sphereRadiusMax ) + radiusJitter() ) * aquariaConfig.dimensions.z / 24.0f;
+			float currentRadius = ( radiusGen() * RemapRange( std::pow( noiseValue, cellarDoorConfig.torusConfig.rampPower ), 0.0f, 1.0f, cellarDoorConfig.torusConfig.sphereRadiusMin, cellarDoorConfig.torusConfig.sphereRadiusMax ) + radiusJitter() ) * cellarDoorConfig.dimensions.z / 24.0f;
 
 			// check for intersection against all other spheres
 			bool foundIntersection = false;
@@ -488,13 +488,13 @@ public:
 				sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
 				// sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( std::clamp( noiseValue, 0.0f, 1.0f ) ), alphaGen() ) );
 				// sphereLocationsPlusColors.push_back( vec4( vec3( std::clamp( abs( ( noiseValue - 0.6f ) * 2.5f ), 0.0f, 1.0f ) ), alphaGen() ) );
-				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( RemapRange( std::clamp( noiseValue, 0.0f, 1.0f ), 0.0f, 1.0f, aquariaConfig.torusConfig.paletteRefMin, aquariaConfig.torusConfig.paletteRefMax ) + paletteJitter() ), noiseValue ) );
+				sphereLocationsPlusColors.push_back( vec4( palette::paletteRef( RemapRange( std::clamp( noiseValue, 0.0f, 1.0f ), 0.0f, 1.0f, cellarDoorConfig.torusConfig.paletteRefMin, cellarDoorConfig.torusConfig.paletteRefMax ) + paletteJitter() ), noiseValue ) );
 
 			// need to determine which is the greater percentage:
 				// number of spheres / max spheres
-				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( aquariaConfig.maxSpheres );
+				float sphereFrac = float( sphereLocationsPlusColors.size() / 2.0f ) / float( cellarDoorConfig.maxSpheres );
 				// number of attempts taken as a fraction of max attempts
-				float attemptFrac = float( aquariaConfig.torusConfig.maxAllowedTotalIterations - iterations ) / float( aquariaConfig.torusConfig.maxAllowedTotalIterations );
+				float attemptFrac = float( cellarDoorConfig.torusConfig.maxAllowedTotalIterations - iterations ) / float( cellarDoorConfig.torusConfig.maxAllowedTotalIterations );
 
 				// the greater of the two should set the level on the progress bar
 				generateBar.done = std::max( sphereFrac, attemptFrac );
@@ -505,30 +505,30 @@ public:
 		// ================================================================================================================
 
 		// send the SSBO
-		aquariaConfig.sphereBuffer.resize( 0 );
-		aquariaConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
+		cellarDoorConfig.sphereBuffer.resize( 0 );
+		cellarDoorConfig.sphereBuffer.reserve( sphereLocationsPlusColors.size() );
 		for ( auto& val : sphereLocationsPlusColors ) {
-			aquariaConfig.sphereBuffer.push_back( val );
+			cellarDoorConfig.sphereBuffer.push_back( val );
 		}
 
 		// if we aborted from running out of iterations, avoid seg fault in glBufferData
-		aquariaConfig.sphereBuffer.resize( aquariaConfig.maxSpheres * 2 );
+		cellarDoorConfig.sphereBuffer.resize( cellarDoorConfig.maxSpheres * 2 );
 
 		// ================================================================================================================
 	}
 
 	void ComputeUpdateOffsets () {
-		aquariaConfig.offsets.clear();
-		aquariaConfig.lightingRemaining = lightingBar.total = 8 * 8 * 8;
+		cellarDoorConfig.offsets.clear();
+		cellarDoorConfig.lightingRemaining = lightingBar.total = 8 * 8 * 8;
 
 		// // generate the list of offsets via shuffle
 		// for ( int x = 0; x < 8; x++ )
 		// for ( int y = 0; y < 8; y++ )
 		// for ( int z = 0; z < 8; z++ ) {
-		// 	aquariaConfig.offsets.push_back( ivec3( x, y, z ) );
+		// 	cellarDoorConfig.offsets.push_back( ivec3( x, y, z ) );
 		// }
 		// auto rng = std::default_random_engine {};
-		// std::shuffle( std::begin( aquariaConfig.offsets ), std::end( aquariaConfig.offsets ), rng );
+		// std::shuffle( std::begin( cellarDoorConfig.offsets ), std::end( cellarDoorConfig.offsets ), rng );
 
 		// ======================================================================
 
@@ -590,18 +590,18 @@ public:
 		// 	cout << endl;
 		// }
 
-		// iterate through all of them, and get the result as ivec3s in aquariaConfig.offsets
-		aquariaConfig.offsets.resize( 8 * 8 * 8 );
+		// iterate through all of them, and get the result as ivec3s in cellarDoorConfig.offsets
+		cellarDoorConfig.offsets.resize( 8 * 8 * 8 );
 		for ( int x = 0; x < 8; x++ )
 		for ( int y = 0; y < 8; y++ )
 		for ( int z = 0; z < 8; z++ ) {
 			ivec3 loc = ivec3( x, y, z );
 			uint32_t idx = index3( loc, 8 );
-			aquariaConfig.offsets[ values[ idx ] ] = loc;
+			cellarDoorConfig.offsets[ values[ idx ] ] = loc;
 		}
 
 		// cout << "Offsets List:" << endl;
-		// for ( auto& v : aquariaConfig.offsets ) {
+		// for ( auto& v : cellarDoorConfig.offsets ) {
 		// 	cout << "  " << glm::to_string( v ) << endl;
 		// }
 
@@ -626,19 +626,19 @@ public:
 		// const bool super		= ( k & KMOD_GUI );
 
 		// screenshot
-		aquariaConfig.userRequestedScreenshot = false; // one shot, repeated trigger is not desired
-		if ( state[ SDL_SCANCODE_T ] && shift ) { aquariaConfig.userRequestedScreenshot = true; }
+		cellarDoorConfig.userRequestedScreenshot = false; // one shot, repeated trigger is not desired
+		if ( state[ SDL_SCANCODE_T ] && shift ) { cellarDoorConfig.userRequestedScreenshot = true; }
 		if ( state[ SDL_SCANCODE_R ] && shift ) { ResetForwardPtBuffers(); }
 
 		// zoom in and out
-		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { aquariaConfig.scale /= shift ? 0.9f : 0.99f; }
-		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { aquariaConfig.scale *= shift ? 0.9f : 0.99f; }
+		if ( state[ SDL_SCANCODE_LEFTBRACKET ] )  { cellarDoorConfig.scale /= shift ? 0.9f : 0.99f; }
+		if ( state[ SDL_SCANCODE_RIGHTBRACKET ] ) { cellarDoorConfig.scale *= shift ? 0.9f : 0.99f; }
 
 		// vim-style x,y offsetting
-		if ( state[ SDL_SCANCODE_H ] ) { aquariaConfig.viewOffset.x += shift ? 5.0f : 1.0f; }
-		if ( state[ SDL_SCANCODE_J ] ) { aquariaConfig.viewOffset.y -= shift ? 5.0f : 1.0f; }
-		if ( state[ SDL_SCANCODE_K ] ) { aquariaConfig.viewOffset.y += shift ? 5.0f : 1.0f; }
-		if ( state[ SDL_SCANCODE_L ] ) { aquariaConfig.viewOffset.x -= shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_H ] ) { cellarDoorConfig.viewOffset.x += shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_J ] ) { cellarDoorConfig.viewOffset.y -= shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_K ] ) { cellarDoorConfig.viewOffset.y += shift ? 5.0f : 1.0f; }
+		if ( state[ SDL_SCANCODE_L ] ) { cellarDoorConfig.viewOffset.x -= shift ? 5.0f : 1.0f; }
 
 		// hot recompile
 		if ( state[ SDL_SCANCODE_Y ] ) {
@@ -647,19 +647,19 @@ public:
 	}
 
 	void ResetForwardPtBuffers () {
-		Image_4U zeroes( aquariaConfig.dimensions.x, aquariaConfig.dimensions.y * aquariaConfig.dimensions.z );
+		Image_4U zeroes( cellarDoorConfig.dimensions.x, cellarDoorConfig.dimensions.y * cellarDoorConfig.dimensions.z );
 		GLuint handle = textureManager.Get( "Red Atomic" );
 		glBindTexture( GL_TEXTURE_3D, handle );
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, cellarDoorConfig.dimensions.x, cellarDoorConfig.dimensions.y, cellarDoorConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
 		handle = textureManager.Get( "Blue Atomic" );
 		glBindTexture( GL_TEXTURE_3D, handle );
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, cellarDoorConfig.dimensions.x, cellarDoorConfig.dimensions.y, cellarDoorConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
 		handle = textureManager.Get( "Green Atomic" );
 		glBindTexture( GL_TEXTURE_3D, handle );
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, cellarDoorConfig.dimensions.x, cellarDoorConfig.dimensions.y, cellarDoorConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
 		handle = textureManager.Get( "Count Atomic" );
 		glBindTexture( GL_TEXTURE_3D, handle );
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, aquariaConfig.dimensions.x, aquariaConfig.dimensions.y, aquariaConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R32UI, cellarDoorConfig.dimensions.x, cellarDoorConfig.dimensions.y, cellarDoorConfig.dimensions.z, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) zeroes.GetImageDataBasePtr() );
 	}
 
 	void ControlsWindow () {
@@ -687,9 +687,9 @@ public:
 				const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
 				ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
 				// handle max < min
-				const  bool isIncremental = ( aquariaConfig.jobType == 0 );
-				float minVal = isIncremental ? aquariaConfig.incrementalConfig.paletteRefMin : aquariaConfig.perlinConfig.paletteRefMin;
-				float maxVal = isIncremental ? aquariaConfig.incrementalConfig.paletteRefMax : aquariaConfig.perlinConfig.paletteRefMax;
+				const  bool isIncremental = ( cellarDoorConfig.jobType == 0 );
+				float minVal = isIncremental ? cellarDoorConfig.incrementalConfig.paletteRefMin : cellarDoorConfig.perlinConfig.paletteRefMin;
+				float maxVal = isIncremental ? cellarDoorConfig.incrementalConfig.paletteRefMax : cellarDoorConfig.perlinConfig.paletteRefMax;
 				float realSelectedMin = std::min( minVal, maxVal );
 				float realSelectedMax = std::max( minVal, maxVal );
 				size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
@@ -727,91 +727,91 @@ public:
 
 				ImGui::Text( " Method: " );
 				ImGui::SameLine();
-				ImGui::RadioButton( " Incremental ", &aquariaConfig.jobType, 0 );
+				ImGui::RadioButton( " Incremental ", &cellarDoorConfig.jobType, 0 );
 				ImGui::SameLine();
-				ImGui::RadioButton( " Perlin ", &aquariaConfig.jobType, 1 );
+				ImGui::RadioButton( " Perlin ", &cellarDoorConfig.jobType, 1 );
 				ImGui::SameLine();
-				ImGui::RadioButton( " Torus ", &aquariaConfig.jobType, 2 );
+				ImGui::RadioButton( " Torus ", &cellarDoorConfig.jobType, 2 );
 
 				// only show the controls for one at a time, to read easier
-				if ( aquariaConfig.jobType == 0 ) {	// incremental version
+				if ( cellarDoorConfig.jobType == 0 ) {	// incremental version
 
-					ImGui::SliderFloat( "Palette Min", &aquariaConfig.incrementalConfig.paletteRefMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Max", &aquariaConfig.incrementalConfig.paletteRefMax, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.incrementalConfig.paletteRefJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Palette Min", &cellarDoorConfig.incrementalConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &cellarDoorConfig.incrementalConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &cellarDoorConfig.incrementalConfig.paletteRefJitter, 0.0f, 0.2f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "Alpha Min", &aquariaConfig.incrementalConfig.alphaGenMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Alpha Max", &aquariaConfig.incrementalConfig.alphaGenMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Min", &cellarDoorConfig.incrementalConfig.alphaGenMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Alpha Max", &cellarDoorConfig.incrementalConfig.alphaGenMax, 0.0f, 1.0f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "Initial Radius", &aquariaConfig.incrementalConfig.radiiInitialValue, 1.0f, 300.0f );
-					ImGui::SliderFloat( "Radius Step Shrink", &aquariaConfig.incrementalConfig.radiiStepShrink, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Iteration Count Multiplier", &aquariaConfig.incrementalConfig.iterationMultiplier, 0.0f, 10.0f );
-					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.incrementalConfig.maxAllowedTotalIterations, 0, 100000000 );
+					ImGui::SliderFloat( "Initial Radius", &cellarDoorConfig.incrementalConfig.radiiInitialValue, 1.0f, 300.0f );
+					ImGui::SliderFloat( "Radius Step Shrink", &cellarDoorConfig.incrementalConfig.radiiStepShrink, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Iteration Count Multiplier", &cellarDoorConfig.incrementalConfig.iterationMultiplier, 0.0f, 10.0f );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &cellarDoorConfig.incrementalConfig.maxAllowedTotalIterations, 0, 100000000 );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "X Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.x, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Y Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.y, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Z Bounds Step Shrink", &aquariaConfig.incrementalConfig.boundsStepShrink.z, 0.0f, 1.0f );
+					ImGui::SliderFloat( "X Bounds Step Shrink", &cellarDoorConfig.incrementalConfig.boundsStepShrink.x, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Y Bounds Step Shrink", &cellarDoorConfig.incrementalConfig.boundsStepShrink.y, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Z Bounds Step Shrink", &cellarDoorConfig.incrementalConfig.boundsStepShrink.z, 0.0f, 1.0f );
 					ImGui::Text( " " );
-					ImGui::SliderInt( "Trim", ( int* ) &aquariaConfig.incrementalConfig.sphereTrim, 0, 100000 );
+					ImGui::SliderInt( "Trim", ( int* ) &cellarDoorConfig.incrementalConfig.sphereTrim, 0, 100000 );
 
-				} else if ( aquariaConfig.jobType == 1 ) { // perlin mode
+				} else if ( cellarDoorConfig.jobType == 1 ) { // perlin mode
 
-					ImGui::SliderFloat( "Palette Min", &aquariaConfig.perlinConfig.paletteRefMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Max", &aquariaConfig.perlinConfig.paletteRefMax, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.perlinConfig.paletteRefJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Palette Min", &cellarDoorConfig.perlinConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &cellarDoorConfig.perlinConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &cellarDoorConfig.perlinConfig.paletteRefJitter, 0.0f, 0.2f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "Radius Min", &aquariaConfig.perlinConfig.radiusMin, 0.0f, 100.0f );
-					ImGui::SliderFloat( "Radius Max", &aquariaConfig.perlinConfig.radiusMax, 0.0f, 100.0f );
-					ImGui::SliderFloat( "Radius Jitter", &aquariaConfig.perlinConfig.radiusJitter, 0.0f, 0.2f );
-					ImGui::SliderFloat( "Ramp Power", &aquariaConfig.perlinConfig.rampPower, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Radius Min", &cellarDoorConfig.perlinConfig.radiusMin, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Max", &cellarDoorConfig.perlinConfig.radiusMax, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Jitter", &cellarDoorConfig.perlinConfig.radiusJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Ramp Power", &cellarDoorConfig.perlinConfig.rampPower, 0.0f, 0.2f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "zSquash Min", &aquariaConfig.perlinConfig.zSquashMin, 0.0f, 2.0f );
-					ImGui::SliderFloat( "zSquash Max", &aquariaConfig.perlinConfig.zSquashMax, 0.0f, 2.0f );
-					ImGui::SliderFloat( "Padding", &aquariaConfig.perlinConfig.padding, 0.0f, 200.0f );
+					ImGui::SliderFloat( "zSquash Min", &cellarDoorConfig.perlinConfig.zSquashMin, 0.0f, 2.0f );
+					ImGui::SliderFloat( "zSquash Max", &cellarDoorConfig.perlinConfig.zSquashMax, 0.0f, 2.0f );
+					ImGui::SliderFloat( "Padding", &cellarDoorConfig.perlinConfig.padding, 0.0f, 200.0f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "X Noise Scale", &aquariaConfig.perlinConfig.noiseScalar.x, -1000.0f, 1000.0f );
-					ImGui::SliderFloat( "Y Noise Scale", &aquariaConfig.perlinConfig.noiseScalar.y, -1000.0f, 1000.0f );
-					ImGui::SliderFloat( "Z Noise Scale", &aquariaConfig.perlinConfig.noiseScalar.z, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "X Noise Scale", &cellarDoorConfig.perlinConfig.noiseScalar.x, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Y Noise Scale", &cellarDoorConfig.perlinConfig.noiseScalar.y, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Z Noise Scale", &cellarDoorConfig.perlinConfig.noiseScalar.z, -1000.0f, 1000.0f );
 					ImGui::Text( " " );
-					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.perlinConfig.maxAllowedTotalIterations, 0, 100000000 );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &cellarDoorConfig.perlinConfig.maxAllowedTotalIterations, 0, 100000000 );
 
-				} else if ( aquariaConfig.jobType == 2 ) {
+				} else if ( cellarDoorConfig.jobType == 2 ) {
 
 					// torus mode
-					ImGui::SliderFloat( "Palette Min", &aquariaConfig.torusConfig.paletteRefMin, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Max", &aquariaConfig.torusConfig.paletteRefMax, 0.0f, 1.0f );
-					ImGui::SliderFloat( "Palette Jitter", &aquariaConfig.torusConfig.paletteRefJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Palette Min", &cellarDoorConfig.torusConfig.paletteRefMin, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Max", &cellarDoorConfig.torusConfig.paletteRefMax, 0.0f, 1.0f );
+					ImGui::SliderFloat( "Palette Jitter", &cellarDoorConfig.torusConfig.paletteRefJitter, 0.0f, 0.2f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "Minor Radius", &aquariaConfig.torusConfig.minorRadius, 0.0f, 500.0f );
-					ImGui::SliderFloat( "Major Radius", &aquariaConfig.torusConfig.majorRadius, 0.0f, 500.0f );
+					ImGui::SliderFloat( "Minor Radius", &cellarDoorConfig.torusConfig.minorRadius, 0.0f, 500.0f );
+					ImGui::SliderFloat( "Major Radius", &cellarDoorConfig.torusConfig.majorRadius, 0.0f, 500.0f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "Radius Min", &aquariaConfig.torusConfig.sphereRadiusMin, 0.0f, 100.0f );
-					ImGui::SliderFloat( "Radius Max", &aquariaConfig.torusConfig.sphereRadiusMax, 0.0f, 100.0f );
-					ImGui::SliderFloat( "Radius Jitter", &aquariaConfig.torusConfig.sphereRadiusJitter, 0.0f, 0.2f );
-					ImGui::SliderFloat( "Ramp Power", &aquariaConfig.torusConfig.rampPower, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Radius Min", &cellarDoorConfig.torusConfig.sphereRadiusMin, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Max", &cellarDoorConfig.torusConfig.sphereRadiusMax, 0.0f, 100.0f );
+					ImGui::SliderFloat( "Radius Jitter", &cellarDoorConfig.torusConfig.sphereRadiusJitter, 0.0f, 0.2f );
+					ImGui::SliderFloat( "Ramp Power", &cellarDoorConfig.torusConfig.rampPower, 0.0f, 0.2f );
 					ImGui::Text( " " );
-					ImGui::SliderFloat( "X Noise Scale", &aquariaConfig.torusConfig.noiseScalar.x, -1000.0f, 1000.0f );
-					ImGui::SliderFloat( "Y Noise Scale", &aquariaConfig.torusConfig.noiseScalar.y, -1000.0f, 1000.0f );
-					ImGui::SliderFloat( "Z Noise Scale", &aquariaConfig.torusConfig.noiseScalar.z, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "X Noise Scale", &cellarDoorConfig.torusConfig.noiseScalar.x, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Y Noise Scale", &cellarDoorConfig.torusConfig.noiseScalar.y, -1000.0f, 1000.0f );
+					ImGui::SliderFloat( "Z Noise Scale", &cellarDoorConfig.torusConfig.noiseScalar.z, -1000.0f, 1000.0f );
 					ImGui::Text( " " );
-					ImGui::SliderInt( "Max Total Iterations", ( int * ) &aquariaConfig.torusConfig.maxAllowedTotalIterations, 0, 100000000 );
+					ImGui::SliderInt( "Max Total Iterations", ( int * ) &cellarDoorConfig.torusConfig.maxAllowedTotalIterations, 0, 100000000 );
 
 				}
 				
 				// move outside the dynamic area
 				if ( ImGui::Button( " Do It " ) ) {
 						// eventually manage seeds better than this
-					aquariaConfig.incrementalConfig.rngSeed = aquariaConfig.wangSeeder();
-					aquariaConfig.perlinConfig.rngSeed = aquariaConfig.wangSeeder();
+					cellarDoorConfig.incrementalConfig.rngSeed = cellarDoorConfig.wangSeeder();
+					cellarDoorConfig.perlinConfig.rngSeed = cellarDoorConfig.wangSeeder();
 
 					// so the noise is not uniform run-to-run
-					aquariaConfig.perlinConfig.noiseOffset = vec3(
-						aquariaConfig.noiseOffset(),
-						aquariaConfig.noiseOffset(),
-						aquariaConfig.noiseOffset() );
+					cellarDoorConfig.perlinConfig.noiseOffset = vec3(
+						cellarDoorConfig.noiseOffset(),
+						cellarDoorConfig.noiseOffset(),
+						cellarDoorConfig.noiseOffset() );
 
 					// worker thread sees this and begins work
-					aquariaConfig.workerThreadShouldRun = true;
+					cellarDoorConfig.workerThreadShouldRun = true;
 				}
 				ImGui::EndTabItem();
 			}
@@ -821,13 +821,13 @@ public:
 					// or flag that gets set when a value changes with ImGui::IsItemEdited() etc
 
 				ImGui::SeparatorText( " Thin Lens " );
-				ImGui::SliderFloat( "Intensity", &aquariaConfig.thinLensIntensity, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
-				ImGui::SliderFloat( "Distance", &aquariaConfig.thinLensDistance, 0.0f, 5.0f, "%.3f" );
+				ImGui::SliderFloat( "Intensity", &cellarDoorConfig.thinLensIntensity, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+				ImGui::SliderFloat( "Distance", &cellarDoorConfig.thinLensDistance, 0.0f, 5.0f, "%.3f" );
 				ImGui::SeparatorText( " Scene " );
-				ImGui::Checkbox( "Bubble", &aquariaConfig.refractiveBubble );
-				ImGui::SliderFloat( "Bubble IoR", &aquariaConfig.IoR, -6.0f, 6.0f );
-				ImGui::SliderFloat( "Fog Scalar", &aquariaConfig.fogScalar, -0.001f, 0.001f, "%.6f", ImGuiSliderFlags_Logarithmic );
-				ImGui::ColorEdit3( "Fog Color", ( float * ) &aquariaConfig.fogColor, ImGuiColorEditFlags_PickerHueWheel );
+				ImGui::Checkbox( "Bubble", &cellarDoorConfig.refractiveBubble );
+				ImGui::SliderFloat( "Bubble IoR", &cellarDoorConfig.IoR, -6.0f, 6.0f );
+				ImGui::SliderFloat( "Fog Scalar", &cellarDoorConfig.fogScalar, -0.001f, 0.001f, "%.6f", ImGuiSliderFlags_Logarithmic );
+				ImGui::ColorEdit3( "Fog Color", ( float * ) &cellarDoorConfig.fogColor, ImGuiColorEditFlags_PickerHueWheel );
 				ImGui::SeparatorText( " Tonemapping " );
 				const char* tonemapModesList[] = {
 					"None (Linear)",
@@ -858,7 +858,7 @@ public:
 					TonemapDefaults();
 				}
 				ImGui::SeparatorText( " Other Rendering " );
-				ImGui::SliderFloat( "Blend Amount", &aquariaConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+				ImGui::SliderFloat( "Blend Amount", &cellarDoorConfig.blendAmount, 0.9f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 				
 				ImGui::EndTabItem();
 			}
@@ -900,18 +900,18 @@ public:
 
 			const glm::mat3 inverseBasisMat = inverse( glm::mat3( -trident.basisX, -trident.basisY, -trident.basisZ ) );
 			glUniformMatrix3fv( glGetUniformLocation( shaders[ "Dummy Draw" ], "invBasis" ), 1, false, glm::value_ptr( inverseBasisMat ) );
-			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blockSize" ), aquariaConfig.dimensions.x / 1024.0f,  aquariaConfig.dimensions.y / 1024.0f,  aquariaConfig.dimensions.z / 1024.0f );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "scale" ), aquariaConfig.scale );
-			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "viewOffset" ), aquariaConfig.viewOffset.x, aquariaConfig.viewOffset.y );
-			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "wangSeed" ), aquariaConfig.wangSeeder() );
+			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blockSize" ), cellarDoorConfig.dimensions.x / 1024.0f,  cellarDoorConfig.dimensions.y / 1024.0f,  cellarDoorConfig.dimensions.z / 1024.0f );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "scale" ), cellarDoorConfig.scale );
+			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "viewOffset" ), cellarDoorConfig.viewOffset.x, cellarDoorConfig.viewOffset.y );
+			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "wangSeed" ), cellarDoorConfig.wangSeeder() );
 			glUniform2f( glGetUniformLocation( shaders[ "Dummy Draw" ], "resolution" ), config.width, config.height );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blendAmount" ), aquariaConfig.blendAmount );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensDistance" ), aquariaConfig.thinLensDistance );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensIntensity" ), aquariaConfig.thinLensIntensity );
-			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "refractiveBubble" ), aquariaConfig.refractiveBubble );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "bubbleIoR" ), aquariaConfig.IoR );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogScalar" ), aquariaConfig.fogScalar );
-			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogColor" ), aquariaConfig.fogColor.r, aquariaConfig.fogColor.g, aquariaConfig.fogColor.b );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "blendAmount" ), cellarDoorConfig.blendAmount );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensDistance" ), cellarDoorConfig.thinLensDistance );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "thinLensIntensity" ), cellarDoorConfig.thinLensIntensity );
+			glUniform1i( glGetUniformLocation( shaders[ "Dummy Draw" ], "refractiveBubble" ), cellarDoorConfig.refractiveBubble );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "bubbleIoR" ), cellarDoorConfig.IoR );
+			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogScalar" ), cellarDoorConfig.fogScalar );
+			glUniform3f( glGetUniformLocation( shaders[ "Dummy Draw" ], "fogColor" ), cellarDoorConfig.fogColor.r, cellarDoorConfig.fogColor.g, cellarDoorConfig.fogColor.b );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -927,8 +927,8 @@ public:
 		}
 
 		// handle the case where the user requested a screenshot - todo: why is it taking twice?
-		if ( aquariaConfig.userRequestedScreenshot ) {
-			aquariaConfig.userRequestedScreenshot = false;
+		if ( cellarDoorConfig.userRequestedScreenshot ) {
+			cellarDoorConfig.userRequestedScreenshot = false;
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 			ColorScreenShotWithFilename( string( "Output-" ) + timeDateString() + string( ".png" ) );
 		}
@@ -965,22 +965,22 @@ public:
 	// update thread
 	std::thread workerThread { [=] () {
 		while ( !pQuit ) { // while the program is running
-			if ( !aquariaConfig.workerThreadShouldRun ) { // waiting
+			if ( !cellarDoorConfig.workerThreadShouldRun ) { // waiting
 				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 			} else {
 				// reset the bars
 				generateBar.done = evaluateBar.done = lightingBar.done = 0.0f;
-				if ( aquariaConfig.jobType == 0 ) // incremental version
+				if ( cellarDoorConfig.jobType == 0 ) // incremental version
 					ComputeSpherePacking();
-				else if ( aquariaConfig.jobType == 1 ) // perlin verison
+				else if ( cellarDoorConfig.jobType == 1 ) // perlin verison
 					ComputePerlinPacking();
-				else if ( aquariaConfig.jobType == 2 ) // torus version
+				else if ( cellarDoorConfig.jobType == 2 ) // torus version
 					ComputeTorusPacking();
 				// else
 					// blah blah, other generators
 				// and the data is ready to send
-				aquariaConfig.bufferReady = true;
-				aquariaConfig.workerThreadShouldRun = false;
+				cellarDoorConfig.bufferReady = true;
+				cellarDoorConfig.workerThreadShouldRun = false;
 			}
 		}
 	}};
@@ -992,7 +992,7 @@ public:
 		{
 			glUseProgram( shaders[ "Ray" ] );
 
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, cellarDoorConfig.sphereSSBO );
 			textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shaders[ "Ray" ], 0 );
 			textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Ray" ], 2 );
 			textureManager.BindImageForShader( "Color Buffer", "colorBuffer", shaders[ "Ray" ], 3 );
@@ -1004,7 +1004,7 @@ public:
 
 			static rng blueNoiseOffset = rng( 0, 512 );
 			glUniform2i( glGetUniformLocation( shaders[ "Ray" ], "noiseOffset" ), blueNoiseOffset(), blueNoiseOffset() );
-			glUniform1i( glGetUniformLocation( shaders[ "Ray" ], "wangSeed" ), aquariaConfig.wangSeeder() );
+			glUniform1i( glGetUniformLocation( shaders[ "Ray" ], "wangSeed" ), cellarDoorConfig.wangSeeder() );
 
 			// glDispatchCompute( 16, 16, 1 );
 			glDispatchCompute( 4, 4, 1 );
@@ -1021,77 +1021,77 @@ public:
 			textureManager.BindImageForShader( "Count Atomic", "countAtomic", shaders[ "Buffer Copy" ], 7 );
 
 			glDispatchCompute(
-				( aquariaConfig.dimensions.x + 7 ) / 8,
-				( aquariaConfig.dimensions.y + 7 ) / 8,
-				( aquariaConfig.dimensions.z + 7 ) / 8 );
+				( cellarDoorConfig.dimensions.x + 7 ) / 8,
+				( cellarDoorConfig.dimensions.y + 7 ) / 8,
+				( cellarDoorConfig.dimensions.z + 7 ) / 8 );
 		}
 
 
 		// generate bar is updated internal to the generate functions - this is hacky but whatever
-		if ( aquariaConfig.workerThreadShouldRun || aquariaConfig.bufferReady ) {
+		if ( cellarDoorConfig.workerThreadShouldRun || cellarDoorConfig.bufferReady ) {
 			evaluateBar.done = lightingBar.done= 0.0f;
 		} else {
-			evaluateBar.done = aquariaConfig.numTiles - aquariaConfig.updateTiles.size();
-			lightingBar.done = 8 * 8 * 8 - aquariaConfig.lightingRemaining;
+			evaluateBar.done = cellarDoorConfig.numTiles - cellarDoorConfig.updateTiles.size();
+			lightingBar.done = 8 * 8 * 8 - cellarDoorConfig.lightingRemaining;
 		}
 
-		if ( aquariaConfig.bufferReady ) {
+		if ( cellarDoorConfig.bufferReady ) {
 
 			// update state
-			aquariaConfig.bufferReady = false;
-			aquariaConfig.workerThreadShouldRun = false;
+			cellarDoorConfig.bufferReady = false;
+			cellarDoorConfig.workerThreadShouldRun = false;
 
 			// send the data to the SSBO
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, aquariaConfig.sphereSSBO );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * aquariaConfig.maxSpheres, ( GLvoid * ) &aquariaConfig.sphereBuffer.data()[ 0 ], GL_DYNAMIC_COPY );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, cellarDoorConfig.sphereSSBO );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * cellarDoorConfig.maxSpheres, ( GLvoid * ) &cellarDoorConfig.sphereBuffer.data()[ 0 ], GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, cellarDoorConfig.sphereSSBO );
 
 			ComputeTileList(); // ready to go to the next stage
 			ComputeUpdateOffsets();
 
-		} else if ( aquariaConfig.updateTiles.size() != 0 ) {
+		} else if ( cellarDoorConfig.updateTiles.size() != 0 ) {
 			glUseProgram( shaders[ "Precompute" ] );
 
 			// buffer setup
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, cellarDoorConfig.sphereSSBO );
 			// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Precompute" ], 2 );
 			textureManager.BindImageForShader( "Color Buffer", "dataCacheBuffer", shaders[ "Precompute" ], 3 );
 
 			// other uniforms
-			ivec3 offset = aquariaConfig.updateTiles[ aquariaConfig.updateTiles.size() - 1 ];
-			aquariaConfig.updateTiles.pop_back();
+			ivec3 offset = cellarDoorConfig.updateTiles[ cellarDoorConfig.updateTiles.size() - 1 ];
+			cellarDoorConfig.updateTiles.pop_back();
 			glUniform3i( glGetUniformLocation( shaders[ "Precompute" ], "offset" ), offset.x, offset.y, offset.z );
-			glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "wangSeed" ), aquariaConfig.incrementalConfig.rngSeed );
+			glUniform1i( glGetUniformLocation( shaders[ "Precompute" ], "wangSeed" ), cellarDoorConfig.incrementalConfig.rngSeed );
 			glDispatchCompute( 8, 8, 8 );
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 		}
 
-		// } else if ( aquariaConfig.lightingRemaining >= 0 ) {
+		// } else if ( cellarDoorConfig.lightingRemaining >= 0 ) {
 		// 	glUseProgram( shaders[ "Lighting" ] );
 
 		// 	// buffer setup
-		// 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, aquariaConfig.sphereSSBO );
+		// 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, cellarDoorConfig.sphereSSBO );
 		// 	// textureManager.BindImageForShader( "ID Buffer", "idxBuffer", shaders[ "Lighting" ], 2 );
 		// 	textureManager.BindImageForShader( "Color Buffer", "dataCacheBuffer", shaders[ "Lighting" ], 3 );
 
 		// 	// other uniforms
-		// 	ivec3 offset = aquariaConfig.offsets[ aquariaConfig.lightingRemaining-- ];
+		// 	ivec3 offset = cellarDoorConfig.offsets[ cellarDoorConfig.lightingRemaining-- ];
 		// 	glUniform3i( glGetUniformLocation( shaders[ "Lighting" ], "offset" ), offset.x, offset.y, offset.z );
 		// 	glDispatchCompute(
-		// 		( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
-		// 		( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
-		// 		( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
+		// 		( ( cellarDoorConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
+		// 		( ( cellarDoorConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
+		// 		( ( cellarDoorConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
 
 		// 	// do a second one
-		// 	if ( aquariaConfig.lightingRemaining >= 0 && !( aquariaConfig.workerThreadShouldRun || aquariaConfig.bufferReady ) ) {
+		// 	if ( cellarDoorConfig.lightingRemaining >= 0 && !( cellarDoorConfig.workerThreadShouldRun || cellarDoorConfig.bufferReady ) ) {
 		// 		// other uniforms
-		// 		offset = aquariaConfig.offsets[ aquariaConfig.lightingRemaining-- ];
+		// 		offset = cellarDoorConfig.offsets[ cellarDoorConfig.lightingRemaining-- ];
 		// 		glUniform3i( glGetUniformLocation( shaders[ "Lighting" ], "offset" ), offset.x, offset.y, offset.z );
 		// 		glDispatchCompute(
-		// 			( ( aquariaConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
-		// 			( ( aquariaConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
-		// 			( ( aquariaConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
+		// 			( ( cellarDoorConfig.dimensions.x + 7 ) / 8 + 7 ) / 8,
+		// 			( ( cellarDoorConfig.dimensions.y + 7 ) / 8 + 7 ) / 8,
+		// 			( ( cellarDoorConfig.dimensions.z + 7 ) / 8 + 7 ) / 8 );
 		// 	}
 		// 	// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		// }
@@ -1145,7 +1145,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	Aquaria engineInstance;
+	cellarDoor engineInstance;
 	while( !engineInstance.MainLoop() );
 
 	// program has terminated, time to die

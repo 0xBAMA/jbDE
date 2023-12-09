@@ -197,25 +197,25 @@ target_link_libraries( CABitPlanes
 )
 
 # =================================================================================================
-# Aquaria_SpherePack
+# Aquaria
 # =================================================================================================
-add_executable( Aquaria_SpherePack
-	src/projects/Aquaria/SpherePack/main.cc
+add_executable( Aquaria
+	src/projects/Aquaria/main.cc
 )
 
-target_link_libraries( Aquaria_SpherePack
+target_link_libraries( Aquaria
 	PUBLIC
 	engineBase
 )
 
 # =================================================================================================
-# Aquaria_BVH
+# CellarDoor
 # =================================================================================================
-add_executable( Aquaria_BVH
-	src/projects/Aquaria/BVH/main.cc
+add_executable( CellarDoor
+	src/projects/PathTracing/CellarDoor/main.cc
 )
 
-target_link_libraries( Aquaria_BVH
+target_link_libraries( CellarDoor
 	PUBLIC
 	engineBase
 )

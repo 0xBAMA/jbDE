@@ -698,8 +698,8 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
+	return ( 1000.0f );
 	return sceneDist;
-	// return ( 1000.0f );
 }
 
 
