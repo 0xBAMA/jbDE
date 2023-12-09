@@ -81,7 +81,7 @@ struct sirenConfig_t {
 	vec3 skylightColor = vec3( 0.0f );		// ray escape color
 
 	// informs the location of the sun
-	float skyTime = 0.5;
+	float skyTime = 5.16;
 	ivec2 skyDims = ivec2( 1024, 512 );
 
 	// questionable need:
@@ -145,6 +145,7 @@ public:
 			opts.dataType		= GL_RGBA16F;
 			opts.width			= sirenConfig.skyDims.x;
 			opts.height			= sirenConfig.skyDims.y;
+			opts.wrap			= GL_CLAMP_TO_EDGE;
 			textureManager.Add( "Sky Cache", opts );
 
 			// setup performance monitor

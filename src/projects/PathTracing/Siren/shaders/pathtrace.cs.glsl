@@ -1112,9 +1112,10 @@ vec3 getEscapeColor ( vec3 dir ) {
 			// handle vertical samples, straight up or straight down - compress y into valid range
 			elevationFactor = elevationFactor * 0.99f;
 		}
-		samplePoint.x = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
-		samplePoint.y = RangeRemapValue( atan( dir.z, dir.x ), -pi, pi, 0.0f, 1.0f );
+		samplePoint.x = RangeRemapValue( atan( dir.x, dir.z ), -pi, pi, 0.01f, 0.99f );
+		samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
 		return texture( skyCache, samplePoint ).rgb;
+		// return vec3( samplePoint.xy, 0.0f );
 	} else {
 		return skylightColor;
 	}
