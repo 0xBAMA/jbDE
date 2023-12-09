@@ -1099,10 +1099,22 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 }
 
 // ==============================================================================================
+float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, float outHigh ) {
+	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
+}
+
 vec3 getEscapeColor ( vec3 dir ) {
 	if ( skylightColor == vec3( 0.0f ) ) {
 		// black as a reserve value, to sample the sky
-		
+		vec2 samplePoint = vec2( 0.0f );
+		float elevationFactor = dot( dir, vec3( 0.0f, 1.0f, 0.0f ) );
+		if ( abs( elevationFactor ) > 0.99f ) {
+			// handle vertical samples, straight up or straight down - compress y into valid range
+			elevationFactor = elevationFactor * 0.99f;
+		}
+		samplePoint.x = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
+		samplePoint.y = RangeRemapValue( atan( dir.z, dir.x ), -pi, pi, 0.0f, 1.0f );
+		return texture( skyCache, samplePoint ).rgb;
 	} else {
 		return skylightColor;
 	}
