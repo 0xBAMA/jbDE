@@ -1054,13 +1054,14 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 	vec4 temp = vec4( 0.0f, 0.0f, 0.0f, 1000000.0f );
 	const uvec3 texDims = uvec3( 96, 64, 64 );
 	uint i = 0;
+	vec3 normal = vec3( 0.0f );
 	// iterate through the planes
 	for ( ; i < texDims.z; i++ ) {
-		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) ) );
-		float planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? 1000000.0f : plane.b.x : plane.a.x;
-		if ( planeHit > 0.0f && planeHit != 1000000.0f ) {
+		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 1.0f, 1.0f, 1.0f ) ), 0.01f * float( i ) ) );
+		vec4 planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? vec4( 1000000.0f ) : plane.b : plane.a;
+		if ( planeHit.x > 0.0f && planeHit.x != 1000000.0f ) {
 
-			vec3 hitPoint = ( origin + planeHit * direction ) + vec3( 3.0f, 4.0f, 3.0f );
+			vec3 hitPoint = ( origin + planeHit.x * direction ) + vec3( 3.0f, 4.0f, 3.0f );
 
 			// nonlinear distorted remap
 			// hitPoint = vec3( hitPoint.x * hitPoint.y, hitPoint.x * hitPoint.x, hitPoint.z );
@@ -1077,7 +1078,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 
 			if ( !reject ) {
 				closest = plane;
-				temp =  vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit ) );
+				temp =  vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
+				normal = planeHit.yzw;
 			}
 		}
 	}
@@ -1085,11 +1087,12 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 	if ( temp.a != 1000000.0f && temp.a < result.dTravel ) {
 		// result.i = closest;
 		result.dTravel = temp.a;
-		result.normal = ( temp.a == closest.a.x ) ? closest.a.yzw : closest.b.yzw;
+		result.normal = normal;
 		result.color = temp.rgb;
-		result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+		// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+		// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? METALLIC : DIFFUSE;
+		result.material = DIFFUSE;
 	}
-
 
 	// if all intersectors escape, we take the nohit result from the first if at the top of the function
 	// if the explicit result is closer than the raymarch result, we already have the correct information in the result struct
