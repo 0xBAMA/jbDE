@@ -522,6 +522,7 @@ public:
 			ImGui::SliderFloat( "Screen UV Scalar", &sirenConfig.uvScalar, 0.01f, 5.0f );
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 			ImGui::ColorEdit3( "Sky Color", ( float * ) &sirenConfig.skylightColor, ImGuiColorEditFlags_PickerHueWheel );
+			ImGui::SliderFloat( "Sky Time", &sirenConfig.skyTime, -10.0f, 10.0f );
 			ImGui::ColorEdit3( "Background Color", ( float * ) &sirenConfig.backgroundColor, ImGuiColorEditFlags_PickerHueWheel );
 			if ( ImGui::IsItemEdited() ) {
 				// update the value of the border
