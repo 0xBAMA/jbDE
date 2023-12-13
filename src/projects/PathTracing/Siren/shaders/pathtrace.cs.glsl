@@ -643,7 +643,7 @@ float de ( vec3 p ) {
 	// cache initial point location
 	const vec3 pCache = p;
 	pModPolar( p.xz, 4 );
-	pMirror( p.y, -2.0f );
+	// pMirror( p.y, -2.0f );
 	p.y = 5.0f - p.y;
 
 	// light bar
@@ -651,7 +651,8 @@ float de ( vec3 p ) {
 	sceneDist = min( dLight, sceneDist );
 	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
 		hitPointColor = vec3( 3.0f );
-		hitPointSurfaceType = EMISSIVE;
+		// hitPointSurfaceType = EMISSIVE;
+		hitPointSurfaceType = DIFFUSE;
 	}
 
 	// outer frame
@@ -667,16 +668,18 @@ float de ( vec3 p ) {
 
 	sceneDist = min( dFramePlusPlatform, sceneDist );
 	if ( sceneDist == dFramePlusPlatform && dFramePlusPlatform <= raymarchEpsilon ) {
-		hitPointSurfaceType = CHECKER;
-
 		// hitPointSurfaceType = DIFFUSE;
-		// hitPointColor = vec3( 0.1f, 0.3f, 0.9f );
+		// hitPointColor = vec3( 0.1f, 0.3f, 0.9f ).bgr;
+
+		hitPointSurfaceType = CHECKER;
 
 		// hitPointSurfaceType = WOOD;
 
+		// hitPointSurfaceType = MIRROR;
+
 		// if ( NormalizedRandomFloat() < 0.9f ) {
 		// 	hitPointSurfaceType = DIFFUSE;
-		// 	hitPointColor = vec3( 0.01618f );
+		// 	hitPointColor = vec3( 0.618f );
 		// } else {
 		// 	hitPointSurfaceType = MIRROR;
 		// }
@@ -685,7 +688,8 @@ float de ( vec3 p ) {
 	sceneDist = min( dOrbs, sceneDist );
 	if ( sceneDist == dOrbs && dOrbs <= raymarchEpsilon ) {
 		hitPointColor = vec3( 3.0f );
-		hitPointSurfaceType = EMISSIVE;
+		// hitPointSurfaceType = EMISSIVE;
+		hitPointSurfaceType = DIFFUSE;
 	}
 
 	sceneDist = min( dReflector, sceneDist );
@@ -698,7 +702,7 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
-	return ( 1000.0f );
+	// return ( 1000.0f );
 	return sceneDist;
 }
 
@@ -1057,7 +1061,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 	vec3 normal = vec3( 0.0f );
 	// iterate through the planes
 	for ( ; i < texDims.z; i++ ) {
-		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 1.0f, 1.0f, 1.0f ) ), 0.01f * float( i ) ) );
+		Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) ) );
 		vec4 planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? vec4( 1000000.0f ) : plane.b : plane.a;
 		if ( planeHit.x > 0.0f && planeHit.x != 1000000.0f ) {
 
@@ -1069,12 +1073,15 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			ivec3 pxIdx = ivec3( floor( hitPoint * 128.0f ) );
 
 			ivec2 bin = ivec2( floor( pxIdx.xz / vec2( 8.0f, 16.0f ) ) );
+			// ivec2 bin = ivec2( floor( ( pxIdx.xz % ivec2( texDims.xy * uvec2( 64, 32 ) ) ) / vec2( 8.0f, 16.0f ) ) );
 			ivec2 offset = ivec2( pxIdx.xz ) % ivec2( 8, 16 );
 
 			// get the sample
 			uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
-			int onGlyph = fontRef( sampleValue.a, offset );
-			bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+			// int onGlyph = fontRef( sampleValue.a, offset );
+			int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
+			// bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+			bool reject = ( onGlyph <= 0 );
 
 			if ( !reject ) {
 				closest = plane;
@@ -1089,9 +1096,9 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.dTravel = temp.a;
 		result.normal = normal;
 		result.color = temp.rgb;
-		// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+		result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
 		// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? METALLIC : DIFFUSE;
-		result.material = DIFFUSE;
+		// result.material = DIFFUSE;
 	}
 
 	// if all intersectors escape, we take the nohit result from the first if at the top of the function
@@ -1107,6 +1114,7 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 }
 
 vec3 getEscapeColor ( vec3 dir ) {
+	// dir.y = -dir.y;
 	if ( skylightColor == vec3( 0.0f ) ) {
 		// black as a reserve value, to sample the sky
 		vec2 samplePoint = vec2( 0.0f );
@@ -1116,8 +1124,8 @@ vec3 getEscapeColor ( vec3 dir ) {
 			elevationFactor = elevationFactor * 0.99f;
 		}
 		samplePoint.x = RangeRemapValue( atan( dir.x, dir.z ), -pi, pi, 0.01f, 0.99f );
-		samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
-		return texture( skyCache, samplePoint ).rgb;
+		samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.01f, 0.99f );
+		return texture( skyCache, samplePoint ).rgb * 3.0f;
 		// return vec3( samplePoint.xy, 0.0f );
 	} else {
 		return skylightColor;
