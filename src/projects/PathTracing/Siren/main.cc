@@ -1271,13 +1271,17 @@ public:
 		// rngi rPick = rngi( 22, 255 );
 		// rngi gPick = rngi( 4, 128 );
 		// rngi bPick = rngi( 0, 255 );
-		rng pPick = rng( 0.1f, 0.9f );
+
+		// look at a random, narrow slice of a random palette
+		palette::PickRandomPalette( true );
+		rng ppPick = rng( 0.1f, 0.9f );
+		rng pwPick = rng( 0.01f, 0.3f );
+		rngN pPick = rngN( ppPick(), pwPick() );
 
 		color_4U col = color_4U( { 0, 0, 0, 0 } );
 		uint32_t length = 0;
 
 		// do N randomly selected
-		palette::PickRandomPalette( true );
 		for ( uint32_t op = 0; op < numOps; op++ ) {
 			vec3 c = palette::paletteRef( pPick() ) * 255.0f;
 			switch ( opPick() ) {
