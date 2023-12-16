@@ -95,7 +95,7 @@ struct sirenConfig_t {
 	// properties of the animation
 	animation_t animation;
 
-	// list of active spheres ( xyz position, radius, rgb color, material ID )wo
+	// list of active spheres ( xyz position, radius, rgb color, material ID )
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
 	const uint32_t maxSpheres = 5000;
@@ -1180,7 +1180,7 @@ public:
 				currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
 				currentRadius /= 1.618f;
 				maxIterations *= 3;
-				
+
 				// doing this makes it pack flat
 				// min.y /= 1.5f;
 				// max.y /= 1.5f;
