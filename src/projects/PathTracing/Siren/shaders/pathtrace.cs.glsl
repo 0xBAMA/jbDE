@@ -91,6 +91,7 @@ vec3 GetColorForTemperature ( const float temperature ) {
 
 #include "wood.h"
 #include "glyphs.h"
+#include "colorRamps.h"
 
 // other cool procedural materials to explore/learn from:
 // marble:
@@ -1107,7 +1108,6 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				// hitPoint = vec3( hitPoint.x * hitPoint.y, hitPoint.x * hitPoint.x, hitPoint.z );
 
 				ivec3 pxIdx = ivec3( floor( hitPoint * 128.0f ) );
-
 				ivec2 bin = ivec2( floor( pxIdx.xz / vec2( 8.0f, 16.0f ) ) );
 				// ivec2 bin = ivec2( floor( ( pxIdx.xz % ivec2( texDims.xy * uvec2( 64, 32 ) ) ) / vec2( 8.0f, 16.0f ) ) );
 				ivec2 offset = ivec2( pxIdx.xz ) % ivec2( 8, 16 );
@@ -1121,7 +1121,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 
 				if ( !reject ) {
 					closest = plane;
-					temp =  vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
+					// temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
+					temp = vec4( refPalette( sampleValue.x / 255.0f, 10 ).xyz, min( temp.a, planeHit.x ) );
 					normal = planeHit.yzw;
 				}
 			}
@@ -1132,9 +1133,9 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			result.dTravel = temp.a;
 			result.normal = normal;
 			result.color = temp.rgb;
-			result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
 			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? METALLIC : DIFFUSE;
-			// result.material = DIFFUSE;
+			result.material = DIFFUSE;
 		}
 	}
 // ==================================================================================================================================
