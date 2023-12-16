@@ -606,7 +606,6 @@ public:
 		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
 		Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 		screenshot.FlipVertical(); // whatever
-		screenshot.Crop( sirenConfig.targetWidth, sirenConfig.targetHeight, 1, 1 );
 		screenshot.Save( filename );
 	}
 
