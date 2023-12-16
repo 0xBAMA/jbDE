@@ -345,7 +345,7 @@ public:
 			const ImVec2 minUV = ImVec2( ( 1.0f - imageScalar ) + offset.x, imageScalar + offset.y );
 			const ImVec2 maxUV = ImVec2( imageScalar + offset.x, ( 1.0f - imageScalar ) + offset.y );
 
-			ImTextureID texture = ( ImTextureID ) textureManager.Get( "Display Texture" );
+			ImTextureID texture = ( void* ) ( intptr_t ) textureManager.Get( "Display Texture" );
 			// line 7717 in imgui_demo.cc has an example where a grid is drawn
 			ImGui::ImageButton( " ", texture, widgetSize, minUV, maxUV, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ), ImVec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
