@@ -98,7 +98,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 5000;
+	const uint32_t maxSpheres = 500;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1110,23 +1110,20 @@ public:
 		// pick new palette
 		palette::PickRandomPalette( true );
 
-		// matplotlib plasma
-		// palette::PaletteIndex = 1239;
-
 		// first implementation, randomizing all parameters
-		// rng c = rng( 0.3f, 1.0f );
-		// rng o = rng( -15.0f, 15.0f );
-		// rng y = rng( 0.0f, 15.0f );
-		// rng r = rng( 0.2f, 3.0f );
-		// // rngi p = rngi( 0, 1 );
-		// rng p = rng( 0.0f, 1.0f );
-		// for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
-		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), y(), o(), r() ) );	// position
-		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
-		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
-		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
-		// }
-
+		rng c = rng( 0.3f, 1.0f );
+		rng o = rng( -15.0f, 15.0f );
+		rng y = rng( 0.0f, 15.0f );
+		rng r = rng( 0.2f, 3.0f );
+		// rngi p = rngi( 0, 1 );
+		rng p = rng( 0.0f, 1.0f );
+		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), y(), o(), r() ) );	// position
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) ); // color
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, 11.0f ) ); // color
+		}
 
 		// jittered grid, noise informing material properties
 		// PerlinNoise p;

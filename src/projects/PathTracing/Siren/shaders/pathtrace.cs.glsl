@@ -48,7 +48,7 @@ uniform sampler2D skyCache;
 		// primitive type
 		// primitive parameters
 		// material details
-const int numSpheres = 0;// 5000;
+const int numSpheres = 500;// 5000;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -703,7 +703,7 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
-	// return ( 1000.0f );
+	return ( 1000.0f );
 	return sceneDist;
 }
 
@@ -1116,13 +1116,15 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
 				int onGlyph = fontRef( sampleValue.a, offset );
 				// int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
-				bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
-				// bool reject = ( onGlyph <= 0 );
+
+				// bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+				bool reject = ( onGlyph <= 0 );
 
 				if ( !reject ) {
 					closest = plane;
 					// temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
-					temp = vec4( refPalette( sampleValue.x / 255.0f, 10 ).xyz, min( temp.a, planeHit.x ) );
+					// temp = vec4( refPalette( sampleValue.x / 255.0f, 12 ).xyz, min( temp.a, planeHit.x ) );
+					temp = vec4( refPalette( 0.23f * hitPoint.x, 4 ).xyz, min( temp.a, planeHit.x ) );
 					normal = planeHit.yzw;
 				}
 			}
@@ -1135,6 +1137,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			result.color = temp.rgb;
 			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
 			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? METALLIC : DIFFUSE;
+			// result.material = ( temp.a > 0.9f ) ? EMISSIVE : DIFFUSE;
 			result.material = DIFFUSE;
 		}
 	}
