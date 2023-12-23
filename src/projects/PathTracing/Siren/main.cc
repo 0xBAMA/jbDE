@@ -98,7 +98,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 500;
+	const uint32_t maxSpheres = 3630;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1110,20 +1110,31 @@ public:
 		// pick new palette
 		palette::PickRandomPalette( true );
 
-		// first implementation, randomizing all parameters
-		rng c = rng( 0.3f, 1.0f );
-		rng o = rng( -15.0f, 15.0f );
-		rng y = rng( 0.0f, 15.0f );
-		rng r = rng( 0.2f, 3.0f );
-		// rngi p = rngi( 0, 1 );
-		rng p = rng( 0.0f, 1.0f );
-		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), y(), o(), r() ) );	// position
-			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
-			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
-			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) ); // color
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, 11.0f ) ); // color
+		// // first implementation, randomizing all parameters
+		// rng c = rng( 0.3f, 1.0f );
+		// rng o = rng( -15.0f, 15.0f );
+		// rng y = rng( 0.0f, 15.0f );
+		// rng r = rng( 0.2f, 3.0f );
+		// // rngi p = rngi( 0, 1 );
+		// rng p = rng( 0.0f, 1.0f );
+		// for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
+		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), y(), o(), r() ) );	// position
+		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
+		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
+		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) ); // color
+		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, 11.0f ) ); // color
+		// }
+
+		const float step = 0.2f;
+		int count = 0;
+		for ( float z = -3.0f; z < 3.0f; z += step )
+		for ( float y = -2.5f; y < 1.5f; y += step )
+		for ( float x = -1.0f; x < 1.0f; x += step ) {
+			count ++;
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( x, y, z, 0.1f ) );	// position
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, 11.0f ) ); // color
 		}
+		// cout << endl << count << endl;
 
 		// jittered grid, noise informing material properties
 		// PerlinNoise p;
@@ -1136,6 +1147,9 @@ public:
 		// 		sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p.noise( pos.x / 2.0f, pos.y / 2.0f, pos.z / 2.0f ) < 0.5f ) ? 9 : 7 ) ); // color
 		// 	}
 		// }
+
+
+	/*
 
 		// stochastic sphere packing, inside the volume
 		vec3 min = vec3( -8.0f, -1.5f, -8.0f );
@@ -1192,8 +1206,10 @@ public:
 		for ( uint i = 0; i < sirenConfig.sphereLocationsPlusColors.size() / 2; i++ ) {
 			sirenConfig.sphereLocationsPlusColors[ i * 2 ] = sirenConfig.sphereLocationsPlusColors[ i * 2 ] - vec4( 0.0f, 4.0f, 0.0f, 0.0f );
 		}
+	*/
 
 		// generate 50 extra, and then pop 50 off the front - will create cavities where some of the earliest, largest spheres are
+
 	}
 
 	void SphereRelax () {

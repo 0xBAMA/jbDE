@@ -48,7 +48,8 @@ uniform sampler2D skyCache;
 		// primitive type
 		// primitive parameters
 		// material details
-const int numSpheres = 500;// 5000;
+const int numSpheres = 3630;
+// const int numSpheres = 0;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -598,6 +599,38 @@ float sdTerrain(vec3 p) {
 //   	return smax(max(abs(q.y),abs(q.z))-1.3,length(p)/s-.00);
 // }
 
+mat3 rotZ ( float t ) {
+  float s = sin( t );
+  float c = cos( t );
+  return mat3( c, s, 0., -s, c, 0., 0., 0., 1. );
+}
+
+mat3 rotX ( float t ) {
+  float s = sin( t );
+  float c = cos( t );
+  return mat3( 1., 0., 0., 0., c, s, 0., -s, c );
+}
+
+mat3 rotY ( float t ) {
+  float s = sin( t );
+  float c = cos( t );
+  return mat3 (c, 0., -s, 0., 1., 0, s, 0, c);
+}
+
+float deFractalDecember ( vec3 p ){
+  vec2 rm = radians( 360.0 ) * vec2( 0.468359, 0.95317 ); // vary x,y 0.0 - 1.0
+  mat3 scene_mtx = rotX( rm.x ) * rotY( rm.x ) * rotZ( rm.x ) * rotX( rm.y );
+  float scaleAccum = 1.;
+  for( int i = 0; i < 18; ++i ) {
+    p.yz = sqrt( p.yz * p.yz + 0.16406 );
+    p *= 1.21;
+    scaleAccum *= 1.21;
+    p -= vec3( 2.43307, 5.28488, 0.9685 );
+    p = scene_mtx * p;
+  }
+  return length( p ) / scaleAccum - 0.15;
+}
+
 // ==============================================================================================
 // ==============================================================================================
 
@@ -703,6 +736,16 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
+		// hitPointSurfaceType = CHECKER;
+		// hitPointSurfaceType = MIRROR;
+		// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
+		// hitPointColor = vec3( 0.75f, 0.57f, 0.2f );
+		hitPointColor = vec3( 0.618f, 0.5f, 0.44f );
+		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : WOOD;
+		// hitPointSurfaceType = REFRACTIVE;
+
+	return deFractalDecember( pCache * 5.0f + vec3( 0.0f, 15.0f, 0.0f ) ) / 5.0f;
 	return ( 1000.0f );
 	return sceneDist;
 }
@@ -1098,7 +1141,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		vec3 normal = vec3( 0.0f );
 		// iterate through the planes
 		for ( ; i < texDims.z; i++ ) {
-			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) ) );
+			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) - 5.0f ) );
 			vec4 planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? vec4( 1000000.0f ) : plane.b : plane.a;
 			if ( planeHit.x > 0.0f && planeHit.x != 1000000.0f ) {
 
@@ -1124,7 +1167,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 					closest = plane;
 					// temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
 					// temp = vec4( refPalette( sampleValue.x / 255.0f, 12 ).xyz, min( temp.a, planeHit.x ) );
-					temp = vec4( refPalette( 0.23f * hitPoint.x, 4 ).xyz, min( temp.a, planeHit.x ) );
+					// temp = vec4( refPalette( 0.23f * hitPoint.x, 4 ).xyz, min( temp.a, planeHit.x ) );
+					temp = vec4( vec3( 0.618f ), min( temp.a, planeHit.x ) );
 					normal = planeHit.yzw;
 				}
 			}
