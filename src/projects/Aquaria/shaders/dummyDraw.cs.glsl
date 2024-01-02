@@ -138,7 +138,7 @@ void main () {
 	if ( hitBubble && refractiveBubble != 0 || refractiveBubble == 0 ) {
 
 		// then intersect with the AABB
-		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
+		const bool hit = IntersectAABB( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
 		// what are the dimensions
 		const ivec3 blockDimensions = imageSize( dataCacheBuffer );
