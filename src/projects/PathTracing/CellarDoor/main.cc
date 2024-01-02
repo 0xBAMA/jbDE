@@ -171,9 +171,9 @@ public:
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
-			cellarDoorConfig.dimensions.x	= j[ "app" ][ "cellarDoor" ][ "dimensions" ][ "x" ];
-			cellarDoorConfig.dimensions.y	= j[ "app" ][ "cellarDoor" ][ "dimensions" ][ "y" ];
-			cellarDoorConfig.dimensions.z	= j[ "app" ][ "cellarDoor" ][ "dimensions" ][ "z" ];
+			cellarDoorConfig.dimensions.x	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "x" ];
+			cellarDoorConfig.dimensions.y	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "y" ];
+			cellarDoorConfig.dimensions.z	= j[ "app" ][ "Aquaria" ][ "dimensions" ][ "z" ];
 
 	// ================================================================================================================
 	// ==== Create Textures ===========================================================================================
