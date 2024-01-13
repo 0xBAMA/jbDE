@@ -631,6 +631,20 @@ float deFractalDecember ( vec3 p ){
   return length( p ) / scaleAccum - 0.15;
 }
 
+#define sabs1(p)sqrt((p)*(p)+1e-1)
+#define sabs2(p)sqrt((p)*(p)+1e-3)
+float deFractalJanuary ( vec3 p ) {
+	float s = 2.0f; p = abs( p );
+	for ( int i = 0; i < 4; i++ ) {
+		p = 1.0f - sabs2( p - 1.0f );
+		float r = -9.0f * clamp( max( 0.2f / pow( min( min( sabs1( p.x ), sabs1( p.y ) ), sabs1( p.z ) ), 0.5 ), 0.1f ), 0.0f, 0.5f );
+		s *= r; p *= r; p += 1.0f;
+	}
+	s = abs( s ); float a = 2.0f;
+	p -= clamp( p,-a, a );
+	return length(p) / s - 0.01f;
+}
+
 // ==============================================================================================
 // ==============================================================================================
 
@@ -740,12 +754,13 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = MIRROR;
 		// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
 		// hitPointColor = vec3( 0.75f, 0.57f, 0.2f );
-		hitPointColor = vec3( 0.618f, 0.5f, 0.44f );
-		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : WOOD;
-		// hitPointSurfaceType = REFRACTIVE;
+		// hitPointColor = vec3( 0.618f, 0.5f, 0.44f );
+		hitPointColor = vec3( 0.1618f );
+		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : WOOD;
+		// hitPointSurfaceType = MIRROR;
 
-	return deFractalDecember( pCache * 5.0f + vec3( 0.0f, 15.0f, 0.0f ) ) / 5.0f;
+	return deFractalJanuary( pCache * 1.0f ) / 1.0f;
 	return ( 1000.0f );
 	return sceneDist;
 }
@@ -1141,7 +1156,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		vec3 normal = vec3( 0.0f );
 		// iterate through the planes
 		for ( ; i < texDims.z; i++ ) {
-			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) - 5.0f ) );
+			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) ) );
 			vec4 planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? vec4( 1000000.0f ) : plane.b : plane.a;
 			if ( planeHit.x > 0.0f && planeHit.x != 1000000.0f ) {
 
@@ -1165,10 +1180,10 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 
 				if ( !reject ) {
 					closest = plane;
-					// temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
+					temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
 					// temp = vec4( refPalette( sampleValue.x / 255.0f, 12 ).xyz, min( temp.a, planeHit.x ) );
 					// temp = vec4( refPalette( 0.23f * hitPoint.x, 4 ).xyz, min( temp.a, planeHit.x ) );
-					temp = vec4( vec3( 0.618f ), min( temp.a, planeHit.x ) );
+					// temp = vec4( vec3( 0.618f ), min( temp.a, planeHit.x ) );
 					normal = planeHit.yzw;
 				}
 			}
@@ -1179,10 +1194,11 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			result.dTravel = temp.a;
 			result.normal = normal;
 			result.color = temp.rgb;
-			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
-			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? METALLIC : DIFFUSE;
+			// result.material = all( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.5f ) ) ) ? METALLIC : DIFFUSE;
 			// result.material = ( temp.a > 0.9f ) ? EMISSIVE : DIFFUSE;
-			result.material = DIFFUSE;
+			// result.material = DIFFUSE;
+			result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
 		}
 	}
 // ==================================================================================================================================
