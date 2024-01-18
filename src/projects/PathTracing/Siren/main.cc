@@ -602,12 +602,15 @@ public:
 	}
 
 	void ColorScreenShotWithFilename ( const string filename ) {
-		std::vector< uint8_t > imageBytesToSave;
+		std::vector< float > imageBytesToSave;
 		imageBytesToSave.resize( sirenConfig.targetWidth * sirenConfig.targetHeight * 4, 0 );
 		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
-		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageBytesToSave.data()[ 0 ] );
-		Image_4U screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
+		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+		Image_4F screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
 		screenshot.FlipVertical(); // whatever
+		if ( config.SRGBFramebuffer ) {
+			screenshot.GammaCorrect( 2.2f );
+		}
 		screenshot.Save( filename );
 	}
 

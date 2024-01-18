@@ -290,11 +290,12 @@ public:
 		}
 	}
 
-	void GammaCorrect ( const float gamma ) {
+	void GammaCorrect ( const float gamma, bool touchAlpha = false ) {
 		for ( uint32_t y { 0 }; y < height; y++ ){
 			for ( uint32_t x { 0 }; x < width; x++ ) {
 				color src = GetAtXY( x, y );
 				for ( uint8_t c { 0 }; c < numChannels; c++ ) {
+					if ( !touchAlpha && c == 3 ) break;
 					src[ c ] = std::pow( src[ c ], 1.0f / gamma );
 				}
 				SetAtXY( x, y, src );
