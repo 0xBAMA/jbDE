@@ -1266,10 +1266,10 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 }
 
 vec3 getEscapeColor ( vec3 dir ) {
-	if ( invertSky ) {
+	if ( invertSky == true ) {
 		dir.y = -dir.y;
 	}
-	if ( skylightColor < vec3( 0.01f ) ) {
+	if ( all( lessThan( skylightColor, vec3( 0.01f ) ) ) ) {
 		// black as a reserve value, to sample the sky
 		vec2 samplePoint = vec2( 0.0f );
 		float elevationFactor = dot( dir, vec3( 0.0f, 1.0f, 0.0f ) );

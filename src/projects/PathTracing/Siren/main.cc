@@ -83,7 +83,7 @@ struct sirenConfig_t {
 	// informs the location of the sun
 	bool invertSky = false;
 	float skyTime = 5.16;
-	ivec2 skyDims = ivec2( 1024, 512 );
+	ivec2 skyDims = ivec2( 4096, 2048 );
 
 	// questionable need:
 		// dither parameters ( mode, colorspace, pattern )
@@ -607,7 +607,7 @@ public:
 		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
 		glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
 		Image_4F screenshot( sirenConfig.targetWidth, sirenConfig.targetHeight, &imageBytesToSave.data()[ 0 ] );
-		screenshot.FlipVertical(); // whatever
+		screenshot.FlipVertical();
 		if ( config.SRGBFramebuffer ) {
 			screenshot.GammaCorrect( 2.2f );
 		}
