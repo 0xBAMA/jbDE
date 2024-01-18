@@ -81,6 +81,7 @@ struct sirenConfig_t {
 	vec3 skylightColor = vec3( 0.0f );		// ray escape color
 
 	// informs the location of the sun
+	bool invertSky = false;
 	float skyTime = 5.16;
 	ivec2 skyDims = ivec2( 1024, 512 );
 
@@ -90,7 +91,6 @@ struct sirenConfig_t {
 		// depth fog parameters ( mode, scalar )
 			// will probably add this in
 			// additionally, with depth + normals stored, SSAO? might add something, but will have to evaluate
-		// display mode ( preview depth, normals, colors, pathtrace )
 
 	// properties of the animation
 	animation_t animation;
@@ -523,6 +523,8 @@ public:
 			ImGui::SliderFloat( "Exposure", &sirenConfig.exposure, 0.0f, 5.0f );
 			ImGui::ColorEdit3( "Sky Color", ( float * ) &sirenConfig.skylightColor, ImGuiColorEditFlags_PickerHueWheel );
 			ImGui::SliderFloat( "Sky Time", &sirenConfig.skyTime, -10.0f, 10.0f );
+			ImGui::SameLine();
+			ImGui::Checkbox( "Invert Direction", &sirenConfig.invertSky );
 			ImGui::ColorEdit3( "Background Color", ( float * ) &sirenConfig.backgroundColor, ImGuiColorEditFlags_PickerHueWheel );
 			if ( ImGui::IsItemEdited() ) {
 				// update the value of the border
@@ -1087,6 +1089,7 @@ public:
 		glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ),			sirenConfig.thinLensEnable );
 		glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ),	sirenConfig.thinLensFocusDistance );
 		glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ),	sirenConfig.thinLensJitterRadius );
+		glUniform1i( glGetUniformLocation( shader, "invertSky" ),				sirenConfig.invertSky ); // add to config, animation control
 		glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1,		glm::value_ptr( sirenConfig.skylightColor ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1,				glm::value_ptr( sirenConfig.basisX ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1,				glm::value_ptr( sirenConfig.basisY ) );
