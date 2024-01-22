@@ -76,6 +76,7 @@ struct sirenConfig_t {
 	float raymarchMaxDistance;
 	float raymarchEpsilon;
 	float raymarchUnderstep;
+	bool skipRaymarch = false;
 
 	vec4 backgroundColor = vec4( vec3( 0.01618f ), 1.0f );	// background color for the image view
 	vec3 skylightColor = vec3( 0.0f );		// ray escape color
@@ -547,6 +548,7 @@ public:
 		// raymarch parameters
 			ImGui::Text( " " );
 			ImGui::SeparatorText( " Raymarch Parameters " );
+			ImGui::Checkbox( "Skip Raymarch Geometry", &sirenConfig.skipRaymarch );
 			ImGui::SliderInt( "Max Steps", ( int * ) &sirenConfig.raymarchMaxSteps, 10, 500 );
 			ImGui::SliderInt( "Max Bounces", ( int * ) &sirenConfig.raymarchMaxBounces, 0, 50 );
 			ImGui::SliderFloat( "Max Distance", &sirenConfig.raymarchMaxDistance, 1.0f, 500.0f );
@@ -1093,6 +1095,7 @@ public:
 		glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ),	sirenConfig.thinLensFocusDistance );
 		glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ),	sirenConfig.thinLensJitterRadius );
 		glUniform1i( glGetUniformLocation( shader, "invertSky" ),				sirenConfig.invertSky ); // add to config, animation control
+		glUniform1i( glGetUniformLocation( shader, "skipRaymarch" ),			sirenConfig.skipRaymarch ); // add to config, animation control
 		glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1,		glm::value_ptr( sirenConfig.skylightColor ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1,				glm::value_ptr( sirenConfig.basisX ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1,				glm::value_ptr( sirenConfig.basisY ) );

@@ -43,6 +43,7 @@ uniform float raymarchUnderstep;
 uniform bool invertSky;
 uniform vec3 skylightColor;
 uniform sampler2D skyCache;
+uniform bool skipRaymarch;
 
 // CPU-generated sphere array
 	// I want to generalize this:
@@ -763,7 +764,9 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = MIRROR;
 
 	return deFractalJanuary( pCache * 1.0f ) / 1.0f;
-	return ( 1000.0f );
+	if ( skipRaymarch ) {
+		return 1000.0f;
+	}
 	return sceneDist;
 }
 
