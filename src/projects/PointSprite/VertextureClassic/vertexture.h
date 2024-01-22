@@ -203,8 +203,8 @@ void APIGeometryContainer::LoadConfig () {
 								j[ "app" ][ "VertextureClassic" ][ "basisZ" ][ "z" ] );
 
 	// update AR with current value of screen dims
-	config.width = j[ "screenWidth" ];
-	config.height = j[ "screenHeight" ];
+	config.width = j[ "system" ][ "screenWidth" ];
+	config.height = j[ "system" ][ "screenHeight" ];
 	config.screenAR = ( float ) config.width / ( float ) config.height;
 
 	// reset amount of time since last reset
