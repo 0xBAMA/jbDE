@@ -152,7 +152,7 @@ void main () {
 		Direction = refract( Direction, eliNormal( Origin, vec3( 0.0f ), blockSize / 2.0f ), IoR );
 
 		// then intersect with the AABB
-		const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
+		const bool hit = IntersectAABB( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
 		if ( hit ) { // texture sample
 			// for trimming edges

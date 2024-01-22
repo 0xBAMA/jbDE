@@ -48,7 +48,7 @@ void main () {
 	float tMin, tMax;
 	vec3 Origin = invBasis * vec3( scale * uv, -2.0f );
 	vec3 Direction = invBasis * normalize( vec3( uv * 0.1f, 2.0f ) );
-	const bool hit = Intersect( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
+	const bool hit = IntersectAABB( Origin, Direction, -blockSize / 2.0f, blockSize / 2.0f, tMin, tMax );
 
 	if ( hit ) { // texture sample
 		// for trimming edges
