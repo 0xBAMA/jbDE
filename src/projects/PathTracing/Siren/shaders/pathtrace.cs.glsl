@@ -659,9 +659,10 @@ float deFractalJanuary ( vec3 p ) {
 #define PERFECTMIRROR				7
 #define WOOD						8
 #define MALACHITE					9
-#define CHECKER						10
-#define REFRACTIVE					11
-#define REFRACTIVE_FROSTED			12
+#define LUMARBLE					10
+#define CHECKER						11
+#define REFRACTIVE					12
+#define REFRACTIVE_FROSTED			13
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
 	// objects shouldn't have this material, it is used in the explicit intersection logic / bounce behavior
@@ -1436,6 +1437,18 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				}
 				break;
 			}
+
+			case LUMARBLE:
+			{
+				if ( NormalizedRandomFloat() < 0.05f ) {
+					rayDirection = reflectedVector;
+				} else {
+					throughput *= GetLuma( matWood( rayOrigin ) ); // grayscale version of the wood material
+					rayDirection = randomVectorDiffuse;
+				}
+				break;
+			}
+
 
 			case CHECKER:
 			{

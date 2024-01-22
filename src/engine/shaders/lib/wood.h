@@ -87,3 +87,8 @@ vec3 matWood(vec3 p) {
 #undef sat
 #undef S
 #undef S01
+
+vec3 GetLuma ( vec3 color ) {
+	vec3 weights = vec3( 0.299f, 0.587f, 0.114f );
+	return vec3( dot( color, weights ) );
+}
