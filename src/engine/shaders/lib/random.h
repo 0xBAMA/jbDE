@@ -28,6 +28,17 @@ vec2 RandomInUnitDisk () {
 	return RandomUnitVector().xy;
 }
 
+// unit circle, no edge bias
+vec2 randCircle ( float rand1, float rand2 ) {
+	float u = 2.0 * pi * rand1;  // θ
+	float v = sqrt( rand2 );  // r
+	return v * vec2( cos( u ), sin( u ) );
+}
+
+vec2 CircleOffset () {
+	return randCircle( NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
 // size, corner rounding radius
 float sdHexagon ( vec2 p, float s, float r ) {
 	const vec3 k = vec3( -0.866025404f, 0.5f, 0.577350269f );
@@ -72,25 +83,146 @@ vec2 HeartOffset () {
 	return randHeart( NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
 
+// rosette shape
+// r(θ) = cos(nθ)
+vec2 randRose( float n, float rand1, float rand2 ) {
+	// integrate cos(nθ)², split into n intervals and inverse in [-π/2n,π/2n)
+	float u = pi * rand1;  // integral in [0,2π) is π
+	float v = sqrt( rand2 );  // r
+	float ui = pi / n * floor( 2.0f * n / pi * u );  // center of each "petal"
+	float uf = mod( u, pi / ( 2.0f * n ) ) - pi / ( 4.0f * n );  // parameter of each "petal", integralOfCosNThetaSquared(θ)
+	float theta = 0.0f;  // iteration starting point
+	for ( int iter = 0; iter < 9; iter++ ) {
+		float cdf = 0.5f * theta + sin( 2.0f * n * theta ) / ( 4.0f * n );  // integral of cos(nθ)²
+		float pdf = 0.5f + 0.5f * cos( 2.0f * n * theta );  // cos(nθ)²
+		theta -= ( cdf - uf ) / pdf;  // Newton-Raphson
+	}
+	theta = ui + theta;  // move to petal
+	float r = cos( n * theta );  // polar equation
+	return v * r * vec2( cos( theta ), sin( theta ) );  // polar coordinate
+}
+
+vec2 TriRose () {
+	return randRose( 3.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 QuintRose () {
+	return randRose( 5.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+// ring formed by two concentric circles with radius r0 and r1
+vec2 randConcentric ( float r0, float r1, float rand1, float rand2 ) {
+	float u = 2.0f * pi * rand1; // θ
+	float v = sqrt( mix( r0 * r0, r1 * r1, rand2 ) ); // r
+	return v * vec2( cos( u ), sin( u ) ); // polar to Cartesian
+}
+
+vec2 RingBokeh () {
+	return randConcentric( 0.6f, 1.1f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+// regular n-gon with radius 1
+vec2 randPolygon ( float n, float rand1, float rand2 ) {
+	float u = n * rand1;
+	float v = rand2;
+	float ui = floor( u );  // index of triangle
+	float uf = fract( u );  // interpolating in triangle
+	vec2 v0 = vec2( cos( 2.0f * pi * ui / n ), sin( 2.0f * pi * ui / n ) );  // triangle edge #1
+	vec2 v1 = vec2( cos( 2.0f * pi * ( ui + 1.0f ) / n ), sin( 2.0f * pi * ( ui + 1.0f ) / n ) );  // triangle edge #2
+	return sqrt( v ) * mix( v0, v1, uf );  // sample inside triangle
+}
+
+vec2 Pentagon () {
+	return randPolygon( 5.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Septagon () {
+	return randPolygon( 7.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Octagon () {
+	return randPolygon( 8.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Nonagon () {
+	return randPolygon( 9.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Decagon () {
+	return randPolygon( 10.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Eleven_gon () {
+	return randPolygon( 11.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+// regular n-star with normalized size
+vec2 randStar ( float n, float rand1, float rand2 ) {
+	float u = n * rand1;
+	float v = rand2;
+	float ui = floor( u );  // index of triangle
+	float uf = fract( u );  // interpolating in rhombus
+	vec2 v0 = vec2( cos( 2.0f * pi * ui / n ), sin( 2.0f * pi * ui / n ) );  // rhombus edge #1
+	vec2 v1 = vec2( cos( 2.0f * pi * ( ui + 1.0f ) / n ), sin( 2.0f * pi * ( ui + 1.0f ) / n ) );  // rhombus edge #2
+	vec2 p = v0 * v + v1 * uf;  // sample rhombus
+	return p / ( n * sin( 2.0f * pi / n ) / pi );  // normalize size
+}
+
+vec2 Star5 () {
+	return randStar( 5.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Star6 () {
+	return randStar( 6.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+vec2 Star7 () {
+	return randStar( 7.0f, NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
 
 // ======================================================================================================================
 #define BOKEHSHAPE_EDGEBIAS_DISK	1
-#define BOKEHSHAPE_REJECTION_HEX	2
-#define BOKEHSHAPE_UNIFORM_HEX		3
-#define BOKEHSHAPE_UNIFORM_HEART	4
-#define BOKEHSHAPE_UNIFORM_
+#define BOKEHSHAPE_UNIFORM_DISK		2
+#define BOKEHSHAPE_REJECTION_HEX	3
+#define BOKEHSHAPE_UNIFORM_HEX		4
+#define BOKEHSHAPE_UNIFORM_HEART	5
+#define BOKEHSHAPE_UNIFORM_ROSE3	6
+#define BOKEHSHAPE_UNIFORM_ROSE5	7
+#define BOKEHSHAPE_UNIFORM_RING		8
+#define BOKEHSHAPE_UNIFORM_PENTAGON	9
+#define BOKEHSHAPE_UNIFORM_SEPTAGON	10
+#define BOKEHSHAPE_UNIFORM_OCTAGON	11
+#define BOKEHSHAPE_UNIFORM_NONAGON	12
+#define BOKEHSHAPE_UNIFORM_DECAGON	13
+#define BOKEHSHAPE_UNIFORM_11GON	14
+#define BOKEHSHAPE_UNIFORM_5STAR	15
+#define BOKEHSHAPE_UNIFORM_6STAR	16
+#define BOKEHSHAPE_UNIFORM_7STAR	17
 
 // ======================================================================================================================
 
 vec2 GetBokehOffset ( int mode ) {
 	switch ( mode ) {
 
-		case BOKEHSHAPE_EDGEBIAS_DISK:	return RandomInUnitDisk(); break;			// edge-biased disk
-		case BOKEHSHAPE_REJECTION_HEX:	return RejectionSampleHexOffset(); break;	// rejection sample hex
-		case BOKEHSHAPE_UNIFORM_HEX:	return UniformSampleHexagon(); break;		// uniform sample hex
-		case BOKEHSHAPE_UNIFORM_HEART:	return HeartOffset(); break;				// uniform sample heart shape
+		case BOKEHSHAPE_EDGEBIAS_DISK:		return RandomInUnitDisk(); break;			// edge-biased disk
+		case BOKEHSHAPE_UNIFORM_DISK:		return CircleOffset(); break;				// not-edge-biased disk
+		case BOKEHSHAPE_REJECTION_HEX:		return RejectionSampleHexOffset(); break;	// rejection sample hex
+		case BOKEHSHAPE_UNIFORM_HEX:		return UniformSampleHexagon(); break;		// uniform sample hex
+		case BOKEHSHAPE_UNIFORM_HEART:		return HeartOffset(); break;				// uniform sample heart shape
+		case BOKEHSHAPE_UNIFORM_ROSE3:		return TriRose(); break;					// three bladed rosette shape
+		case BOKEHSHAPE_UNIFORM_ROSE5:		return QuintRose(); break;					// five  "  "
+		case BOKEHSHAPE_UNIFORM_RING:		return RingBokeh(); break;					// ring shape
+		case BOKEHSHAPE_UNIFORM_PENTAGON:	return Pentagon(); break;					// pentagon shape
+		case BOKEHSHAPE_UNIFORM_SEPTAGON:	return Septagon(); break;					// 7 sided shape
+		case BOKEHSHAPE_UNIFORM_OCTAGON:	return Octagon(); break;					// octagon shape
+		case BOKEHSHAPE_UNIFORM_NONAGON:	return Nonagon(); break;					// 9 sided
+		case BOKEHSHAPE_UNIFORM_DECAGON:	return Decagon(); break;					// 10 sided
+		case BOKEHSHAPE_UNIFORM_11GON:		return Eleven_gon(); break;					// 11 sided
+		case BOKEHSHAPE_UNIFORM_5STAR:		return Star5(); break;						// star patterns
+		case BOKEHSHAPE_UNIFORM_6STAR:		return Star6(); break;
+		case BOKEHSHAPE_UNIFORM_7STAR:		return Star7(); break;
 
-
-		default: return vec2( 0.0f );						// no offset
+		default: return vec2( 0.0f ); break;											// no offset
 	}
 }

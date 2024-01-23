@@ -808,9 +808,9 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = DIFFUSE;
 		// hitPointColor = vec3( 0.1f, 0.3f, 0.9f ).bgr;
 
-		hitPointSurfaceType = CHECKER;
+		// hitPointSurfaceType = CHECKER;
 
-		// hitPointSurfaceType = WOOD;
+		hitPointSurfaceType = WOOD;
 
 		// hitPointSurfaceType = MIRROR;
 

@@ -545,7 +545,8 @@ public:
 			ImGui::Checkbox( "Enable Thin Lens DoF", &sirenConfig.thinLensEnable );
 			ImGui::SliderFloat( "Thin Lens Focus Distance", &sirenConfig.thinLensFocusDistance, 0.0f, 40.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Thin Lens Jitter Radius", &sirenConfig.thinLensJitterRadius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
-			const char * bokehModeNames[] = { "NONE", "EDGE BIASED DISK", "REJECTION SAMPLED HEXAGON", "UNIFORM SAMPLED HEXAGON" };
+
+			const char * bokehModeNames[] = { "NONE", "EDGE BIASED DISK", "UNIFORM DISK", "REJECTION SAMPLED HEXAGON", "UNIFORM SAMPLED HEXAGON", "UNIFORM HEART", "THREE BLADE ROSETTE", "FIVE BLADE ROSETTE", "RING", "PENTAGON", "SEPTAGON", "OCTAGON", "NONAGON", "DECAGON", "11-GON", "5 STAR", "6 STAR", "7 STAR" };
 			ImGui::Combo( "Bokeh Mode", &sirenConfig.bokehMode, bokehModeNames, IM_ARRAYSIZE( bokehModeNames ) );
 
 		// raymarch parameters
@@ -1133,10 +1134,11 @@ public:
 		rngN iorGen = rngN( 1.0f / 1.5f, 0.1f );
 		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
-			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
-			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
-			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) ); // color
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, iorGen(), 13.0f ) ); // color
+			// color
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) );
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) );
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) );
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, 1.0f / 1.4f, 13.0f ) );
 		}
 
 
@@ -1268,10 +1270,6 @@ public:
 		uint32_t texW = 96;
 		uint32_t texH = 64;
 		uint32_t texD = 64;
-
-		// uint32_t texW = 100;
-		// uint32_t texH = 50;
-		// uint32_t texD = 50;
 
 		Image_4U data( texW, texH * texD );
 
