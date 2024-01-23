@@ -51,8 +51,8 @@ uniform bool skipRaymarch;
 		// primitive type
 		// primitive parameters
 		// material details
-// const int numSpheres = 3630;
-const int numSpheres = 0;
+const int numSpheres = 256;
+// const int numSpheres = 0;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -647,6 +647,92 @@ float deFractalJanuary ( vec3 p ) {
 	return length(p) / s - 0.01f;
 }
 
+void sphere_fold(inout vec3 z, inout float dz) {
+	float fixed_radius2 = 1.9;
+	float min_radius2 = 0.1;
+	float r2 = dot(z, z);
+	if(r2 < min_radius2) {
+		float temp = (fixed_radius2 / min_radius2);
+		z *= temp; dz *= temp;
+	}else if(r2 < fixed_radius2) {
+		float temp = (fixed_radius2 / r2);
+		z *= temp; dz *= temp;
+	}
+}
+
+void box_fold(inout vec3 z, inout float dz) {
+	float folding_limit = 1.0;
+	z = clamp(z, -folding_limit, folding_limit) * 2.0 - z;
+}
+
+float deFractal4 ( vec3 z ) {
+	vec3 offset = z;
+	float scale = -2.8;
+	float dr = 1.0;
+	for(int n = 0; n < 15; ++n) {
+		box_fold(z, dr);
+		sphere_fold(z, dr);
+		z = scale * z + offset;
+		dr = dr * abs(scale) + 1.0;
+	}
+	float r = length(z);
+	return r / abs(dr);
+}
+
+float deFractal5( vec3 p ){
+	float s = 4.;
+	for(int i = 0; i < 8; i++) {
+		p=mod(p-1.,2.)-1.;
+		float r2=(i%3==0)?1.5:1.2/dot(p,p);
+		p*=r2; s*=r2;
+	}
+	vec3 q=p/s;
+	q.xz=mod(q.xz-.002,.004)-.002;
+	return min(length(q.yx)-.0003,length(q.yz)-.0003);
+}
+
+float deFractal6( vec3 p ){
+	float s = 2.;
+	float e = 0.;
+	for(int j=0;++j<7;)
+		p.xz=abs(p.xz)-2.3,
+		p.z>p.x?p=p.zyx:p,
+		p.z=1.5-abs(p.z-1.3+sin(p.z)*.2),
+		p.y>p.x?p=p.yxz:p,
+		p.x=3.-abs(p.x-5.+sin(p.x*3.)*.2),
+		p.y>p.x?p=p.yxz:p,
+		p.y=.9-abs(p.y-.4),
+		e=12.*clamp(.3/min(dot(p,p),1.),.0,1.)+
+		2.*clamp(.1/min(dot(p,p),1.),.0,1.),
+		p=e*p-vec3(7,1,1),
+		s*=e;
+	return length(p)/s;
+}
+
+
+  #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+  float hash(float x){
+    return fract(sin(x*234.123+156.2));
+  }
+  float lpNorm(vec3 p, float n){
+    p = pow(abs(p), vec3(n));
+    return pow(p.x+p.y+p.z, 1.0/n);
+  }
+  float deFractal7(vec3 p){
+    vec2 id=floor(p.xz);
+    p.xz=mod(p.xz,1.)-.5;
+    p.y=abs(p.y)-.5;
+    p.y=abs(p.y)-.5;
+    p.xy*=rot(hash(dot(id,vec2(12.3,46.7))));
+    p.yz*=rot(hash(dot(id,vec2(32.9,76.2))));
+    float s = 1.;
+    for(int i = 0; i < 6; i++) {
+      float r2=1.2/pow(lpNorm(p.xyz, 5.0),1.5);
+      p-=.1; p*=r2; s*=r2; p=p-2.*round(p/2.);
+    }
+    return .6*dot(abs(p),normalize(vec3(1,2,3)))/s-.002;
+  }
+
 // ==============================================================================================
 // ==============================================================================================
 
@@ -670,8 +756,8 @@ float deFractalJanuary ( vec3 p ) {
 #define REFRACTIVE_BACKFACE			100
 #define REFRACTIVE_FROSTED_BACKFACE	101
 
-float baseIOR = 1.0f / 1.4f;
-// float baseIOR = 1.4f;
+// float baseIOR = 1.0f / 1.3f;
+float baseIOR = 1.2f;
 
 int hitPointSurfaceType = NOHIT;
 vec3 hitPointColor = vec3( 0.0f );
@@ -753,17 +839,20 @@ float de ( vec3 p ) {
 		// hitPointSurfaceType = PERFECTMIRROR;
 	}
 
-		// hitPointSurfaceType = CHECKER;
-		// hitPointSurfaceType = MIRROR;
-		// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
-		// hitPointColor = vec3( 0.75f, 0.57f, 0.2f );
-		// hitPointColor = vec3( 0.618f, 0.5f, 0.44f );
-		hitPointColor = vec3( 0.1618f );
-		hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-		// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : WOOD;
-		// hitPointSurfaceType = MIRROR;
 
-	return deFractalJanuary( pCache * 1.0f ) / 1.0f;
+
+	// 	// hitPointSurfaceType = CHECKER;
+	// 	// hitPointSurfaceType = MIRROR;
+	// 	// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
+	// 	// hitPointColor = vec3( 0.75f, 0.57f, 0.2f );
+	// 	hitPointColor = vec3( 0.618f, 0.5f, 0.44f ).bgr;
+	// 	// hitPointColor = vec3( 0.1618f );
+	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : MALACHITE;
+	// 	hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : LUMARBLE;
+	// 	// hitPointSurfaceType = MIRROR;
+
+	// return max( min( deFractal7( pCache * 1.0f ) / 1.0f, deFractal6( pCache * 1.0f ) / 1.0f ), distance( p, vec3( 0.0f, 3.0f, 0.0f ) ) - 4.0f );
 	if ( skipRaymarch ) {
 		return 1000.0f;
 	}
@@ -1065,6 +1154,7 @@ struct sceneIntersection {
 	vec3 normal;
 	vec3 color;
 	int material;
+	float IoR;
 
 	Intersection i;
 };
@@ -1093,7 +1183,7 @@ sceneIntersection ExplicitSceneIntersection ( in vec3 origin, in vec3 direction 
 	result.i = iResult;
 	result.material = int( spheres[ indexOfHit ].colorMaterial.w );
 	result.color = spheres[ indexOfHit ].colorMaterial.xyz;
-
+	result.IoR = spheres[ indexOfHit ].colorMaterial.b;
 
 	// // trying to debug the issues with the refractive box - why is it black?
 	// Intersection iResult = IntersectBox( origin, direction, vec3( 0.0f ), vec3( 1.0f ) );
@@ -1127,16 +1217,20 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.normal = vec3( 0.0f );
 		result.color = vec3( 0.0f );
 		result.material = NOHIT;
+		result.IoR = 1.0f;
 	} else if ( explicitResult.i.a.x < 0.0f && explicitResult.i.b.x >= 0.0f ) {
+		// backface hits
 		result.dTravel = explicitResult.i.b.x;
 		result.normal = explicitResult.i.b.yzw;
 		result.color = explicitResult.color;
 		result.material = ( explicitResult.material == REFRACTIVE ) ? REFRACTIVE_BACKFACE : ( explicitResult.material == REFRACTIVE_FROSTED ) ? REFRACTIVE_FROSTED_BACKFACE : explicitResult.material;
+		result.IoR = explicitResult.IoR;
 	} else {
 		result.dTravel = explicitResult.i.a.x;
 		result.normal = explicitResult.i.a.yzw;
 		result.color = explicitResult.color;
 		result.material = explicitResult.material;
+		result.IoR = explicitResult.IoR;
 	}
 
 	// get the raymarch intersection result
@@ -1488,17 +1582,17 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				rayOrigin -= 2.0f * raymarchEpsilon * result.normal;
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
-				bool cannotRefract = ( baseIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+				bool cannotRefract = ( result.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
 
 				// adding noise to IOR? interesting idea, maybe, adds visual vaiations
-				// float IoRLocal = baseIOR + snoise3D( rayOrigin * 10.0f ) * 0.3f;
+				// float IoRLocal = result.IoR + snoise3D( rayOrigin * 10.0f ) * 0.3f;
 				// bool cannotRefract = ( IoRLocal * sinTheta ) > 1.0f;
 				
 				// disabling this disables first surface reflections
-				if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
+				if ( cannotRefract || Reflectance( cosTheta, result.IoR ) > NormalizedRandomFloat() ) {
 					rayDirection = reflect( normalize( rayDirection ), result.normal );
 				} else {
-					rayDirection = refract( normalize( rayDirection ), result.normal, baseIOR );
+					rayDirection = refract( normalize( rayDirection ), result.normal, result.IoR );
 					// rayDirection = refract( normalize( rayDirection ), result.normal, IoRLocal ); // for adding IOR noise
 				}
 				break;
@@ -1508,7 +1602,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			{
 				rayOrigin += 2.0f * raymarchEpsilon * result.normal;
 				result.normal = -result.normal;
-				float adjustedIOR = 1.0f / baseIOR;
+				float adjustedIOR = 1.0f / result.IoR;
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
@@ -1525,11 +1619,11 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				rayOrigin -= 2.0f * raymarchEpsilon * result.normal;
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
-				bool cannotRefract = ( baseIOR * sinTheta ) > 1.0f; // accounting for TIR effects
-				if ( cannotRefract || Reflectance( cosTheta, baseIOR ) > NormalizedRandomFloat() ) {
+				bool cannotRefract = ( result.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
+				if ( cannotRefract || Reflectance( cosTheta, result.IoR ) > NormalizedRandomFloat() ) {
 					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.03f ) );
 				} else {
-					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, baseIOR ), RandomUnitVector(), 0.01f ) );
+					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, result.IoR ), RandomUnitVector(), 0.01f ) );
 				}
 				break;
 			}
@@ -1538,14 +1632,14 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			{
 				rayOrigin += 2.0f * raymarchEpsilon * result.normal;
 				result.normal = -result.normal;
-				float adjustedIOR = 1.0f / baseIOR;
+				float adjustedIOR = 1.0f / result.IoR;
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
 				if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
 					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.03f ) );
 				} else {
-					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, baseIOR ), RandomUnitVector(), 0.01f ) );
+					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, adjustedIOR ), RandomUnitVector(), 0.01f ) );
 				}
 				break;
 			}

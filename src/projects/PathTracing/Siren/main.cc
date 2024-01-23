@@ -100,7 +100,7 @@ struct sirenConfig_t {
 	// list of active spheres ( xyz position, radius, rgb color, material ID )
 	GLuint sphereSSBO;
 	std::vector< vec4 > sphereLocationsPlusColors;
-	const uint32_t maxSpheres = 3630;
+	const uint32_t maxSpheres = 256;
 };
 
 class Siren : public engineBase {	// example derived class
@@ -1124,32 +1124,23 @@ public:
 		palette::PickRandomPalette( true );
 
 		// // first implementation, randomizing all parameters
-		// rng c = rng( 0.3f, 1.0f );
-		// rng o = rng( -15.0f, 15.0f );
-		// rng y = rng( 0.0f, 15.0f );
-		// rng r = rng( 0.2f, 3.0f );
-		// // rngi p = rngi( 0, 1 );
-		// rng p = rng( 0.0f, 1.0f );
-		// for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
-		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), y(), o(), r() ) );	// position
-		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
-		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
-		// 	// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) ); // color
-		// 	sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, 11.0f ) ); // color
-		// }
-
-		const float step = 0.2f;
-		int count = 0;
-		for ( float z = -3.0f; z < 3.0f; z += step )
-		for ( float y = -2.5f; y < 1.5f; y += step )
-		for ( float x = -1.0f; x < 1.0f; x += step ) {
-			count ++;
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( x, y, z, 0.1f ) );	// position
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, 11.0f ) ); // color
+		rng c = rng( 0.3f, 1.0f );
+		rng o = rng( -1.0f, 1.0f );
+		rng y = rng( 0.0f, 15.0f );
+		rng r = rng( 0.1f, 0.4f );
+		// rngi p = rngi( 0, 1 );
+		rng p = rng( 0.0f, 1.0f );
+		rngN iorGen = rngN( 1.0f / 1.5f, 0.1f );
+		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) ); // color
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) ); // color
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) ); // color
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, iorGen(), 13.0f ) ); // color
 		}
-		// cout << endl << count << endl;
 
-		// jittered grid, noise informing material properties
+
+		// // jittered grid, noise informing material properties
 		// PerlinNoise p;
 		// rng r = rng( 0.2f, 2.9f );
 		// for ( int x = 0; x < 16; x++ ) {
@@ -1157,7 +1148,7 @@ public:
 		// 		vec3 pos = vec3( RemapRange( x, 0, 15, -10.0f, 10.0f ), 5.0f, RemapRange( y, 0, 15, -10.0f, 10.0f ) );
 		// 		sirenConfig.sphereLocationsPlusColors.push_back( vec4( pos, r() ) );	// position
 		// 		// sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p() < 0.5f ) ? 7 : 9 ) ); // color
-		// 		sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p.noise( pos.x / 2.0f, pos.y / 2.0f, pos.z / 2.0f ) < 0.5f ) ? 9 : 7 ) ); // color
+		// 		sirenConfig.sphereLocationsPlusColors.push_back( vec4( 0.0f, 0.0f, 0.0f, ( p.noise( pos.x / 2.0f, pos.y / 2.0f, pos.z / 2.0f ) < 0.5f ) ? 11 : 12 ) ); // color
 		// 	}
 		// }
 

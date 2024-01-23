@@ -55,11 +55,32 @@ vec2 UniformSampleHexagon () {
 	return UniformSampleHexagon( vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) );
 }
 
+// more of these uniform remapping functions
+// https://www.shadertoy.com/view/7lGXWK
+
+// x²-|x|y+y² < 1
+vec2 randHeart( float rand1, float rand2 ) {
+	float u = 2.0f * pi * rand1;  // θ
+	float v = sqrt( rand2 );  // r
+	vec2 c = v * vec2( cos( u ), sin( u ) );  // unit circle
+	c = mat2( 1.0f, 1.0f, -0.577f, 0.577f ) * c;  // ellipse
+	if ( c.x < 0.0f ) c.y = -c.y;  // mirror
+	return c;
+}
+
+vec2 HeartOffset () {
+	return randHeart( NormalizedRandomFloat(), NormalizedRandomFloat() );
+}
+
+
+// ======================================================================================================================
 #define BOKEHSHAPE_EDGEBIAS_DISK	1
 #define BOKEHSHAPE_REJECTION_HEX	2
 #define BOKEHSHAPE_UNIFORM_HEX		3
-// more of these uniform remapping functions
-// https://www.shadertoy.com/view/7lGXWK
+#define BOKEHSHAPE_UNIFORM_HEART	4
+#define BOKEHSHAPE_UNIFORM_
+
+// ======================================================================================================================
 
 vec2 GetBokehOffset ( int mode ) {
 	switch ( mode ) {
@@ -67,6 +88,8 @@ vec2 GetBokehOffset ( int mode ) {
 		case BOKEHSHAPE_EDGEBIAS_DISK:	return RandomInUnitDisk(); break;			// edge-biased disk
 		case BOKEHSHAPE_REJECTION_HEX:	return RejectionSampleHexOffset(); break;	// rejection sample hex
 		case BOKEHSHAPE_UNIFORM_HEX:	return UniformSampleHexagon(); break;		// uniform sample hex
+		case BOKEHSHAPE_UNIFORM_HEART:	return HeartOffset(); break;				// uniform sample heart shape
+
 
 		default: return vec2( 0.0f );						// no offset
 	}
