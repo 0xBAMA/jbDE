@@ -56,6 +56,7 @@ struct sirenConfig_t {
 	bool thinLensEnable;
 	float thinLensFocusDistance;
 	float thinLensJitterRadius;
+	int bokehMode = 0;
 
 	// noise, rng
 	ivec2 blueNoiseOffset;
@@ -544,6 +545,8 @@ public:
 			ImGui::Checkbox( "Enable Thin Lens DoF", &sirenConfig.thinLensEnable );
 			ImGui::SliderFloat( "Thin Lens Focus Distance", &sirenConfig.thinLensFocusDistance, 0.0f, 40.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 			ImGui::SliderFloat( "Thin Lens Jitter Radius", &sirenConfig.thinLensJitterRadius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
+			const char * bokehModeNames[] = { "NONE", "EDGE BIASED DISK", "REJECTION SAMPLED HEXAGON", "UNIFORM SAMPLED HEXAGON" };
+			ImGui::Combo( "Bokeh Mode", &sirenConfig.bokehMode, bokehModeNames, IM_ARRAYSIZE( bokehModeNames ) );
 
 		// raymarch parameters
 			ImGui::Text( " " );
@@ -1094,6 +1097,7 @@ public:
 		glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ),			sirenConfig.thinLensEnable );
 		glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ),	sirenConfig.thinLensFocusDistance );
 		glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ),	sirenConfig.thinLensJitterRadius );
+		glUniform1i( glGetUniformLocation( shader, "bokehMode" ),				sirenConfig.bokehMode );
 		glUniform1i( glGetUniformLocation( shader, "invertSky" ),				sirenConfig.invertSky ); // add to config, animation control
 		glUniform1i( glGetUniformLocation( shader, "skipRaymarch" ),			sirenConfig.skipRaymarch ); // add to config, animation control
 		glUniform3fv( glGetUniformLocation( shader, "skylightColor" ), 1,		glm::value_ptr( sirenConfig.skylightColor ) );

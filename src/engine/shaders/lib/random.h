@@ -44,12 +44,30 @@ vec2 RejectionSampleHexOffset () {
 	return 2.0f * cantidate;
 }
 
-// more of these uniform remapping functions
-// https://www.shadertoy.com/view/7lGXWK
-
 // uniform sampled hex from fadaaszhi on GP discord
 vec2 UniformSampleHexagon ( vec2 u ) {
 	u = 2.0f * u - 1.0f;
 	float a = sqrt( 3.0f ) - sqrt( 3.0f - 2.25f * abs( u.x ) );
 	return vec2( sign( u.x ) * a, u.y * ( 1.0f - a / sqrt( 3.0f ) ) );
+}
+
+vec2 UniformSampleHexagon () {
+	return UniformSampleHexagon( vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) );
+}
+
+#define BOKEHSHAPE_EDGEBIAS_DISK	1
+#define BOKEHSHAPE_REJECTION_HEX	2
+#define BOKEHSHAPE_UNIFORM_HEX		3
+// more of these uniform remapping functions
+// https://www.shadertoy.com/view/7lGXWK
+
+vec2 GetBokehOffset ( int mode ) {
+	switch ( mode ) {
+
+		case BOKEHSHAPE_EDGEBIAS_DISK:	return RandomInUnitDisk(); break;			// edge-biased disk
+		case BOKEHSHAPE_REJECTION_HEX:	return RejectionSampleHexOffset(); break;	// rejection sample hex
+		case BOKEHSHAPE_UNIFORM_HEX:	return UniformSampleHexagon(); break;		// uniform sample hex
+
+		default: return vec2( 0.0f );						// no offset
+	}
 }

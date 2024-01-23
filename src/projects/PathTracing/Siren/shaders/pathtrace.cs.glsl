@@ -31,6 +31,7 @@ uniform int cameraType;
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
 uniform float thinLensJitterRadius;
+uniform int bokehMode;
 
 // raymarch parameters
 uniform int raymarchMaxSteps;
@@ -266,8 +267,7 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 	if ( thinLensEnable || cameraType == SPHEREBUG ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
 		// thin lens adjustment
 		vec3 focuspoint = r.origin + ( ( r.direction * thinLensFocusDistance ) / dot( r.direction, basisZ ) );
-		// vec2 diskOffset = thinLensJitterRadius * RandomInUnitDisk();
-		vec2 diskOffset = thinLensJitterRadius * RejectionSampleHexOffset();
+		vec2 diskOffset = thinLensJitterRadius * GetBokehOffset( bokehMode );
 		r.origin += diskOffset.x * basisX + diskOffset.y * basisY;
 		r.direction = normalize( focuspoint - r.origin );
 	}
