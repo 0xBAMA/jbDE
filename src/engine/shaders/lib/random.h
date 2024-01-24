@@ -199,7 +199,6 @@ vec2 Star7 () {
 #define BOKEHSHAPE_UNIFORM_5STAR	15
 #define BOKEHSHAPE_UNIFORM_6STAR	16
 #define BOKEHSHAPE_UNIFORM_7STAR	17
-
 // ======================================================================================================================
 
 vec2 GetBokehOffset ( int mode ) {
