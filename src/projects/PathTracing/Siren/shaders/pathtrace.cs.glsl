@@ -775,84 +775,13 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
-	// return sceneDist;
+	// form for the following:
+	// const d = blah
+	// sceneDist = min( sceneDist, d )
+	// if ( sceneDist == d && d < raymarchEpsilon ) {
+		// material specifics - hitPointColor, hitPointSurfaceType
+	// }
 
-	// cache initial point location
-	const vec3 pCache = p;
-	pModPolar( p.xz, 4 );
-	// pMirror( p.y, -2.0f );
-	p.y = 5.0f - p.y;
-
-	// light bar
-	const float dLight = fBox( p - vec3( 14.0f, 0.0f, 0.0f ), vec3( 0.15f, 0.15f, 18.0f ) );
-	sceneDist = min( dLight, sceneDist );
-	if ( sceneDist == dLight && dLight <= raymarchEpsilon ) {
-		hitPointColor = vec3( 3.0f );
-		// hitPointSurfaceType = EMISSIVE;
-		hitPointSurfaceType = DIFFUSE;
-	}
-
-	// outer frame
-	const float heightSplit = 2.0f;
-	const float dFloor = fBox( p - vec3( 0.0f, -heightSplit, 0.0f ), vec3( 15.0f, 0.2f, 15.0f ) );
-	const float dMolding = deGrail( Rotate3D( PI / 4.0f, vec3( 0.0f, 0.0f, 1.0f ) ) * Rotate3D( PI, vec3( 0.0f, 1.0f, 0.0f ) ) * ( 0.618f * ( p - vec3( 15.0f, 0.0f, 0.0f ) ) ) ) / 0.618f;
-	pModInterval1( p.z, 3.0f, -3, 3 );
-	const float dCutout = fSphere( p - vec3( 9.0f, heightSplit + 2.0f, 0.0f ), 1.618f );
-	const float dPillars = max( fCylinder( p - vec3( 9.0f, 0.0f, 0.0f ), 0.618f, heightSplit + 0.5f ), -dCutout );
-	const float dReflector = fOpUnionRound( fOpIntersectionChamfer( dPillars, fSphere( p - vec3( 9.0f, heightSplit + 2.0f, 0.0f ), 1.8f ), 0.1f ), fCylinder( p - vec3( 9.0f, 0.0f, 0.0f ), 0.1618f, 10.0f ), 0.3f );
-	const float dOrbs = fSphere( p - vec3( 9.0f, heightSplit + 1.3f, 0.0f ), 0.618f );
-	const float dFramePlusPlatform = fOpUnionRound( min( dMolding, dPillars ), dFloor, 0.5f );
-
-	sceneDist = min( dFramePlusPlatform, sceneDist );
-	if ( sceneDist == dFramePlusPlatform && dFramePlusPlatform <= raymarchEpsilon ) {
-		// hitPointSurfaceType = DIFFUSE;
-		// hitPointColor = vec3( 0.1f, 0.3f, 0.9f ).bgr;
-
-		// hitPointSurfaceType = CHECKER;
-
-		hitPointSurfaceType = WOOD;
-
-		// hitPointSurfaceType = MIRROR;
-
-		// if ( NormalizedRandomFloat() < 0.9f ) {
-		// 	hitPointSurfaceType = DIFFUSE;
-		// 	hitPointColor = vec3( 0.618f );
-		// } else {
-		// 	hitPointSurfaceType = MIRROR;
-		// }
-	}
-
-	sceneDist = min( dOrbs, sceneDist );
-	if ( sceneDist == dOrbs && dOrbs <= raymarchEpsilon ) {
-		hitPointColor = vec3( 3.0f );
-		// hitPointSurfaceType = EMISSIVE;
-		hitPointSurfaceType = DIFFUSE;
-	}
-
-	sceneDist = min( dReflector, sceneDist );
-	if ( sceneDist == dReflector && dReflector <= raymarchEpsilon ) {
-
-		// hitPointSurfaceType = DIFFUSE;
-		// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
-
-		hitPointSurfaceType = MIRROR;
-		// hitPointSurfaceType = PERFECTMIRROR;
-	}
-
-
-
-	// 	// hitPointSurfaceType = CHECKER;
-	// 	// hitPointSurfaceType = MIRROR;
-	// 	// hitPointColor = vec3( 1.0f, 0.1f, 0.1f );
-	// 	// hitPointColor = vec3( 0.75f, 0.57f, 0.2f );
-	// 	hitPointColor = vec3( 0.618f, 0.5f, 0.44f ).bgr;
-	// 	// hitPointColor = vec3( 0.1618f );
-	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 	// hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : MALACHITE;
-	// 	hitPointSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : LUMARBLE;
-	// 	// hitPointSurfaceType = MIRROR;
-
-	// return max( min( deFractal7( pCache * 1.0f ) / 1.0f, deFractal6( pCache * 1.0f ) / 1.0f ), distance( p, vec3( 0.0f, 3.0f, 0.0f ) ) - 4.0f );
 	if ( skipRaymarch ) {
 		return 1000.0f;
 	}
