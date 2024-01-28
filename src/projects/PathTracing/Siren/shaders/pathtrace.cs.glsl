@@ -782,10 +782,13 @@ float de ( vec3 p ) {
 		// material specifics - hitPointColor, hitPointSurfaceType
 	// }
 
+
+
 	if ( skipRaymarch ) {
 		return 1000.0f;
+	} else {
+		return sceneDist;
 	}
-	return sceneDist;
 }
 
 
@@ -1479,8 +1482,8 @@ vec3 ColorSample ( const vec2 uvIn ) {
 			case CHECKER:
 			{
 				// diffuse material
-				const float thresh = 0.01;
-				const float thresh2 = 0.005;
+				const float thresh = 0.01f;
+				const float threshSmaller = 0.005f;
 				vec3 p = rayOrigin;
 
 				bool redLines = (
@@ -1489,9 +1492,9 @@ vec3 ColorSample ( const vec2 uvIn ) {
 					( abs( p.y ) < thresh ) ||
 					( abs( p.z ) < thresh ) ||
 					// thinner lines every 5
-					( abs( mod( p.x, 5.0f ) ) < thresh2 ) ||
-					( abs( mod( p.y, 5.0f ) ) < thresh2 ) ||
-					( abs( mod( p.z, 5.0f ) ) < thresh2 ) );
+					( abs( mod( p.x, 5.0f ) ) < threshSmaller ) ||
+					( abs( mod( p.y, 5.0f ) ) < threshSmaller ) ||
+					( abs( mod( p.z, 5.0f ) ) < threshSmaller ) );
 
 				// the checkerboard
 				bool blackOrWhite = ( step( 0.0f,
@@ -1512,18 +1515,21 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				float cosTheta = min( dot( -normalize( rayDirection ), result.normal ), 1.0f );
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( result.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
-
-				// adding noise to IOR? interesting idea, maybe, adds visual vaiations
-				// float IoRLocal = result.IoR + snoise3D( rayOrigin * 10.0f ) * 0.3f;
-				// bool cannotRefract = ( IoRLocal * sinTheta ) > 1.0f;
-				
 				// disabling this disables first surface reflections
 				if ( cannotRefract || Reflectance( cosTheta, result.IoR ) > NormalizedRandomFloat() ) {
 					rayDirection = reflect( normalize( rayDirection ), result.normal );
 				} else {
 					rayDirection = refract( normalize( rayDirection ), result.normal, result.IoR );
-					// rayDirection = refract( normalize( rayDirection ), result.normal, IoRLocal ); // for adding IOR noise
 				}
+
+				// // adding noise to IOR? interesting idea, maybe, adds visual vaiations
+				// float IoRLocal = result.IoR + snoise3D( rayOrigin * 10.0f ) * 0.3f;
+				// cannotRefract = ( IoRLocal * sinTheta ) > 1.0f;
+				// if ( cannotRefract || Reflectance( cosTheta, IoRLocal ) > NormalizedRandomFloat() ) {
+				// 	rayDirection = reflect( normalize( rayDirection ), result.normal );
+				// } else {
+				// 	rayDirection = refract( normalize( rayDirection ), result.normal, IoRLocal );
+				// }
 				break;
 			}
 
