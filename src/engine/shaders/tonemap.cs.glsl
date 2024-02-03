@@ -17,6 +17,11 @@ void main () {
 	// temporary hack for inverted image
 	vec4 originalValue = postExposure * imageLoad( source, ivec2( loc.x, imageSize( source ).y - loc.y - 1 ) );
 
+	// vignetting
+	vec2 uv = ( vec2( loc ) + vec2( 0.5f ) ) / vec2( imageSize( displayTexture ) );
+	uv *= 1.0f - uv.yx;
+	originalValue.rgb *= pow( uv.x * uv.y * 1.0f, 0.5f );
+
 	vec3 color = Tonemap( tonemapMode, colorTempAdjust * ( saturation * originalValue.rgb ) );
 	color = GammaCorrect( gamma, color );
 	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), originalValue.a * 255.0f );
