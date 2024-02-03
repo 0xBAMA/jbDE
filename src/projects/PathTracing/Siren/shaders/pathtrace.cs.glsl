@@ -1478,7 +1478,6 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				break;
 			}
 
-
 			case CHECKER:
 			{
 				// diffuse material

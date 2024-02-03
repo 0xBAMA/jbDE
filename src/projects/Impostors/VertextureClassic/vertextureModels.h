@@ -111,7 +111,7 @@ struct GroundModel {
 		glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, ( ( GLvoid * ) ( 0 ) ) );
 
 		// consider swapping out for a generated heightmap? something with ~10s of erosion applied?
-		Image_4U heightmapImage( "./src/projects/PointSprite/Vertexture/textures/rock_height.png" );
+		Image_4U heightmapImage( "./src/projects/Impostors/Vertexture/textures/rock_height.png" );
 		glGenTextures( 1, &heightmap );
 		glActiveTexture( GL_TEXTURE9 ); // Texture unit 9
 		glBindTexture( GL_TEXTURE_2D, heightmap );

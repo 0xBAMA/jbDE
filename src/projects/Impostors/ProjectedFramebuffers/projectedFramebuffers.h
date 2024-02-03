@@ -161,8 +161,8 @@ void APIGeometryContainer::LoadConfig () {
 	rngs.brightness = rng( config.lightsMinBrightness, config.lightsMaxBrightness );
 
 	// update AR with current value of screen dims
-	config.width				= j[ "screenWidth" ];
-	config.height				= j[ "screenHeight" ];
+	config.width				= j[ "system" ][ "screenWidth" ];
+	config.height				= j[ "system" ][ "screenHeight" ];
 	config.screenAR 			= ( float ) config.width / ( float ) config.height;
 
 	// reset amount of time since last reset
@@ -173,7 +173,7 @@ void APIGeometryContainer::Initialize () {
 	std::vector< point_t > points;
 
 	// create all the graphics api resources
-	const string basePath( "./src/projects/PointSprite/ProjectedFramebuffers/shaders/" );
+	const string basePath( "./src/projects/Impostors/ProjectedFramebuffers/shaders/" );
 	resources.shaders[ "Background" ]		= computeShader( basePath + "background.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Deferred" ]			= computeShader( basePath + "deferred.cs.glsl" ).shaderHandle;
 	resources.shaders[ "Sphere Movement" ]	= computeShader( basePath + "sphereMove.cs.glsl" ).shaderHandle;

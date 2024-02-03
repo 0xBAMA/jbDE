@@ -353,7 +353,7 @@ target_link_libraries( SoftBodiesGPU
 # ProjectedFramebuffers
 # =================================================================================================
 add_executable( ProjectedFramebuffers
-	src/projects/PointSprite/ProjectedFramebuffers/main.cc
+	src/projects/Impostors/ProjectedFramebuffers/main.cc
 )
 
 target_link_libraries( ProjectedFramebuffers
@@ -365,7 +365,7 @@ target_link_libraries( ProjectedFramebuffers
 # Vertexture
 # =================================================================================================
 add_executable( Vertexture
-	src/projects/PointSprite/Vertexture/main.cc
+	src/projects/Impostors/Vertexture/main.cc
 )
 
 target_link_libraries( Vertexture
@@ -377,7 +377,7 @@ target_link_libraries( Vertexture
 # VertextureClassic
 # =================================================================================================
 add_executable( VertextureClassic
-	src/projects/PointSprite/VertextureClassic/main.cc
+	src/projects/Impostors/VertextureClassic/main.cc
 )
 
 target_link_libraries( VertextureClassic
