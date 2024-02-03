@@ -1,7 +1,16 @@
 #include "../../../engine/engine.h"
 
+struct ellipsoidConfig_t {
+	const uint32_t framebufferWidth = 1280;
+	const uint32_t framebufferHeight = 720;
+
+
+};
+
 class Ellipsoid : public engineBase {
 public:
+	ellipsoidConfig_t ellipsoidConfig;
+
 	Ellipsoid () { Init(); OnInit(); PostInit(); }
 	~Ellipsoid () { Quit(); }
 
@@ -11,7 +20,18 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some placeholder data in the accumulator texture
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Impostors/Ellipsoid/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Background" ] = computeShader( "./src/projects/Impostors/Ellipsoid/shaders/background.cs.glsl" ).shaderHandle;
+
+			// setup deferred buffers
+			
+
+			// compile the shaders
+			shaders[ "Ellipsoid" ] = regularShader(
+				// setup geometry for the cube as constants in the shader
+				"./src/projects/Impostors/Ellipsoid/shaders/ellipsoid.vs.glsl",
+				"./src/projects/Impostors/Ellipsoid/shaders/ellipsoid.fs.glsl"
+			).shaderHandle;
+
 
 		}
 
@@ -61,7 +81,7 @@ public:
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
+			glUseProgram( shaders[ "Background" ] );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
