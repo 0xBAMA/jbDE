@@ -49,6 +49,9 @@ void engineBase::SendTonemappingParameters () {
 	glUniform1f( glGetUniformLocation( shader, "gamma" ), tonemap.gamma );
 	glUniform1f( glGetUniformLocation( shader, "postExposure" ), tonemap.postExposure );
 	glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false, glm::value_ptr( saturationMatrix ) );
+	glUniform1i( glGetUniformLocation( shader, "enableVignette" ), tonemap.enableVignette );
+	glUniform1f( glGetUniformLocation( shader, "vignettePower" ), tonemap.vignettePower );
+
 }
 
 void engineBase::BlitToScreen () {

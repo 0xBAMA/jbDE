@@ -75,7 +75,7 @@ void engineBase::DrawTextEditor () {
 void engineBase::TonemapControlsWindow () {
 	ZoneScoped;
 
-	ImGui::SetNextWindowSize( { 425, 175 } );
+	ImGui::SetNextWindowSize( { 425, 300 } );
 	ImGui::Begin( "Tonemapping Controls", NULL, 0 );
 	const char* tonemapModesList[] = {
 		"None (Linear)",
@@ -102,6 +102,10 @@ void engineBase::TonemapControlsWindow () {
 	ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
 	ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
 	ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
+	ImGui::Checkbox( "Enable Vignette", &tonemap.enableVignette );
+	if ( tonemap.enableVignette ) {
+		ImGui::SliderFloat( "Vignette Power", &tonemap.vignettePower, 0.0f, 2.0f );
+	}
 	if ( ImGui::Button( "Reset to Defaults" ) ) {
 		TonemapDefaults();
 	}

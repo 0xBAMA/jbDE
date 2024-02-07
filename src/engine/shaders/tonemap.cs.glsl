@@ -11,6 +11,10 @@ uniform float postExposure;
 uniform mat3 saturation;
 uniform vec3 colorTempAdjust;
 
+// vignetting
+uniform bool enableVignette;
+uniform float vignettePower;
+
 void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 
@@ -18,13 +22,17 @@ void main () {
 	vec4 originalValue = postExposure * imageLoad( source, ivec2( loc.x, imageSize( source ).y - loc.y - 1 ) );
 
 	// vignetting
-	vec2 uv = ( vec2( loc ) + vec2( 0.5f ) ) / vec2( imageSize( displayTexture ) );
-	uv *= 1.0f - uv.yx;
-	originalValue.rgb *= pow( uv.x * uv.y * 1.0f, 0.5f );
+	if ( enableVignette ) {
+		vec2 uv = ( vec2( loc ) + vec2( 0.5f ) ) / vec2( imageSize( displayTexture ) );
+		uv *= 1.0f - uv.yx;
+		originalValue.rgb *= pow( uv.x * uv.y, vignettePower );
+	}
 
 	vec3 color = Tonemap( tonemapMode, colorTempAdjust * ( saturation * originalValue.rgb ) );
 	color = GammaCorrect( gamma, color );
 	uvec4 tonemappedValue = uvec4( uvec3( color * 255.0f ), originalValue.a * 255.0f );
+
+	// tbd: dithering
 
 	imageStore( displayTexture, loc, tonemappedValue );
 }

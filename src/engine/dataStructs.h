@@ -35,4 +35,6 @@ struct colorGradeParameters {
 	float saturation = 1.0f;
 	bool saturationImprovedWeights = true;
 	float colorTemp = 6500.0f;
+	bool enableVignette = true;
+	float vignettePower = 0.25f;
 };
