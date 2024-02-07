@@ -36,7 +36,7 @@ void main() {
 	uv *= 1.0f - uv.yx;
 	float vignetteFactor = pow( uv.x * uv.y * 1.0f, 0.5f );
 
-	vec3 col = imageLoad( blueNoiseTexture, ivec2( vignetteFactor * writeLoc ) % imageSize( blueNoiseTexture ) ).bbb / 255.0f;
+	vec3 col = imageLoad( blueNoiseTexture, ivec2( writeLoc ) % imageSize( blueNoiseTexture ) ).brb / 255.0f;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );

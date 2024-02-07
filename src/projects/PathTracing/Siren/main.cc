@@ -1141,7 +1141,8 @@ public:
 			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, p() ) );
 			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.3f ) ? 7 : ( p() < 0.9f ) ? 9 : 1 ) );
 			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c() * 0.2f, ( p() < 0.5f ) ? 6 : 11 ) );
-			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, 1.0f / 1.4f, 13.0f ) );
+			// sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, 1.0f / 1.3f, 12.0f ) );
+			sirenConfig.sphereLocationsPlusColors.push_back( vec4( c(), c() * 0.5f, c(), 7.0f ) );
 		}
 
 

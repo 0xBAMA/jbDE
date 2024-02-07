@@ -24,6 +24,7 @@ public:
 
 			// setup deferred buffers
 			
+			
 
 			// compile the shaders
 			shaders[ "Ellipsoid" ] = regularShader(

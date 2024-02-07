@@ -23,45 +23,45 @@ protected:
 
 //====== Tonemapping Parameters + Adjustment ==================================
 	colorGradeParameters tonemap;
-	void TonemapControlsWindow ();
-	void SendTonemappingParameters ();
+	void TonemapControlsWindow();
+	void SendTonemappingParameters();
 
 //====== Initialization =======================================================
-	void StartBlock ( string sectionName );
-	void EndBlock ();
-	void Init ();
-	void PostInit ();
-	void StartMessage ();
-	void LoadConfig ();
-	void TonemapDefaults ();
-	void CreateWindowAndContext ();
-	void DisplaySetup ();
-	void SetupVertexData ();
-	void SetupTextureData ();
-	void ShaderCompile ();
-	void LoadData ();
-	void ImguiSetup ();
-	void InitialClear ();
-	void ReportStartupStats ();
+	void StartBlock( string sectionName );
+	void EndBlock();
+	void Init();
+	void PostInit();
+	void StartMessage();
+	void LoadConfig();
+	void TonemapDefaults();
+	void CreateWindowAndContext();
+	void DisplaySetup();
+	void SetupVertexData();
+	void SetupTextureData();
+	void ShaderCompile();
+	void LoadData();
+	void ImguiSetup();
+	void InitialClear();
+	void ReportStartupStats();
 
 //====== Main Loop Functions ==================================================
-	void BlitToScreen ();
-	void HandleQuitEvents ();
-	void HandleTridentEvents ();
-	void ClearColorAndDepth ();
-	void ImguiFrameStart ();
-	void ImguiFrameEnd ();
-	void DrawTextEditor ();
-	void MenuLayout ( bool * open );
-	void QuitConf ( bool * open );
+	void BlitToScreen();
+	void HandleQuitEvents();
+	void HandleTridentEvents();
+	void ClearColorAndDepth();
+	void ImguiFrameStart();
+	void ImguiFrameEnd();
+	void DrawTextEditor();
+	void MenuLayout( bool * open );
+	void QuitConf( bool * open );
 
 //====== ImGui Windows ========================================================
 	bool showDemoWindow;
 	bool showProfiler;
-	void HelpMarker ( const char * desc );
+	void HelpMarker( const char * desc );
 
 //====== LegitProfiler Data ===================================================
-	void PrepareProfilingData ();
+	void PrepareProfilingData();
 	std::vector< legit::ProfilerTask > tasks_CPU;
 	std::vector< legit::ProfilerTask > tasks_GPU;
 
@@ -83,8 +83,8 @@ public:
 
 //====== Shutdown Procedures ==================================================
 protected:
-	void ImguiQuit ();
-	void Quit ();
+	void ImguiQuit();
+	void Quit();
 
 //====== Program Flags ========================================================
 	bool quitConfirm = false;
