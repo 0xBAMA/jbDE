@@ -45,14 +45,15 @@ uniform bool invertSky;
 uniform vec3 skylightColor;
 uniform sampler2D skyCache;
 uniform bool skipRaymarch;
+uniform bool skipGreeble;
 
 // CPU-generated sphere array
 	// I want to generalize this:
 		// primitive type
 		// primitive parameters
 		// material details
-const int numSpheres = 256;
-// const int numSpheres = 0;
+// const int numSpheres = 256;
+const int numSpheres = 0;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -363,10 +364,24 @@ float deAsteroids ( vec3 p ) {
 float deTree ( vec3 p ) {
 	float d, a;
 	d = a = 1.0f;
-	for ( int j = 0; j++ < 16; ) {
+	for ( int j = 0; j++ < 17; ) {
 		p.xz = abs( p.xz ) * rotate2D( PI / 3.0f );
 		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a );
-		p.yx *= rotate2D( 0.5f );
+		p.yx *= rotate2D( 0.7f );
+		p.y -= 3.0f;
+		p *= 1.6f;
+		a *= 1.6f;
+	}
+	return d;
+}
+
+float deTree2 ( vec3 p ) {
+	float d, a;
+	d = a = 1.0f;
+	for ( int j = 0; j++ < 19; ) {
+		p.xz = abs( p.xz ) * rotate2D( PI / 3.0f );
+		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a );
+		p.yx *= rotate2D( 0.7f );
 		p.y -= 3.0f;
 		p *= 1.6f;
 		a *= 1.6f;
@@ -453,52 +468,54 @@ float deFractal2 ( vec3 p ) {
 	return min(length(p.xz),p.y)/s;
 }
 
-// tdhooper variant 1 - spherical inversion
-vec2 wrap ( vec2 x, vec2 a, vec2 s ) {
-  x -= s;
-  return (x - a * floor(x / a)) + s;
+// Spherical Inversion Variant of Above
+vec2 wrap( vec2 x, vec2 a, vec2 s ){
+  x -= s; 
+  return ( x - a * floor( x / a ) ) + s;
 }
 
-void TransA ( inout vec3 z, inout float DF, float a, float b ) {
-  float iR = 1. / dot( z, z );
+void TransA( inout vec3 z, inout float DF, float a, float b ) {
+  float iR = 1.0 / dot( z, z );
   z *= -iR;
-  z.x = -b - z.x;
-  z.y = a + z.y;
-  DF *= iR; // max( 1.0, iR );
+  z.x = -b - z.x; z.y = a + z.y; 
+  DF *= max( 1.0, iR );
 }
 
-float deFractal3 ( vec3 z ) {
-  vec3 InvCenter = vec3( 0.0, 1.0, 1.0 );
-  float rad = 0.8;
-  float KleinR = 1.5 + 0.39;
-  float KleinI = ( 0.55 * 2.0 - 1.0 );
-  vec2 box_size = vec2( -0.40445, 0.34 ) * 2.0;
-  vec3 lz = z + vec3( 1.0 ), llz = z + vec3( -1.0 );
+float deFractal3 ( vec3 p ) {
+  float adjust = 6.28; // use this for time varying behavior
+  float box_size_x = 1.0;
+  float box_size_z = 1.0;
+  float KleinR = 1.94 + 0.05 * abs( sin( -adjust * 0.5 ) ); //1.95859103011179;
+  float KleinI = 0.03 * cos( -adjust*0.5 ); //0.0112785606117658;
+  vec3 lz = p + vec3( 1.0 ), llz = p + vec3( -1.0 );
   float d = 0.0; float d2 = 0.0;
-  z = z - InvCenter;
-  d = length( z );
+  vec3 InvCenter = vec3( 1.0, 1.0, 0.0 );
+  float rad = 0.8;
+  p = p - InvCenter;
+  d = length( p );
   d2 = d * d;
-  z = ( rad * rad / d2 ) * z + InvCenter;
-  float DE = 1e12;
+  p = ( rad * rad / d2 ) * p + InvCenter;
+  float DE = 1e10;
   float DF = 1.0;
   float a = KleinR;
   float b = KleinI;
-  float f = sign( b ) * 0.45;
-  for ( int i = 0; i < 100; i++ ) {
-    z.x += b / a * z.y;
-    z.xz = wrap( z.xz, box_size * 2.0, -box_size );
-    z.x -= b / a * z.y;
-    if ( z.y >= a * 0.5 + f * ( 2.0 * a - 1.95 ) / 4.0 * sign( z.x + b * 0.5 ) * 
-     ( 1.0 - exp( -( 7.2 - ( 1.95 - a ) * 15.0 )* abs(z.x + b * 0.5 ) ) ) ) {
-      z = vec3( -b, a, 0.0 ) - z;
+  float f = sign( b ) * 1.0;
+  for ( int i = 0; i < 20 ; i++ ) {
+    p.x = p.x + b / a * p.y;
+    p.xz = wrap( p.xz, vec2( 2. * box_size_x, 2. * box_size_z ), vec2( -box_size_x, - box_size_z ) );
+    p.x = p.x - b / a * p.y;
+    if ( p.y >= a * 0.5 + f *( 2.0 * a - 1.95 ) / 4.0 * sign( p.x + b * 0.5 ) * 
+     ( 1.0 - exp( -( 7.2 - ( 1.95 - a ) * 15.0 )* abs( p.x + b * 0.5 ) ) ) ) { 
+      p = vec3( -b, a, 0.0 ) - p;
     } //If above the separation line, rotate by 180° about (-b/2, a/2)
-    TransA( z, DF, a, b ); //Apply transformation a
-    if ( dot( z - llz, z - llz ) < 1e-5 ) {
-      break;
-    } //If the iterated points enters a 2-cycle, bail out
-    llz = lz; lz = z; //Store previous iterates
+    TransA( p, DF, a, b ); //Apply transformation a
+    if ( dot( p - llz, p - llz ) < 1e-5 ) { 
+      break; 
+    } //If the iterated points enters a 2-cycle , bail out.
+    llz = lz; lz = p; //Store previous iterates
   }
-  float y =  min(z.y, a - z.y);
+
+  float y =  min( p.y, a-p.y );
   DE = min( DE, min( y, 0.3 ) / max( DF, 2.0 ) );
   DE = DE * d2 / ( rad + d * DE );
   return DE;
@@ -709,29 +726,92 @@ float deFractal6( vec3 p ){
 	return length(p)/s;
 }
 
+float deFractalFebruary( vec3 p ) {
+	float i, g, e = 0.0f, s;
+	vec3 q = p; s = 5.0f;
+	for ( int j = 0; j++ < 10; s *= e )
+		p = sign( p ) * ( 1.7f - abs( p - 1.7f ) ),
+		p = p * ( e = 8.0f / clamp( dot( p, p ), 0.3f, 5.0f ) ) + q - vec3( 0.8f, 12.0f, 0.8f );
+	return length( p.yz ) / s;
+}
 
-  #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
-  float hash(float x){
-    return fract(sin(x*234.123+156.2));
-  }
-  float lpNorm(vec3 p, float n){
-    p = pow(abs(p), vec3(n));
-    return pow(p.x+p.y+p.z, 1.0/n);
-  }
-  float deFractal7(vec3 p){
-    vec2 id=floor(p.xz);
-    p.xz=mod(p.xz,1.)-.5;
-    p.y=abs(p.y)-.5;
-    p.y=abs(p.y)-.5;
-    p.xy*=rot(hash(dot(id,vec2(12.3,46.7))));
-    p.yz*=rot(hash(dot(id,vec2(32.9,76.2))));
-    float s = 1.;
-    for(int i = 0; i < 6; i++) {
-      float r2=1.2/pow(lpNorm(p.xyz, 5.0),1.5);
-      p-=.1; p*=r2; s*=r2; p=p-2.*round(p/2.);
+float dess( vec3 p ){
+  vec3 Q, U = vec3( 1.0f );
+  float d=1.0, a=1.0f;
+  d = min( length( fract( p.xz) -0.5f ) - 0.2f, 0.3f - abs( p.y - 0.2f ) );
+  for( int j = 0; j++ < 9; a += a )
+    Q = p * a * 9.0f,
+    Q.yz *= rotate2D( a ),
+    d += abs( dot( sin( Q ), U ) ) / a * 0.02f;
+  return d * 0.6f;
+}
+
+vec3 erot(vec3 p, vec3 ax, float ro) {
+    return mix(dot(p,ax)*ax,p,cos(ro))+sin(ro)*cross(ax,p);
+}
+
+//the following functions assume that p is inside the cube of radius 1 centered at the origin
+//closest vertex of the cube to p
+vec3 vertex(vec3 p) {
+    return max(sign(p),vec3(0))*2.-1.;
+}
+//closest face of the cube to p
+vec3 face(vec3 p) {
+    vec3 ap = abs(p);
+    if (ap.x>=max(ap.z,ap.y)) return vec3(sign(p.x),0.,0.);
+    if (ap.y>=max(ap.z,ap.x)) return vec3(0.,sign(p.y),0.);
+    if (ap.z>=max(ap.x,ap.y)) return vec3(0.,0.,sign(p.z));
+    return vec3(0);
+}
+//closest edge of the cube to p
+vec3 edge(vec3 p) {
+    vec3 mask = vec3(1)-abs(face(p));
+    vec3 v = vertex(p);
+    vec3 a = v*mask.zxy, b = v*mask.yzx;
+    return distance(p,a)<distance(p,b)?a:b;
+}
+
+float hills(vec3 p) {
+    return sin(2.*dot(sin(p.xy/16.), cos(p.xy/4.)))*3.;
+}
+
+float super(vec3 p) {
+    return sqrt(length(p*p));
+}
+
+//rhombic dodecahedron SDF with rounded corners
+float rho_dod(vec3 p)
+{
+    float offset = 0.1;
+    float radius = .9;
+    p = sqrt(p*p+offset*offset/2.);
+    p = (p+p.yzx)-radius;
+    return super(max(p,0.))+min(0.,max(p.x,max(p.y,p.z)))-offset;
+}
+
+float spheres_dist(vec3 p, out vec3 id, out vec3 loc, float density) {
+    vec3 op = p;
+    id = floor(p)+.5;
+    vec3 d = face(p-id);
+    vec3 m = sign(mod(id,2.)-1.);
+    if (m.x*m.y*m.z<0.) id += d;
+    if (id.z + hills(id) > -5.) { //if this ball is absent, get the distance to its neighbour
+        vec3 e = edge(p-id);
+        id += e;
     }
-    return .6*dot(abs(p),normalize(vec3(1,2,3)))/s-.002;
-  }
+    p -= id;
+    float rad = 0.7;
+    float sph = mix(rho_dod(p), length(p)-.7, smoothstep(-.2,.2,cos(0.5f)));
+    loc = p;
+    return max((op.z+3.5+hills(op))/2.,sph);
+}
+
+float scene(vec3 p) {
+    vec3 id,loc;
+    float s1 = spheres_dist(p, id, loc, 0.4);
+    return s1;
+}
+
 
 // ==============================================================================================
 // ==============================================================================================
@@ -782,6 +862,25 @@ float de ( vec3 p ) {
 		// material specifics - hitPointColor, hitPointSurfaceType
 	// }
 
+	const float dLeaves = deTree2( p + vec3( 0.0f, 7.0f, 0.0f ) );
+	sceneDist = min( sceneDist, dLeaves );
+	if ( sceneDist == dLeaves && dLeaves < raymarchEpsilon ) {
+		hitPointSurfaceType = DIFFUSE;
+		hitPointColor = vec3( 0.06f, 0.13f, 0.02f );
+	}
+
+	const float dTrunk = deTree( p + vec3( 0.0f, 7.0f, 0.0f ) );
+	sceneDist = min( sceneDist, dTrunk );
+	if ( sceneDist == dTrunk && dTrunk < raymarchEpsilon ) {
+		hitPointSurfaceType = WOOD;
+	}
+
+	const float dBalls = scene( p * 5.0f - vec3( 0.0f, 0.0f, 0.0f ) ) / 5.0f;
+	sceneDist = min( sceneDist, dBalls );
+	if ( sceneDist == dBalls && dBalls < raymarchEpsilon ) {
+		hitPointColor = vec3( 0.1618f );
+		hitPointSurfaceType = METALLIC;
+	}
 
 
 	if ( skipRaymarch ) {
@@ -1178,7 +1277,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 	}
 
 // ==================================================================================================================================
-	{
+	if ( skipGreeble == false ) {
 		// get the distance to the masked composite plane
 		Intersection closest;
 		vec4 temp = vec4( 0.0f, 0.0f, 0.0f, 1000000.0f );
@@ -1229,9 +1328,29 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.5f ) ) ) ? METALLIC : DIFFUSE;
 			// result.material = ( temp.a > 0.9f ) ? EMISSIVE : DIFFUSE;
 			// result.material = DIFFUSE;
-			result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+			result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : EMISSIVE;
 		}
 	}
+
+// ==================================================================================================================================
+	// {
+	// 	Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), vec3( 8.0f, 0.5f, 8.0f ) );
+	// 	vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
+	// 	const bool anyHit = !IsEmpty( closest );
+	// 	const bool frontFaceHit = ( boxHit == closest.a );
+	// 	const bool lessThanExisting = ( boxHit.x < result.dTravel );
+	// 	if ( anyHit && lessThanExisting ) {
+	// 		if ( boxHit.x > 0.0f && boxHit.x != 1000000.0f ) {
+	// 			result.dTravel = boxHit.x;
+	// 			result.normal = normalize( boxHit.yzw );
+	// 			result.color = frontFaceHit ? vec3( 0.0f, 1.0f, 0.0f ) : vec3( 0.0f, 0.1f, 1.0f );
+	// 			// result.material = ( NormalizedRandomFloat() < 0.5f )? REFRACTIVE : METALLIC;
+	// 			result.material = REFRACTIVE;
+	// 			// result.material = REFRACTIVE_FROSTED;
+	// 			result.IoR = 1.0f / 1.4f;
+	// 		}
+	// 	}
+	// }
 // ==================================================================================================================================
 	// capsule-based glyph pillar
 	// {
