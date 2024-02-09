@@ -1152,11 +1152,11 @@ public:
 		// // first implementation, randomizing all parameters
 		rng c = rng( 0.3f, 1.0f );
 		rng o = rng( -1.0f, 1.0f );
-		rng y = rng( 0.0f, 15.0f );
+		// rng y = rng( 0.0f, 15.0f );
 		rng r = rng( 0.1f, 0.4f );
 		// rngi p = rngi( 0, 1 );
-		rng p = rng( 0.0f, 1.0f );
-		rngN iorGen = rngN( 1.0f / 1.5f, 0.1f );
+		// rng p = rng( 0.0f, 1.0f );
+		// rngN iorGen = rngN( 1.0f / 1.5f, 0.1f );
 		for ( uint x = 0; x < sirenConfig.maxSpheres; x++ ) {
 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( o(), o(), o(), r() ) );	// position
 			// color
@@ -1302,7 +1302,7 @@ public:
 		// create the voxel model inside the flat image
 			// update the data
 		const uint32_t numOps = 3000;
-		rngi opPick = rngi( 0, 24 );
+		rngi opPick = rngi( 0, 35 );
 		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 1, 20 );
 		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 12 );
 		rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 1, 10 );
