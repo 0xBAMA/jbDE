@@ -1300,7 +1300,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		vec3 normal = vec3( 0.0f );
 		// iterate through the planes
 		for ( ; i < texDims.z; i++ ) {
-			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) ) );
+			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) - 0.01f * texDims.z / 2.0f ) );
 			vec4 planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? vec4( 1000000.0f ) : plane.b : plane.a;
 			if ( planeHit.x > 0.0f && planeHit.x != 1000000.0f ) {
 
@@ -1319,8 +1319,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				int onGlyph = fontRef( sampleValue.a, offset );
 				// int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
 
-				// bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
-				bool reject = ( onGlyph <= 0 );
+				bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+				// bool reject = ( onGlyph <= 0 );
 
 				if ( !reject ) {
 					closest = plane;
@@ -1338,33 +1338,44 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			result.dTravel = temp.a;
 			result.normal = normal;
 			result.color = temp.rgb;
-			// result.material = all( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
-			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.5f ) ) ) ? METALLIC : DIFFUSE;
-			// result.material = ( temp.a > 0.9f ) ? EMISSIVE : DIFFUSE;
-			// result.material = DIFFUSE;
-			result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : EMISSIVE;
+			// result.color = vec3( 0.01618f );
+			result.material = all( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.5f ) ) ) ? MIRROR : DIFFUSE;
+			// result.material = NormalizedRandomFloat() < ( temp.r / 255.0f ) ? DIFFUSE : NOHIT;
+			// result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : EMISSIVE;
+			// result.material = METALLIC;
 		}
 	}
 
 // ==================================================================================================================================
-	// {
-	// 	Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), vec3( 8.0f, 0.5f, 8.0f ) );
-	// 	vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
-	// 	const bool anyHit = !IsEmpty( closest );
-	// 	const bool frontFaceHit = ( boxHit == closest.a );
-	// 	const bool lessThanExisting = ( boxHit.x < result.dTravel );
-	// 	if ( anyHit && lessThanExisting ) {
-	// 		if ( boxHit.x > 0.0f && boxHit.x != 1000000.0f ) {
-	// 			result.dTravel = boxHit.x;
-	// 			result.normal = normalize( boxHit.yzw );
-	// 			result.color = frontFaceHit ? vec3( 0.0f, 1.0f, 0.0f ) : vec3( 0.0f, 0.1f, 1.0f );
-	// 			// result.material = ( NormalizedRandomFloat() < 0.5f )? REFRACTIVE : METALLIC;
-	// 			result.material = REFRACTIVE;
-	// 			// result.material = REFRACTIVE_FROSTED;
-	// 			result.IoR = 1.0f / 1.4f;
-	// 		}
-	// 	}
-	// }
+	{
+		// Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 3.5f, 0.5f, 5.5f ) );
+		Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
+		vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
+		const bool anyHit = !IsEmpty( closest );
+		const bool frontFaceHit = ( boxHit == closest.a );
+		const bool lessThanExisting = ( boxHit.x < result.dTravel );
+		if ( anyHit && lessThanExisting ) {
+			if ( boxHit.x > 0.0f && boxHit.x != 1000000.0f ) {
+				result.dTravel = boxHit.x;
+				result.normal = normalize( boxHit.yzw );
+				result.color = frontFaceHit ? vec3( 0.0f, 1.0f, 0.0f ) : vec3( 0.01618f );
+				// result.material = ( NormalizedRandomFloat() < 0.5f )? REFRACTIVE : METALLIC;
+				// result.material = frontFaceHit ? REFRACTIVE : MIRROR;
+				// result.material = LUMARBLECHECKER;
+				// result.material = REFRACTIVE;
+
+				vec3 p = 1.5f * ( origin + direction * boxHit.x );
+				bool blackOrWhite = ( step( 0.0f,
+					// cos( PI * p.x + PI / 2.0f ) *
+					// cos( PI * p.y + PI / 2.0f ) *
+					cos( PI * p.z + PI / 2.0f ) ) == 0 );
+				// result.material = MIRROR;
+				result.material = blackOrWhite ? REFRACTIVE : REFRACTIVE_FROSTED;
+				result.IoR = 1.0f / 1.4f;
+			}
+		}
+	}
 // ==================================================================================================================================
 	// capsule-based glyph pillar
 	// {
