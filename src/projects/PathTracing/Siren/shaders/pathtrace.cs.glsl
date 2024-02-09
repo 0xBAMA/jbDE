@@ -771,8 +771,13 @@ vec3 edge(vec3 p) {
     return distance(p,a)<distance(p,b)?a:b;
 }
 
+#include "noise.h"
+
 float hills(vec3 p) {
-    return sin(2.*dot(sin(p.xy/16.), cos(p.xy/4.)))*3.;
+	// p.xy /= 10.0f;
+	p.xy /= 16.0f;
+    // return ( ( mod( floor( p.x ), 0.25f ) == 0 ) && ( mod( floor( p.y ), 2 ) == 0 ) ) ? 1.8f : -6.0f;
+	return 10.0f * perlinfbm( vec3( p.xy, 5.0f ), 0.3f, 3 );
 }
 
 float super(vec3 p) {
@@ -780,8 +785,7 @@ float super(vec3 p) {
 }
 
 //rhombic dodecahedron SDF with rounded corners
-float rho_dod(vec3 p)
-{
+float rho_dod(vec3 p) {
     float offset = 0.1;
     float radius = .9;
     p = sqrt(p*p+offset*offset/2.);
@@ -801,7 +805,7 @@ float spheres_dist(vec3 p, out vec3 id, out vec3 loc, float density) {
     }
     p -= id;
     float rad = 0.7;
-    float sph = mix(rho_dod(p), length(p)-.7, smoothstep(-.2,.2,cos(0.5f)));
+    float sph = mix(rho_dod(p), length(p)-.7, smoothstep(-.2,.2,cos(.5f)));
     loc = p;
     return max((op.z+3.5+hills(op))/2.,sph);
 }
@@ -859,39 +863,45 @@ float de ( vec3 p ) {
 	float sceneDist = 1000.0f;
 	hitPointColor = vec3( 0.0f );
 
+	if ( !skipRaymarch ) {
 	// form for the following:
-	// const d = blah
-	// sceneDist = min( sceneDist, d )
-	// if ( sceneDist == d && d < raymarchEpsilon ) {
-		// material specifics - hitPointColor, hitPointSurfaceType
-	// }
+		// const d = blah whatever SDF
+		// sceneDist = min( sceneDist, d )
+		// if ( sceneDist == d && d < raymarchEpsilon ) {
+			// set material specifics - hitPointColor, hitPointSurfaceType
+		// }
 
-	const float dLeaves = deTree2( p + vec3( 0.0f, 7.0f, 0.0f ) );
-	sceneDist = min( sceneDist, dLeaves );
-	if ( sceneDist == dLeaves && dLeaves < raymarchEpsilon ) {
-		hitPointSurfaceType = DIFFUSE;
-		hitPointColor = vec3( 0.06f, 0.13f, 0.02f );
+		const float dLeaves = deTree2( p + vec3( 0.0f, 7.0f, 0.0f ) );
+		sceneDist = min( sceneDist, dLeaves );
+		if ( sceneDist == dLeaves && dLeaves < raymarchEpsilon ) {
+			const float noiseValue = 0.25f * perlinfbm( vec3( p.xyz ), 0.9f, 6 );
+			hitPointSurfaceType = noiseValue > 0.1f ? EMISSIVE : DIFFUSE;
+			hitPointColor = vec3( 0.06f, 0.13f, 0.02f ) * ( 1.0f - noiseValue );
+		}
+
+		const float dTrunk = deTree( p + vec3( 0.0f, 7.0f, 0.0f ) );
+		sceneDist = min( sceneDist, dTrunk );
+		if ( sceneDist == dTrunk && dTrunk < raymarchEpsilon ) {
+			hitPointSurfaceType = WOOD;
+			// hitPointSurfaceType = LUMARBLECHECKER;
+		}
+
+		const float ballScale = 30.0f;
+		const float dBalls = scene( p * ballScale - vec3( 0.0f, 0.0f, 0.0f ) ) / ballScale;
+		sceneDist = min( sceneDist, dBalls );
+		if ( sceneDist == dBalls && dBalls < raymarchEpsilon ) {
+			// hitPointColor = vec3( 0.1618f, 0.13f, 0.06f );
+			// hitPointColor = vec3( 0.318f, 0.13f, 0.06f );
+			hitPointColor = vec3( 0.6f, 0.4f, 0.1f );
+			// hitPointSurfaceType = NormalizedRandomFloat() < 0.2f ? WOOD : MIRROR;
+			// hitPointSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
+			// hitPointSurfaceType = DIFFUSE;
+			// hitPointSurfaceType = MIRROR;
+			hitPointSurfaceType = METALLIC;
+		}
+
 	}
-
-	const float dTrunk = deTree( p + vec3( 0.0f, 7.0f, 0.0f ) );
-	sceneDist = min( sceneDist, dTrunk );
-	if ( sceneDist == dTrunk && dTrunk < raymarchEpsilon ) {
-		hitPointSurfaceType = WOOD;
-	}
-
-	const float dBalls = scene( p * 5.0f - vec3( 0.0f, 0.0f, 0.0f ) ) / 5.0f;
-	sceneDist = min( sceneDist, dBalls );
-	if ( sceneDist == dBalls && dBalls < raymarchEpsilon ) {
-		hitPointColor = vec3( 0.1618f );
-		hitPointSurfaceType = METALLIC;
-	}
-
-
-	if ( skipRaymarch ) {
-		return 1000.0f;
-	} else {
-		return sceneDist;
-	}
+	return sceneDist;
 }
 
 
