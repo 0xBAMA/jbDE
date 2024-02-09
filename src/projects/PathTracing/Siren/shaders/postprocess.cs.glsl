@@ -15,6 +15,58 @@ uniform vec3 colorTempAdjust;
 uniform vec2 resolution;
 uniform vec3 bgColor;
 
+// bayer pattern stuff from izutionix
+// https://www.shadertoy.com/view/mlK3Dz
+
+/*
+#define iterBayerMat 15
+//https://www.shadertoy.com/view/ltsyWl
+#define bayer2x2(a) (4-(a).x-((a).y<<1))%4
+//return bayer matrix (bitwise operands for speed over compatibility)
+float GetBayerFromCoordLevel(vec2 pixelpos) {
+    ivec2 p=ivec2(pixelpos);
+    int a=0;
+    for(int i=0; i<iterBayerMat; i++) {
+        a += bayer2x2(p >> (iterBayerMat-1-i) & 1) << (2*i);
+    }
+    return float(a)/float(2<<(iterBayerMat*2-1));
+}
+
+float Bayer2(vec2 a) {
+    a = floor(a);
+    return fract(a.x / 2. + a.y * a.y * .75);
+}
+// https://www.shadertoy.com/view/7sfXDn
+#define Bayer4(a)     (Bayer2  (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer8(a)     (Bayer4  (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer16(a)    (Bayer8  (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer32(a)    (Bayer16 (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer64(a)    (Bayer32 (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer128(a)   (Bayer64 (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer256(a)   (Bayer128(.5 *(a)) * .25 + Bayer2(a))
+#define Bayer512(a)   (Bayer256(.5 *(a)) * .25 + Bayer2(a))
+#define Bayer1024(a)  (Bayer512(.5 *(a)) * .25 + Bayer2(a))
+
+
+#define scale 2.
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    //float dithering = (Bayer1024(fragCoord / scale) * 2.0 - 1.0) * 0.5;
+    float dithering = GetBayerFromCoordLevel(fragCoord / scale);
+    vec2 uv = fragCoord / iResolution.xy;
+ 
+    //uv.x += dithering;
+    
+    vec2 mouse = iMouse.xy/iResolution.xy;
+    if(dot(iMouse.xy, vec2(1.))<=0.) // no mouse?
+        mouse = vec2(1.-2.*abs(fract(iTime*.05)-0.5),-1.); // move threshold left-right;
+
+    fragColor = vec4(dithering < pow(mouse.x, 3.));//vec4(uv.x < 0.5);
+    //fragColor = vec4(pow(dithering, 256.));
+}
+*/
+
 bool inBounds ( in ivec2 loc ) {
 	return !(
 		loc.x < 0 ||
