@@ -827,9 +827,13 @@ float scene(vec3 p) {
 #define WOOD						8
 #define MALACHITE					9
 #define LUMARBLE					10
-#define CHECKER						11
-#define REFRACTIVE					12
-#define REFRACTIVE_FROSTED			13
+#define LUMARBLE2					11
+#define LUMARBLE3					12
+#define LUMARBLECHECKER				13
+
+#define CHECKER						14
+#define REFRACTIVE					15
+#define REFRACTIVE_FROSTED			16
 
 // we're only going to do refraction on explicit intersections this time, to simplify the logic
 	// objects shouldn't have this material, it is used in the explicit intersection logic / bounce behavior
@@ -1597,6 +1601,40 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				break;
 			}
 
+			case LUMARBLE2:
+			{
+				float lumaValue = GetLuma( matWood( rayOrigin ) ).x;
+				throughput *= lumaValue;
+				rayDirection = normalize( ( 1.0f + raymarchEpsilon ) * result.normal + mix( reflectedVector, RandomUnitVector(), 1.0f - lumaValue ) );
+				break;
+			}
+
+			case LUMARBLE3:
+			{
+				float lumaValue = GetLuma( matWood( rayOrigin ) ).x;
+				throughput *= lumaValue;
+				rayDirection = normalize( ( 1.0f + raymarchEpsilon ) * result.normal + mix( reflectedVector, RandomUnitVector(), lumaValue ) );
+				break;
+			}
+
+			case LUMARBLECHECKER:
+			{
+				// the checkerboard
+				bool blackOrWhite = ( step( 0.0f,
+					cos( PI * rayOrigin.x + PI / 2.0f ) *
+					cos( PI * rayOrigin.y + PI / 2.0f ) *
+					cos( PI * rayOrigin.z + PI / 2.0f ) ) == 0 );
+
+				float lumaValue = GetLuma( matWood( rayOrigin ) ).x;
+				throughput *= lumaValue;
+
+				rayDirection = normalize( ( 1.0f + raymarchEpsilon ) * result.normal + mix( reflectedVector, RandomUnitVector(), 
+					blackOrWhite ? lumaValue : 1.0f - lumaValue ) );
+
+				break;
+			}
+
+
 			case CHECKER:
 			{
 				// diffuse material
@@ -1674,9 +1712,9 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( result.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
 				if ( cannotRefract || Reflectance( cosTheta, result.IoR ) > NormalizedRandomFloat() ) {
-					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.03f ) );
+					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.2f ) );
 				} else {
-					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, result.IoR ), RandomUnitVector(), 0.01f ) );
+					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, result.IoR ), RandomUnitVector(), 0.1f ) );
 				}
 				break;
 			}
@@ -1690,9 +1728,9 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
 				if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
-					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.03f ) );
+					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.2f ) );
 				} else {
-					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, adjustedIOR ), RandomUnitVector(), 0.01f ) );
+					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, adjustedIOR ), RandomUnitVector(), 0.1f ) );
 				}
 				break;
 			}
