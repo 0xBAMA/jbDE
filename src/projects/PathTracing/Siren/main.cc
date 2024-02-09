@@ -139,6 +139,7 @@ public:
 			opts.wrap			= GL_CLAMP_TO_BORDER;
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
+			textureManager.Add( "Color Accumulator Scratch", opts );
 
 			// and for the display texture, LDR
 			opts.dataType		= GL_RGBA8;
@@ -442,6 +443,13 @@ public:
 				SendSphereSSBO();
 				ResetAccumulators();
 			}
+			// 
+			if ( ImGui::Button( "Gaussian Filter" ) ) {
+				GaussianFilterAccumulator();
+			}
+			if ( ImGui::Button( "Median Filter" ) ) {
+				MedianFilterAccumulator();
+			}
 
 			ImGui::Text( "Resolution" );
 			static int x = sirenConfig.targetWidth;
@@ -674,6 +682,15 @@ public:
 		return t;
 	}
 
+	// try also running during main loop... might be interesting
+	void GaussianFilterAccumulator() {
+
+	}
+
+	void MedianFilterAccumulator() {
+
+	}
+
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -838,6 +855,7 @@ public:
 		// destroy the existing textures
 		textureManager.Remove( "Depth/Normals Accumulator" );
 		textureManager.Remove( "Color Accumulator" );
+		textureManager.Remove( "Color Accumulator Scratch" );
 		textureManager.Remove( "Display Texture" );
 
 		// create the new ones
@@ -850,6 +868,7 @@ public:
 		opts.textureType	= GL_TEXTURE_2D;
 		opts.wrap			= GL_CLAMP_TO_BORDER;
 		textureManager.Add( "Depth/Normals Accumulator", opts );
+		textureManager.Add( "Color Accumulator Scratch", opts );
 		textureManager.Add( "Color Accumulator", opts );
 
 		opts.dataType		= GL_RGBA8;
@@ -867,6 +886,9 @@ public:
 		shaders[ "Sky Cache" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/skyCache.cs.glsl" ).shaderHandle;
 		shaders[ "Pathtrace" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Postprocess" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
+		shaders[ "Median Filter" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/medianFilter.cs.glsl" ).shaderHandle;
+		shaders[ "Gaussian Filter" ]= computeShader( "./src/projects/PathTracing/Siren/shaders/gaussian.cs.glsl" ).shaderHandle;
+		shaders[ "Copy Back" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/copyBack.cs.glsl" ).shaderHandle;
 	}
 
 	void ReloadDefaultConfig () {
