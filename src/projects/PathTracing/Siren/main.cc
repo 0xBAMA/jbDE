@@ -1293,18 +1293,18 @@ public:
 	void PrepGlyphBuffer () {
 
 		// block dimensions
-		uint32_t texW = 96;
-		uint32_t texH = 64;
-		uint32_t texD = 64;
+		uint32_t texW = 128;
+		uint32_t texH = 128;
+		uint32_t texD = 128;
 
 		Image_4U data( texW, texH * texD );
 
 		// create the voxel model inside the flat image
 			// update the data
-		const uint32_t numOps = 3000;
+		const uint32_t numOps = 20000;
 		rngi opPick = rngi( 0, 35 );
 		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 1, 20 );
-		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 12 );
+		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 10 );
 		rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 1, 10 );
 		rngi glyphPick = rngi( 176, 223 );
 		rngi thinPick = rngi( 0, 2 );
@@ -1454,18 +1454,19 @@ public:
 			firstRun = false;
 			textureOptions_t opts;
 			opts.width			= texW;
-			opts.height			= texH * texD;
+			opts.height			= texH;
+			opts.depth			= texD;
 			opts.dataType		= GL_RGBA8UI;
 			opts.minFilter		= GL_NEAREST;
 			opts.magFilter		= GL_NEAREST;
-			opts.textureType	= GL_TEXTURE_2D;
+			opts.textureType	= GL_TEXTURE_3D;
 			opts.wrap			= GL_CLAMP_TO_BORDER;
 			opts.initialData = ( void * ) data.GetImageDataBasePtr();
 			textureManager.Add( "TextBuffer", opts );
 		} else {
 			// pass the new generated texture data to the existing texture
-			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "TextBuffer" ) );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, data.Width(), data.Height(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) data.GetImageDataBasePtr() );
+			glBindTexture( GL_TEXTURE_3D, textureManager.Get( "TextBuffer" ) );
+			glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8UI, texW, texH, texD, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) data.GetImageDataBasePtr() );
 		}
 	}
 

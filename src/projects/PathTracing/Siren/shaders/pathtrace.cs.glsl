@@ -4,7 +4,7 @@ layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 layout( rgba32f ) uniform image2D accumulatorColor;
 layout( rgba32f ) uniform image2D accumulatorNormalsAndDepth;
 layout( rgba8ui ) uniform uimage2D blueNoise;
-layout( rgba8ui ) uniform uimage2D textBuffer;
+layout( rgba8ui ) uniform uimage3D textBuffer;
 
 #include "hg_sdf.glsl" // SDF modeling functions
 #include "twigl.glsl" // noise etc utils
@@ -1295,7 +1295,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		// get the distance to the masked composite plane
 		Intersection closest;
 		vec4 temp = vec4( 0.0f, 0.0f, 0.0f, 1000000.0f );
-		const uvec3 texDims = uvec3( 96, 64, 64 );
+		// const uvec3 texDims = uvec3( 96, 64, 64 );
+		const uvec3 texDims = uvec3( imageSize( textBuffer ) );
 		uint i = 0;
 		vec3 normal = vec3( 0.0f );
 		// iterate through the planes
@@ -1315,7 +1316,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				ivec2 offset = ivec2( pxIdx.xz ) % ivec2( 8, 16 );
 
 				// get the sample
-				uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
+				// uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
+				uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.xy, i ) );
 				int onGlyph = fontRef( sampleValue.a, offset );
 				// int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
 
@@ -1349,8 +1351,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 
 // ==================================================================================================================================
 	{
-		// Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 3.5f, 0.5f, 5.5f ) );
-		Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
+		Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 3.5f, 0.5f, 5.5f ) );
+		// Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
 		vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
 		const bool anyHit = !IsEmpty( closest );
 		const bool frontFaceHit = ( boxHit == closest.a );
@@ -1377,55 +1379,6 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		}
 	}
 // ==================================================================================================================================
-	// capsule-based glyph pillar
-	// {
-	// 	Intersection closest;
-	// 	vec4 temp = vec4( 0.0f, 0.0f, 0.0f, 1000000.0f );
-	// 	const uvec3 texDims = uvec3( 96, 64, 64 );
-	// 	uint i = 0;
-	// 	vec3 normal = vec3( 0.0f );
-
-	// 	// iterate through layers
-	// 	const vec3 capA = vec3( 0.0f );
-	// 	const vec3 capB = vec3( 10.0f );
-	// 	for ( ; i < texDims.z; i++ ) {
-	// 		float capHit = capIntersect( origin, direction, capA, capB, 2.0f + 0.01f * float( i ) );
-	// 		if ( capHit > 0.0f && capHit != 1000000.0f ) {
-
-	// 			vec3 hitPoint = ( origin + capHit * direction );
-	// 			vec3 w = normalize( capB - capA );
-	// 			vec3 u = normalize( cross( w, vec3( 0.0f, 0.0f, 1.0f ) ) );
-	// 			vec3 v = normalize( cross( u, w ) );
-	// 			vec3 q = ( hitPoint - capA ) * mat3( u, v, w );
-	// 			vec2 uv = vec2( ( atan( q.y, q.x ) / pi  + 1.0f ) / 2.0f, q.z / 10.0f );
-
-	// 			ivec3 pxIdx = ivec3( ivec2( uv * texDims.xy ), i );
-	// 			ivec2 bin = ivec2( floor( pxIdx.xz / vec2( 8.0f, 16.0f ) ) );
-	// 			ivec2 offset = ivec2( pxIdx.xz ) % ivec2( 8, 16 );
-	// 			// get the sample
-	// 			uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
-	// 			int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
-	// 			// bool reject = ( onGlyph <= 0 );
-	// 			bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
-	// 			if ( !reject ) {
-	// 				temp =  vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, capHit ) );
-	// 				// temp =  vec4( uv.xy, 0.0f, min( temp.a, capHit ) );
-	// 				normal = capNormal( hitPoint, capA, capB, 2.0f );
-	// 			}
-	// 		}
-	// 	}
-
-	// 	if ( temp.a != 1000000.0f && temp.a < result.dTravel ) {
-	// 		// result.i = closest;
-	// 		result.dTravel = temp.a;
-	// 		result.normal = normal;
-	// 		result.color = temp.rgb;
-	// 		result.material = DIFFUSE;
-	// 		// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? METALLIC : DIFFUSE;
-	// 		// result.material = DIFFUSE;
-	// 	}
-	// }
-
 
 	// if all intersectors escape, we take the nohit result from the first if at the top of the function
 	// if the explicit result is closer than the raymarch result, we already have the correct information in the result struct
