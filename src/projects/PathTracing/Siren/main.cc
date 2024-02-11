@@ -688,7 +688,21 @@ public:
 	}
 
 	void MedianFilterAccumulator() {
+		for ( int i = 0; i < 100; i++ ) {
+			GLuint shader = shaders[ "Median Filter" ];
+			glUseProgram( shader );
+			textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
+			textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
+			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
+			shader = shaders[ "Copy Back" ];
+			glUseProgram( shader );
+			textureManager.BindImageForShader( "Color Accumulator Scratch", "sourceData", shader, 0 );
+			textureManager.BindImageForShader( "Color Accumulator", "destData", shader, 1 );
+			glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
 	}
 
 	void ComputePasses () {
