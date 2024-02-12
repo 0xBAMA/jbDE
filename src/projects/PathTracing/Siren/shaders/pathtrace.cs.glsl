@@ -1200,6 +1200,7 @@ struct sceneIntersection {
 	vec3 color;
 	int material;
 	float IoR;
+	bool frontFaceHit;
 
 	Intersection i;
 };
@@ -1261,6 +1262,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.dTravel = raymarchMaxDistance + 1.0f;
 		result.normal = vec3( 0.0f );
 		result.color = vec3( 0.0f );
+		result.frontFaceHit = false;
 		result.material = NOHIT;
 		result.IoR = 1.0f;
 	} else if ( explicitResult.i.a.x < 0.0f && explicitResult.i.b.x >= 0.0f ) {
@@ -1268,12 +1270,14 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		result.dTravel = explicitResult.i.b.x;
 		result.normal = explicitResult.i.b.yzw;
 		result.color = explicitResult.color;
+		result.frontFaceHit = false;
 		result.material = ( explicitResult.material == REFRACTIVE ) ? REFRACTIVE_BACKFACE : ( explicitResult.material == REFRACTIVE_FROSTED ) ? REFRACTIVE_FROSTED_BACKFACE : explicitResult.material;
 		result.IoR = explicitResult.IoR;
 	} else {
 		result.dTravel = explicitResult.i.a.x;
 		result.normal = explicitResult.i.a.yzw;
 		result.color = explicitResult.color;
+		result.frontFaceHit = true;
 		result.material = explicitResult.material;
 		result.IoR = explicitResult.IoR;
 	}
@@ -1299,10 +1303,12 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		const uvec3 texDims = uvec3( imageSize( textBuffer ) );
 		uint i = 0;
 		vec3 normal = vec3( 0.0f );
+		bool frontFaceHit_o = false;
 		// iterate through the planes
 		for ( ; i < texDims.z; i++ ) {
 			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) - 0.01f * texDims.z / 2.0f ) );
 			vec4 planeHit = ( plane.a.x < 0.0f ) ? ( plane.b.x < 0.0f ) ? vec4( 1000000.0f ) : plane.b : plane.a;
+			bool frontFaceHit = ( planeHit == plane.a );
 			if ( planeHit.x > 0.0f && planeHit.x != 1000000.0f ) {
 
 				vec3 hitPoint = ( origin + planeHit.x * direction ) + vec3( 3.0f, 4.0f, 3.0f );
@@ -1325,15 +1331,18 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				// bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
 				// bool reject = pxIdx.x < 0 || pxIdx.x >= ( texDims.x * 8 ) || ( onGlyph <= 0 );
 				// bool reject = pxIdx.y < 0 || pxIdx.y >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+				// bool reject = ( onGlyph <= 0 && distance( hitPoint, vec3( 0.0f ) ) < 10.0f );
 				bool reject = ( onGlyph <= 0 );
 
 				// interesting - this isn't exactly... what I want it to do
 					// need to evaluate planes in order, and know when you're partially through the stack... I think
-				// if ( NormalizedRandomFloat() < ( 0.75f - ( sampleValue.a / 255.0f ) ) ) reject = true;
+				if ( NormalizedRandomFloat() < ( 0.75f - ( sampleValue.a / 255.0f ) ) ) reject = true;
 
 				if ( !reject ) {
 					closest = plane;
 					temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
+					frontFaceHit_o = frontFaceHit;
+					// temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
 					// temp = vec4( refPalette( sampleValue.x / 255.0f, 12 ).xyz, min( temp.a, planeHit.x ) );
 					// temp = vec4( refPalette( 0.23f * hitPoint.x, 4 )z.xyz, min( temp.a, planeHit.x ) );
 					// temp = vec4( vec3( 0.618f ), min( temp.a, planeHit.x ) );
@@ -1353,15 +1362,15 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			// result.material = NormalizedRandomFloat() < ( temp.r / 255.0f ) ? DIFFUSE : NOHIT;
 			// result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : EMISSIVE;
 			// result.material = MIRROR;
-			result.material = DIFFUSE;
+			result.material = frontFaceHit_o ? MIRROR : DIFFUSE;
 		}
 	}
 
 // ==================================================================================================================================
 	const bool boundBox = true;
 	if ( boundBox ) {
-		// Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 4.5f, 8.0f, 4.5f ) );
-		Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
+		Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 5.0f, 2.0f, 5.0f ) );
+		// Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
 		vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
 		const bool anyHit = !IsEmpty( closest );
 		const bool frontFaceHit = ( boxHit == closest.a );
