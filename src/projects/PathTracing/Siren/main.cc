@@ -1319,20 +1319,21 @@ public:
 	void PrepGlyphBuffer () {
 
 		// block dimensions
-		uint32_t texW = 128;
-		uint32_t texH = 128;
-		uint32_t texD = 128;
+		uint32_t texW = 96;
+		uint32_t texH = 64;
+		uint32_t texD = 512;
 
 		Image_4U data( texW, texH * texD );
 
 		// create the voxel model inside the flat image
 			// update the data
-		const uint32_t numOps = 20000;
-		rngi opPick = rngi( 0, 35 );
-		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 1, 20 );
-		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 1, 10 );
-		rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 1, 10 );
-		rngi glyphPick = rngi( 176, 223 );
+		const uint32_t numOps = 4000;
+		rngi opPick = rngi( 29, 35 );
+		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 4, 20 );
+		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 4, 12 );
+		rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 4, 10 );
+		// rngi glyphPick = rngi( 176, 223 );
+		rngi glyphPick = rngi( 0, 255 );
 		rngi thinPick = rngi( 0, 2 );
 		// rngi rPick = rngi( 22, 255 );
 		// rngi gPick = rngi( 4, 128 );
@@ -1344,8 +1345,33 @@ public:
 		rng pwPick = rng( 0.01f, 0.3f );
 		rngN pPick = rngN( ppPick(), pwPick() );
 
-		color_4U col = color_4U( { 0, 0, 0, 0 } );
+		color_4U col = color_4U( { 0, 0, 0, 1 } );
 		uint32_t length = 0;
+		PerlinNoise p;
+
+		rng noiseScale = rng( 10.0f, 50.0f );
+		const vec3 n = vec3( noiseScale(), noiseScale(), 10.0f * noiseScale() );
+
+		rng offset = rng( -10.0f, 10.0f );
+		const vec3 o = vec3( offset(), offset(), offset() );
+
+		for ( uint32_t x = 0; x < texW; x++ )
+		for ( uint32_t y = 0; y < texH; y++ )
+		for ( uint32_t z = 0; z < texD; z++ ) {
+			// float d = glm::distance( vec3( texW / 2.0f, texH / 2.0f, texD / 2.0f ), vec3( x, y, z ) );
+			// float d2 = glm::distance( vec2( texW / 2.0f, texH / 2.0f ), vec2( x, y ) );
+			// if ( d < 64.0f && d2 > 26.0f || d2 < 22.0f && d2 > 12.0f ) {
+
+				float noiseValue = p.noise( x / n.x + o.x, y / n.y + o.y, z / n.z + o.z );
+				if ( noiseValue < 0.5f ) {
+					// vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+					// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+					vec3 c = palette::paletteRef( noiseValue ) * 255.0f;
+					col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+					data.SetAtXY( x, y + z * texH, col );
+				}
+			// }
+		}
 
 		// do N randomly selected
 		for ( uint32_t op = 0; op < numOps; op++ ) {

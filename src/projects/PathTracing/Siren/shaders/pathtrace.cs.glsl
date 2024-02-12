@@ -1317,18 +1317,22 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 
 				// get the sample
 				// uvec4 sampleValue = imageLoad( textBuffer, bin.xy + ivec2( 0, texDims.y * i ) );
-				uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.xy, i ) );
+				// uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.xy, i ) ); // normal
+				uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, i ) ); // repeated
 				int onGlyph = fontRef( sampleValue.a, offset );
 				// int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
 
-				bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
-				// bool reject = ( onGlyph <= 0 );
+				// bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+				// bool reject = pxIdx.x < 0 || pxIdx.x >= ( texDims.x * 8 ) || ( onGlyph <= 0 );
+				// bool reject = pxIdx.y < 0 || pxIdx.y >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+				bool reject = ( onGlyph <= 0 );
+
 
 				if ( !reject ) {
 					closest = plane;
 					temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
 					// temp = vec4( refPalette( sampleValue.x / 255.0f, 12 ).xyz, min( temp.a, planeHit.x ) );
-					// temp = vec4( refPalette( 0.23f * hitPoint.x, 4 ).xyz, min( temp.a, planeHit.x ) );
+					// temp = vec4( refPalette( 0.23f * hitPoint.x, 4 )z.xyz, min( temp.a, planeHit.x ) );
 					// temp = vec4( vec3( 0.618f ), min( temp.a, planeHit.x ) );
 					normal = planeHit.yzw;
 				}
@@ -1341,18 +1345,20 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			result.normal = normal;
 			result.color = temp.rgb;
 			// result.color = vec3( 0.01618f );
-			result.material = all( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
+			// result.material = all( greaterThanEqual( temp.rgb, vec3( 0.9f ) ) ) ? EMISSIVE : DIFFUSE;
 			// result.material = any( greaterThanEqual( temp.rgb, vec3( 0.5f ) ) ) ? MIRROR : DIFFUSE;
 			// result.material = NormalizedRandomFloat() < ( temp.r / 255.0f ) ? DIFFUSE : NOHIT;
 			// result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : EMISSIVE;
-			// result.material = METALLIC;
+			// result.material = MIRROR;
+			result.material = DIFFUSE;
 		}
 	}
 
 // ==================================================================================================================================
-	{
-		Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 3.5f, 0.5f, 5.5f ) );
-		// Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
+	const bool boundBox = true;
+	if ( boundBox ) {
+		// Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 4.5f, 8.0f, 4.5f ) );
+		Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
 		vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
 		const bool anyHit = !IsEmpty( closest );
 		const bool frontFaceHit = ( boxHit == closest.a );
