@@ -1336,7 +1336,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 
 				// interesting - this isn't exactly... what I want it to do
 					// need to evaluate planes in order, and know when you're partially through the stack... I think
-				if ( NormalizedRandomFloat() < ( 0.75f - ( sampleValue.a / 255.0f ) ) ) reject = true;
+				// if ( NormalizedRandomFloat() < ( 0.75f - ( sampleValue.a / 255.0f ) ) ) reject = true;
 
 				if ( !reject ) {
 					closest = plane;

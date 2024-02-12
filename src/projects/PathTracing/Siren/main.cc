@@ -443,56 +443,32 @@ public:
 				SendSphereSSBO();
 				ResetAccumulators();
 			}
-			// 
-			if ( ImGui::Button( "Gaussian Filter" ) ) {
-				GaussianFilterAccumulator();
+
+			static int filterSelector = 2;
+			ImGui::Text( "Filter Mode: " );
+			ImGui::SameLine();
+			ImGui::RadioButton( " Gaussian ", &filterSelector, 0 );
+			ImGui::SameLine();
+			ImGui::RadioButton( " Median ", &filterSelector, 1 );
+			ImGui::SameLine();
+			ImGui::RadioButton( " Combo ", &filterSelector, 2 );
+
+			ImGui::Text( "Apply: " );
+			if ( ImGui::Button( " 1x " ) ) {
+				Filter( filterSelector );
 			}
 			ImGui::SameLine();
 			if ( ImGui::Button( " 10x " ) ) {
 				for ( int i = 0; i < 10; i++ ) {
-					GaussianFilterAccumulator();
+					Filter( filterSelector );
 				}
 			}
 			ImGui::SameLine();
 			if ( ImGui::Button( " 100x " ) ) {
 				for ( int i = 0; i < 100; i++ ) {
-					GaussianFilterAccumulator();
+					Filter( filterSelector );
 				}
 			}
-
-
-			if ( ImGui::Button( "Median Filter" ) ) {
-				MedianFilterAccumulator();
-			}
-			ImGui::SameLine();
-			if ( ImGui::Button( " 10x ####slgjs" ) ) {
-				for ( int i = 0; i < 10; i++ ) {
-					MedianFilterAccumulator();
-				}
-			}
-			ImGui::SameLine();
-			if ( ImGui::Button( " 100x ####gls" ) ) {
-				for ( int i = 0; i < 100; i++ ) {
-					MedianFilterAccumulator();
-				}
-			}
-
-			if ( ImGui::Button( "Double Filter" ) ) {
-				DoubleFilterAccumulator();
-			}
-			ImGui::SameLine();
-			if ( ImGui::Button( " 10x ####slgjsss" ) ) {
-				for ( int i = 0; i < 10; i++ ) {
-					DoubleFilterAccumulator();
-				}
-			}
-			ImGui::SameLine();
-			if ( ImGui::Button( " 100x ####glsss" ) ) {
-				for ( int i = 0; i < 100; i++ ) {
-					DoubleFilterAccumulator();
-				}
-			}
-
 
 			ImGui::Text( "Resolution" );
 			static int x = sirenConfig.targetWidth;
@@ -725,42 +701,10 @@ public:
 		return t;
 	}
 
-	// try also running during main loop... might be interesting
-	void GaussianFilterAccumulator() {
-		GLuint shader = shaders[ "Gaussian Filter" ];
+	void Filter ( int mode ) {
+		GLuint shader = shaders[ "Filter" ];
 		glUseProgram( shader );
-		textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
-		textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
-		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-		shader = shaders[ "Copy Back" ];
-		glUseProgram( shader );
-		textureManager.BindImageForShader( "Color Accumulator Scratch", "sourceData", shader, 0 );
-		textureManager.BindImageForShader( "Color Accumulator", "destData", shader, 1 );
-		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	}
-
-	void MedianFilterAccumulator() {
-		GLuint shader = shaders[ "Median Filter" ];
-		glUseProgram( shader );
-		textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
-		textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
-		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-		shader = shaders[ "Copy Back" ];
-		glUseProgram( shader );
-		textureManager.BindImageForShader( "Color Accumulator Scratch", "sourceData", shader, 0 );
-		textureManager.BindImageForShader( "Color Accumulator", "destData", shader, 1 );
-		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-	}
-
-	void DoubleFilterAccumulator() {
-		GLuint shader = shaders[ "Double Filter" ];
-		glUseProgram( shader );
+		glUniform1i( glGetUniformLocation( shader, "mode" ), mode );
 		textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
 		textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
 		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
@@ -969,9 +913,7 @@ public:
 		shaders[ "Sky Cache" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/skyCache.cs.glsl" ).shaderHandle;
 		shaders[ "Pathtrace" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Postprocess" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
-		shaders[ "Median Filter" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/medianFilter.cs.glsl" ).shaderHandle;
-		shaders[ "Gaussian Filter" ]= computeShader( "./src/projects/PathTracing/Siren/shaders/gaussian.cs.glsl" ).shaderHandle;
-		shaders[ "Double Filter" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/doubleFilter.cs.glsl" ).shaderHandle;
+		shaders[ "Filter" ]			= computeShader( "./src/projects/PathTracing/Siren/shaders/filter.cs.glsl" ).shaderHandle;
 		shaders[ "Copy Back" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/copyBack.cs.glsl" ).shaderHandle;
 	}
 

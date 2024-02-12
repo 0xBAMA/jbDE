@@ -60,19 +60,48 @@ vec3 median ( ivec2 uv ) {
 	return pickbetween3( first, second, third );
 }
 
+#define GAUSSIAN	0
+#define MEDIAN		1
+#define BOTH		2
+uniform int mode;
+
 void main () {
 	// write the data to the image
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 	const float sampleCount = imageLoad( sourceData, writeLoc ).a;
-	vec3 kernelResult = ( // 3x3 gaussian kernel
-		1.0f * median( writeLoc + ivec2( -1, -1 ) ) +
-		1.0f * median( writeLoc + ivec2( -1,  1 ) ) +
-		1.0f * median( writeLoc + ivec2(  1, -1 ) ) +
-		1.0f * median( writeLoc + ivec2(  1,  1 ) ) +
-		2.0f * median( writeLoc + ivec2(  0,  1 ) ) +
-		2.0f * median( writeLoc + ivec2(  0, -1 ) ) +
-		2.0f * median( writeLoc + ivec2(  1,  0 ) ) +
-		2.0f * median( writeLoc + ivec2( -1,  0 ) ) +
-		4.0f * median( writeLoc + ivec2(  0,  0 ) ) ) / 16.0f;
-	imageStore( destData, writeLoc, vec4( kernelResult, sampleCount ) );
+
+	vec3 result;
+	switch ( mode ) {
+	case GAUSSIAN:
+		result = ( // 3x3 gaussian kernel
+			1.0f * imageLoad( sourceData, writeLoc + ivec2( -1, -1 ) ).rgb +
+			1.0f * imageLoad( sourceData, writeLoc + ivec2( -1,  1 ) ).rgb +
+			1.0f * imageLoad( sourceData, writeLoc + ivec2(  1, -1 ) ).rgb +
+			1.0f * imageLoad( sourceData, writeLoc + ivec2(  1,  1 ) ).rgb +
+			2.0f * imageLoad( sourceData, writeLoc + ivec2(  0,  1 ) ).rgb +
+			2.0f * imageLoad( sourceData, writeLoc + ivec2(  0, -1 ) ).rgb +
+			2.0f * imageLoad( sourceData, writeLoc + ivec2(  1,  0 ) ).rgb +
+			2.0f * imageLoad( sourceData, writeLoc + ivec2( -1,  0 ) ).rgb +
+			4.0f * imageLoad( sourceData, writeLoc + ivec2(  0,  0 ) ).rgb ) / 16.0f;
+		break;
+
+	case MEDIAN:
+		result = median( writeLoc );
+		break;
+
+	case BOTH:
+		result = ( // 3x3 gaussian kernel, but each tap is a 3x3 median filter
+			1.0f * median( writeLoc + ivec2( -1, -1 ) ) +
+			1.0f * median( writeLoc + ivec2( -1,  1 ) ) +
+			1.0f * median( writeLoc + ivec2(  1, -1 ) ) +
+			1.0f * median( writeLoc + ivec2(  1,  1 ) ) +
+			2.0f * median( writeLoc + ivec2(  0,  1 ) ) +
+			2.0f * median( writeLoc + ivec2(  0, -1 ) ) +
+			2.0f * median( writeLoc + ivec2(  1,  0 ) ) +
+			2.0f * median( writeLoc + ivec2( -1,  0 ) ) +
+			4.0f * median( writeLoc + ivec2(  0,  0 ) ) ) / 16.0f;
+		break;
+	}
+
+	imageStore( destData, writeLoc, vec4( result, sampleCount ) );
 }
