@@ -447,8 +447,34 @@ public:
 			if ( ImGui::Button( "Gaussian Filter" ) ) {
 				GaussianFilterAccumulator();
 			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 10x " ) ) {
+				for ( int i = 0; i < 10; i++ ) {
+					GaussianFilterAccumulator();
+				}
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 100x " ) ) {
+				for ( int i = 0; i < 100; i++ ) {
+					GaussianFilterAccumulator();
+				}
+			}
+
+
 			if ( ImGui::Button( "Median Filter" ) ) {
 				MedianFilterAccumulator();
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 10x ####slgjs" ) ) {
+				for ( int i = 0; i < 10; i++ ) {
+					MedianFilterAccumulator();
+				}
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 100x ####gls" ) ) {
+				for ( int i = 0; i < 100; i++ ) {
+					MedianFilterAccumulator();
+				}
 			}
 
 			ImGui::Text( "Resolution" );
