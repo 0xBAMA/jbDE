@@ -1376,14 +1376,17 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				// result.material = LUMARBLECHECKER;
 				// result.material = REFRACTIVE;
 
-				vec3 p = 1.5f * ( origin + direction * boxHit.x );
+				vec3 p = 0.5f * ( origin + direction * boxHit.x );
 				bool blackOrWhite = ( step( 0.0f,
-					// cos( PI * p.x + PI / 2.0f ) *
-					// cos( PI * p.y + PI / 2.0f ) *
+					cos( PI * p.x + PI / 2.0f ) *
+					cos( PI * p.y + PI / 2.0f ) *
 					cos( PI * p.z + PI / 2.0f ) ) == 0 );
 				// result.material = MIRROR;
-				result.material = blackOrWhite ? REFRACTIVE : REFRACTIVE_FROSTED;
+				// result.material = blackOrWhite ? REFRACTIVE : REFRACTIVE_FROSTED;
+				// result.material = REFRACTIVE;
+				result.material = REFRACTIVE_FROSTED;
 				result.IoR = 1.0f / 1.4f;
+				// result.IoR = 1.4f;
 			}
 		}
 	}
@@ -1695,7 +1698,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( result.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
 				if ( cannotRefract || Reflectance( cosTheta, result.IoR ) > NormalizedRandomFloat() ) {
-					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.2f ) );
+					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.1f ) );
 				} else {
 					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, result.IoR ), RandomUnitVector(), 0.1f ) );
 				}
@@ -1711,7 +1714,7 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 				bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
 				if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
-					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.2f ) );
+					rayDirection = normalize( mix( reflect( normalize( rayDirection ), result.normal ), RandomUnitVector(), 0.1f ) );
 				} else {
 					rayDirection = normalize( mix( refract( normalize( rayDirection ), result.normal, adjustedIOR ), RandomUnitVector(), 0.1f ) );
 				}
