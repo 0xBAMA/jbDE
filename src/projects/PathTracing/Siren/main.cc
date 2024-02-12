@@ -477,6 +477,23 @@ public:
 				}
 			}
 
+			if ( ImGui::Button( "Double Filter" ) ) {
+				DoubleFilterAccumulator();
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 10x ####slgjsss" ) ) {
+				for ( int i = 0; i < 10; i++ ) {
+					DoubleFilterAccumulator();
+				}
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " 100x ####glsss" ) ) {
+				for ( int i = 0; i < 100; i++ ) {
+					DoubleFilterAccumulator();
+				}
+			}
+
+
 			ImGui::Text( "Resolution" );
 			static int x = sirenConfig.targetWidth;
 			static int y = sirenConfig.targetHeight;
@@ -741,6 +758,22 @@ public:
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
+	void DoubleFilterAccumulator() {
+		GLuint shader = shaders[ "Double Filter" ];
+		glUseProgram( shader );
+		textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
+		textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
+		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		shader = shaders[ "Copy Back" ];
+		glUseProgram( shader );
+		textureManager.BindImageForShader( "Color Accumulator Scratch", "sourceData", shader, 0 );
+		textureManager.BindImageForShader( "Color Accumulator", "destData", shader, 1 );
+		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
+
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -938,6 +971,7 @@ public:
 		shaders[ "Postprocess" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/postprocess.cs.glsl" ).shaderHandle;
 		shaders[ "Median Filter" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/medianFilter.cs.glsl" ).shaderHandle;
 		shaders[ "Gaussian Filter" ]= computeShader( "./src/projects/PathTracing/Siren/shaders/gaussian.cs.glsl" ).shaderHandle;
+		shaders[ "Double Filter" ]	= computeShader( "./src/projects/PathTracing/Siren/shaders/doubleFilter.cs.glsl" ).shaderHandle;
 		shaders[ "Copy Back" ]		= computeShader( "./src/projects/PathTracing/Siren/shaders/copyBack.cs.glsl" ).shaderHandle;
 	}
 
