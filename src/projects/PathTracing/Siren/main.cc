@@ -452,8 +452,13 @@ public:
 			ImGui::RadioButton( " Median ", &filterSelector, 1 );
 			ImGui::SameLine();
 			ImGui::RadioButton( " Combo ", &filterSelector, 2 );
+			ImGui::SameLine();
+			ImGui::RadioButton( " Kuwahara ", &filterSelector, 3 );
+			ImGui::SameLine();
+			ImGui::RadioButton( " Random ", &filterSelector, 4 );
 
 			ImGui::Text( "Apply: " );
+			ImGui::SameLine();
 			if ( ImGui::Button( " 1x " ) ) {
 				Filter( filterSelector );
 			}
@@ -677,7 +682,14 @@ public:
 	void Filter ( int mode ) {
 		GLuint shader = shaders[ "Filter" ];
 		glUseProgram( shader );
-		glUniform1i( glGetUniformLocation( shader, "mode" ), mode );
+
+		if ( mode == 4 ) { // randomize
+			static rngi pick = rngi( 0, 3 );
+			glUniform1i( glGetUniformLocation( shader, "mode" ), pick() );
+		} else {
+			glUniform1i( glGetUniformLocation( shader, "mode" ), mode );
+		}
+
 		textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
 		textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
 		glDispatchCompute( ( sirenConfig.targetWidth + 15 ) / 16, ( sirenConfig.targetHeight + 15 ) / 16, 1 );

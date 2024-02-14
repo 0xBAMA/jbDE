@@ -5,8 +5,21 @@ layout( rgba32f ) uniform image2D sourceData;
 layout( rgba32f ) uniform image2D destData;
 
 // median filter code from Nameless
-float luma ( vec3 c ) {
+float luma( vec3 c ) {
 	return 0.2126f * c.x + 0.7152f * c.y + 0.0722f * c.z;
+}
+
+vec3 Gaussian( ivec2 writeLoc ) {
+	return ( // 3x3 gaussian kernel
+		1.0f * imageLoad( sourceData, writeLoc + ivec2( -1, -1 ) ).rgb +
+		1.0f * imageLoad( sourceData, writeLoc + ivec2( -1,  1 ) ).rgb +
+		1.0f * imageLoad( sourceData, writeLoc + ivec2(  1, -1 ) ).rgb +
+		1.0f * imageLoad( sourceData, writeLoc + ivec2(  1,  1 ) ).rgb +
+		2.0f * imageLoad( sourceData, writeLoc + ivec2(  0,  1 ) ).rgb +
+		2.0f * imageLoad( sourceData, writeLoc + ivec2(  0, -1 ) ).rgb +
+		2.0f * imageLoad( sourceData, writeLoc + ivec2(  1,  0 ) ).rgb +
+		2.0f * imageLoad( sourceData, writeLoc + ivec2( -1,  0 ) ).rgb +
+		4.0f * imageLoad( sourceData, writeLoc + ivec2(  0,  0 ) ).rgb ) / 16.0f;
 }
 
 vec3 pickbetween3( vec3 a, vec3 b, vec3 c ) {
@@ -44,7 +57,7 @@ vec3 pickbetween3( vec3 a, vec3 b, vec3 c ) {
 	return a;
 }
 
-vec3 median ( ivec2 uv ) {
+vec3 median( ivec2 uv ) {
 	const vec3 c = vec3( 0.0f );
 	vec3 colArray[9] = vec3[](c,c,c,c,c,c,c,c,c);
 
@@ -60,9 +73,94 @@ vec3 median ( ivec2 uv ) {
 	return pickbetween3( first, second, third );
 }
 
+// code from Nameless
+vec3 Kuwahara( ivec2 loc ) {
+
+	float sl1 = 0.0f;
+	float sl2 = 0.0f;
+	float sl3 = 0.0f;
+	float sl4 = 0.0f;
+
+	vec3 slv1 = vec3( 0.0f );
+	vec3 slv2 = vec3( 0.0f );
+	vec3 slv3 = vec3( 0.0f );
+	vec3 slv4 = vec3( 0.0f );
+
+	float aa[ 16 ] = float[]( 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+	float bb[ 16 ] = float[]( 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+	float cc[ 16 ] = float[]( 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+	float dd[ 16 ] = float[]( 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+
+	int a1 = 0;
+	int a2 = 0;
+	int a3 = 0;
+	int a4 = 0;
+
+	for ( int i = 0; i < 49; i++ ) {
+		ivec2 coords = ivec2( i % 7, i / 7 ) - ivec2( 3 );
+		vec3 currS = imageLoad( sourceData, loc + coords ).xyz;
+		if ( coords.x <= 0.0f && coords.y <= 0.0f ) {
+			slv1 += currS / 16.0f;
+			sl1 += luma( currS ) / 16.0f;
+			aa[ a1 ] = luma( currS );
+			a1++;
+		}
+		if ( coords.x >= 0.0f && coords.y <= 0.0f ) {
+			slv2 += currS / 16.0f;
+			sl2 += luma( currS ) / 16.0f;
+			bb[ a2 ] = luma( currS );
+			a2++;
+		}
+		if ( coords.x <= 0.0f && coords.y >= 0.0f ) {
+			slv3 += currS / 16.0f;
+			sl3 += luma( currS ) / 16.0f;
+			cc[ a3 ] = luma( currS );
+			a3++;
+		}
+		if ( coords.x >= 0.0f && coords.y >= 0.0f ) {
+			slv4 += currS / 16.0f;
+			sl4 += luma( currS ) / 16.0f;
+			dd[ a4 ] = luma( currS );
+			a4++;
+		}
+	}
+
+	float sss1 = 0.0f;
+	float sss2 = 0.0f;
+	float sss3 = 0.0f;
+	float sss4 = 0.0f;
+	for ( int i = 0; i < 16; i++ ) {
+		float k1 = aa[ i ];
+		float k2 = bb[ i ];
+		float k3 = cc[ i ];
+		float k4 = dd[ i ];
+		sss1 += pow( k1 - sl1, 2.0f ) / 16.0f;
+		sss2 += pow( k2 - sl2, 2.0f ) / 16.0f;
+		sss3 += pow( k3 - sl3, 2.0f ) / 16.0f;
+		sss4 += pow( k4 - sl4, 2.0f ) / 16.0f;
+	}
+
+	sss1 = sqrt( sss1 );
+	sss2 = sqrt( sss2 );
+	sss3 = sqrt( sss3 );
+	sss4 = sqrt( sss4 );
+	float mins = min( sss1, min( sss2, min( sss3, sss4 ) ) );
+
+	if ( mins == sss1 ) {
+		return slv1;
+	} else if ( mins == sss2 ) {
+		return slv2;
+	} else if ( mins == sss3 ) {
+		return slv3;
+	}
+	return slv4;
+}
+
+
 #define GAUSSIAN	0
 #define MEDIAN		1
 #define BOTH		2
+#define KUWAHARA	3
 uniform int mode;
 
 void main () {
@@ -73,16 +171,7 @@ void main () {
 	vec3 result;
 	switch ( mode ) {
 	case GAUSSIAN:
-		result = ( // 3x3 gaussian kernel
-			1.0f * imageLoad( sourceData, writeLoc + ivec2( -1, -1 ) ).rgb +
-			1.0f * imageLoad( sourceData, writeLoc + ivec2( -1,  1 ) ).rgb +
-			1.0f * imageLoad( sourceData, writeLoc + ivec2(  1, -1 ) ).rgb +
-			1.0f * imageLoad( sourceData, writeLoc + ivec2(  1,  1 ) ).rgb +
-			2.0f * imageLoad( sourceData, writeLoc + ivec2(  0,  1 ) ).rgb +
-			2.0f * imageLoad( sourceData, writeLoc + ivec2(  0, -1 ) ).rgb +
-			2.0f * imageLoad( sourceData, writeLoc + ivec2(  1,  0 ) ).rgb +
-			2.0f * imageLoad( sourceData, writeLoc + ivec2( -1,  0 ) ).rgb +
-			4.0f * imageLoad( sourceData, writeLoc + ivec2(  0,  0 ) ).rgb ) / 16.0f;
+		result = Gaussian( writeLoc );
 		break;
 
 	case MEDIAN:
@@ -100,6 +189,10 @@ void main () {
 			2.0f * median( writeLoc + ivec2(  1,  0 ) ) +
 			2.0f * median( writeLoc + ivec2( -1,  0 ) ) +
 			4.0f * median( writeLoc + ivec2(  0,  0 ) ) ) / 16.0f;
+		break;
+
+	case KUWAHARA:
+		result = Kuwahara( writeLoc );
 		break;
 	}
 
