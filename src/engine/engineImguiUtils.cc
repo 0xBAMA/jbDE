@@ -72,6 +72,7 @@ void engineBase::DrawTextEditor () {
 	ImGui::End();
 }
 
+// this will be removed, once everything is moved over
 void engineBase::TonemapControlsWindow () {
 	ZoneScoped;
 
@@ -111,6 +112,66 @@ void engineBase::TonemapControlsWindow () {
 	}
 
 	ImGui::End();
+}
+
+void engineBase::PostProcessImguiMenu() {
+	if ( ImGui::CollapsingHeader( "Color Management" ) ) {
+		ImGui::SeparatorText( "Basic" );
+		ImGui::SliderFloat( "Exposure", &tonemap.postExposure, 0.0f, 5.0f );
+		ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
+
+		ImGui::SeparatorText( "Adjustments" );
+		ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
+		ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
+		ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
+
+		ImGui::SeparatorText( "Tonemap" );
+		const char* tonemapModesList[] = {
+			"None (Linear)",
+			"ACES (Narkowicz 2015)",
+			"Unreal Engine 3",
+			"Unreal Engine 4",
+			"Uncharted 2",
+			"Gran Turismo",
+			"Modified Gran Turismo",
+			"Rienhard",
+			"Modified Rienhard",
+			"jt",
+			"robobo1221s",
+			"robo",
+			"reinhardRobo",
+			"jodieRobo",
+			"jodieRobo2",
+			"jodieReinhard",
+			"jodieReinhard2"
+		};
+		ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
+		ImGui::Text( " " );
+	}
+	if ( ImGui::CollapsingHeader( "Vignette" ) ) {
+		ImGui::Checkbox( "Enable Vignette", &tonemap.enableVignette );
+		if ( tonemap.enableVignette ) {
+			ImGui::SliderFloat( "Vignette Power", &tonemap.vignettePower, 0.0f, 2.0f );
+		}
+		ImGui::Text( " " );
+	}
+	if ( ImGui::CollapsingHeader( "Bloom" ) ) {
+		ImGui::Text( "todo" );
+		ImGui::Text( " " );
+	}
+	if ( ImGui::CollapsingHeader( "Lens Distort" ) ) {
+		ImGui::Text( "todo" );
+		ImGui::Text( " " );
+	}
+	if ( ImGui::CollapsingHeader( "Dithering" ) ) {
+		ImGui::Text( "todo" );
+		ImGui::Text( " " );
+	}
+
+	if ( ImGui::Button( "Reset to Defaults" ) ) {
+		TonemapDefaults(); // revisit how this works
+	}
+
 }
 
 void engineBase::ImguiFrameStart () {

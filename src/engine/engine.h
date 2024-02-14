@@ -25,6 +25,7 @@ protected:
 	colorGradeParameters tonemap;
 	void TonemapControlsWindow();
 	void SendTonemappingParameters();
+	void PostProcessImguiMenu();
 
 //====== Initialization =======================================================
 	void StartBlock( string sectionName );
