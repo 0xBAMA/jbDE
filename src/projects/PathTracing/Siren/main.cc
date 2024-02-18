@@ -77,7 +77,8 @@ struct sirenConfig_t {
 	float raymarchMaxDistance;
 	float raymarchEpsilon;
 	float raymarchUnderstep;
-	bool skipRaymarch = false;
+	// bool skipRaymarch = false;
+	bool skipRaymarch = true;
 	bool skipGreeble = false;
 
 	vec4 backgroundColor = vec4( vec3( 0.01618f ), 1.0f );	// background color for the image view
