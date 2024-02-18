@@ -1319,7 +1319,7 @@ public:
 
 		// create the voxel model inside the flat image
 			// update the data
-		const uint32_t numOps = 400;
+		const uint32_t numOps = 0;
 		rngi opPick = rngi( 0, 34 );
 		rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 4, 20 );
 		rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 4, 12 );
@@ -1374,10 +1374,11 @@ public:
 			// }
 
 			// frame test
-			const ivec3 numBeams = ivec3( 1, 2, 4 );
-			const bool xValid = ( x % ( texW / numBeams.x ) < 10 );
-			const bool yValid = ( y % ( texH / numBeams.y ) < 10 );
-			const bool zValid = ( z % ( texD / numBeams.z ) < 45 );
+			const ivec3 numBeams = ivec3( 2, 2, 4 );
+			const ivec3 beamWidths = ivec3( 12, 16, 46 );
+			const bool xValid = ( x % ( ( texW - beamWidths.x / 2 ) / numBeams.x ) < beamWidths.x );
+			const bool yValid = ( y % ( ( texH - beamWidths.y / 2 ) / numBeams.y ) < beamWidths.y );
+			const bool zValid = ( z % ( ( texD - beamWidths.z / 2 ) / numBeams.z ) < beamWidths.z );
 			if ( ( xValid && yValid ) || ( yValid && zValid ) || ( xValid && zValid ) ) {
 				// vec3 c = palette::paletteRef( 0.5f );
 				// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
@@ -1408,7 +1409,7 @@ public:
 		// int index2 = 0;
 		for ( uint32_t x = 0; x < texW; x++ ) {
 			for ( uint32_t y = 0; y < texH; y++ ) {
-				float heightmapRead = fnFractal->GenSingle3D( x / 40.0f, y / 40.0f, 10.0f, noiseSeed );
+				float heightmapRead = fnFractal->GenSingle3D( x / 120.0f, y / 120.0f, 10.0f, noiseSeed ) * 0.5f + 0.45f;
 				for ( uint32_t z = 0; z < texD; z++ ) {
 					// noise test
 					int i = index++;
@@ -1416,7 +1417,7 @@ public:
 					float noiseValue2 = noiseOutput2[ i ];
 					// if ( noiseValue < -0.4f ) {
 					// if ( ( z / texD ) < heightmapRead ) {
-					if ( float( z ) / float( texD ) < heightmapRead ) {
+					if ( float( z ) / float( texD ) < heightmapRead && noiseValue < -0.3f ) {
 						// vec3 c = palette::paletteRef( abs( noiseValue2 ) ) * 255.0f;
 						vec3 c = palette::paletteRef( abs( heightmapRead ) ) * 255.0f;
 						col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
