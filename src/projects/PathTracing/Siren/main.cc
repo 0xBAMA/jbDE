@@ -126,7 +126,7 @@ public:
 			// remove the 16-bit accumulator, because we're going to want a 32-bit version for this
 			textureManager.Remove( "Accumulator" );
 
-			// remove the default display texture, since we need one padded by a pixel on each edge
+			// remove the default display texture, since we need one sized for the accumulators
 			textureManager.Remove( "Display Texture" );
 
 			// create the new accumulator(s)
@@ -144,6 +144,8 @@ public:
 
 			// and for the display texture, LDR
 			opts.dataType		= GL_RGBA8;
+			opts.magFilter		= GL_NEAREST;
+			opts.minFilter		= GL_LINEAR_MIPMAP_LINEAR;
 			textureManager.Add( "Display Texture", opts );
 
 			// and the cache texture, for the 2:1 rectilinear mapping of the sky color
@@ -308,6 +310,9 @@ public:
 		{
 			static bool MouseHoveringOverImage = true;
 			const int heightBottomSection = 400;
+
+			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Display Texture" ) );
+			glGenerateMipmap( GL_TEXTURE_2D );
 
 			// setting fullscreen window
 			ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
@@ -885,8 +890,8 @@ public:
 		textureManager.Add( "Color Accumulator", opts );
 
 		opts.dataType		= GL_RGBA8;
-		opts.width			= sirenConfig.targetWidth;
-		opts.height			= sirenConfig.targetHeight;
+		opts.magFilter		= GL_NEAREST;
+		opts.minFilter		= GL_LINEAR_MIPMAP_LINEAR;
 		textureManager.Add( "Display Texture", opts );
 
 		// rebuild tile list next frame
