@@ -369,8 +369,8 @@ float deTree ( vec3 p ) {
 		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a );
 		p.yx *= rotate2D( 0.7f );
 		p.y -= 3.0f;
-		p *= 1.6f;
-		a *= 1.6f;
+		p *= 1.45f;
+		a *= 1.45f;
 	}
 	return d;
 }
@@ -383,8 +383,8 @@ float deTree2 ( vec3 p ) {
 		d = min( d, max( length( p.zx ) - 0.3f, p.y - 0.4f ) / a );
 		p.yx *= rotate2D( 0.7f );
 		p.y -= 3.0f;
-		p *= 1.6f;
-		a *= 1.6f;
+		p *= 1.45f;
+		a *= 1.45f;
 	}
 	return d;
 }
@@ -874,8 +874,8 @@ float de ( vec3 p ) {
 		const float dLeaves = deTree2( p + vec3( 0.0f, 7.0f, 0.0f ) );
 		sceneDist = min( sceneDist, dLeaves );
 		if ( sceneDist == dLeaves && dLeaves < raymarchEpsilon ) {
+			hitPointSurfaceType = DIFFUSE;
 			const float noiseValue = 0.25f * perlinfbm( vec3( p.xyz ), 0.9f, 6 );
-			hitPointSurfaceType = noiseValue > 0.1f ? EMISSIVE : DIFFUSE;
 			hitPointColor = vec3( 0.06f, 0.13f, 0.02f ) * ( 1.0f - noiseValue );
 		}
 
@@ -883,23 +883,15 @@ float de ( vec3 p ) {
 		sceneDist = min( sceneDist, dTrunk );
 		if ( sceneDist == dTrunk && dTrunk < raymarchEpsilon ) {
 			hitPointSurfaceType = WOOD;
-			// hitPointSurfaceType = LUMARBLECHECKER;
 		}
 
 		const float ballScale = 30.0f;
 		const float dBalls = scene( p * ballScale - vec3( 0.0f, 0.0f, 0.0f ) ) / ballScale;
 		sceneDist = min( sceneDist, dBalls );
 		if ( sceneDist == dBalls && dBalls < raymarchEpsilon ) {
-			// hitPointColor = vec3( 0.1618f, 0.13f, 0.06f );
-			// hitPointColor = vec3( 0.318f, 0.13f, 0.06f );
-			hitPointColor = vec3( 0.6f, 0.4f, 0.1f );
-			// hitPointSurfaceType = NormalizedRandomFloat() < 0.2f ? WOOD : MIRROR;
-			// hitPointSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
-			// hitPointSurfaceType = DIFFUSE;
-			// hitPointSurfaceType = MIRROR;
-			hitPointSurfaceType = METALLIC;
+			hitPointColor = vec3( 0.1618f );
+			hitPointSurfaceType = MIRROR;
 		}
-
 	}
 	return sceneDist;
 }
@@ -1329,11 +1321,11 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 				int onGlyph = fontRef( sampleValue.a, offset );
 				// int onGlyph = fontRef( ( sampleValue.a == 0 ) ? 100 : sampleValue.a, offset );
 
-				// bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
+				bool reject = pxIdx.x < 0 || pxIdx.z < 0 || pxIdx.x >= ( texDims.x * 8 ) || pxIdx.z >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
 				// bool reject = pxIdx.x < 0 || pxIdx.x >= ( texDims.x * 8 ) || ( onGlyph <= 0 );
 				// bool reject = pxIdx.y < 0 || pxIdx.y >= ( texDims.y * 16 ) || ( onGlyph <= 0 );
 				// bool reject = ( onGlyph <= 0 && distance( hitPoint, vec3( 0.0f ) ) < 10.0f );
-				bool reject = ( onGlyph <= 0 );
+				// bool reject = ( onGlyph <= 0 );
 
 				// interesting - this isn't exactly... what I want it to do
 					// need to evaluate planes in order, and know when you're partially through the stack... I think
@@ -1364,14 +1356,17 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 			// result.material = NormalizedRandomFloat() < ( temp.r / 255.0f ) ? DIFFUSE : NOHIT;
 			// result.material = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : EMISSIVE;
 			// result.material = MIRROR;
-			result.material = frontFaceHit_o ? MIRROR : DIFFUSE;
+			// result.material = frontFaceHit_o ? MIRROR : DIFFUSE;
+			// result.material = DIFFUSE;
+			result.material = NormalizedRandomFloat() < 0.1 ? MIRROR : DIFFUSE;
+			// result.material = EMISSIVE;
 		}
 	}
 
 // ==================================================================================================================================
 	const bool boundBox = true;
 	if ( boundBox ) {
-		Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 5.0f, 2.0f, 5.0f ) );
+		Intersection closest = IntersectBox( origin, direction, vec3( 0.0f, 0.0f, 0.0f ), vec3( 16.18f, imageSize( textBuffer ).z * 0.005f + 0.1f, 5.0f ) );
 		// Intersection closest = IntersectSphere( origin, direction, vec3( 0.0f, -2.0f, 0.0f ), 7.0f );
 		vec4 boxHit = ( closest.a.x < 0.0f ) ? ( closest.b.x < 0.0f ) ? vec4( 1000000.0f ): closest.b : closest.a;
 		const bool anyHit = !IsEmpty( closest );
@@ -1394,8 +1389,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 					cos( PI * p.z + PI / 2.0f ) ) == 0 );
 				// result.material = MIRROR;
 				// result.material = blackOrWhite ? REFRACTIVE : REFRACTIVE_FROSTED;
-				// result.material = REFRACTIVE;
-				result.material = REFRACTIVE_FROSTED;
+				result.material = REFRACTIVE;
+				// result.material = REFRACTIVE_FROSTED;
 				result.IoR = 1.0f / 1.4f;
 				// result.IoR = 1.4f;
 			}
