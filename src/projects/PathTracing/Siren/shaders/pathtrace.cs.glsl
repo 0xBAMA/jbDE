@@ -1304,6 +1304,7 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 		uint i = 0;
 		vec3 normal = vec3( 0.0f );
 		bool frontFaceHit_o = false;
+		float closestDistance = 1000.0f;
 		// iterate through the planes
 		for ( ; i < texDims.z; i++ ) {
 			Intersection plane = iPlane( origin, direction, vec4( normalize( vec3( 0.0f, 1.0f, 0.0f ) ), 0.01f * float( i ) - 0.01f * texDims.z / 2.0f ) );
@@ -1338,7 +1339,8 @@ sceneIntersection GetNearestSceneIntersection ( in vec3 origin, in vec3 directio
 					// need to evaluate planes in order, and know when you're partially through the stack... I think
 				// if ( NormalizedRandomFloat() < ( 0.75f - ( sampleValue.a / 255.0f ) ) ) reject = true;
 
-				if ( !reject ) {
+				if ( !reject && planeHit.x < closestDistance ) {
+					closestDistance = planeHit.x;
 					closest = plane;
 					temp = vec4( vec3( sampleValue.xyz ) / 255.0f, min( temp.a, planeHit.x ) );
 					frontFaceHit_o = frontFaceHit;
