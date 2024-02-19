@@ -10,16 +10,14 @@ void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	// some xor shit
-	uint x = uint( writeLoc.x ) % 256;
-	uint y = uint( writeLoc.y ) % 256;
-	uint xor = ( x ^ y );
-
-	// get some blue noise going, for additional shits
-	vec3 col = ( xor < 128 ) ?
-		( imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).xyz / 255.0f ) :
-		vec3( xor / 255.0f );
+	vec3 accum = vec3( 0.0f );
+	if ( writeLoc.x % 10 == 0 || writeLoc.y % 10 == 0 ) {
+		accum += vec3( 0.1f );
+	}
+	if ( writeLoc.x % 100 == 0 || writeLoc.y % 100 == 0 ) {
+		accum.r += 0.1f;
+	}
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( vec3( accum ), 1.0f ) );
 }

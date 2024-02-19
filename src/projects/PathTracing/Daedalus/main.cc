@@ -1,9 +1,12 @@
 #include "../../../engine/engine.h"
+#include "daedalusConfig.h"
 
-class engineDemo : public engineBase {	// example derived class
+class Daedalus : public engineBase {	// example derived class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	Daedalus () { Init(); OnInit(); PostInit(); }
+	~Daedalus () { Quit(); }
+
+	daedalusConfig_t daedalusConfig;
 
 	void OnInit () {
 		ZoneScoped;
@@ -32,6 +35,17 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+	}
+
+	void ShowDaedalusConfigWindow() {
+		ImGui::Begin( "Viewer Window 2 ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoScrollWithMouse );
+		// perf stuff
+		// tabs
+			// rendering
+			// scene
+			// postprocess
+			// ...
+		ImGui::End();
 	}
 
 	void ImguiPass () {
@@ -78,12 +92,6 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
@@ -138,7 +146,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	Daedalus engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
