@@ -36,8 +36,9 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
+
+		if ( daedalusConfig.showConfigWindow == true ) {
+			ShowDaedalusConfigWindow();
 		}
 
 		if ( showProfiler ) {
