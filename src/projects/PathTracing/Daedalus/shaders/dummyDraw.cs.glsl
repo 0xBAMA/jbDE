@@ -7,35 +7,35 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 uniform float scale;
 uniform vec2 offset;
 
-void AddGridlines( inout vec3 colorResult, in vec3 lineColor, in vec2 gridSizing, in vec2 pixelPosition ) {
-	// vec2 result = step( fract( pixelPosition / gridSizing ) * gridSizing, vec2( 1.0f ) );
-	vec2 result = smoothstep( vec2( 1.0f ), vec2( 0.0f ), fract( pixelPosition / gridSizing ) * gridSizing );
-	if ( max( result.x, result.y ) > 0.0f ) {
-		colorResult += lineColor;
-	}
+// https://www.shadertoy.com/view/wdK3Dy
+float Grid( vec2 fragCoord, float space, float gridWidth ) {
+	vec2 p  = fragCoord - vec2( 0.5f );
+	vec2 size = vec2( gridWidth );
+	vec2 a1 = mod( p - size, space );
+	vec2 a2 = mod( p + size, space );
+	vec2 a = a2 - a1;
+	float g = min( a.x, a.y );
+	return clamp( g, 0.0f, 1.0f );
 }
 
-vec3 GridBGSample( in vec2 position ) {
-	vec3 accum = vec3( 0.0f );
-	AddGridlines( accum, vec3( 0.1618f ), vec2( 16.0f ), position );
-	AddGridlines( accum, vec3( 0.1618f, 0.0f, 0.0f ), vec2( 80.0f ), position );
-	return accum;
-}
+// todo: try bgolus's thing
+// https://www.shadertoy.com/view/mdVfWw
 
 void main () {
 	// pixel location
 	// ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy ) + offset;
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	// drawing gridlines - I want to do something with this https://www.shadertoy.com/view/MdlGRr - will make it simple to do scaled grids
 	vec3 accum = vec3( 0.0f );
-	// if ( writeLoc.x % 10 == 0  || writeLoc.y % 10 == 0 )	accum += vec3( 0.1f );
-	// if ( writeLoc.x % 100 == 0 || writeLoc.y % 100 == 0 )	accum.r += 0.1f;
-
 	const float num = 4;
 	for ( float x = 0; x < num; x++ ) {
 		for ( float y = 0; y < num; y++ ) {
-			accum += GridBGSample( ( vec2( writeLoc ) + vec2( x, y ) / 2.0f + vec2( 0.25f ) ) * scale ) / ( num * num );
+			vec2 location = scale * ( vec2( writeLoc ) + vec2( x, y ) / num );
+			vec3 temp = vec3( 0.5f );
+			temp *=
+				Grid( location, 10.0f, 0.5f ) *
+				Grid( location, 50.0f, 1.0f );
+			accum += temp / ( num * num );
 		}
 	}
 

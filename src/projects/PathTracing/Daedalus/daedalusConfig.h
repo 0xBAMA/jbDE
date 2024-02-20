@@ -7,4 +7,8 @@ struct daedalusConfig_t {
 	uint32_t targetWidth = 640;
 	uint32_t targetHeight = 360;
 
+	// grid zoom
+	float outputZoom = 1.0f;
+	ivec2 outputOffset = ivec2( 0 );
+
 };

@@ -50,6 +50,8 @@ public:
 
 			// offset.x -= currentMouseDrag.x * base * ( 1.0f / adj ) * ( 1.0f / imageScalar );
 			// offset.y += currentMouseDrag.y * base * ( 1.0f / imageScalar );
+
+			cout << "mouse drag.. " << currentMouseDrag.x << " " << currentMouseDrag.y << endl;
 		}
 
 		SDL_Event event;
@@ -68,6 +70,7 @@ public:
 				float wheel_x = -event.wheel.preciseX;
 				float wheel_y = event.wheel.preciseY;
 				daedalusConfig.outputZoom -= wheel_y * 0.08f;
+				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.01f, 100.0f );
 			}
 		}
 
@@ -116,7 +119,6 @@ public:
 			bindSets[ "Drawing" ].apply();
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
-			cout << daedalusConfig.outputZoom << endl;
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
 			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
