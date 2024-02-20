@@ -9,6 +9,6 @@ struct daedalusConfig_t {
 
 	// grid zoom
 	float outputZoom = 1.0f;
-	ivec2 outputOffset = ivec2( 0 );
+	vec2 outputOffset = vec2( 0.0f );
 
 };

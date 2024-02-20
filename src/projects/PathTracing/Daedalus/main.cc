@@ -40,18 +40,13 @@ public:
 
 		int mouseX, mouseY;
 		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
-		if ( mouseState != 0 ) {
+		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
 			vec2 fractionalPosition = vec2( float( mouseX ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouseY ) / float( daedalusConfig.targetHeight ) ) );
 			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 			ImGui::ResetMouseDragDelta();
-
-			// const float adj = ( float ) daedalusConfig.targetWidth / ( float ) daedalusConfig.targetHeight;
-			// const float base = 1.0f / daedalusConfig.targetWidth;
-
-			// offset.x -= currentMouseDrag.x * base * ( 1.0f / adj ) * ( 1.0f / imageScalar );
-			// offset.y += currentMouseDrag.y * base * ( 1.0f / imageScalar );
-
-			cout << "mouse drag.. " << currentMouseDrag.x << " " << currentMouseDrag.y << endl;
+			const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
+			daedalusConfig.outputOffset.x -= currentMouseDrag.x * aspectRatio * daedalusConfig.outputZoom;
+			daedalusConfig.outputOffset.y -= currentMouseDrag.y * daedalusConfig.outputZoom;
 		}
 
 		SDL_Event event;
@@ -69,8 +64,14 @@ public:
 			if ( event.type == SDL_MOUSEWHEEL ) {
 				float wheel_x = -event.wheel.preciseX;
 				float wheel_y = event.wheel.preciseY;
-				daedalusConfig.outputZoom -= wheel_y * 0.08f;
-				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.01f, 100.0f );
+
+				daedalusConfig.outputOffset /= daedalusConfig.outputZoom;
+
+				daedalusConfig.outputZoom -= wheel_y * 0.01f;
+				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.005f, 5.0f );
+
+				daedalusConfig.outputOffset *= daedalusConfig.outputZoom;
+				cout << daedalusConfig.outputZoom << endl;
 			}
 		}
 
@@ -120,6 +121,7 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
+			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
 			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -166,7 +168,6 @@ public:
 		ZoneScoped;
 
 		// event handling
-		// HandleTridentEvents();
 		HandleCustomEvents();
 
 		// derived-class-specific functionality
