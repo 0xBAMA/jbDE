@@ -49,6 +49,25 @@ public:
 			// offset.y += currentMouseDrag.y * base * ( 1.0f / imageScalar );
 		}
 
+		SDL_Event event;
+		SDL_PumpEvents();
+		while ( SDL_PollEvent( &event ) ) {
+			ImGui_ImplSDL2_ProcessEvent( &event ); // imgui event handling
+			pQuit = config.oneShot || // swap out the multiple if statements for a big chained boolean setting the value of pQuit
+				( event.type == SDL_QUIT ) ||
+				( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( window.window ) ) ||
+				( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
+			if ( ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE ) || ( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_X1 ) ) {
+				quitConfirm = !quitConfirm; // this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
+			}
+
+			if ( event.type == SDL_MOUSEWHEEL ) {
+				float wheel_x = -event.wheel.preciseX;
+				float wheel_y = event.wheel.preciseY;
+				daedalusConfig.outputZoom -= wheel_y * 0.08f;
+			}
+		}
+
 	}
 
 	void ShowDaedalusConfigWindow() {
@@ -89,11 +108,14 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // dummy draw - draw something into accumulatorTexture
+		{
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+			cout << daedalusConfig.outputZoom << endl;
+			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
+			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -145,9 +167,8 @@ public:
 		ZoneScoped;
 
 		// event handling
-		HandleTridentEvents();
+		// HandleTridentEvents();
 		HandleCustomEvents();
-		HandleQuitEvents();
 
 		// derived-class-specific functionality
 		OnUpdate();
