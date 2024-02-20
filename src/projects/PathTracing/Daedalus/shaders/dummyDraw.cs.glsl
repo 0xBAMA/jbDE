@@ -32,7 +32,12 @@ void main () {
 	// if ( writeLoc.x % 10 == 0  || writeLoc.y % 10 == 0 )	accum += vec3( 0.1f );
 	// if ( writeLoc.x % 100 == 0 || writeLoc.y % 100 == 0 )	accum.r += 0.1f;
 
-	accum = GridBGSample( vec2( writeLoc ) );
+	const float num = 4;
+	for ( float x = 0; x < num; x++ ) {
+		for ( float y = 0; y < num; y++ ) {
+			accum += GridBGSample( ( vec2( writeLoc ) + vec2( x, y ) / 2.0f + vec2( 0.25f ) ) * scale ) / ( num * num );
+		}
+	}
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( vec3( accum ), 1.0f ) );
