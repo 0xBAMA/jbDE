@@ -14,7 +14,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
 		}
 
@@ -34,6 +34,9 @@ public:
 		// const bool control	= ( k & KMOD_CTRL );
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
+
+		// float scrollAmount = ImGui::GetIO().MouseWheel;
+		// daedalusConfig.outputZoom -= scrollAmount * 0.08f;
 
 		int mouseX, mouseY;
 		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
@@ -134,12 +137,6 @@ public:
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
-
-		{ // show trident with current orientation
-			// scopedTimer Start( "Trident" );
-			// trident.Update( textureManager.Get( "Display Texture" ) );
-			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
 
