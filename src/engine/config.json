@@ -1,8 +1,8 @@
 {
 	"app": {
 		"CellularAutomata": {
-			"dimensionX": 100,
-			"dimensionY": 100,
+			"dimensionX": 1000,
+			"dimensionY": 1000,
 			"generatorThreshold": 0.2,
 			"numBitsActive": 32
 		},
@@ -205,8 +205,8 @@
 		"numMsDelayAfterCallback": 30,
 		"oneShot": false,
 		"reportPlatformInfo": true,
-		"screenHeight": 1080,
-		"screenWidth": 1920,
+		"screenHeight": 1440,
+		"screenWidth": 2560,
 		"showImGUIDemoWindow": false,
 		"showProfiler": false,
 		"startOnScreen": 1,
