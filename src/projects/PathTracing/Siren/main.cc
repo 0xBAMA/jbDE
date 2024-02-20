@@ -714,9 +714,9 @@ public:
 
 		{	// dispatch the shader to update the sky, if needed
 			scopedTimer Start( "Sky Update" );
-			// static float skyTime_cache = 0.0f; // reenble latch once done debugging
-			// if ( skyTime_cache != sirenConfig.skyTime ) {
-				// skyTime_cache = sirenConfig.skyTime;
+			static float skyTime_cache = 0.0f; // reenble latch once done debugging
+			if ( skyTime_cache != sirenConfig.skyTime ) {
+				skyTime_cache = sirenConfig.skyTime;
 				const GLuint shader = shaders[ "Sky Cache" ];
 				glUseProgram( shader );
 
@@ -726,7 +726,7 @@ public:
 
 				// dispatch
 				glDispatchCompute( ( sirenConfig.skyDims.x + 15 ) / 16, ( sirenConfig.skyDims.y + 15 ) / 16, 1 );
-			// }
+			}
 		}
 
 		{
