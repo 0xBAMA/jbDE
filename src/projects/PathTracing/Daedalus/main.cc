@@ -35,6 +35,20 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+		int mouseX, mouseY;
+		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+		if ( mouseState != 0 ) {
+			vec2 fractionalPosition = vec2( float( mouseX ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouseY ) / float( daedalusConfig.targetHeight ) ) );
+			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
+			ImGui::ResetMouseDragDelta();
+
+			// const float adj = ( float ) daedalusConfig.targetWidth / ( float ) daedalusConfig.targetHeight;
+			// const float base = 1.0f / daedalusConfig.targetWidth;
+
+			// offset.x -= currentMouseDrag.x * base * ( 1.0f / adj ) * ( 1.0f / imageScalar );
+			// offset.y += currentMouseDrag.y * base * ( 1.0f / imageScalar );
+		}
+
 	}
 
 	void ShowDaedalusConfigWindow() {

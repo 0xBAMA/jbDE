@@ -24,6 +24,7 @@ struct animation_t {
 
 // program parameters and state
 struct sirenConfig_t {
+
 	// performance settings / monitoring
 	uint32_t performanceHistorySamples;
 	std::deque< float > timeHistory;	// ms per frame
