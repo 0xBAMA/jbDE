@@ -4,6 +4,8 @@ layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
+uniform sampler2D preppedImage;
+
 uniform float scale;
 uniform vec2 offset;
 
@@ -46,7 +48,7 @@ void main () {
 	vec2 pixelLocation = vec2( writeLoc ) * scale + offset;
 	vec2 pixelLocation_neighbor = vec2( writeLoc + ivec2( 1, 0 ) ) * scale + offset;
 	vec3 ditherValue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).rgb * 0.0005f;
-	bool zoomedIn = ( scale < 0.4f );
+	bool zoomedIn = ( scale < 0.25f );
 
 	vec2 deriv = vec2( 0.0f, abs( pixelLocation.x - pixelLocation_neighbor.x ) );
 	vec3 result = vec3( zoomedIn ? BGolusPristineGrid( pixelLocation, deriv.yx, deriv.xy, vec2( 0.1f ) ) * 0.4f: 0.1f );
@@ -55,17 +57,27 @@ void main () {
 
 		// I would also like the grid lines to get dimmer, for high zoom levels - not fully disappear, but certainly subtler
 
-	if ( abs( pixelLocation.x ) < 640 && abs( pixelLocation.y ) < 480 ) {
-		result += vec3( 1.0f, 0.0f, 0.0f );
+	// ivec2 preppedSize = ivec2( 640, 480 );
+	// ivec2 preppedSize = imgSize;
+	ivec2 preppedSize = textureSize( preppedImage, 0 ).xy;
+	if ( pixelLocation.x < preppedSize.x && pixelLocation.y < preppedSize.y && pixelLocation.x >= 0 && pixelLocation.y >= 0 ) {
+
+		ivec2 myPixelLocation = ivec2( pixelLocation );
+		vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
+
+		result = clamp( myPixelColor - result, vec3( 0.0f ), vec3( 1.0f ) );
 		if ( !zoomedIn ) {
-			result = vec3( 1.0f, 0.0f, 0.0f );
+			result = myPixelColor; // this may need to change to a fullscreen triangle so that mipmapped filtering Just Works tm
+				// ( or else do the texture calls with explicit gradients, figure that out )
 		}
 	} else {
 		vec2 values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation ) );
 		result += vec3( values.x + values.y ) * 0.0618f;
+		
+		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
+		result += vec3( values.x + values.y ) * 0.0618f;
 		result -= ditherValue;
 	}
 
-	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( result, 1.0f ) );
 }

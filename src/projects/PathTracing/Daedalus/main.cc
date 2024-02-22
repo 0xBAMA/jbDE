@@ -77,13 +77,27 @@ public:
 			}
 
 			if ( event.type == SDL_MOUSEWHEEL ) {
-				float wheel_x = -event.wheel.preciseX;
-				float wheel_y = event.wheel.preciseY;
+				// float wheel_x = -event.wheel.preciseX;
+				const float wheel_y = event.wheel.preciseY;
 
-				daedalusConfig.outputOffset /= daedalusConfig.outputZoom;
-				daedalusConfig.outputZoom -= wheel_y * 0.01f;
+				const float previousZoom = daedalusConfig.outputZoom;
+				const vec2 previousOffset = daedalusConfig.outputOffset;
+				const vec2 targetHalf = vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) / 2.0f;
+
+				daedalusConfig.outputZoom -= wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f );
 				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.005f, 5.0f );
-				daedalusConfig.outputOffset *= daedalusConfig.outputZoom;
+
+				// this is fuckin broken as shit
+
+				vec2 previousCenter = ( previousOffset + targetHalf ) * previousZoom;
+				daedalusConfig.outputOffset = previousCenter / daedalusConfig.outputZoom - targetHalf / daedalusConfig.outputZoom;
+
+				// daedalusConfig.outputOffset -= ( previousOffset + targetHalf ) * previousZoom;
+				// daedalusConfig.outputOffset += (  )
+
+				// vec2 previousCenterPoint = targetHalf * daedalusConfig.outputZoom + previousOffset * daedalusConfig.outputZoom;
+				// previousCenterPoint = previousCenterPoint / previousZoom;
+				// daedalusConfig.outputOffset = previousCenterPoint - targetHalf * previousZoom;
 			}
 		}
 

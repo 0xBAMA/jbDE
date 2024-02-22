@@ -14,7 +14,7 @@ struct daedalusConfig_t {
 		// intialize the main view
 		showConfigWindow = true;
 		outputZoom = 1.0f;
-		outputOffset = -2.0f * vec2( targetWidth, targetHeight );
+		outputOffset = vec2( 0.0f );
 
 		// load a config file and shit?
 			// tbd, that could be a nice way to handle this
@@ -29,7 +29,7 @@ struct daedalusConfig_t {
 	// tabbed interface for configuring scene/rendering parameters
 	bool showConfigWindow;
 
-	// grid zoom
+	// main display, grid pan + zoom
 	float outputZoom;
 	vec2 outputOffset;
 

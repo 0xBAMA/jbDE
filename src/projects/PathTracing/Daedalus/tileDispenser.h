@@ -14,6 +14,7 @@ public:
 	uint32_t tileListOffset;
 	uint32_t tileListPasses;
 
+	tileDispenser() {} // default, unused
 	tileDispenser( uint32_t t, uint32_t w, uint32_t h ) :
 		tileSize( t ), imageWidth( w ), imageHeight( h ) {
 		RegenerateTileList();
@@ -40,6 +41,11 @@ public:
 		imageWidth = w;
 		imageHeight = h;
 		RegenerateTileList();
+	}
+
+	// how many tiles in the list
+	uint32_t Count() {
+		return tiles.size();
 	}
 
 	// get a tile from the list
