@@ -93,13 +93,24 @@ public:
 				daedalusConfig.outputZoom -= wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f );
 				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.005f, 5.0f );
 
-				// this is fuckin broken as shit
+				// cout << mouseX << " " << mouseY << endl;
 
-				vec2 previousCenter = ( previousOffset + targetHalf ) * previousZoom;
-				daedalusConfig.outputOffset = previousCenter / daedalusConfig.outputZoom - targetHalf / daedalusConfig.outputZoom;
+				const vec2 previousPixelLocation = ( previousOffset + vec2( mouseX, mouseY ) ) * previousZoom;
+				daedalusConfig.outputOffset = ( previousPixelLocation - vec2( mouseX, mouseY ) * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
+
+
+
+				// vec2 previousCenter = ( previousOffset + targetHalf ) * previousZoom;
+				// daedalusConfig.outputOffset = previousCenter / daedalusConfig.outputZoom - targetHalf / daedalusConfig.outputZoom;
+
+
+
 
 				// daedalusConfig.outputOffset -= ( previousOffset + targetHalf ) * previousZoom;
 				// daedalusConfig.outputOffset += (  )
+
+
+
 
 				// vec2 previousCenterPoint = targetHalf * daedalusConfig.outputZoom + previousOffset * daedalusConfig.outputZoom;
 				// previousCenterPoint = previousCenterPoint / previousZoom;
@@ -213,23 +224,24 @@ public:
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 
-			static int offset = 0;
-			offset++;
+		// goofy bullshit test
+			// static int offset = 0;
+			// offset++;
 
-			for ( int i = 1; i < 45; i++ ) {
-				stringstream ss;
-				int sinTerm = ( int ) ( 9.0f * std::sin( i * 0.3f + offset * 0.08f ) ) + 9;
-				float sinTerm2 = 0.5f * std::sin( i * 0.7f + offset * 0.1f ) + 0.6f;
-				for ( int j = 0; j < sinTerm; j++ ) {
-					ss << " ";
-				}
-				ss << "Daedalus";
-				for ( int j = 0; j < 18 - sinTerm; j++ ) {
-					ss << " ";
-				}
-				// textRenderer.DrawBlackBackedColorString( i, ss.str(), vec3( 1.0f, 0.5f, 0.1f ) );
-				textRenderer.DrawNoBGColorString( i, ss.str(), palette::paletteRef( sinTerm2 ) );
-			}
+			// for ( int i = 1; i < 45; i++ ) {
+			// 	stringstream ss;
+			// 	int sinTerm = ( int ) ( 9.0f * std::sin( i * 0.3f + offset * 0.08f ) ) + 9;
+			// 	float sinTerm2 = 0.5f * std::sin( i * 0.7f + offset * 0.1f ) + 0.6f;
+			// 	for ( int j = 0; j < sinTerm; j++ ) {
+			// 		ss << " ";
+			// 	}
+			// 	ss << "Daedalus";
+			// 	for ( int j = 0; j < 18 - sinTerm; j++ ) {
+			// 		ss << " ";
+			// 	}
+			// 	// textRenderer.DrawBlackBackedColorString( i, ss.str(), vec3( 1.0f, 0.5f, 0.1f ) );
+			// 	textRenderer.DrawNoBGColorString( i, ss.str(), palette::paletteRef( sinTerm2 ) );
+			// }
 
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
