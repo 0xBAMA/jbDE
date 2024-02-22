@@ -148,6 +148,10 @@ public:
 			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Tonemapped" ), ImVec2( availableWidth, proportionalHeight ) );
 		}
 
+		if ( ImGui::CollapsingHeader( "Postprocess" ) ) {
+			PostProcessImguiMenu();
+		}
+
 		ImGui::End();
 	}
 
