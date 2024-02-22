@@ -124,6 +124,10 @@ public:
 		ImGui::Text( "  Accumulator Size: %d x %d", daedalusConfig.targetWidth, daedalusConfig.targetHeight );
 		ImGui::Text( "  Tile Dispenser: %d tiles, %d x %d", daedalusConfig.tiles.Count(), daedalusConfig.tiles.tileSize, daedalusConfig.tiles.tileSize );
 		ImGui::Text( "  Output: %f zoom, [%f, %f] offset", daedalusConfig.outputZoom, daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
+		ImGui::SameLine();
+		if ( ImGui::Button( "Set Zero" ) ) {
+			daedalusConfig.outputOffset = ivec2( 0 );
+		}
 
 		if ( ImGui::CollapsingHeader( "Images" ) ) {
 
