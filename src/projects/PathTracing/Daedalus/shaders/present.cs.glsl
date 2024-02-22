@@ -61,8 +61,10 @@ void main () {
 	if ( pixelLocation.x < preppedSize.x && pixelLocation.y < preppedSize.y && pixelLocation.x >= 0 && pixelLocation.y >= 0 ) {
 
 		ivec2 myPixelLocation = ivec2( pixelLocation );
-		vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
+		myPixelLocation.y = preppedSize.y - myPixelLocation.y; 
+		// vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
 		// vec3 myPixelColor = imageLoad( blueNoiseTexture, myPixelLocation ).rgb / 255.0f;
+		vec3 myPixelColor = texture( preppedImage, myPixelLocation / vec2( preppedSize ) ).rgb;
 
 		result = clamp( myPixelColor - result, vec3( 0.0f ), vec3( 1.0f ) );
 		if ( !zoomedIn ) {
@@ -70,15 +72,25 @@ void main () {
 				// ( or else do the texture calls with explicit gradients, figure that out )
 		}
 	} else {
+		// markers at the corners, to get top, left, right, bottom outlines
 		vec2 values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation ) );
 		result += vec3( values.x + values.y ) * 0.0618f;
 		
 		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
 		result += vec3( values.x + values.y ) * 0.0618f;
 
-		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.0f ) ) );
+		// cross through center of the image
+		values = smoothstep( vec2( 2.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.0f ) ) );
 		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0618f, 0.0f );
 
+		// golden ratio layout lines
+		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.618f ) ) );
+		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+
+		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 1.618f * preppedSize / 2.618f ) ) );
+		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+
+		// rule of thirds layout lines
 		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 3.0f ) ) );
 		result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
 
