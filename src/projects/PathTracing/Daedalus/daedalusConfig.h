@@ -15,6 +15,7 @@ struct daedalusConfig_t {
 		showConfigWindow = true;
 		outputZoom = 1.0f;
 		outputOffset = vec2( 0.0f );
+		dragBufferAmount = 2000.0f;
 
 		// load a config file and shit?
 			// tbd, that could be a nice way to handle this
@@ -32,5 +33,6 @@ struct daedalusConfig_t {
 	// main display, grid pan + zoom
 	float outputZoom;
 	vec2 outputOffset;
+	float dragBufferAmount;
 
 };

@@ -62,7 +62,7 @@ public:
 		int mouseX, mouseY;
 		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
 		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
-			vec2 fractionalPosition = vec2( float( mouseX ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouseY ) / float( daedalusConfig.targetHeight ) ) );
+			// vec2 fractionalPosition = vec2( float( mouseX ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouseY ) / float( daedalusConfig.targetHeight ) ) );
 			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 			ImGui::ResetMouseDragDelta();
 			const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
@@ -189,8 +189,10 @@ public:
 		{
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			const GLuint shader = shaders[ "Draw" ];
+			const GLuint shader = shaders[ "Present" ];
 			glUseProgram( shader );
+
+			textureManager.BindTexForShader( "Display Texture", "preppedImage", shader, 2 );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
 			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
 			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
@@ -237,6 +239,9 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 		// application-specific update code
+
+		daedalusConfig.outputOffset.x = std::clamp( daedalusConfig.outputOffset.x, -daedalusConfig.dragBufferAmount, daedalusConfig.targetWidth + daedalusConfig.dragBufferAmount );
+		daedalusConfig.outputOffset.y = std::clamp( daedalusConfig.outputOffset.y, -daedalusConfig.dragBufferAmount, daedalusConfig.targetHeight + daedalusConfig.dragBufferAmount );
 	}
 
 	void OnRender () {
