@@ -18,6 +18,8 @@ uniform float vignettePower;
 void main () {
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 
+	// lens distort... makes more sense loading from a texture
+
 	// temporary hack for inverted image
 	vec4 originalValue = postExposure * imageLoad( source, ivec2( loc.x, imageSize( source ).y - loc.y - 1 ) );
 
