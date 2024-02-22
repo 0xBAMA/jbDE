@@ -1,5 +1,10 @@
 #include "tileDispenser.h"
 
+struct rngen {
+	rngi wangSeeder = rngi( 0, 10000000 );
+	rngi blueNoiseOffset = rngi( 0, 512 );
+};
+
 struct daedalusConfig_t {
 
 	daedalusConfig_t() {
@@ -36,4 +41,6 @@ struct daedalusConfig_t {
 	vec2 outputOffset;
 	float dragBufferAmount;
 
+	// class holding the random number generators
+	rngen rng;
 };
