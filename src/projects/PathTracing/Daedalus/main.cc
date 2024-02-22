@@ -66,17 +66,15 @@ public:
 				float wheel_y = event.wheel.preciseY;
 
 				daedalusConfig.outputOffset /= daedalusConfig.outputZoom;
-
 				daedalusConfig.outputZoom -= wheel_y * 0.01f;
 				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.005f, 5.0f );
-
 				daedalusConfig.outputOffset *= daedalusConfig.outputZoom;
-				cout << daedalusConfig.outputZoom << endl;
 			}
 		}
 
 	}
 
+	// move this to a header, I think
 	void ShowDaedalusConfigWindow() {
 		ImGui::Begin( "Viewer Window 2 ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoScrollWithMouse );
 		// perf stuff
