@@ -31,6 +31,8 @@ public:
 			textureManager.Add( "Color Accumulator Scratch", opts );
 			textureManager.Add( "Tonemapped", opts );
 
+			palette::PickRandomPalette( true );
+
 		}
 
 	}
@@ -40,7 +42,11 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
 		// // current state of the whole keyboard
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
+
+		if ( state[ SDL_SCANCODE_S ] ) {
+			palette::PickRandomPalette( true );
+		}
 
 		// // current state of the modifier keys
 		// const SDL_Keymod k	= SDL_GetModState();
@@ -196,6 +202,25 @@ public:
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
+
+			static int offset = 0;
+			offset++;
+
+			for ( int i = 1; i < 45; i++ ) {
+				stringstream ss;
+				int sinTerm = ( int ) ( 9.0f * std::sin( i * 0.3f + offset * 0.08f ) ) + 9;
+				float sinTerm2 = 0.5f * std::sin( i * 0.7f + offset * 0.1f ) + 0.6f;
+				for ( int j = 0; j < sinTerm; j++ ) {
+					ss << " ";
+				}
+				ss << "Daedalus";
+				for ( int j = 0; j < 18 - sinTerm; j++ ) {
+					ss << " ";
+				}
+				// textRenderer.DrawBlackBackedColorString( i, ss.str(), vec3( 1.0f, 0.5f, 0.1f ) );
+				textRenderer.DrawNoBGColorString( i, ss.str(), palette::paletteRef( sinTerm2 ) );
+			}
+
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
