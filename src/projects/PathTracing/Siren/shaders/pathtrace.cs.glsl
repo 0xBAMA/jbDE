@@ -187,6 +187,9 @@ struct ray {
 ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
+	// compound eye hex vision
+	// https://www.shadertoy.com/view/4lfcR7
+
 	ray r;
 	r.origin	= vec3( 0.0f );
 	r.direction	= vec3( 0.0f );
