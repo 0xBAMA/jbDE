@@ -59,10 +59,10 @@ public:
 		// float scrollAmount = ImGui::GetIO().MouseWheel;
 		// daedalusConfig.outputZoom -= scrollAmount * 0.08f;
 
-		int mouseX, mouseY;
-		uint32_t mouseState = SDL_GetMouseState( &mouseX, &mouseY );
+		ivec2 mouse;
+		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
 		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
-			// vec2 fractionalPosition = vec2( float( mouseX ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouseY ) / float( daedalusConfig.targetHeight ) ) );
+			// vec2 fractionalPosition = vec2( float( mouse.x ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouse.y ) / float( daedalusConfig.targetHeight ) ) );
 			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 			ImGui::ResetMouseDragDelta();
 			const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
@@ -90,31 +90,13 @@ public:
 				const vec2 previousOffset = daedalusConfig.outputOffset;
 				const vec2 targetHalf = vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) / 2.0f;
 
+				// would also be nice if this could have a little bit of smoothness added to it, inertia, whatever
 				daedalusConfig.outputZoom -= wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f );
 				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.005f, 5.0f );
 
-				// cout << mouseX << " " << mouseY << endl;
-
-				const vec2 previousPixelLocation = ( previousOffset + vec2( mouseX, mouseY ) ) * previousZoom;
-				daedalusConfig.outputOffset = ( previousPixelLocation - vec2( mouseX, mouseY ) * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
-
-
-
-				// vec2 previousCenter = ( previousOffset + targetHalf ) * previousZoom;
-				// daedalusConfig.outputOffset = previousCenter / daedalusConfig.outputZoom - targetHalf / daedalusConfig.outputZoom;
-
-
-
-
-				// daedalusConfig.outputOffset -= ( previousOffset + targetHalf ) * previousZoom;
-				// daedalusConfig.outputOffset += (  )
-
-
-
-
-				// vec2 previousCenterPoint = targetHalf * daedalusConfig.outputZoom + previousOffset * daedalusConfig.outputZoom;
-				// previousCenterPoint = previousCenterPoint / previousZoom;
-				// daedalusConfig.outputOffset = previousCenterPoint - targetHalf * previousZoom;
+				// closer, but still not correct
+				const vec2 previousPixelLocation = ( previousOffset + vec2( mouse ) ) * previousZoom;
+				daedalusConfig.outputOffset = ( previousPixelLocation - vec2( mouse ) * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
 			}
 		}
 
@@ -189,11 +171,6 @@ public:
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
-	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit
-	}
-
 	void ComputePasses () {
 		ZoneScoped;
 
@@ -203,7 +180,8 @@ public:
 			const GLuint shader = shaders[ "Present" ];
 			glUseProgram( shader );
 
-			textureManager.BindTexForShader( "Display Texture", "preppedImage", shader, 2 );
+			// textureManager.BindTexForShader( "Display Texture", "preppedImage", shader, 2 );
+			textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 2 );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
 			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
 			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );

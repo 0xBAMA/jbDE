@@ -27,6 +27,7 @@ struct daedalusConfig_t {
 	uint32_t tileSize;
 	tileDispenser tiles;
 
+// move this to a view manager class
 	// tabbed interface for configuring scene/rendering parameters
 	bool showConfigWindow;
 
