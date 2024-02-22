@@ -6,13 +6,18 @@
 
 class tileDispenser {
 public:
+	// environment
 	uint32_t tileSize;
 	uint32_t imageWidth;
 	uint32_t imageHeight;
 
+	// tiles themselves
 	std::vector< ivec2 > tiles;
 	uint32_t tileListOffset;
 	uint32_t tileListPasses;
+
+	// time since the last reset
+	std::chrono::time_point< std::chrono::steady_clock > tLastReset;
 
 	tileDispenser() {} // default, unused
 	tileDispenser( uint32_t t, uint32_t w, uint32_t h ) :
@@ -33,6 +38,7 @@ public:
 		// shuffle the generated array
 		std::random_device rd; std::mt19937 rngen( rd() );
 		std::shuffle( tiles.begin(), tiles.end(), rngen );
+		tLastReset = std::chrono::steady_clock::now();
 	}
 
 	// reset state
@@ -46,6 +52,11 @@ public:
 	// how many tiles in the list
 	uint32_t Count() {
 		return tiles.size();
+	}
+
+	// how long has this been running since the last time we reset the thing
+	float secondsSinceLastReset() {
+		return std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - tLastReset ).count() / 1000.0f;
 	}
 
 	// get a tile from the list
