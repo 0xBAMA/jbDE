@@ -15,6 +15,8 @@ public:
 	std::vector< ivec2 > tiles;
 	uint32_t tileListOffset;
 	uint32_t tileListPasses;
+	uint32_t tilesBetweenQueries;
+	float tileTimeLimitMS;
 
 	// time since the last reset
 	std::chrono::time_point< std::chrono::steady_clock > tLastReset;
@@ -22,6 +24,8 @@ public:
 	tileDispenser() {} // default, unused
 	tileDispenser( uint32_t t, uint32_t w, uint32_t h ) :
 		tileSize( t ), imageWidth( w ), imageHeight( h ) {
+		tilesBetweenQueries = 3;
+		tileTimeLimitMS = 16.666f;
 		RegenerateTileList();
 	}
 
@@ -52,6 +56,11 @@ public:
 	// how many tiles in the list
 	uint32_t Count() {
 		return tiles.size();
+	}
+
+	// how many samples have run
+	uint32_t SampleCount() {
+		return tileListPasses;
 	}
 
 	// how long has this been running since the last time we reset the thing
