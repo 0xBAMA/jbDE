@@ -47,7 +47,7 @@ void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 pixelLocation = vec2( writeLoc ) * scale + offset;
 	vec2 pixelLocation_neighbor = vec2( writeLoc + ivec2( 1, 0 ) ) * scale + offset;
-	vec3 ditherValue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).rgb * 0.0005f;
+	vec3 ditherValue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).rgb * 0.0003f;
 	bool zoomedIn = ( scale < 0.25f );
 
 	vec2 deriv = vec2( 0.0f, abs( pixelLocation.x - pixelLocation_neighbor.x ) );
@@ -57,13 +57,12 @@ void main () {
 
 		// I would also like the grid lines to get dimmer, for high zoom levels - not fully disappear, but certainly subtler
 
-	// ivec2 preppedSize = ivec2( 640, 480 );
-	// ivec2 preppedSize = imgSize;
 	ivec2 preppedSize = textureSize( preppedImage, 0 ).xy;
 	if ( pixelLocation.x < preppedSize.x && pixelLocation.y < preppedSize.y && pixelLocation.x >= 0 && pixelLocation.y >= 0 ) {
 
 		ivec2 myPixelLocation = ivec2( pixelLocation );
 		vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
+		// vec3 myPixelColor = imageLoad( blueNoiseTexture, myPixelLocation ).rgb / 255.0f;
 
 		result = clamp( myPixelColor - result, vec3( 0.0f ), vec3( 1.0f ) );
 		if ( !zoomedIn ) {
@@ -76,6 +75,16 @@ void main () {
 		
 		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
 		result += vec3( values.x + values.y ) * 0.0618f;
+
+		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.0f ) ) );
+		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0618f, 0.0f );
+
+		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 3.0f ) ) );
+		result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+
+		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 2.0f * preppedSize / 3.0f ) ) );
+		result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+
 		result -= ditherValue;
 	}
 
