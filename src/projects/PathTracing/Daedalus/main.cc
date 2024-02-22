@@ -112,6 +112,36 @@ public:
 			// scene
 			// postprocess
 			// ...
+
+		// placeholder state dump
+		ImGui::SeparatorText( "Daedalus State:" );
+		ImGui::Text( "  Accumulator Size: %d x %d", daedalusConfig.targetWidth, daedalusConfig.targetHeight );
+		ImGui::Text( "  Tile Dispenser: %d tiles, %d x %d", daedalusConfig.tiles.Count(), daedalusConfig.tiles.tileSize, daedalusConfig.tiles.tileSize );
+		ImGui::Text( "  Output: %f zoom, [%f, %f] offset", daedalusConfig.outputZoom, daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
+
+		if ( ImGui::CollapsingHeader( "Images" ) ) {
+
+			float availableWidth = ImGui::GetContentRegionAvail().x - 20;
+			float proportionalHeight = availableWidth * ( float ) config.height / ( float ) config.width;
+
+			ImGui::SeparatorText( "Display Texture" );
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Display Texture" ), ImVec2( availableWidth, proportionalHeight ) );
+
+			proportionalHeight = availableWidth * ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
+
+			ImGui::SeparatorText( "Color Accumulator" );
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Color Accumulator" ), ImVec2( availableWidth, proportionalHeight ) );
+
+			ImGui::SeparatorText( "Color Accumulator Scratch" );
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Color Accumulator Scratch" ), ImVec2( availableWidth, proportionalHeight ) );
+
+			ImGui::SeparatorText( "Depth/Normals Accumulator" );
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Depth/Normals Accumulator" ), ImVec2( availableWidth, proportionalHeight ) );
+
+			ImGui::SeparatorText( "Tonemapped" );
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Tonemapped" ), ImVec2( availableWidth, proportionalHeight ) );
+		}
+
 		ImGui::End();
 	}
 
