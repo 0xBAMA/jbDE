@@ -13,8 +13,23 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Draw" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			// to put the data into the accumulator
+			shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
+
+			// create the new accumulator(s)
+			textureOptions_t opts;
+			opts.dataType		= GL_RGBA32F;
+			opts.width			= daedalusConfig.targetWidth;
+			opts.height			= daedalusConfig.targetHeight;
+			// opts.minFilter		= GL_LINEAR_MIPMAP_LINEAR;
+			opts.minFilter		= GL_LINEAR;
+			opts.magFilter		= GL_LINEAR;
+			opts.textureType	= GL_TEXTURE_2D;
+			opts.wrap			= GL_CLAMP_TO_BORDER;
+			textureManager.Add( "Depth/Normals Accumulator", opts );
+			textureManager.Add( "Color Accumulator", opts );
+			textureManager.Add( "Color Accumulator Scratch", opts );
+			textureManager.Add( "Tonemapped", opts );
 
 		}
 
