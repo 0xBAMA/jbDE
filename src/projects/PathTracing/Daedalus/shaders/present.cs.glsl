@@ -1,10 +1,9 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
-layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
-
-uniform sampler2D preppedImage;
+layout( location = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
+layout( location = 1, rgba8ui ) uniform uimage2D outputImage;
+layout( location = 2 ) uniform sampler2D preppedImage;
 
 uniform float scale;
 uniform vec2 offset;
@@ -100,5 +99,6 @@ void main () {
 		result -= ditherValue;
 	}
 
-	imageStore( accumulatorTexture, writeLoc, vec4( result, 1.0f ) );
+	// imageStore( outputImage, writeLoc, vec4( result, 1.0f ) );
+	imageStore( outputImage, writeLoc, uvec4( uvec3( result * 255.0f ), 255 ) );
 }

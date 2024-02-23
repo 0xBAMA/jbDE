@@ -16,6 +16,11 @@ struct daedalusConfig_t {
 		// initialize the tile dispenser
 		tiles = tileDispenser( tileSize, targetWidth, targetHeight );
 
+		// skyDims = ivec2( 1024, 512 );
+
+		performanceHistorySamples = 250;
+		// timeHistory.resize( performanceHistorySamples );
+
 		// intialize the main view
 		showConfigWindow = true;
 		outputZoom = 1.0f;
@@ -36,10 +41,17 @@ struct daedalusConfig_t {
 	// tabbed interface for configuring scene/rendering parameters
 	bool showConfigWindow;
 
+	// performance settings / monitoring
+	uint32_t performanceHistorySamples;
+	std::deque< float > timeHistory;	// ms per frame
+
 	// main display, grid pan + zoom
 	float outputZoom;
 	vec2 outputOffset;
 	float dragBufferAmount;
+
+	// scene parameters
+	// ivec2 skyDims;
 
 	// class holding the random number generators
 	rngen rng;

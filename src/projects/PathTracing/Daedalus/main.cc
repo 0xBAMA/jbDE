@@ -14,6 +14,8 @@ public:
 			Block Start( "Additional User Init" );
 
 			// to put the data into the accumulator
+			shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
+			shaders[ "Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
 			shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
 
 			// create the new accumulator(s)
@@ -26,10 +28,14 @@ public:
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
 			opts.wrap			= GL_CLAMP_TO_BORDER;
-			textureManager.Add( "Depth/Normals Accumulator", opts );
 			textureManager.Add( "Color Accumulator", opts );
 			textureManager.Add( "Color Accumulator Scratch", opts );
 			textureManager.Add( "Tonemapped", opts );
+			textureManager.Add( "Depth/Normals Accumulator", opts );
+
+			// setup performance monitor
+			daedalusConfig.timeHistory.resize( daedalusConfig.performanceHistorySamples );
+
 
 			palette::PickRandomPalette( true );
 
@@ -67,7 +73,7 @@ public:
 			ImGui::ResetMouseDragDelta();
 			const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
 			daedalusConfig.outputOffset.x -= currentMouseDrag.x * aspectRatio * daedalusConfig.outputZoom;
-			daedalusConfig.outputOffset.y -= currentMouseDrag.y * daedalusConfig.outputZoom;
+			daedalusConfig.outputOffset.y += currentMouseDrag.y * daedalusConfig.outputZoom;
 		}
 
 		SDL_Event event;
@@ -88,7 +94,6 @@ public:
 
 				const float previousZoom = daedalusConfig.outputZoom;
 				const vec2 previousOffset = daedalusConfig.outputOffset;
-				const vec2 targetHalf = vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) / 2.0f;
 
 				// would also be nice if this could have a little bit of smoothness added to it, inertia, whatever
 				daedalusConfig.outputZoom -= wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f );
@@ -97,9 +102,20 @@ public:
 				// closer, but still not correct
 				const vec2 previousPixelLocation = ( previousOffset + vec2( mouse ) ) * previousZoom;
 				daedalusConfig.outputOffset = ( previousPixelLocation - vec2( mouse ) * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
+
+				// no good
+				// const vec2 targetSizeHalf = vec2( config.width, config.height ) / 2.0f;
+				// const vec2 previousPixelLocation = ( previousOffset + targetSizeHalf ) * previousZoom;
+				// daedalusConfig.outputOffset = ( previousPixelLocation - targetSizeHalf * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
 			}
 		}
 
+	}
+
+	void UpdatePerfMonitor ( float loopTime ) {
+		ZoneScoped;
+		daedalusConfig.timeHistory.push_back( loopTime );
+		daedalusConfig.timeHistory.pop_front();
 	}
 
 	// move this to a header, I think
@@ -111,6 +127,15 @@ public:
 			// scene
 			// postprocess
 			// ...
+
+		ImGui::SeparatorText( " Performance " );
+		float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - daedalusConfig.tiles.tLastReset ).count() / 1000.0f;
+		ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", daedalusConfig.tiles.SampleCount(), ts, ( float ) daedalusConfig.tiles.SampleCount() / ts );
+		ImGui::SeparatorText( " History " );
+		// timing history
+		const std::vector< float > timeVector = { daedalusConfig.timeHistory.begin(), daedalusConfig.timeHistory.end() };
+		const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
+		ImGui::PlotLines( " ", timeVector.data(), daedalusConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 180.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
 
 		// placeholder state dump
 		ImGui::SeparatorText( "Daedalus State:" );
@@ -171,17 +196,100 @@ public:
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
+	GLuint64 SubmitTimerAndWait( GLuint timer ) {
+		ZoneScoped;
+		glQueryCounter( timer, GL_TIMESTAMP );
+		GLint available = 0;
+		while ( !available ) { glGetQueryObjectiv( timer, GL_QUERY_RESULT_AVAILABLE, &available ); }
+		GLuint64 t;
+		glGetQueryObjectui64v( timer, GL_QUERY_RESULT, &t );
+		return t;
+	}
+
 	void ComputePasses () {
 		ZoneScoped;
 
+
+		// do some tiles
 		{
-			scopedTimer Start( "Drawing" );
-			bindSets[ "Drawing" ].apply();
-			const GLuint shader = shaders[ "Present" ];
+			scopedTimer Start( "Tiled Update" );
+
+			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-			// textureManager.BindTexForShader( "Display Texture", "preppedImage", shader, 2 );
-			textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 2 );
+			// AnimationUpdate();
+			// SendBasePathtraceUniforms();
+
+			textureManager.BindTexForShader( "Blue Noise", "blueNoise", shader, 0 );
+			textureManager.BindTexForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+			textureManager.BindTexForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+
+			static uint32_t sampleCount = 0;
+			static ivec2 blueNoiseOffset;
+			if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
+				blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
+			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
+
+			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory
+			GLuint t[ 2 ];
+			GLuint64 t0, tCheck;
+			glGenQueries( 2, t );
+
+			// submit the first timer query, to determine t0, outside the loop
+			t0 = SubmitTimerAndWait( t[ 0 ] );
+
+			// for monitoring number of completed tiles
+			uint32_t tilesThisFrame = 0;
+
+			while ( 1 && !quitConfirm ) {
+				// run some N tiles out of the list
+				const uint32_t tileSize = daedalusConfig.tiles.tileSize;
+				for ( uint32_t tile = 0; tile < daedalusConfig.tiles.tilesBetweenQueries; tile++ ) {
+					const ivec2 tileOffset = daedalusConfig.tiles.GetTile(); // send uniforms ( unique per loop iteration )
+					glUniform2i( glGetUniformLocation( shader, "tileOffset" ),	tileOffset.x, tileOffset.y );
+					glUniform1i( glGetUniformLocation( shader, "wangSeed" ),	daedalusConfig.rng.wangSeeder() );
+
+					// going to basically say that tilesizes are multiples of 16, to match the group size
+					glDispatchCompute( tileSize / 16, tileSize / 16, 1 );
+					tilesThisFrame++;
+				}
+
+				// submit the second timer query, to determine tCheck, inside the loop
+				tCheck = SubmitTimerAndWait( t[ 1 ] );
+
+				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
+				float loopTime = ( tCheck - t0 ) / 1e6f; // convert ns -> ms
+				if ( loopTime > daedalusConfig.tiles.tileTimeLimitMS ) {
+					// update performance monitors with latest data
+					UpdatePerfMonitor( loopTime );
+					break;
+				}
+			}
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
+		// {
+		// 	scopedTimer Start( "Prepare" );
+		// 	const GLuint shader = shaders[ "Prepare" ];
+		// 	glUseProgram( shader );
+
+		// 	textureManager.BindTexForShader( "Blue Noise", "blueNoise", shader, 0 );
+		// 	textureManager.BindTexForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+		// 	textureManager.BindTexForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+		// 	textureManager.BindTexForShader( "Tonemapped", "tonemappedResult", shader, 3 );
+
+		// 	glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
+		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// }
+
+		{
+			scopedTimer Start( "Drawing" );
+			const GLuint shader = shaders[ "Present" ];
+			glUseProgram( shader );
+			textureManager.BindTexForShader( "Blue Noise", "blueNoise", shader, 0 );
+			textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 1 );
+			// textureManager.BindTexForShader( "Color Accumulator", "preppedImage", shader, 1 );
+			textureManager.BindTexForShader( "Display Texture", "outputImage", shader, 2 );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
 			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
 			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
@@ -191,8 +299,9 @@ public:
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
-			bindSets[ "Postprocessing" ].apply();
-			glUseProgram( shaders[ "Tonemap" ] );
+			const GLuint shader = shaders[ "Tonemap" ];
+			glUseProgram( shader );
+
 			SendTonemappingParameters();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -201,26 +310,7 @@ public:
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
-
-		// goofy bullshit test
-			// static int offset = 0;
-			// offset++;
-
-			// for ( int i = 1; i < 45; i++ ) {
-			// 	stringstream ss;
-			// 	int sinTerm = ( int ) ( 9.0f * std::sin( i * 0.3f + offset * 0.08f ) ) + 9;
-			// 	float sinTerm2 = 0.5f * std::sin( i * 0.7f + offset * 0.1f ) + 0.6f;
-			// 	for ( int j = 0; j < sinTerm; j++ ) {
-			// 		ss << " ";
-			// 	}
-			// 	ss << "Daedalus";
-			// 	for ( int j = 0; j < 18 - sinTerm; j++ ) {
-			// 		ss << " ";
-			// 	}
-			// 	// textRenderer.DrawBlackBackedColorString( i, ss.str(), vec3( 1.0f, 0.5f, 0.1f ) );
-			// 	textRenderer.DrawNoBGColorString( i, ss.str(), palette::paletteRef( sinTerm2 ) );
-			// }
-
+			textRenderer.DrawBlackBackedColorString( 1, string( "   Daedalus               " ), vec3( 1.0f, 0.5f, 0.1f ) );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -237,7 +327,6 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
 		{
