@@ -111,8 +111,9 @@ public:
 
 	// move this to a header, I think
 	void ShowDaedalusConfigWindow() {
+		ZoneScoped;
 		ImGui::Begin( "Viewer Window 2 ( PROTOTYPE )", NULL, ImGuiWindowFlags_NoScrollWithMouse );
-		// perf stuff
+
 		// tabs
 			// rendering
 			// scene
@@ -120,7 +121,7 @@ public:
 			// ...
 
 		ImGui::SeparatorText( " Performance " );
-		float ts = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - daedalusConfig.tiles.tLastReset ).count() / 1000.0f;
+		float ts = daedalusConfig.tiles.SecondsSinceLastReset();
 		ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", daedalusConfig.tiles.SampleCount(), ts, ( float ) daedalusConfig.tiles.SampleCount() / ts );
 		ImGui::SeparatorText( " History " );
 		// timing history
@@ -178,13 +179,55 @@ public:
 		ImGui::End();
 	}
 
-	void ImguiPass () {
+	// this should really move into the texture wrapper
+	void ResetAccumulators() {
+		ZoneScoped;
+		const int w = daedalusConfig.targetWidth;
+		const int h = daedalusConfig.targetHeight;
+		Image_4U zeroes( w, h );
+		void * data = ( void * ) zeroes.GetImageDataBasePtr();
+		GLuint handle = textureManager.Get( "Color Accumulator" );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		handle = textureManager.Get( "Depth/Normals Accumulator" );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		handle = textureManager.Get( "Tonemapped" );
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+	}
+
+	void ResizeAccumulators( uint32_t x, uint32_t y ) {
 		ZoneScoped;
 
-		if ( daedalusConfig.showConfigWindow == true ) {
-			ShowDaedalusConfigWindow();
-		}
+		// destroy the existing textures
+		textureManager.Remove( "Depth/Normals Accumulator" );
+		textureManager.Remove( "Color Accumulator Scratch" );
+		textureManager.Remove( "Color Accumulator" );
+		textureManager.Remove( "Tonemapped" );
 
+		// create the new ones
+		textureOptions_t opts;
+		opts.dataType		= GL_RGBA32F;
+		opts.width			= x;
+		opts.height			= y;
+		opts.minFilter		= GL_LINEAR;
+		opts.magFilter		= GL_LINEAR;
+		opts.textureType	= GL_TEXTURE_2D;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
+		textureManager.Add( "Depth/Normals Accumulator", opts );
+		textureManager.Add( "Color Accumulator Scratch", opts );
+		textureManager.Add( "Color Accumulator", opts );
+		textureManager.Add( "Tonemapped", opts );
+
+		// regen the tile list, reset timer, etc
+		daedalusConfig.tiles.Reset( daedalusConfig.tiles.tileSize, x, y );
+	}
+
+	void ImguiPass () {
+		ZoneScoped;
+		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
+		if ( daedalusConfig.showConfigWindow == true ) { ShowDaedalusConfigWindow(); }
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
 			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
@@ -193,8 +236,6 @@ public:
 		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
-
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void SendBasePathtraceUniforms() {
@@ -230,7 +271,7 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // do some tiles
+		{ // do some tiles, update the buffer
 			scopedTimer Start( "Tiled Update" );
 
 			const GLuint shader = shaders[ "Pathtrace" ];
@@ -263,7 +304,7 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{
+		{	// this is the tonemapping stage, on the result ( accumulator(s) -> tonemapped )
 			scopedTimer Start( "Prepare" );
 			const GLuint shader = shaders[ "Prepare" ];
 			glUseProgram( shader );
@@ -277,7 +318,7 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{
+		{	// this is the matting, with guides
 			scopedTimer Start( "Drawing" );
 			const GLuint shader = shaders[ "Present" ];
 			glUseProgram( shader );
