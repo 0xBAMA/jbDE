@@ -8,6 +8,10 @@ struct rngen {
 struct daedalusConfig_t {
 
 	daedalusConfig_t() {
+		// this will need to come in from elsewhere, eventually - for now, hardcoded screen res
+		outputWidth = 2560;
+		outputHeight = 1440;
+
 		// configuring the accumulator
 		targetWidth = 1920;
 		targetHeight = 1080;
@@ -23,12 +27,17 @@ struct daedalusConfig_t {
 		// intialize the main view
 		showConfigWindow = true;
 		outputZoom = 1.0f;
-		outputOffset = vec2( 0.0f );
-		dragBufferAmount = 2000.0f;
+		// outputOffset = vec2( 0.0f );
+		outputOffset = ( vec2( targetWidth, targetHeight ) - vec2( outputWidth, outputHeight ) ) / 2.0f;
+		dragBufferAmount = 3000.0f;
 
-		// load a config file and shit?
+		// load a config file and shit? ( src/projects/PathTracing/Daedalus/config.json individual config )
 			// tbd, that could be a nice way to handle this
 	}
+
+	// size of output
+	uint32_t outputWidth;
+	uint32_t outputHeight;
 
 	// sizing for accumulators, etc
 	uint32_t targetWidth;
