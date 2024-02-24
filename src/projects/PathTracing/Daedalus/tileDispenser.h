@@ -47,7 +47,7 @@ public:
 
 	// reset state
 	void Reset( uint32_t t, uint32_t w, uint32_t h ) {
-		if ( t < 16 || t > 4096 ) return; // reject invalid tilesizes
+		if ( t < 16 || t > 2048 ) return; // reject invalid tilesizes
 		tileSize = t;
 		imageWidth = w;
 		imageHeight = h;
@@ -65,7 +65,7 @@ public:
 	}
 
 	// how long has this been running since the last time we reset the thing
-	float secondsSinceLastReset() {
+	float SecondsSinceLastReset() {
 		return std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - tLastReset ).count() / 1000.0f;
 	}
 
