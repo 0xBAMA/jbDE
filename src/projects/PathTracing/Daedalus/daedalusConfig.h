@@ -9,17 +9,16 @@ struct daedalusConfig_t {
 
 	daedalusConfig_t() {
 		// configuring the accumulator
-		targetWidth = 640;
-		targetHeight = 360;
+		targetWidth = 1920;
+		targetHeight = 1080;
 		tileSize = 16;
 
 		// initialize the tile dispenser
 		tiles = tileDispenser( tileSize, targetWidth, targetHeight );
 
-		// skyDims = ivec2( 1024, 512 );
-
+		// setup performance monitor
 		performanceHistorySamples = 250;
-		// timeHistory.resize( performanceHistorySamples );
+		timeHistory.resize( performanceHistorySamples );
 
 		// intialize the main view
 		showConfigWindow = true;
@@ -49,9 +48,6 @@ struct daedalusConfig_t {
 	float outputZoom;
 	vec2 outputOffset;
 	float dragBufferAmount;
-
-	// scene parameters
-	// ivec2 skyDims;
 
 	// class holding the random number generators
 	rngen rng;

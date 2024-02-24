@@ -263,41 +263,31 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// {
-		// 	scopedTimer Start( "Prepare" );
-		// 	const GLuint shader = shaders[ "Prepare" ];
-		// 	glUseProgram( shader );
+		{
+			scopedTimer Start( "Prepare" );
+			const GLuint shader = shaders[ "Prepare" ];
+			glUseProgram( shader );
 
-		// 	textureManager.BindTexForShader( "Blue Noise", "blueNoise", shader, 0 );
-		// 	textureManager.BindTexForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
-		// 	textureManager.BindTexForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
-		// 	textureManager.BindTexForShader( "Tonemapped", "tonemappedResult", shader, 3 );
+			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
+			textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+			textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+			textureManager.BindImageForShader( "Tonemapped", "tonemappedResult", shader, 3 );
 
-		// 	glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
-		// 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		// }
+			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
 
 		{
 			scopedTimer Start( "Drawing" );
 			const GLuint shader = shaders[ "Present" ];
 			glUseProgram( shader );
-			textureManager.BindTexForShader( "Blue Noise", "blueNoise", shader, 0 );
+
+			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 			textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 1 );
-			// textureManager.BindTexForShader( "Color Accumulator", "preppedImage", shader, 1 );
-			textureManager.BindTexForShader( "Display Texture", "outputImage", shader, 2 );
+			textureManager.BindImageForShader( "Display Texture", "outputImage", shader, 2 );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
 			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
-			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
 
-		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
-			scopedTimer Start( "Postprocess" );
-			const GLuint shader = shaders[ "Tonemap" ];
-			glUseProgram( shader );
-
-			SendTonemappingParameters();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -305,7 +295,7 @@ public:
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
-			textRenderer.DrawBlackBackedColorString( 1, string( "   Daedalus               " ), vec3( 1.0f, 0.5f, 0.1f ) );
+			textRenderer.DrawBlackBackedColorString( 1, string( "Daedalus                  " ), vec3( 1.0f, 0.5f, 0.3f ) );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}

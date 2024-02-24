@@ -25,7 +25,7 @@ public:
 	tileDispenser( uint32_t t, uint32_t w, uint32_t h ) :
 		tileSize( t ), imageWidth( w ), imageHeight( h ) {
 		tilesBetweenQueries = 3;
-		tileTimeLimitMS = 16.666f;
+		tileTimeLimitMS = 15.0f;
 		RegenerateTileList();
 	}
 

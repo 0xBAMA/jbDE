@@ -11,6 +11,7 @@ uniform int wangSeed;
 
 void main() {
 	const ivec2 location = ivec2( gl_GlobalInvocationID.xy ) + tileOffset.xy;
-	imageStore( accumulatorColor, location, vec4( 1.0f, vec2( location.xy ) / vec2( imageSize( accumulatorColor ) ), 1.0f ) );
-	imageStore( accumulatorNormalsAndDepth, location, vec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+
+	vec4 blue = vec4( imageLoad( blueNoise, ( location + noiseOffset ) % imageSize( blueNoise ).xy ).xyz / 255.0f, 1.0f );
+	imageStore( accumulatorColor, location, blue );
 }

@@ -1,9 +1,9 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( location = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
-layout( location = 1, rgba8ui ) uniform uimage2D outputImage;
-layout( location = 2 ) uniform sampler2D preppedImage;
+layout( location = 0, rgba8ui ) uniform uimage2D blueNoise;
+layout( location = 1 ) uniform sampler2D preppedImage;
+layout( location = 2, rgba8 ) uniform image2D outputImage;
 
 uniform float scale;
 uniform vec2 offset;
@@ -46,7 +46,7 @@ void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 	vec2 pixelLocation = vec2( writeLoc ) * scale + offset;
 	vec2 pixelLocation_neighbor = vec2( writeLoc + ivec2( 1, 0 ) ) * scale + offset;
-	vec3 ditherValue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ).rgb * 0.0003f;
+	vec3 ditherValue = imageLoad( blueNoise, writeLoc % imageSize( blueNoise ) ).rgb * 0.0003f;
 	bool zoomedIn = ( scale < 0.25f );
 
 	vec2 deriv = vec2( 0.0f, abs( pixelLocation.x - pixelLocation_neighbor.x ) );
@@ -54,17 +54,14 @@ void main () {
 
 	// could jack in a little drop shadow, without much difficulty...
 
-		// I would also like the grid lines to get dimmer, for high zoom levels - not fully disappear, but certainly subtler
-
 	ivec2 preppedSize = textureSize( preppedImage, 0 ).xy;
+	// ivec2 preppedSize = imageSize( preppedImage ).xy;
 	if ( pixelLocation.x < preppedSize.x && pixelLocation.y < preppedSize.y && pixelLocation.x >= 0 && pixelLocation.y >= 0 ) {
 
 		ivec2 myPixelLocation = ivec2( pixelLocation );
-		myPixelLocation.y = preppedSize.y - myPixelLocation.y; 
-		// vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
-		// vec3 myPixelColor = imageLoad( blueNoiseTexture, myPixelLocation ).rgb / 255.0f;
-		vec3 myPixelColor = texture( preppedImage, myPixelLocation / vec2( preppedSize ) ).rgb;
-
+		myPixelLocation.y = preppedSize.y - myPixelLocation.y - 1;
+		// vec3 myPixelColor = texture( preppedImage, ( myPixelLocation + vec2( 0.5f ) ) / vec2( preppedSize ) ).rgb;
+		vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
 		result = clamp( myPixelColor - result, vec3( 0.0f ), vec3( 1.0f ) );
 		if ( !zoomedIn ) {
 			result = myPixelColor; // this may need to change to a fullscreen triangle so that mipmapped filtering Just Works tm
@@ -74,7 +71,7 @@ void main () {
 		// markers at the corners, to get top, left, right, bottom outlines
 		vec2 values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation ) );
 		result += vec3( values.x + values.y ) * 0.0618f;
-		
+
 		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
 		result += vec3( values.x + values.y ) * 0.0618f;
 
@@ -99,6 +96,9 @@ void main () {
 		result -= ditherValue;
 	}
 
-	// imageStore( outputImage, writeLoc, vec4( result, 1.0f ) );
-	imageStore( outputImage, writeLoc, uvec4( uvec3( result * 255.0f ), 255 ) );
+	// add vignetting
+	vec2 uv = ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( imageSize( outputImage ) );
+	uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
+
+	imageStore( outputImage, writeLoc, vec4( result, 1.0f ) );
 }
