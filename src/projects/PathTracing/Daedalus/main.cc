@@ -33,10 +33,6 @@ public:
 			textureManager.Add( "Tonemapped", opts );
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 
-			// setup performance monitor
-			daedalusConfig.timeHistory.resize( daedalusConfig.performanceHistorySamples );
-
-
 			palette::PickRandomPalette( true );
 
 		}
@@ -102,17 +98,12 @@ public:
 				// closer, but still not correct
 				const vec2 previousPixelLocation = ( previousOffset + vec2( mouse ) ) * previousZoom;
 				daedalusConfig.outputOffset = ( previousPixelLocation - vec2( mouse ) * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
-
-				// no good
-				// const vec2 targetSizeHalf = vec2( config.width, config.height ) / 2.0f;
-				// const vec2 previousPixelLocation = ( previousOffset + targetSizeHalf ) * previousZoom;
-				// daedalusConfig.outputOffset = ( previousPixelLocation - targetSizeHalf * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
 			}
 		}
 
 	}
 
-	void UpdatePerfMonitor ( float loopTime ) {
+	void UpdatePerfMonitor ( float loopTime, uint32_t tileCount ) {
 		ZoneScoped;
 		daedalusConfig.timeHistory.push_back( loopTime );
 		daedalusConfig.timeHistory.pop_front();
@@ -206,6 +197,26 @@ public:
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
+	void SendBasePathtraceUniforms() {
+		const GLuint shader = shaders[ "Pathtrace" ];
+		glUseProgram( shader );
+		static uint32_t sampleCount = 0;
+		static ivec2 blueNoiseOffset;
+		if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
+			blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
+		glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
+		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
+		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+	}
+
+	void SendInnerLoopPathtraceUniforms() {
+		const GLuint shader = shaders[ "Pathtrace" ];
+		const ivec2 tileOffset = daedalusConfig.tiles.GetTile(); // send uniforms ( unique per loop iteration )
+		glUniform2i( glGetUniformLocation( shader, "tileOffset" ),	tileOffset.x, tileOffset.y );
+		glUniform1i( glGetUniformLocation( shader, "wangSeed" ),	daedalusConfig.rng.wangSeeder() );
+	}
+
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
 		glQueryCounter( timer, GL_TIMESTAMP );
@@ -219,59 +230,33 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-
-		// do some tiles
-		{
+		{ // do some tiles
 			scopedTimer Start( "Tiled Update" );
 
 			const GLuint shader = shaders[ "Pathtrace" ];
 			glUseProgram( shader );
 
-			// AnimationUpdate();
-			// SendBasePathtraceUniforms();
-
-			textureManager.BindTexForShader( "Blue Noise", "blueNoise", shader, 0 );
-			textureManager.BindTexForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
-			textureManager.BindTexForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
-
-			static uint32_t sampleCount = 0;
-			static ivec2 blueNoiseOffset;
-			if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
-				blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
-			glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
-
 			// create OpenGL timery query objects - more reliable than std::chrono, at least in theory
 			GLuint t[ 2 ];
-			GLuint64 t0, tCheck;
+			GLuint64 tStart;
 			glGenQueries( 2, t );
 
-			// submit the first timer query, to determine t0, outside the loop
-			t0 = SubmitTimerAndWait( t[ 0 ] );
+			// submit the first timer query, to determine tStart, outside the loop
+			tStart = SubmitTimerAndWait( t[ 0 ] );
 
 			// for monitoring number of completed tiles
 			uint32_t tilesThisFrame = 0;
-
+			SendBasePathtraceUniforms();
+			const uint32_t tileSize = daedalusConfig.tiles.tileSize;
 			while ( 1 && !quitConfirm ) {
-				// run some N tiles out of the list
-				const uint32_t tileSize = daedalusConfig.tiles.tileSize;
 				for ( uint32_t tile = 0; tile < daedalusConfig.tiles.tilesBetweenQueries; tile++ ) {
-					const ivec2 tileOffset = daedalusConfig.tiles.GetTile(); // send uniforms ( unique per loop iteration )
-					glUniform2i( glGetUniformLocation( shader, "tileOffset" ),	tileOffset.x, tileOffset.y );
-					glUniform1i( glGetUniformLocation( shader, "wangSeed" ),	daedalusConfig.rng.wangSeeder() );
-
-					// going to basically say that tilesizes are multiples of 16, to match the group size
+					SendInnerLoopPathtraceUniforms();
 					glDispatchCompute( tileSize / 16, tileSize / 16, 1 );
 					tilesThisFrame++;
 				}
-
-				// submit the second timer query, to determine tCheck, inside the loop
-				tCheck = SubmitTimerAndWait( t[ 1 ] );
-
-				// evaluate how long it we've taken in the infinite loop, and break if 16.6ms is exceeded
-				float loopTime = ( tCheck - t0 ) / 1e6f; // convert ns -> ms
+				float loopTime = ( SubmitTimerAndWait( t[ 1 ] ) - tStart ) / 1e6f; // convert ns -> ms
 				if ( loopTime > daedalusConfig.tiles.tileTimeLimitMS ) {
-					// update performance monitors with latest data
-					UpdatePerfMonitor( loopTime );
+					UpdatePerfMonitor( loopTime, tilesThisFrame );
 					break;
 				}
 			}
