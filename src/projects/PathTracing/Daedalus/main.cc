@@ -140,7 +140,17 @@ public:
 		// placeholder state dump
 		ImGui::SeparatorText( "Daedalus State:" );
 		ImGui::Text( "  Accumulator Size: %d x %d", daedalusConfig.targetWidth, daedalusConfig.targetHeight );
-		ImGui::Text( "  Tile Dispenser: %d tiles, %d x %d", daedalusConfig.tiles.Count(), daedalusConfig.tiles.tileSize, daedalusConfig.tiles.tileSize );
+		ImGui::Text( "  Tile Dispenser: %d tiles", daedalusConfig.tiles.Count() );
+		ImGui::SameLine();
+		if ( ImGui::Button( " - " ) ) {
+			daedalusConfig.tiles.Reset( daedalusConfig.tiles.tileSize / 2, daedalusConfig.targetWidth, daedalusConfig.targetHeight );
+		}
+		ImGui::SameLine();
+		ImGui::Text( "%d", daedalusConfig.tiles.tileSize );
+		ImGui::SameLine();
+		if ( ImGui::Button( " + " ) ) {
+			daedalusConfig.tiles.Reset( daedalusConfig.tiles.tileSize * 2, daedalusConfig.targetWidth, daedalusConfig.targetHeight );
+		}
 		ImGui::Text( "  Output: %f zoom, [%f, %f] offset", daedalusConfig.outputZoom, daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
 		ImGui::SameLine();
 		if ( ImGui::Button( "Set Zero" ) ) {

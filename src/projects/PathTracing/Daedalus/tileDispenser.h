@@ -47,6 +47,7 @@ public:
 
 	// reset state
 	void Reset( uint32_t t, uint32_t w, uint32_t h ) {
+		if ( t < 16 || t > 4096 ) return; // reject invalid tilesizes
 		tileSize = t;
 		imageWidth = w;
 		imageHeight = h;
