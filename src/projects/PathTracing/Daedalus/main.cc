@@ -294,8 +294,22 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
-			textRenderer.Update( ImGui::GetIO().DeltaTime );
-			textRenderer.DrawBlackBackedColorString( 1, string( "Daedalus                  " ), vec3( 1.0f, 0.5f, 0.3f ) );
+
+			// toggle-able controls list, sounds like a nice to have
+			textRenderer.DrawBlackBackedColorString( 2, string( " Daedalus  (?) show controls" ), vec3( 1.0f, 0.5f, 0.3f ) );
+
+			float seconds = daedalusConfig.tiles.SecondsSinceLastReset();
+			float wholeSeconds = std::floor( seconds );
+			stringstream ss;
+			ss << fixedWidthNumberString( daedalusConfig.tiles.SampleCount(), 6, ' ' ) << " samples in ";
+			ss << fixedWidthNumberString( wholeSeconds, 5, ' ' ) << "." << fixedWidthNumberString( ( seconds - wholeSeconds ) * 1000, 3, '0' ) << "s";
+			textRenderer.DrawBlackBackedColorString( 1, ss.str(), vec3( 1.0f ) );
+
+			ss.str( "" );
+			float tDelta = ImGui::GetIO().DeltaTime * 1000.0f;
+			ss << " frame total:   " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << tDelta << "ms";
+			textRenderer.DrawBlackBackedColorString( 0, ss.str(), vec3( 1.0f ) );
+			
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
