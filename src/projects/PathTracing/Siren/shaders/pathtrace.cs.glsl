@@ -62,24 +62,6 @@ layout( binding = 0, std430 ) buffer sphereData {
 	sphere_t spheres[];
 };
 
-mat3 Rotate3D ( const float angle, const vec3 axis ) {
-	const vec3 a = normalize( axis );
-	const float s = sin( angle );
-	const float c = cos( angle );
-	const float r = 1.0f - c;
-	return mat3(
-		a.x * a.x * r + c,
-		a.y * a.x * r + a.z * s,
-		a.z * a.x * r - a.y * s,
-		a.x * a.y * r - a.z * s,
-		a.y * a.y * r + c,
-		a.z * a.y * r + a.x * s,
-		a.x * a.z * r + a.y * s,
-		a.y * a.z * r - a.x * s,
-		a.z * a.z * r + c
-	);
-}
-
 #include "random.h"
 #include "wood.h"
 #include "glyphs.h"
@@ -171,6 +153,7 @@ struct ray {
 #define SPHEREBUG	3
 #define SIMPLEORTHO	4
 #define ORTHO		5
+#define COMPOUND	6
 
 ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
@@ -249,6 +232,68 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 		uv.y /= aspectRatio;
 		r.origin = viewerPosition + basisX * FoV * uv.x + basisY * FoV * uv.y;
 		r.direction = basisZ;
+		break;
+	}
+
+	case COMPOUND: {
+		// compound eye hex vision by Samon
+		// https://www.shadertoy.com/view/4lfcR7
+
+		// strange, wants uv in 1..2
+		// uv.x *= aspectRatio;
+
+		uv *= uvScalar;
+
+		uv.xy /= 2.0f;
+		uv.xy += 1.0f;
+		float R = 0.075f;
+
+		//Estimate hex coordinate
+		vec2 grid;
+		grid.y = floor( uv.y / ( 1.5f * R ) );
+		float odd = mod( grid.y, 2.0f );
+		grid.x = floor( uv.x / ( 1.732050807 * R ) - odd * 0.5f );
+
+		//Find possible centers of hexagons
+		vec2 id = grid;
+		float o = odd;
+		vec2 h1 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
+		id = grid + vec2( 1.0f, 0.0f ); o = odd;
+		vec2 h2 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
+		id = grid + vec2( odd, 1.0f ); o = 1.0f - odd;
+		vec2 h3 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
+
+		//Find closest center
+		float d1 = dot( h1 - uv, h1 - uv );
+		float d2 = dot( h2 - uv, h2 - uv );
+		float d3 = dot( h3 - uv, h3 - uv );
+		if ( d2 < d1 ) {
+			d1 = d2;
+			h1 = h2;
+		}
+		if ( d3 < d1 ) {
+			d1 = d3;
+			h1 = h3;
+		}
+		
+		//Hexagon UV
+		vec2 uv2 = uv - h1;
+
+		//Set Hexagon offset
+		const float offset = 2.0f;
+		uv = ( uv.xy - 1.0f ) + uv2 * offset;
+
+		//Per Facet Fisheye effect (optional)
+		vec2 coords = ( uv2 - 0.5f * R ) * 2.0f;
+		vec2 fisheye;
+		float intensity = 1.0f;
+		fisheye.x = ( 1.0f - coords.y * coords.y ) * intensity * ( coords.x );
+		fisheye.y = ( 1.0f - coords.x * coords.x ) * intensity * ( coords.y );
+		uv -= fisheye * R;
+
+		// and now get the parameters from the remapped uv
+		r.direction = normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
+		r.origin = viewerPosition;
 		break;
 	}
 

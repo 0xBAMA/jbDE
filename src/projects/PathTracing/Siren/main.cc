@@ -575,7 +575,7 @@ public:
 			}
 			ImGui::Text( " " );
 
-			const char * cameraNames[] = { "NORMAL", "SPHERICAL", "SPHERICAL2", "SPHEREBUG", "SIMPLEORTHO", "ORTHO" };
+			const char * cameraNames[] = { "NORMAL", "SPHERICAL", "SPHERICAL2", "SPHEREBUG", "SIMPLEORTHO", "ORTHO", "COMPOUND" };
 			ImGui::Combo( "Camera Type", &sirenConfig.cameraType, cameraNames, IM_ARRAYSIZE( cameraNames ) );
 
 			const char * subpixelJitterModes[] = { "NONE", "BLUE", "UNIFORM", "WEYL", "WEYL INTEGER" };
