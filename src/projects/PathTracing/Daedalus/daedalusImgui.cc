@@ -34,6 +34,14 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		daedalusConfig.outputOffset = ivec2( 0 );
 	}
 
+	if ( ImGui::CollapsingHeader( "Viewer Config" ) ) {
+		ImGui::Checkbox( "Edge Lines", &daedalusConfig.edgeLines );
+		ImGui::Checkbox( "Center Lines", &daedalusConfig.centerLines );
+		ImGui::Checkbox( "Rule of Thirds Lines", &daedalusConfig.ROTLines );
+		ImGui::Checkbox( "Golden Ratio Lines", &daedalusConfig.goldenLines );
+		ImGui::Checkbox( "Vignette", &daedalusConfig.vignette );
+	}
+
 	if ( ImGui::CollapsingHeader( "Images" ) ) {
 
 		float availableWidth = ImGui::GetContentRegionAvail().x - 20;

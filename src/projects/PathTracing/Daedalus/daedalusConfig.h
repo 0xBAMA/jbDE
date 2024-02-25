@@ -58,6 +58,13 @@ struct daedalusConfig_t {
 	vec2 outputOffset;
 	float dragBufferAmount;
 
+	// appearance config
+	bool edgeLines = true;
+	bool centerLines = true;
+	bool ROTLines = true;
+	bool goldenLines = true;
+	bool vignette = true;
+
 	// class holding the random number generators
 	rngen rng;
 };

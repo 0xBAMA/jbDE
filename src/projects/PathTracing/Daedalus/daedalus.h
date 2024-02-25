@@ -217,6 +217,11 @@ public:
 			textureManager.BindImageForShader( "Display Texture", "outputImage", shader, 2 );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
 			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
+			glUniform1i( glGetUniformLocation( shader, "edgeLines" ), daedalusConfig.edgeLines );
+			glUniform1i( glGetUniformLocation( shader, "centerLines" ), daedalusConfig.centerLines );
+			glUniform1i( glGetUniformLocation( shader, "ROTLines" ), daedalusConfig.ROTLines );
+			glUniform1i( glGetUniformLocation( shader, "goldenLines" ), daedalusConfig.goldenLines );
+			glUniform1i( glGetUniformLocation( shader, "vignette" ), daedalusConfig.vignette );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

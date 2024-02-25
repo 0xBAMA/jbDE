@@ -8,6 +8,13 @@ layout( location = 2, rgba8 ) uniform image2D outputImage;
 uniform float scale;
 uniform vec2 offset;
 
+// configurable appearance
+uniform bool edgeLines;
+uniform bool centerLines;
+uniform bool ROTLines;
+uniform bool goldenLines;
+uniform bool vignette;
+
 // https://www.shadertoy.com/view/wdK3Dy
 float Grid( vec2 fragCoord, float space, float gridWidth ) {
 	vec2 p  = fragCoord - vec2( 0.5f );
@@ -68,37 +75,44 @@ void main () {
 				// ( or else do the texture calls with explicit gradients, figure that out )
 		}
 	} else {
-		// markers at the corners, to get top, left, right, bottom outlines
-		vec2 values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation ) );
-		result += vec3( values.x + values.y ) * 0.0618f;
+		vec2 values;
 
-		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
-		result += vec3( values.x + values.y ) * 0.0618f;
+		if ( edgeLines ) { // markers at the corners, to get top, left, right, bottom outlines
+			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation ) );
+			result += vec3( values.x + values.y ) * 0.0618f;
+			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
+			result += vec3( values.x + values.y ) * 0.0618f;
+		}
 
-		// cross through center of the image
-		values = smoothstep( vec2( 2.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.0f ) ) );
-		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0618f, 0.0f );
+		if ( centerLines ) { // cross through center of the image
+			values = smoothstep( vec2( 2.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.0f ) ) );
+			result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0618f, 0.0f );
+		}
 
-		// golden ratio layout lines
-		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.618f ) ) );
-		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+		if ( ROTLines ) { // rule of thirds layout lines
+			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 3.0f ) ) );
+			result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
 
-		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 1.618f * preppedSize / 2.618f ) ) );
-		result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 2.0f * preppedSize / 3.0f ) ) );
+			result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+		}
 
-		// rule of thirds layout lines
-		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 3.0f ) ) );
-		result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+		if ( goldenLines ) { // golden ratio layout lines
+			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.618f ) ) );
+			result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
 
-		values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 2.0f * preppedSize / 3.0f ) ) );
-		result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 1.618f * preppedSize / 2.618f ) ) );
+			result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+		}
 
 		result -= ditherValue;
 	}
 
-	// add vignetting - this should be configurable
-	vec2 uv = ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( imageSize( outputImage ) );
-	uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
+	if ( vignette ) {
+		// add vignetting - this should be configurable
+		vec2 uv = ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( imageSize( outputImage ) );
+		uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
+	}
 
 	imageStore( outputImage, writeLoc, vec4( result, 1.0f ) );
 }
