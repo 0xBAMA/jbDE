@@ -48,9 +48,19 @@ void Daedalus::SendBasePathtraceUniforms() {
 		blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
 	glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
 	glUniform1f( glGetUniformLocation( shader, "subpixelJitterMethod" ), daedalusConfig.render.subpixelJitterMethod );
-	glUniform1f( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
-
-	// there will be quite a bit more here
+	glUniform1i( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
+	glUniform1i( glGetUniformLocation( shader, "bokehMode" ), daedalusConfig.render.bokehMode );
+	glUniform1i( glGetUniformLocation( shader, "cameraType" ), daedalusConfig.render.cameraType );
+	glUniform1f( glGetUniformLocation( shader, "uvScalar" ), daedalusConfig.render.uvScalar ); // consider making this 2d
+	glUniform1f( glGetUniformLocation( shader, "exposure" ), daedalusConfig.render.exposure );
+	glUniform1f( glGetUniformLocation( shader, "FoV" ), daedalusConfig.render.FoV );
+	glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( daedalusConfig.render.viewerPosition ) );
+	glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( daedalusConfig.render.basisX ) );
+	glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( daedalusConfig.render.basisY ) );
+	glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( daedalusConfig.render.basisZ ) );
+	glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), daedalusConfig.render.thinLensEnable );
+	glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), daedalusConfig.render.thinLensFocusDistance );
+	glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), daedalusConfig.render.thinLensJitterRadius );
 
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
