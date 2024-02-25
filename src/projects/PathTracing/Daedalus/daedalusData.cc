@@ -30,5 +30,10 @@ void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
 	textureManager.Add( "Tonemapped", opts );
 
 	// regen the tile list, reset timer, etc
+	daedalusConfig.targetWidth = x;
+	daedalusConfig.targetHeight = y;
 	daedalusConfig.tiles.Reset( daedalusConfig.tiles.tileSize, x, y );
+
+	// recenter the view on the middle of the image
+	daedalusConfig.view.outputOffset = ( vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) - vec2( config.width, config.height ) ) / 2.0f;
 }

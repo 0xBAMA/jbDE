@@ -28,21 +28,60 @@ void Daedalus::ShowDaedalusConfigWindow() {
 	if ( ImGui::Button( " + " ) ) {
 		daedalusConfig.tiles.Reset( daedalusConfig.tiles.tileSize * 2, daedalusConfig.targetWidth, daedalusConfig.targetHeight );
 	}
-	ImGui::Text( "  Output: %f zoom, [%f, %f] offset", daedalusConfig.outputZoom, daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
+	ImGui::Text( "  Output: %f zoom, [%f, %f] offset", daedalusConfig.view.outputZoom, daedalusConfig.view.outputOffset.x, daedalusConfig.view.outputOffset.y );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Set Zero" ) ) {
-		daedalusConfig.outputOffset = ivec2( 0 );
+		daedalusConfig.view.outputOffset = ivec2( 0 );
 	}
 
 	if ( ImGui::CollapsingHeader( "Viewer Config" ) ) {
-		ImGui::Checkbox( "Edge Lines", &daedalusConfig.edgeLines );
-		ImGui::Checkbox( "Center Lines", &daedalusConfig.centerLines );
-		ImGui::Checkbox( "Rule of Thirds Lines", &daedalusConfig.ROTLines );
-		ImGui::Checkbox( "Golden Ratio Lines", &daedalusConfig.goldenLines );
-		ImGui::Checkbox( "Vignette", &daedalusConfig.vignette );
+		ImGui::Checkbox( "Edge Lines", &daedalusConfig.view.edgeLines );
+		ImGui::Checkbox( "Center Lines", &daedalusConfig.view.centerLines );
+		ImGui::Checkbox( "Rule of Thirds Lines", &daedalusConfig.view.ROTLines );
+		ImGui::Checkbox( "Golden Ratio Lines", &daedalusConfig.view.goldenLines );
+		ImGui::Checkbox( "Vignette", &daedalusConfig.view.vignette );
 	}
 
 	if ( ImGui::CollapsingHeader( "Images" ) ) {
+
+		ImGui::Text( "Resolution" );
+		static int x = daedalusConfig.targetWidth;
+		static int y = daedalusConfig.targetHeight;
+		ImGui::SliderInt( "Accumulator X", &x, 0, 5000 );
+		ImGui::SliderInt( "Accumulator Y", &y, 0, 5000 );
+		if ( ImGui::Button( " Resize " ) ) {
+			ResizeAccumulators( x, y );
+		}
+		if ( ImGui::Button( " Preview " ) ) {
+			x = 160;
+			y = 90;
+			ResizeAccumulators( x, y );
+		}
+		ImGui::SameLine();
+		if ( ImGui::Button( " 360p " ) ) {
+			x = 640;
+			y = 360;
+			ResizeAccumulators( x, y );
+		}
+		ImGui::SameLine();
+		if ( ImGui::Button( " 720p " ) ) {
+			x = 1280;
+			y = 720;
+			ResizeAccumulators( x, y );
+		}
+		ImGui::SameLine();
+		if ( ImGui::Button( " 1080p " ) ) {
+			x = 1920;
+			y = 1080;
+			ResizeAccumulators( x, y );
+		}
+		ImGui::SameLine();
+		if ( ImGui::Button( " 4K " ) ) {
+			x = 3840;
+			y = 2160;
+			ResizeAccumulators( x, y );
+		}
+
 
 		float availableWidth = ImGui::GetContentRegionAvail().x - 20;
 		float proportionalHeight = availableWidth * ( float ) config.height / ( float ) config.width;
