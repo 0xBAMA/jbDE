@@ -77,6 +77,7 @@ vec2 SubpixelOffset () {
 #define SPHEREBUG	3
 #define SIMPLEORTHO	4
 #define ORTHO		5
+#define COMPOUND	6
 
 uniform vec3 viewerPosition;
 uniform vec3 basisX;
@@ -84,6 +85,9 @@ uniform vec3 basisY;
 uniform vec3 basisZ;
 
 uniform float uvScalar;
+uniform int cameraType;
+uniform int bokehMode;
+uniform float FoV;
 
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
@@ -94,13 +98,10 @@ struct ray_t {
 	vec3 direction;
 };
 
-ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
+ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
-	// compound eye hex vision
-	// https://www.shadertoy.com/view/4lfcR7
-
-	ray r;
+	ray_t r;
 	r.origin	= vec3( 0.0f );
 	r.direction	= vec3( 0.0f );
 
@@ -161,6 +162,64 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 		break;
 	}
 
+	case COMPOUND: {
+		// compound eye hex vision by Samon
+		// https://www.shadertoy.com/view/4lfcR7
+
+		// strange, wants uv in 1..2
+		uv.xy /= 2.0f;
+		uv.xy += 1.0f;
+		float R = 0.075f;
+
+		//Estimate hex coordinate
+		vec2 grid;
+		grid.y = floor( uv.y / ( 1.5f * R ) );
+		float odd = mod( grid.y, 2.0f );
+		grid.x = floor( uv.x / ( 1.732050807 * R ) - odd * 0.5f );
+
+		//Find possible centers of hexagons
+		vec2 id = grid;
+		float o = odd;
+		vec2 h1 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
+		id = grid + vec2( 1.0f, 0.0f ); o = odd;
+		vec2 h2 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
+		id = grid + vec2( odd, 1.0f ); o = 1.0f - odd;
+		vec2 h3 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
+
+		//Find closest center
+		float d1 = dot( h1 - uv, h1 - uv );
+		float d2 = dot( h2 - uv, h2 - uv );
+		float d3 = dot( h3 - uv, h3 - uv );
+		if ( d2 < d1 ) {
+			d1 = d2;
+			h1 = h2;
+		}
+		if ( d3 < d1 ) {
+			d1 = d3;
+			h1 = h3;
+		}
+		
+		//Hexagon UV
+		vec2 uv2 = uv - h1;
+
+		//Set Hexagon offset
+		const float offset = 2.0f;
+		uv = ( uv.xy - 1.0f ) + uv2 * offset;
+
+		//Per Facet Fisheye effect (optional)
+		vec2 coords = ( uv2 - 0.5f * R ) * 2.0f;
+		vec2 fisheye;
+		float intensity = 1.0f;
+		fisheye.x = ( 1.0f - coords.y * coords.y ) * intensity * ( coords.x );
+		fisheye.y = ( 1.0f - coords.x * coords.x ) * intensity * ( coords.y );
+		uv -= fisheye * R;
+
+		// and now get the parameters from the remapped uv
+		r.direction = normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
+		r.origin = viewerPosition;
+		break;
+	}
+
 	default:
 		break;
 	}
@@ -217,10 +276,9 @@ result_t ColorSample( in vec2 uv ) {
 
 	// return final color * exposure - depth included
 
+	vec4 result = vec4( GetCameraRayForUV( uv ).direction.xyz, 1.0f );
 
-	// placeholder contents
-	vec4 blue = vec4( Blue( ivec2( gl_GlobalInvocationID.xy ) + tileOffset.xy ).xyz / 255.0f, 1.0f );
-	return result_t( blue, vec4( 0.0f ) );
+	return result_t( result, vec4( 0.0f ) );
 }
 
 //=============================================================================================================================
@@ -229,6 +287,7 @@ result_t ColorSample( in vec2 uv ) {
 void ProcessTileInvocation( in ivec2 pixel ) {
 	// calculate the UV from the pixel location
 	vec2 uv = ( vec2( pixel ) + vec2( 0.5f ) ) / imageSize( accumulatorColor ).xy;
+	uv = uv * 2.0f - vec2( 1.0f );
 
 	// get the new color sample
 	result_t newData = ColorSample( uv );
