@@ -96,7 +96,7 @@ void main () {
 		result -= ditherValue;
 	}
 
-	// add vignetting
+	// add vignetting - this should be configurable
 	vec2 uv = ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( imageSize( outputImage ) );
 	uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
 
