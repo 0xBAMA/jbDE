@@ -13,3 +13,21 @@ vec3 GetColorForTemperature ( const float temperature ) {
 float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, float outHigh ) {
 	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
 }
+
+mat3 Rotate3D ( const float angle, const vec3 axis ) {
+	const vec3 a = normalize( axis );
+	const float s = sin( angle );
+	const float c = cos( angle );
+	const float r = 1.0f - c;
+	return mat3(
+		a.x * a.x * r + c,
+		a.y * a.x * r + a.z * s,
+		a.z * a.x * r - a.y * s,
+		a.x * a.y * r - a.z * s,
+		a.y * a.y * r + c,
+		a.z * a.y * r + a.x * s,
+		a.x * a.z * r + a.y * s,
+		a.y * a.z * r - a.x * s,
+		a.z * a.z * r + c
+	);
+}
