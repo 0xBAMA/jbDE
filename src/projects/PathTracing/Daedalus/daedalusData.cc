@@ -37,3 +37,56 @@ void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
 	// recenter the view on the middle of the image
 	daedalusConfig.view.outputOffset = daedalusConfig.view.outputZoom * ( vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) - vec2( config.width, config.height ) ) / 2.0f;
 }
+
+void Daedalus::SendBasePathtraceUniforms() {
+	const GLuint shader = shaders[ "Pathtrace" ];
+	glUseProgram( shader );
+
+	static uint32_t sampleCount = 0;
+	static ivec2 blueNoiseOffset;
+	if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
+		blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
+	glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
+	glUniform1f( glGetUniformLocation( shader, "subpixelJitterMethod" ), daedalusConfig.render.subpixelJitterMethod );
+	glUniform1f( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
+
+	// there will be quite a bit more here
+
+	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
+	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+	textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+}
+
+void Daedalus::SendInnerLoopPathtraceUniforms() {
+	const GLuint shader = shaders[ "Pathtrace" ];
+	const ivec2 tileOffset = daedalusConfig.tiles.GetTile(); // send uniforms ( unique per loop iteration )
+	glUniform2i( glGetUniformLocation( shader, "tileOffset" ),	tileOffset.x, tileOffset.y );
+	glUniform1i( glGetUniformLocation( shader, "wangSeed" ),	daedalusConfig.rng.wangSeeder() );
+}
+
+void Daedalus::SendPrepareUniforms() {
+	const GLuint shader = shaders[ "Prepare" ];
+	glUseProgram( shader );
+
+	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
+	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+	textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+	textureManager.BindImageForShader( "Tonemapped", "tonemappedResult", shader, 3 );
+}
+
+void Daedalus::SendPresentUniforms() {
+	const GLuint shader = shaders[ "Present" ];
+	glUseProgram( shader );
+
+	glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.view.outputZoom );
+	glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.view.outputOffset.x, daedalusConfig.view.outputOffset.y );
+	glUniform1i( glGetUniformLocation( shader, "edgeLines" ), daedalusConfig.view.edgeLines );
+	glUniform1i( glGetUniformLocation( shader, "centerLines" ), daedalusConfig.view.centerLines );
+	glUniform1i( glGetUniformLocation( shader, "ROTLines" ), daedalusConfig.view.ROTLines );
+	glUniform1i( glGetUniformLocation( shader, "goldenLines" ), daedalusConfig.view.goldenLines );
+	glUniform1i( glGetUniformLocation( shader, "vignette" ), daedalusConfig.view.vignette );
+
+	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
+	textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 1 );
+	textureManager.BindImageForShader( "Display Texture", "outputImage", shader, 2 );
+}

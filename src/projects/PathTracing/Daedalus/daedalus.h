@@ -127,28 +127,10 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
-	void SendBasePathtraceUniforms() {
-		const GLuint shader = shaders[ "Pathtrace" ];
-		glUseProgram( shader );
-		static uint32_t sampleCount = 0;
-		static ivec2 blueNoiseOffset;
-		if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
-			blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
-		glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
-		glUniform1f( glGetUniformLocation( shader, "subpixelJitterMethod" ), daedalusConfig.subpixelJitterMethod );
-		glUniform1f( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
-
-		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
-		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
-		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
-	}
-
-	void SendInnerLoopPathtraceUniforms() {
-		const GLuint shader = shaders[ "Pathtrace" ];
-		const ivec2 tileOffset = daedalusConfig.tiles.GetTile(); // send uniforms ( unique per loop iteration )
-		glUniform2i( glGetUniformLocation( shader, "tileOffset" ),	tileOffset.x, tileOffset.y );
-		glUniform1i( glGetUniformLocation( shader, "wangSeed" ),	daedalusConfig.rng.wangSeeder() );
-	}
+	void SendBasePathtraceUniforms();
+	void SendInnerLoopPathtraceUniforms();
+	void SendPrepareUniforms();
+	void SendPresentUniforms();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
@@ -200,11 +182,7 @@ public:
 			scopedTimer Start( "Prepare" );
 			const GLuint shader = shaders[ "Prepare" ];
 			glUseProgram( shader );
-
-			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
-			textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
-			textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
-			textureManager.BindImageForShader( "Tonemapped", "tonemappedResult", shader, 3 );
+			SendPrepareUniforms();
 
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -214,23 +192,12 @@ public:
 			scopedTimer Start( "Drawing" );
 			const GLuint shader = shaders[ "Present" ];
 			glUseProgram( shader );
-
-			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
-			textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 1 );
-			textureManager.BindImageForShader( "Display Texture", "outputImage", shader, 2 );
-			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.view.outputZoom );
-			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.view.outputOffset.x, daedalusConfig.view.outputOffset.y );
-			glUniform1i( glGetUniformLocation( shader, "edgeLines" ), daedalusConfig.view.edgeLines );
-			glUniform1i( glGetUniformLocation( shader, "centerLines" ), daedalusConfig.view.centerLines );
-			glUniform1i( glGetUniformLocation( shader, "ROTLines" ), daedalusConfig.view.ROTLines );
-			glUniform1i( glGetUniformLocation( shader, "goldenLines" ), daedalusConfig.view.goldenLines );
-			glUniform1i( glGetUniformLocation( shader, "vignette" ), daedalusConfig.view.vignette );
-
+			SendPresentUniforms();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{ // text rendering timestamp - required texture binds are handled internally
+		{ // text rendering - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 
 			// toggle-able controls list, sounds like a nice to have
@@ -252,11 +219,6 @@ public:
 		}
 	}
 
-	void OnUpdate () {
-		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
-	}
-
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
@@ -275,7 +237,6 @@ public:
 		ZoneScoped;
 
 		HandleCustomEvents();
-		OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
