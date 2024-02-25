@@ -59,7 +59,7 @@ public:
 		// const bool super		= ( k & KMOD_GUI );
 
 		// float scrollAmount = ImGui::GetIO().MouseWheel;
-		// daedalusConfig.outputZoom -= scrollAmount * 0.08f;
+		// daedalusConfig.view.outputZoom -= scrollAmount * 0.08f;
 
 		ivec2 mouse;
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
@@ -68,8 +68,8 @@ public:
 			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 			ImGui::ResetMouseDragDelta();
 			const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
-			daedalusConfig.outputOffset.x -= currentMouseDrag.x * aspectRatio * daedalusConfig.outputZoom;
-			daedalusConfig.outputOffset.y += currentMouseDrag.y * daedalusConfig.outputZoom;
+			daedalusConfig.view.outputOffset.x -= currentMouseDrag.x * aspectRatio * daedalusConfig.view.outputZoom;
+			daedalusConfig.view.outputOffset.y += currentMouseDrag.y * daedalusConfig.view.outputZoom;
 		}
 
 		SDL_Event event;
@@ -88,16 +88,16 @@ public:
 				// float wheel_x = -event.wheel.preciseX;
 				const float wheel_y = event.wheel.preciseY;
 
-				const float previousZoom = daedalusConfig.outputZoom;
-				const vec2 previousOffset = daedalusConfig.outputOffset;
+				const float previousZoom = daedalusConfig.view.outputZoom;
+				const vec2 previousOffset = daedalusConfig.view.outputOffset;
 
 				// would also be nice if this could have a little bit of smoothness added to it, inertia, whatever
-				daedalusConfig.outputZoom -= wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f );
-				daedalusConfig.outputZoom = std::clamp( daedalusConfig.outputZoom, 0.005f, 5.0f );
+				daedalusConfig.view.outputZoom -= wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f );
+				daedalusConfig.view.outputZoom = std::clamp( daedalusConfig.view.outputZoom, 0.005f, 5.0f );
 
 				// closer, but still not correct
 				const vec2 previousPixelLocation = ( previousOffset + vec2( mouse ) ) * previousZoom;
-				daedalusConfig.outputOffset = ( previousPixelLocation - vec2( mouse ) * daedalusConfig.outputZoom ) / daedalusConfig.outputZoom;
+				daedalusConfig.view.outputOffset = ( previousPixelLocation - vec2( mouse ) * daedalusConfig.view.outputZoom ) / daedalusConfig.view.outputZoom;
 			}
 		}
 
@@ -215,13 +215,13 @@ public:
 			textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 			textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 1 );
 			textureManager.BindImageForShader( "Display Texture", "outputImage", shader, 2 );
-			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.outputZoom );
-			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.outputOffset.x, daedalusConfig.outputOffset.y );
-			glUniform1i( glGetUniformLocation( shader, "edgeLines" ), daedalusConfig.edgeLines );
-			glUniform1i( glGetUniformLocation( shader, "centerLines" ), daedalusConfig.centerLines );
-			glUniform1i( glGetUniformLocation( shader, "ROTLines" ), daedalusConfig.ROTLines );
-			glUniform1i( glGetUniformLocation( shader, "goldenLines" ), daedalusConfig.goldenLines );
-			glUniform1i( glGetUniformLocation( shader, "vignette" ), daedalusConfig.vignette );
+			glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.view.outputZoom );
+			glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.view.outputOffset.x, daedalusConfig.view.outputOffset.y );
+			glUniform1i( glGetUniformLocation( shader, "edgeLines" ), daedalusConfig.view.edgeLines );
+			glUniform1i( glGetUniformLocation( shader, "centerLines" ), daedalusConfig.view.centerLines );
+			glUniform1i( glGetUniformLocation( shader, "ROTLines" ), daedalusConfig.view.ROTLines );
+			glUniform1i( glGetUniformLocation( shader, "goldenLines" ), daedalusConfig.view.goldenLines );
+			glUniform1i( glGetUniformLocation( shader, "vignette" ), daedalusConfig.view.vignette );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -239,7 +239,6 @@ public:
 			ss << fixedWidthNumberString( daedalusConfig.tiles.SampleCount(), 6, ' ' ) << " samples in ";
 			ss << fixedWidthNumberString( wholeSeconds, 5, ' ' ) << "." << fixedWidthNumberString( ( seconds - wholeSeconds ) * 1000, 3, '0' ) << "s";
 			textRenderer.DrawBlackBackedColorString( 1, ss.str(), vec3( 1.0f ) );
-
 			ss.str( "" );
 			float tDelta = ImGui::GetIO().DeltaTime * 1000.0f;
 			ss << " frame total:   " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << tDelta << "ms";
@@ -253,10 +252,6 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 		// application-specific update code
-
-		// I'd like to move this onto the daedalusConfig struct
-		daedalusConfig.outputOffset.x = std::clamp( daedalusConfig.outputOffset.x, -daedalusConfig.dragBufferAmount, daedalusConfig.targetWidth + daedalusConfig.dragBufferAmount );
-		daedalusConfig.outputOffset.y = std::clamp( daedalusConfig.outputOffset.y, -daedalusConfig.dragBufferAmount, daedalusConfig.targetHeight + daedalusConfig.dragBufferAmount );
 	}
 
 	void OnRender () {
@@ -276,10 +271,7 @@ public:
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
 
-		// event handling
 		HandleCustomEvents();
-
-		// derived-class-specific functionality
 		OnUpdate();
 		OnRender();
 

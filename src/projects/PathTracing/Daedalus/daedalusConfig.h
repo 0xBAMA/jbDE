@@ -1,8 +1,20 @@
 #include "tileDispenser.h"
 
-struct rngen {
+struct rngen_t {
 	rngi wangSeeder = rngi( 0, 10000000 );
 	rngi blueNoiseOffset = rngi( 0, 512 );
+};
+
+struct viewConfig_t {
+	bool edgeLines = true;
+	bool centerLines = true;
+	bool ROTLines = true;
+	bool goldenLines = true;
+	bool vignette = true;
+
+	// main display, grid pan + zoom
+	float outputZoom;
+	vec2 outputOffset;
 };
 
 struct daedalusConfig_t {
@@ -26,10 +38,8 @@ struct daedalusConfig_t {
 
 		// intialize the main view
 		showConfigWindow = true;
-		outputZoom = 1.0f;
-		// outputOffset = vec2( 0.0f );
-		outputOffset = ( vec2( targetWidth, targetHeight ) - vec2( outputWidth, outputHeight ) ) / 2.0f;
-		dragBufferAmount = 3000.0f;
+		view.outputZoom = 1.0f;
+		view.outputOffset = ( vec2( targetWidth, targetHeight ) - vec2( outputWidth, outputHeight ) ) / 2.0f;
 
 		// load a config file and shit? ( src/projects/PathTracing/Daedalus/config.json individual config )
 			// tbd, that could be a nice way to handle this
@@ -53,18 +63,9 @@ struct daedalusConfig_t {
 	uint32_t performanceHistorySamples;
 	std::deque< float > timeHistory;	// ms per frame
 
-	// main display, grid pan + zoom
-	float outputZoom;
-	vec2 outputOffset;
-	float dragBufferAmount;
-
-	// appearance config
-	bool edgeLines = true;
-	bool centerLines = true;
-	bool ROTLines = true;
-	bool goldenLines = true;
-	bool vignette = true;
+	// this needs to be nicer
+	viewConfig_t view;
 
 	// class holding the random number generators
-	rngen rng;
+	rngen_t rng;
 };
