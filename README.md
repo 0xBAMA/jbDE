@@ -3,6 +3,7 @@
 This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-engine) engine. One of the key points is for each project to inherit from a base engine class so that keeping projects up to date and working is a minimal load, makes my life a lot easier. I will be containing all the child projects as folders within this repository, in `src/projects`, and they will all inherit from the base engine class. General architecture is subject to change, but this is the current high-level plan.
 
 # Setup
+
 - Requires `libsdl2-dev`, `libglew-dev` on Ubuntu.
 - Make sure to recurse submodules to pull in submodule code - `git submodule update --init --recursive`, alternatively just run scripts/init.sh to do the same thing.
 - Run scripts/build.sh in order to build on Ubuntu. It just automates the building of the executables and moves it to the root directory, as files are referenced relative to that location, and then deletes the build folder (if called with the "clean" option).
@@ -11,16 +12,22 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 	- Current Project List:
 		- EngineDemo - minimal functioning of the display pipeline, imgui demo window, etc.
 		- Cellular Automata Experiments - Game of Life + some variants ( multiple parallel bitplanes, using bits for history ).
-		- Physarum Sim - reimplementation of my old [physarum sim](https://jbaker.graphics/writings/physarum.html), but with everything moved to compute shaders.
+		- Physarum Sim - reimplementation of my old [physarum sim](https://jbaker.graphics/writings/physarum.html), but with everything moved to compute shaders. Also, 2.5d and embossed versions.
 		- SoftBodies - port of [Softbodies](https://github.com/0xBAMA/SoftBodies) softbody sim on simple car chassis. Also, WIP GPU Implementation.
-		- Vertexture2 - reimplementation of [Vertexture](https://jbaker.graphics/writings/vertexture.html), making heavier use of the GPU, extending the point sprite sphere impostor thing to write correct depths
+		- Vertexture2 - reimplementation of [Vertexture](https://jbaker.graphics/writings/vertexture.html), making heavier use of the GPU, extending the point sprite sphere impostor thing to write correct depths - I'm going to rewrite this, to handle more than just spheres. Rasterizing bounding boxes, raytracing in the fragment shader - will handle explicit primitives, SDF, etc.
 		- VoxelSpace - Reimplementation of the VoxelSpace algorithm in a compute shader. I had done this [previously](https://jbaker.graphics/writings/voxelspace.html), but this time using a custom framebuffer in order to do postprocessing etc on the color attachment.
+		- CellarDoor - visually abstract voxel-based forwards pathtracer.
+		- Aquaria - first experimentation with DDA grid traversals for volumetrics.
+		- Siren - tile-based async GPU pathtracer, handling both explicit and implicit intersection primitives.
+		- Daedalus - successor to Siren - rewrite/reorganization in progress.
 		- Future Projects
-			- Port of [Siren](https://github.com/0xBAMA/Siren)
+			- Some prototypes for a future vehicle sim, in `src/projects/VehicleTests`
 			- Next version of [Voraldo](https://github.com/0xBAMA/Voraldo13), Voraldo14
 
 ## Features
+
 **Graphics Stuff**
+
 - [SDL2](https://wiki.libsdl.org/) is used for windowing and input handling
 - [GLEW](https://glew.sourceforge.net/) as an OpenGL function loader
 - OpenGL Debug callback for error/warning reporting
@@ -36,11 +43,13 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 - OpenGL texture bindings management with bindsets - needs to be updated to use the texture manager.
 
 **Noise**
+
 - Diamond-Square algorithm heightmap generation
 - [FastNoise2](https://github.com/Auburn/FastNoise2) - flexible, powerful, very fast noise generation
 - 4 channel blue noise texture from [Christoph Peters](http://momentsingraphics.de/BlueNoise.html)
 
 **Utilities**
+
 - CMake parallel build setup
 - Image2 wrapper for loading/saving/resizing/etc of images ( STB and [LodePNG](https://lodev.org/lodepng/) I/O backends )
 	- Templated for underlying type ( generally assumes it is either uint8_t or float ) and number of channels ( technically up to 255 channels, but some functions make assumptions about channel count e.g. calculating luma )
@@ -60,6 +69,7 @@ This is an evolution of the [NQADE](https://github.com/0xBAMA/not-quite-a-demo-e
 	- Scoped timers, which start timing in the constructor, and end in the destructor - using floating scopes, I can very easily time how long different options are taking.
 
 **Data Resources**
+
 - Bayer pattern header, size 2, 4, 8 patterns
 - Header with some color utilities
 	- Large number of color palettes, and some utilities for randomly picking + interpolated or nearest sampling of color sets
