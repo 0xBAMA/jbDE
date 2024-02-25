@@ -329,6 +329,22 @@ public:
 		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
 	}
 
+	void ZeroTexture2D ( string label ) {
+		GLuint handle;
+		uint32_t w, h;
+		for ( auto& tex : textures ) {
+			if ( tex.label == label ) {
+				w = tex.creationOptions.width;
+				h = tex.creationOptions.height;
+				handle = tex.textureHandle;
+			}
+		}
+		Image_4U zeroes( w, h );
+		void * data = ( void * ) zeroes.GetImageDataBasePtr();
+		glBindTexture( GL_TEXTURE_2D, handle );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+	}
+
 	void Update ( string label /*, ... */ ) {
 		// pass in new data for the texture... tbd
 	}

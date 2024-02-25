@@ -109,23 +109,12 @@ public:
 		daedalusConfig.timeHistory.pop_front();
 	}
 
-
 	// this should really move into the texture wrapper
 	void ResetAccumulators() {
 		ZoneScoped;
-		const int w = daedalusConfig.targetWidth;
-		const int h = daedalusConfig.targetHeight;
-		Image_4U zeroes( w, h );
-		void * data = ( void * ) zeroes.GetImageDataBasePtr();
-		GLuint handle = textureManager.Get( "Color Accumulator" );
-		glBindTexture( GL_TEXTURE_2D, handle );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		handle = textureManager.Get( "Depth/Normals Accumulator" );
-		glBindTexture( GL_TEXTURE_2D, handle );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		handle = textureManager.Get( "Tonemapped" );
-		glBindTexture( GL_TEXTURE_2D, handle );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		textureManager.ZeroTexture2D( "Color Accumulator" );
+		textureManager.ZeroTexture2D( "Depth/Normals Accumulator" );
+		textureManager.ZeroTexture2D( "Tonemapped" );
 	}
 
 	void ResizeAccumulators( uint32_t x, uint32_t y ) {
