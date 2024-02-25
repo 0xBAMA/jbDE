@@ -35,5 +35,5 @@ void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
 	daedalusConfig.tiles.Reset( daedalusConfig.tiles.tileSize, x, y );
 
 	// recenter the view on the middle of the image
-	daedalusConfig.view.outputOffset = ( vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) - vec2( config.width, config.height ) ) / 2.0f;
+	daedalusConfig.view.outputOffset = daedalusConfig.view.outputZoom * ( vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) - vec2( config.width, config.height ) ) / 2.0f;
 }
