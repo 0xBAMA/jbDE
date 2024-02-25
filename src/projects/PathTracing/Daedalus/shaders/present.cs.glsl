@@ -114,5 +114,5 @@ void main () {
 		uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
 	}
 
-	imageStore( outputImage, writeLoc, vec4( result, 1.0f ) );
+	imageStore( outputImage, writeLoc, vec4( result - 0.1f * ditherValue, 1.0f ) );
 }
