@@ -1012,7 +1012,6 @@ Intersection IntersectSphere ( in vec3 origin, in vec3 direction, in vec3 center
 	return Intersection( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
 }
 
-// broken for some reason, tbd
 Intersection IntersectBox ( in vec3 origin, in vec3 direction, in vec3 center, in vec3 size ) {
 	vec3 oc = origin - center;
 	vec3 m = 1.0f / direction;

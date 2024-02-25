@@ -41,6 +41,9 @@ struct daedalusConfig_t {
 		view.outputZoom = 1.0f;
 		view.outputOffset = ( vec2( targetWidth, targetHeight ) - vec2( outputWidth, outputHeight ) ) / 2.0f;
 
+		subpixelJitterMethod = 1;
+		cameraMode = 0;
+
 		// load a config file and shit? ( src/projects/PathTracing/Daedalus/config.json individual config )
 			// tbd, that could be a nice way to handle this
 	}
@@ -65,6 +68,9 @@ struct daedalusConfig_t {
 
 	// this needs to be nicer
 	viewConfig_t view;
+
+	int subpixelJitterMethod;
+	int cameraMode;
 
 	// class holding the random number generators
 	rngen_t rng;

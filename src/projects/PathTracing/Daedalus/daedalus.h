@@ -135,6 +135,9 @@ public:
 		if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
 			blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
 		glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
+		glUniform1f( glGetUniformLocation( shader, "subpixelJitterMethod" ), daedalusConfig.subpixelJitterMethod );
+		glUniform1f( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
+
 		textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 		textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
 		textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
