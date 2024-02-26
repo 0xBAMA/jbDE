@@ -44,20 +44,73 @@ public:
 		// // current state of the whole keyboard
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
+		// current state of the modifier keys
+		const SDL_Keymod k	= SDL_GetModState();
+		const bool shift		= ( k & KMOD_SHIFT );
+		// const bool alt		= ( k & KMOD_ALT );
+		const bool control		= ( k & KMOD_CTRL );
+		// const bool caps		= ( k & KMOD_CAPS );
+		// const bool super		= ( k & KMOD_GUI );
+
 		if ( state[ SDL_SCANCODE_S ] ) {
 			palette::PickRandomPalette( true );
 		}
 
-		// // current state of the modifier keys
-		// const SDL_Keymod k	= SDL_GetModState();
-		// const bool shift		= ( k & KMOD_SHIFT );
+		if ( state[ SDL_SCANCODE_R ] && shift ) {
+			ResetAccumulators();
+		}
 
 		if ( state[ SDL_SCANCODE_Y ] && shift ) {
 			CompileShaders();
 		}
 
-		// float scrollAmount = ImGui::GetIO().MouseWheel;
-		// daedalusConfig.view.outputZoom -= scrollAmount * 0.08f;
+		// quaternion based rotation via retained state in the basis vectors
+		const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
+		if ( state[ SDL_SCANCODE_W ] ) {
+			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisX ); // basisX is the axis, therefore remains untransformed
+			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
+			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
+		}
+		if ( state[ SDL_SCANCODE_S ] ) {
+			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisX );
+			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
+			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
+		}
+		if ( state[ SDL_SCANCODE_A ] ) {
+			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisY ); // same as above, but basisY is the axis
+			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
+			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
+		}
+		if ( state[ SDL_SCANCODE_D ] ) {
+			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisY );
+			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
+			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
+		}
+		if ( state[ SDL_SCANCODE_Q ] ) {
+			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisZ ); // and again for basisZ
+			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
+			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
+		}
+		if ( state[ SDL_SCANCODE_E ] ) {
+			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisZ );
+			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
+			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
+		}
+
+		// f to reset basis, shift + f to reset basis and home to origin
+		if ( state[ SDL_SCANCODE_F ] ) {
+			if ( shift ) daedalusConfig.render.viewerPosition = vec3( 0.0f, 0.0f, 0.0f );
+			// reset to default basis
+			daedalusConfig.render.basisX = vec3( 1.0f, 0.0f, 0.0f );
+			daedalusConfig.render.basisY = vec3( 0.0f, 1.0f, 0.0f );
+			daedalusConfig.render.basisZ = vec3( 0.0f, 0.0f, 1.0f );
+		}
+		if ( state[ SDL_SCANCODE_UP ] )			daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisZ;
+		if ( state[ SDL_SCANCODE_DOWN ] )		daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisZ;
+		if ( state[ SDL_SCANCODE_RIGHT ] )		daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisX;
+		if ( state[ SDL_SCANCODE_LEFT ] )		daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisX;
+		if ( state[ SDL_SCANCODE_PAGEUP ] )		daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisY;
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] )	daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisY;
 
 		ivec2 mouse;
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
