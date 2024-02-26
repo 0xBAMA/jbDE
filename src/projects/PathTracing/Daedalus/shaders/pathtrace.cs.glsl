@@ -70,15 +70,6 @@ vec2 SubpixelOffset () {
 //=============================================================================================================================
 //=============================================================================================================================
 
-
-#define NORMAL		0
-#define SPHERICAL	1
-#define SPHERICAL2	2
-#define SPHEREBUG	3
-#define SIMPLEORTHO	4
-#define ORTHO		5
-#define COMPOUND	6
-
 uniform vec3 viewerPosition;
 uniform vec3 basisX;
 uniform vec3 basisY;
@@ -96,11 +87,44 @@ uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
 uniform float thinLensJitterRadius;
 
+//=============================================================================================================================
+// key structs
+//=============================================================================================================================
+//=============================================================================================================================
 struct ray_t {
 	vec3 origin;
 	vec3 direction;
 };
+//=============================================================================================================================
+struct intersection_t {
+	float dTravel;
+	vec3 albedo;
+	vec3 normal;
+	bool frontFaceHit;
+	int materialID;
 
+	// tbd:
+	// material properties... IoR, roughness...
+	// absorption state...
+}
+//=============================================================================================================================
+struct result_t {
+	vec4 color;
+	vec4 normalD;
+};
+//=============================================================================================================================
+
+//=============================================================================================================================
+// getting the camera ray for the current pixel
+//=============================================================================================================================
+
+#define NORMAL		0
+#define SPHERICAL	1
+#define SPHERICAL2	2
+#define SPHEREBUG	3
+#define SIMPLEORTHO	4
+#define ORTHO		5
+#define COMPOUND	6
 ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
@@ -240,64 +264,93 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 	return r;
 }
 
+//=============================================================================================================================
+// evaluate the material's effect on this ray
+//=============================================================================================================================
+
+#define NOHIT						0
+#define EMISSIVE					1
+#define DIFFUSE						2
+#define DIFFUSEAO					3
+#define METALLIC					4
+#define RAINBOW						5
+#define MIRROR						6
+#define PERFECTMIRROR				7
+#define WOOD						8
+#define MALACHITE					9
+#define LUMARBLE					10
+#define LUMARBLE2					11
+#define LUMARBLE3					12
+#define LUMARBLECHECKER				13
+#define CHECKER						14
+#define REFRACTIVE					15
+#define REFRACTIVE_FROSTED			16
+
+// objects shouldn't have these materials, it is used in the explicit intersection logic / bounce behavior
+#define REFRACTIVE_BACKFACE			100
+#define REFRACTIVE_FROSTED_BACKFACE	101
+
+void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
+	// epsilon bump away from surface ( only for non-refractive materials )
+	// precalculate the reflected, diffuse, specular vectors
+	// if the ray escapes
+		// contribution from the skybox
+	// else
+		// material specific behavior
+}
 
 //=============================================================================================================================
 //=============================================================================================================================
 
-struct result_t {
-	vec4 color;
-	vec4 normalD;
-};
+intersection_t GetNearestSceneIntersection( in ray_t ray ) {
+	intersection_t result;
+
+	// evaluate the different types of primitives, here - return a single intersection_t representing what the ray hits, first
+
+	return result;
+}
 
 //=============================================================================================================================
 //=============================================================================================================================
 
-result_t ColorSample( in vec2 uv ) {
+result_t GetNewSample( in vec2 uv ) {
 	// get the camera ray for this uv
 	const ray_t rayInitial = GetCameraRayForUV( uv );
+
+	// initialize state for the ray
+	result_t result;
 
 	// initialize the "previous", "current" values
 	ray_t ray, rayPrevious;
 	ray = rayPrevious = rayInitial;
 
-	// initialize state for the ray ( finalColor, throughput pathtracing accumulators )
+	// pathtracing accumulators
 	vec3 finalColor = vec3( 0.0f );
 	vec3 throughput = vec3( 1.0f );
 
 	for ( int bounce = 0; bounce < maxBounces; bounce++ ) {
+		// get the scene intersection for this bounce
+		intersection_t intersection = GetNearestSceneIntersection( ray );
 
-		// get the scene intersection
+		if ( bounce == 0 ) // first hit populates the normal/depth buffer result
+			result.normalD = vec4( intersection.normal, intersection.dTravel );
 
-			// if ( bounce == 0 ), this should be used for the normalD on the result
-
-		// update the previous ray values
+		// update the ray values
 		rayPrevious = ray;
+		ray.origin = rayPrevious.origin + intersection.dTravel * rayPrevious.Direction;
 
-		// epsilon bump away from surface ( only for non-refractive materials )
-
-		// function to evaluate material? I would like to keep this loop cleaner
-
-		// {
-
-			// precalculate the reflected, diffuse, specular vectors
-
-			// if the ray escapes
-
-				// contribution from the skybox
-
-			// else
-
-				// material specific behavior
-
-		// }
+		// evaluate the material - updates finalColor, throughput, ray
+		EvaluateMaterial( finalColor, throughput, intersection, ray, rayPrevious );
 
 		// russian roulette termination
-
+		float maxChannel = vmax( throughput );
+		if ( NormalizedRandomFloat() > maxChannel ) break;
+		throughput *= 1.0f / maxChannel; // compensation term
 	}
 
-	// return final color * exposure - depth included, specifics tbd
-	vec4 result = vec4( 1.0f );
-	return result_t( result * exposure, vec4( 0.0f ) );
+	// apply final exposure value and return
+	result.color.rgb = finalColor * exposure;
+	return result;
 }
 
 //=============================================================================================================================
@@ -309,7 +362,7 @@ void ProcessTileInvocation( in ivec2 pixel ) {
 	uv = uv * 2.0f - vec2( 1.0f );
 
 	// get the new color sample
-	result_t newData = ColorSample( uv );
+	result_t newData = GetNewSample( uv );
 
 	// load the previous color, normal, depth values
 	vec4 previousColor = imageLoad( accumulatorColor, pixel );
