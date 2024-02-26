@@ -91,9 +91,13 @@ void Daedalus::SendPresentUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "scale" ), daedalusConfig.view.outputZoom );
 	glUniform2f( glGetUniformLocation( shader, "offset" ), daedalusConfig.view.outputOffset.x, daedalusConfig.view.outputOffset.y );
 	glUniform1i( glGetUniformLocation( shader, "edgeLines" ), daedalusConfig.view.edgeLines );
+	glUniform3fv( glGetUniformLocation( shader, "edgeLinesColor" ), 1, glm::value_ptr( daedalusConfig.view.edgeLinesColor ) );
 	glUniform1i( glGetUniformLocation( shader, "centerLines" ), daedalusConfig.view.centerLines );
+	glUniform3fv( glGetUniformLocation( shader, "centerLinesColor" ), 1, glm::value_ptr( daedalusConfig.view.centerLinesColor ) );
 	glUniform1i( glGetUniformLocation( shader, "ROTLines" ), daedalusConfig.view.ROTLines );
+	glUniform3fv( glGetUniformLocation( shader, "ROTLinesColor" ), 1, glm::value_ptr( daedalusConfig.view.ROTLinesColor ) );
 	glUniform1i( glGetUniformLocation( shader, "goldenLines" ), daedalusConfig.view.goldenLines );
+	glUniform3fv( glGetUniformLocation( shader, "goldenLinesColor" ), 1, glm::value_ptr( daedalusConfig.view.goldenLinesColor ) );
 	glUniform1i( glGetUniformLocation( shader, "vignette" ), daedalusConfig.view.vignette );
 
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );

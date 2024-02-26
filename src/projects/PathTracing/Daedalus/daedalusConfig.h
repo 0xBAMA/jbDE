@@ -7,9 +7,13 @@ struct rngen_t {
 
 struct viewConfig_t {
 	bool edgeLines = true;
+	vec3 edgeLinesColor = vec3( 0.0618f );
 	bool centerLines = true;
+	vec3 centerLinesColor = vec3( 0.1618f, 0.0618f, 0.0f );
 	bool ROTLines = true;
+	vec3 ROTLinesColor = vec3( 0.0f, 0.0618f, 0.0618f );
 	bool goldenLines = true;
+	vec3 goldenLinesColor = vec3( 0.1618f, 0.0f, 0.0f );
 	bool vignette = true;
 
 	// main display, grid pan + zoom

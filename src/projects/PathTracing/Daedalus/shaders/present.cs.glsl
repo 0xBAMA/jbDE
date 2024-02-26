@@ -10,9 +10,17 @@ uniform vec2 offset;
 
 // configurable appearance
 uniform bool edgeLines;
+uniform vec3 edgeLinesColor;
+
 uniform bool centerLines;
+uniform vec3 centerLinesColor;
+
 uniform bool ROTLines;
+uniform vec3 ROTLinesColor;
+
 uniform bool goldenLines;
+uniform vec3 goldenLinesColor;
+
 uniform bool vignette;
 
 // https://www.shadertoy.com/view/wdK3Dy
@@ -67,8 +75,8 @@ void main () {
 
 		ivec2 myPixelLocation = ivec2( pixelLocation );
 		myPixelLocation.y = preppedSize.y - myPixelLocation.y - 1;
-		// vec3 myPixelColor = texture( preppedImage, ( myPixelLocation + vec2( 0.5f ) ) / vec2( preppedSize ) ).rgb;
-		vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
+		vec3 myPixelColor = texture( preppedImage, ( myPixelLocation + vec2( 0.5f ) ) / vec2( preppedSize ) ).rgb;
+		// vec3 myPixelColor = texelFetch( preppedImage, myPixelLocation, 0 ).rgb;
 		result = clamp( myPixelColor - result, vec3( 0.0f ), vec3( 1.0f ) );
 		if ( !zoomedIn ) {
 			result = myPixelColor; // this may need to change to a fullscreen triangle so that mipmapped filtering Just Works tm
@@ -79,30 +87,30 @@ void main () {
 
 		if ( edgeLines ) { // markers at the corners, to get top, left, right, bottom outlines
 			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation ) );
-			result += vec3( values.x + values.y ) * 0.0618f;
+			result += vec3( values.x + values.y ) * edgeLinesColor;
 			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - preppedSize ) );
-			result += vec3( values.x + values.y ) * 0.0618f;
+			result += vec3( values.x + values.y ) * edgeLinesColor;
 		}
 
 		if ( centerLines ) { // cross through center of the image
 			values = smoothstep( vec2( 2.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.0f ) ) );
-			result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0618f, 0.0f );
+			result += vec3( values.x + values.y ) * centerLinesColor;
 		}
 
 		if ( ROTLines ) { // rule of thirds layout lines
 			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 3.0f ) ) );
-			result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+			result += vec3( values.x + values.y ) * ROTLinesColor;
 
 			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 2.0f * preppedSize / 3.0f ) ) );
-			result += vec3( values.x + values.y ) * vec3( 0.0f, 0.0618f, 0.0618f );
+			result += vec3( values.x + values.y ) * ROTLinesColor;
 		}
 
 		if ( goldenLines ) { // golden ratio layout lines
 			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( preppedSize / 2.618f ) ) );
-			result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+			result += vec3( values.x + values.y ) * goldenLinesColor;
 
 			values = smoothstep( vec2( 1.25f ), vec2( 0.0f ), abs( pixelLocation - ( 1.618f * preppedSize / 2.618f ) ) );
-			result += vec3( values.x + values.y ) * vec3( 0.1618f, 0.0f, 0.0f );
+			result += vec3( values.x + values.y ) * goldenLinesColor;
 		}
 
 		result -= ditherValue;

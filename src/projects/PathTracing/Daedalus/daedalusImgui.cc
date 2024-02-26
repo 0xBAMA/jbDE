@@ -23,9 +23,13 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::Unindent();
 		ImGui::Text( "  Displaying at: %dx%d", daedalusConfig.outputWidth, daedalusConfig.outputHeight );
 		ImGui::Checkbox( "Edge Lines", &daedalusConfig.view.edgeLines );
+		ImGui::SameLine(); ImGui::SetCursorPosX( 200 ); ImGui::ColorEdit3( "##edge", ( float * ) &daedalusConfig.view.edgeLinesColor, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::Checkbox( "Center Lines", &daedalusConfig.view.centerLines );
+		ImGui::SameLine(); ImGui::SetCursorPosX( 200 ); ImGui::ColorEdit3( "##center", ( float * ) &daedalusConfig.view.centerLinesColor, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::Checkbox( "Rule of Thirds Lines", &daedalusConfig.view.ROTLines );
+		ImGui::SameLine(); ImGui::SetCursorPosX( 200 ); ImGui::ColorEdit3( "##thirds", ( float * ) &daedalusConfig.view.ROTLinesColor, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::Checkbox( "Golden Ratio Lines", &daedalusConfig.view.goldenLines );
+		ImGui::SameLine(); ImGui::SetCursorPosX( 200 ); ImGui::ColorEdit3( "##golden", ( float * ) &daedalusConfig.view.goldenLinesColor, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::Checkbox( "Vignette", &daedalusConfig.view.vignette );
 	}
 
