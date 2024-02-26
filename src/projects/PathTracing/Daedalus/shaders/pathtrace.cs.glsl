@@ -254,36 +254,50 @@ struct result_t {
 
 result_t ColorSample( in vec2 uv ) {
 	// get the camera ray for this uv
+	const ray_t rayInitial = GetCameraRayForUV( uv );
 
 	// initialize the "previous", "current" values
+	ray_t ray, rayPrevious;
+	ray = rayPrevious = rayInitial;
 
-	// initialize state for the ray ( finalColor, throughput )
+	// initialize state for the ray ( finalColor, throughput pathtracing accumulators )
+	vec3 finalColor = vec3( 0.0f );
+	vec3 throughput = vec3( 1.0f );
 
-	// for bounces
+	for ( int bounce = 0; bounce < maxBounces; bounce++ ) {
 
 		// get the scene intersection
 
+			// if ( bounce == 0 ), this should be used for the normalD on the result
+
 		// update the previous ray values
+		rayPrevious = ray;
 
-		// epsilon bump
+		// epsilon bump away from surface ( only for non-refractive materials )
 
-		// precalculate the reflected, diffuse, specular vectors
+		// function to evaluate material? I would like to keep this loop cleaner
 
-		// if the ray escapes
+		// {
 
-			// contribution from the skybox
+			// precalculate the reflected, diffuse, specular vectors
 
-		// else
+			// if the ray escapes
 
-			// material specific behavior
+				// contribution from the skybox
+
+			// else
+
+				// material specific behavior
+
+		// }
 
 		// russian roulette termination
 
-	// return final color * exposure - depth included
+	}
 
-	vec4 result = vec4( GetCameraRayForUV( uv ).direction.xyz, 1.0f );
-
-	return result_t( result, vec4( 0.0f ) );
+	// return final color * exposure - depth included, specifics tbd
+	vec4 result = vec4( 1.0f );
+	return result_t( result * exposure, vec4( 0.0f ) );
 }
 
 //=============================================================================================================================
