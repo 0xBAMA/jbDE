@@ -166,18 +166,19 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 		// compound eye hex vision by Samon
 		// https://www.shadertoy.com/view/4lfcR7
 
-		// strange, wants uv in 1..2
+		// strange, original one wanted uv in 1..2
+		uv.y /= aspectRatio;
 		uv.xy /= 2.0f;
 		uv.xy += 1.0f;
-		float R = 0.075f;
 
-		//Estimate hex coordinate
+		// Estimate hex coordinate
+		float R = 0.075f;
 		vec2 grid;
 		grid.y = floor( uv.y / ( 1.5f * R ) );
 		float odd = mod( grid.y, 2.0f );
 		grid.x = floor( uv.x / ( 1.732050807 * R ) - odd * 0.5f );
 
-		//Find possible centers of hexagons
+		// Find possible centers of hexagons
 		vec2 id = grid;
 		float o = odd;
 		vec2 h1 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
@@ -186,7 +187,7 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 		id = grid + vec2( odd, 1.0f ); o = 1.0f - odd;
 		vec2 h3 = vec2( 1.732050807f * R * ( id.x + 0.5f * o ), 1.5f * id.y * R );
 
-		//Find closest center
+		// Find closest center
 		float d1 = dot( h1 - uv, h1 - uv );
 		float d2 = dot( h2 - uv, h2 - uv );
 		float d3 = dot( h3 - uv, h3 - uv );
@@ -198,15 +199,15 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 			d1 = d3;
 			h1 = h3;
 		}
-		
-		//Hexagon UV
+
+		// Hexagon UV
 		vec2 uv2 = uv - h1;
 
-		//Set Hexagon offset
+		// Set Hexagon offset
 		const float offset = 2.0f;
 		uv = ( uv.xy - 1.0f ) + uv2 * offset;
 
-		//Per Facet Fisheye effect (optional)
+		// Per Facet Fisheye effect (optional)
 		vec2 coords = ( uv2 - 0.5f * R ) * 2.0f;
 		vec2 fisheye;
 		float intensity = 1.0f;

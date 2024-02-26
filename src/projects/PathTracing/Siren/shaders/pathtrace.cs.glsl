@@ -239,13 +239,9 @@ ray getCameraRayForUV ( vec2 uv ) { // switchable cameras ( fisheye, etc ) - Ass
 		// compound eye hex vision by Samon
 		// https://www.shadertoy.com/view/4lfcR7
 
-		// strange, wants uv in 1..2
-		// uv.x *= aspectRatio;
-
+		uv.x *= aspectRatio;
 		uv *= uvScalar;
 
-		uv.xy /= 2.0f;
-		uv.xy += 1.0f;
 		float R = 0.075f;
 
 		//Estimate hex coordinate
