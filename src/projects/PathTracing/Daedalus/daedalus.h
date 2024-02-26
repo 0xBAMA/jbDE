@@ -14,9 +14,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// to put the data into the accumulator
-			shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
-			shaders[ "Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
-			shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
+			CompileShaders();
 
 			// create the new accumulator(s)
 			textureOptions_t opts;
@@ -53,10 +51,10 @@ public:
 		// // current state of the modifier keys
 		// const SDL_Keymod k	= SDL_GetModState();
 		// const bool shift		= ( k & KMOD_SHIFT );
-		// const bool alt		= ( k & KMOD_ALT );
-		// const bool control	= ( k & KMOD_CTRL );
-		// const bool caps		= ( k & KMOD_CAPS );
-		// const bool super		= ( k & KMOD_GUI );
+
+		if ( state[ SDL_SCANCODE_Y ] && shift ) {
+			CompileShaders();
+		}
 
 		// float scrollAmount = ImGui::GetIO().MouseWheel;
 		// daedalusConfig.view.outputZoom -= scrollAmount * 0.08f;
@@ -140,6 +138,12 @@ public:
 		GLuint64 t;
 		glGetQueryObjectui64v( timer, GL_QUERY_RESULT, &t );
 		return t;
+	}
+
+	void CompileShaders() {
+		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
+		shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
 	}
 
 	void ComputePasses () {
