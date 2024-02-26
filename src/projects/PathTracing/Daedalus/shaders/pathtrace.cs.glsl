@@ -86,8 +86,11 @@ uniform vec3 basisZ;
 
 uniform float uvScalar;
 uniform int cameraType;
+uniform int maxBounces;
 uniform int bokehMode;
 uniform float FoV;
+uniform float maxDistance;
+uniform float epsilon;
 
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
@@ -167,7 +170,8 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 		// https://www.shadertoy.com/view/4lfcR7
 
 		// strange, original one wanted uv in 1..2
-		uv.y /= aspectRatio;
+		// uv.y /= aspectRatio;
+		uv.x *= aspectRatio;
 		uv.xy /= 2.0f;
 		uv.xy += 1.0f;
 

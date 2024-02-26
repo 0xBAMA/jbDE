@@ -26,6 +26,8 @@ struct renderConfig_t {
 	float uvScalar;
 	float exposure;
 	float FoV;
+	float epsilon;
+	float maxDistance;
 
 	vec3 viewerPosition;
 	vec3 basisX;
@@ -37,6 +39,7 @@ struct renderConfig_t {
 	float thinLensJitterRadius;
 	int bokehMode;
 	int cameraType;
+	int maxBounces;
 };
 
 struct daedalusConfig_t {
@@ -74,6 +77,8 @@ struct daedalusConfig_t {
 		render.uvScalar = 1.0f;
 		render.exposure = 1.0f;
 		render.FoV = 0.618f;
+		render.epsilon = 0.001;
+		render.maxDistance = 100.0f;
 
 		render.viewerPosition = vec3( 0.0f );
 		render.basisX = vec3( 1.0f, 0.0f, 0.0f );
@@ -85,6 +90,7 @@ struct daedalusConfig_t {
 		render.thinLensJitterRadius = 1.0f;
 		render.bokehMode = 0;
 		render.cameraType = 0;
+		render.maxBounces = 10;
 
 		// ===============================
 
