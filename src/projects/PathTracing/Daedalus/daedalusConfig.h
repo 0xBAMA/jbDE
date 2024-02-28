@@ -87,7 +87,7 @@ struct daedalusConfig_t {
 		render.uvScalar = 1.0f;
 		render.exposure = 1.0f;
 		render.FoV = 0.618f;
-		render.epsilon = 0.001;
+		render.epsilon = 0.001f;
 		render.maxDistance = 100.0f;
 
 		render.viewerPosition = vec3( 0.0f );
@@ -98,12 +98,12 @@ struct daedalusConfig_t {
 		render.thinLensEnable = false;
 		render.thinLensFocusDistance = 10.0f;
 		render.thinLensJitterRadius = 1.0f;
-		render.bokehMode = 0;
+		render.bokehMode = 4;
 		render.cameraType = 0;
 		render.maxBounces = 10;
 
 		render.scene.raymarchEnable = true;
-		render.scene.raymarchMaxDistance = 100.0f;
+		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
 
