@@ -67,12 +67,12 @@ public:
 		// quaternion based rotation via retained state in the basis vectors
 		const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
 		if ( state[ SDL_SCANCODE_W ] ) {
-			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisX ); // basisX is the axis, therefore remains untransformed
+			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisX ); // basisX is the axis, therefore remains untransformed
 			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
 			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
 		}
 		if ( state[ SDL_SCANCODE_S ] ) {
-			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisX );
+			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisX );
 			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
 			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
 		}
@@ -100,7 +100,6 @@ public:
 		// f to reset basis, shift + f to reset basis and home to origin
 		if ( state[ SDL_SCANCODE_F ] ) {
 			if ( shift ) daedalusConfig.render.viewerPosition = vec3( 0.0f, 0.0f, 0.0f );
-			// reset to default basis
 			daedalusConfig.render.basisX = vec3( 1.0f, 0.0f, 0.0f );
 			daedalusConfig.render.basisY = vec3( 0.0f, 1.0f, 0.0f );
 			daedalusConfig.render.basisZ = vec3( 0.0f, 0.0f, 1.0f );
@@ -109,8 +108,8 @@ public:
 		if ( state[ SDL_SCANCODE_DOWN ] )		daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisZ;
 		if ( state[ SDL_SCANCODE_RIGHT ] )		daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisX;
 		if ( state[ SDL_SCANCODE_LEFT ] )		daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisX;
-		if ( state[ SDL_SCANCODE_PAGEUP ] )		daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisY;
-		if ( state[ SDL_SCANCODE_PAGEDOWN ] )	daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisY;
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] )	daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisY;
+		if ( state[ SDL_SCANCODE_PAGEUP ] )		daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisY;
 
 		ivec2 mouse;
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
