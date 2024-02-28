@@ -292,23 +292,113 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 #define REFRACTIVE_FROSTED_BACKFACE	101
 
 void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
-	// epsilon bump away from surface ( only for non-refractive materials )
-	// precalculate the reflected, diffuse, specular vectors
+	// epsilon bump, along the normal vector, for non-refractive surfaces
+	// if ( result.material != REFRACTIVE && result.material != REFRACTIVE_BACKFACE )
+		ray.origin += 2.0f * epsilon * intersection.normal;
+
+	// precalculate reflected vector, random diffuse vector, random specular vector
+	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
+	const vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * intersection.normal + RandomUnitVector() );
+	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), 0.1f ) ); // refit this to handle roughness
+
 	// if the ray escapes
-		// contribution from the skybox
-	// else
+	if ( intersection.materialID == NOHIT ) { // tbd, temporary - does this need to be a distance check?
+		// contribution from the skybox - placeholder
+		finalColor += throughput * vec3( 0.6f );
+	} else {
 		// material specific behavior
+		switch( intersection.materialID ) {
+		case DIFFUSE:
+			throughput *= intersection.albedo;
+			ray.direction = randomVectorDiffuse;
+			break;
+
+		default:
+			break;
+		}
+	}
 }
 
 //=============================================================================================================================
+// SDF RAYMARCH GEOMETRY
+//=============================================================================================================================
+
+// parameters
+uniform bool raymarchEnable;
+uniform float raymarchMaxDistance;
+uniform float raymarchUnderstep;
+uniform int raymarchMaxSteps;
+
+// global state tracking
+vec3 hitColor;
+int hitSurfaceType;
+
+// Scene SDF
+float de( in vec3 p ) {
+	vec3 pOriginal = p;
+	float sceneDist = 1000.0f;
+	hitColor = vec3( 0.0f );
+	hitSurfaceType = NOHIT;
+
+	if ( raymarchEnable ) {
+	// form for the following:
+		// const d = blah whatever SDF
+		// sceneDist = min( sceneDist, d )
+		// if ( sceneDist == d && d < epsilon ) {
+			// set material specifics - hitColor, hitSurfaceType
+		// }
+
+		pModInterval1( p.x, 1.0f, -5, 5 );
+		pModInterval1( p.y, 1.0f, -5, 5 );
+		pModInterval1( p.z, 1.0f, -5, 5 );
+		const float dSphere = distance( p, vec3( 0.0f ) ) - 0.5f;
+		sceneDist = min( sceneDist, dSphere );
+		if ( sceneDist == dSphere && dSphere < epsilon ) {
+			hitColor = vec3( 0.618f, 0.1f, 0.1f );
+			hitSurfaceType = DIFFUSE;
+		}
+	}
+	return sceneDist;
+}
+
+vec3 SDFNormal( in vec3 position ) {
+	vec2 e = vec2( epsilon, 0.0f );
+	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
+}
+
+intersection_t raymarch( in ray_t ray ) {
+	float dQuery = 0.0f;
+	float dTotal = 0.0f;
+	vec3 pQuery = ray.origin;
+	for ( int steps = 0; steps < raymarchMaxSteps; steps++ ) {
+		pQuery = ray.origin + dTotal * ray.direction;
+		dQuery = de( pQuery );
+		dTotal += dQuery * raymarchUnderstep;
+		if ( dTotal > raymarchMaxDistance || abs( dQuery ) < epsilon ) {
+			break;
+		}
+	}
+	intersection_t intersection;
+	intersection.dTravel = dTotal;
+	intersection.albedo = hitColor;
+	intersection.normal = SDFNormal( ray.origin + dTotal * ray.direction );
+	intersection.frontFaceHit = ( dot( intersection.normal, ray.direction ) <= 0.0f );
+	intersection.materialID = hitSurfaceType;
+	return intersection;
+}
+
 //=============================================================================================================================
 
 intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 	intersection_t result;
 
 	// evaluate the different types of primitives, here - return a single intersection_t representing what the ray hits, first
+	intersection_t SDFResult = raymarch( ray );
 
-	return result;
+	// todo, logic to combine, decide
+
+	// return result;
+	return SDFResult;
 }
 
 //=============================================================================================================================
@@ -338,7 +428,7 @@ result_t GetNewSample( in vec2 uv ) {
 
 		// update the ray values
 		rayPrevious = ray;
-		ray.origin = rayPrevious.origin + intersection.dTravel * rayPrevious.Direction;
+		ray.origin = rayPrevious.origin + intersection.dTravel * rayPrevious.direction;
 
 		// evaluate the material - updates finalColor, throughput, ray
 		EvaluateMaterial( finalColor, throughput, intersection, ray, rayPrevious );
