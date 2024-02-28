@@ -82,6 +82,7 @@ uniform int bokehMode;
 uniform float FoV;
 uniform float maxDistance;
 uniform float epsilon;
+uniform float exposure;
 
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
@@ -106,7 +107,7 @@ struct intersection_t {
 	// tbd:
 	// material properties... IoR, roughness...
 	// absorption state...
-}
+};
 //=============================================================================================================================
 struct result_t {
 	vec4 color;

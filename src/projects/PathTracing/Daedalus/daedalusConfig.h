@@ -21,6 +21,14 @@ struct viewConfig_t {
 	vec2 outputOffset;
 };
 
+struct sceneConfig_t {
+	// raymarch intersection config
+	bool raymarchEnable;
+	float raymarchMaxDistance;
+	float raymarchUnderstep;
+	int raymarchMaxSteps;
+};
+
 struct renderConfig_t {
 	int subpixelJitterMethod;
 	float uvScalar;
@@ -40,6 +48,8 @@ struct renderConfig_t {
 	int bokehMode;
 	int cameraType;
 	int maxBounces;
+
+	sceneConfig_t scene;
 };
 
 struct daedalusConfig_t {
@@ -91,6 +101,11 @@ struct daedalusConfig_t {
 		render.bokehMode = 0;
 		render.cameraType = 0;
 		render.maxBounces = 10;
+
+		render.scene.raymarchEnable = true;
+		render.scene.raymarchMaxDistance = 100.0f;
+		render.scene.raymarchMaxSteps = 100;
+		render.scene.raymarchUnderstep = 0.9f;
 
 		// ===============================
 

@@ -33,8 +33,16 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::Checkbox( "Vignette", &daedalusConfig.view.vignette );
 	}
 
-	if ( ImGui::CollapsingHeader( "Rendering Settings" ) ) {
+	if ( ImGui::CollapsingHeader( "Scene Settings" ) ) {
+		ImGui::SeparatorText( "SDF Raymarch" );
+		ImGui::Checkbox( "Enable", &daedalusConfig.render.scene.raymarchEnable );
+		ImGui::SliderFloat( "Understep", &daedalusConfig.render.scene.raymarchUnderstep, 0.5f, 1.0f );
+		ImGui::SliderFloat( "Max Distance", &daedalusConfig.render.scene.raymarchMaxDistance, 0.0f, 300.0f );
+		ImGui::SliderInt( "Max Steps", &daedalusConfig.render.scene.raymarchMaxSteps, 0, 300 );
+		ImGui::Separator();
+	}
 
+	if ( ImGui::CollapsingHeader( "Rendering Settings" ) ) {
 		ImGui::SliderFloat( "Viewer X", &daedalusConfig.render.viewerPosition.x, -40.0f, 40.0f );
 		ImGui::SliderFloat( "Viewer Y", &daedalusConfig.render.viewerPosition.y, -40.0f, 40.0f );
 		ImGui::SliderFloat( "Viewer Z", &daedalusConfig.render.viewerPosition.z, -40.0f, 40.0f );
@@ -108,7 +116,6 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SliderFloat( "Frame Time Limit (ms)", &daedalusConfig.tiles.tileTimeLimitMS, 16.0f, 100.0f );
 
 		ImGui::Separator();
-
 	}
 
 	if ( ImGui::CollapsingHeader( "Images" ) ) {
