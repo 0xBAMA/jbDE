@@ -4,7 +4,7 @@
 void engineBase::StartMessage () {
 	ZoneScoped;
 	cout << endl << T_YELLOW << BOLD << "  jbDE - the jb Demo Engine" << newline;
-	cout << " By Jon Baker ( 2020 - 2023 ) " << RESET << newline;
+	cout << " By Jon Baker ( 2020 - 2024 ) " << RESET << newline;
 	cout << "  https://jbaker.graphics/ " << newline << newline;
 }
 
