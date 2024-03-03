@@ -381,9 +381,9 @@ intersection_t raymarch( in ray_t ray ) {
 	intersection_t intersection;
 	intersection.dTravel = dTotal;
 	intersection.albedo = hitColor;
+	intersection.materialID = hitSurfaceType;
 	intersection.normal = SDFNormal( ray.origin + dTotal * ray.direction );
 	intersection.frontFaceHit = ( dot( intersection.normal, ray.direction ) <= 0.0f );
-	intersection.materialID = hitSurfaceType;
 	return intersection;
 }
 
