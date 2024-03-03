@@ -11,6 +11,8 @@ static bool show_medium_severity = true;
 static bool show_low_severity = true;
 static bool show_notification_severity = false;
 
+static int severeCallsToKill = 36;
+
 //gl debug dump
 void GLAPIENTRY MessageCallback ( 	GLenum source,
 						GLenum type,
@@ -26,6 +28,7 @@ void GLAPIENTRY MessageCallback ( 	GLenum source,
 		case GL_DEBUG_SEVERITY_HIGH:
 			if ( show_high_severity )
 				fprintf( stderr, "\t GL CALLBACK: %s type: 0x%x, severity: HIGH, message: %s\n", errorText, type, message );
+			if ( !severeCallsToKill-- ) abort(); // kill after N calls to high severity
 			break;
 		case GL_DEBUG_SEVERITY_MEDIUM:
 			if ( show_medium_severity )
