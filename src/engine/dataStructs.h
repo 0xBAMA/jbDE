@@ -11,6 +11,7 @@ struct configData {
 	vec4 clearColor = vec4( 0.0f );
 	bool vSyncEnable = true;
 	int numMsDelayAfterCallback = 10;
+	int severeCallsToKill = 32;
 	uint8_t OpenGLVersionMajor = 4;
 	uint8_t OpenGLVersionMinor = 3;
 	bool OpenGLVerboseInit = false;

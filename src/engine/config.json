@@ -203,6 +203,7 @@
 		"linearFilterDisplayTex": true,
 		"loadDataResources": true,
 		"numMsDelayAfterCallback": 30,
+		"severeCallsToKill": 36,
 		"oneShot": false,
 		"reportPlatformInfo": true,
 		"screenHeight": 1440,
