@@ -119,6 +119,7 @@ intersection_t DefaultIntersection() {
 	intersection.normal = vec3( 0.0f );
 	intersection.frontfaceHit = false;
 	intersection.materialID = 0;
+	return intersection;
 }
 //=============================================================================================================================
 struct result_t {
@@ -314,7 +315,7 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 		// contribution from the skybox - placeholder
-		finalColor += throughput * vec3( 0.01f );
+		finalColor += throughput * vec3( 0.1f );
 	} else {
 		// material specific behavior
 		switch( intersection.materialID ) {
@@ -465,7 +466,7 @@ intersection_t raymarch( in ray_t ray ) {
 	intersection.albedo = hitColor;
 	intersection.materialID = hitSurfaceType;
 	intersection.normal = SDFNormal( ray.origin + dTotal * ray.direction );
-	intersection.frontFaceHit = ( dot( intersection.normal, ray.direction ) <= 0.0f );
+	intersection.frontfaceHit = ( dot( intersection.normal, ray.direction ) <= 0.0f );
 	return intersection;
 }
 
@@ -489,6 +490,20 @@ bool IsEmpty( iqIntersect i ) {
 	return i.b.x < i.a.x;
 }
 
+iqIntersect IntersectSphere ( in ray_t ray, in vec3 center, float radius ) {
+	// https://iquilezles.org/articles/intersectors/
+	vec3 oc = ray.origin - center;
+	float b = dot( oc, ray.direction );
+	float c = dot( oc, oc ) - radius * radius;
+	float h = b * b - c;
+	if ( h < 0.0f ) return kEmpty; // no intersection
+	h = sqrt( h );
+	// h is known to be positive at this point, b+h > b-h
+	float nearHit = -b - h; vec3 nearNormal = normalize( ( ray.origin + ray.direction * nearHit ) - center );
+	float farHit  = -b + h; vec3 farNormal  = normalize( ( ray.origin + ray.direction * farHit ) - center );
+	return iqIntersect( vec4( nearHit, nearNormal ), vec4( farHit, farNormal ) );
+}
+
 iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 	vec3 oc = ray.origin - center;
 	vec3 m = 1.0f / ray.direction;
@@ -504,103 +519,104 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 }
 
 
-// intersection_t DDATraversal( in ray_t ray ) {
+const float blockSize = 10.0f;
+const int blockResolution = 100;
 
-// 	const ivec3 blockDimensions = ivec3( 10.0f ); // imageSize( dataCacheBuffer );
+intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
+	ray_t rayCache = ray;
 
-// 	// for trimming edges
-// 	const float epsilon = 0.001f;
-// 	const vec3 hitpointMin = ray.origin + tMin * ray.direction;
-// 	const vec3 hitpointMax = ray.origin + tMax * ray.direction;
-// 	const vec3 blockUVMin = vec3(
-// 		RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, epsilon, blockDimensions.x - epsilon ),
-// 		RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, epsilon, blockDimensions.y - epsilon ),
-// 		RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, epsilon, blockDimensions.z - epsilon )
-// 	);
+	// accounting for the bounding box
+	if ( distanceToBounds > 0.0f ) {
+		ray.origin += ray.direction * distanceToBounds;
+	}
 
-// 	const vec3 blockUVMax = vec3(
-// 		RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, epsilon, blockDimensions.x - epsilon ),
-// 		RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, epsilon, blockDimensions.y - epsilon ),
-// 		RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, epsilon, blockDimensions.z - epsilon )
-// 	);
+	// map the ray into the integer grid space
+	const float res = float( blockResolution );
+	ray.origin = vec3(
+		RangeRemapValue( ray.origin.x, -blockSize / 2.0f, blockSize / 2.0f, 0.0f, res ),
+		RangeRemapValue( ray.origin.y, -blockSize / 2.0f, blockSize / 2.0f, 0.0f, res ),
+		RangeRemapValue( ray.origin.z, -blockSize / 2.0f, blockSize / 2.0f, 0.0f, res )
+	);
 
-// 	// DDA traversal
-// 	// from https://www.shadertoy.com/view/7sdSzH
-// 	vec3 deltaDist = 1.0f / abs( ray.direction );
-// 	ivec3 rayStep = ivec3( sign( ray.direction ) );
-// 	bvec3 mask0 = bvec3( false );
-// 	ivec3 mapPos0 = ivec3( floor( blockUVMin ) );
-// 	vec3 sideDist0 = ( sign( ray.direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( ray.direction ) * 0.5f ) + 0.5f ) * deltaDist;
+	// prep for traversal
+	bool hitFound = false;
+	intersection_t intersection = DefaultIntersection();
 
-// 	#define MAX_RAY_STEPS 2200
-// 	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, blockDimensions ) ) ); i++ ) {
-// 		// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
-// 		bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
-// 		vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
-// 		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
+	// DDA traversal
+	// from https://www.shadertoy.com/view/7sdSzH
+	vec3 deltaDist = 1.0f / abs( ray.direction );
+	ivec3 rayStep = ivec3( sign( ray.direction ) );
+	bvec3 mask0 = bvec3( false );
+	ivec3 mapPos0 = ivec3( floor( ray.origin ) );
+	vec3 sideDist0 = ( sign( ray.direction ) * ( vec3( mapPos0 ) - ray.origin ) + ( sign( ray.direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-// 		// vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
+	#define MAX_RAY_STEPS 200
+	// for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, ivec3( blockResolution ) ) ) ); i++ ) {
+	for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
 
-// 		if ( hit ) {
-// 			// break;
-// 		}
+		// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
+		bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
+		vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
+		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-// 		sideDist0 = sideDist1;
-// 		mapPos0 = mapPos1;
-// 	}
+		// checking mapPos0 for hit
+		// if ( snoise3D( vec3( mapPos0 ) * 0.1f ) < 0.5f ) {
+		// if ( true ) {
 
+			// see if we found an intersection - ball will almost fill the grid cell
+			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.1f );
+			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.451f ) );
+			const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
-// // testing
-// 	// // fill it out
-// 	// intersection.materialID = DIFFUSE;
-// 	// intersection.albedo = vec3( 0.5f. 0.1f, 0.1f );
-// 	// if ( tMin > 0.0f ) {
+			// update ray, to indicate hit location
+			if ( !IsEmpty( test ) && !behindOrigin ) {
+				intersection.frontfaceHit = !( test.a.x < 0.0f && test.b.x >= 0.0f );
 
-// 	// 	// positive hit from outside
-// 	// 	intersection.dTravel = tMin;
-// 	// 	intersection.frontFaceHit = true;
+				// get the location of the intersection
+				ray.origin = ray.origin + ray.direction * ( intersection.frontfaceHit ? test.a.x : test.b.x );
 
-// 	// } else if ( tMin < 0.0f && tMax > 0.0f ) {
+				// map the ray back into the world space
+				ray.origin = vec3(
+					RangeRemapValue( ray.origin.x, 0.0f, res, -blockSize / 2.0f, blockSize / 2.0f ),
+					RangeRemapValue( ray.origin.y, 0.0f, res, -blockSize / 2.0f, blockSize / 2.0f ),
+					RangeRemapValue( ray.origin.z, 0.0f, res, -blockSize / 2.0f, blockSize / 2.0f )
+				);
 
-// 	// 	// you are starting inside
-// 	// 	intersection.dTravel = tMax;
-// 	// 	intersection.frontFaceHit = false;
+				intersection.dTravel = distance( ray.origin, rayCache.origin );
+				intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
+				intersection.materialID = DIFFUSE;
+				intersection.albedo = vec3( 0.9f );
+				// intersection.albedo = vec3( snoise3D( vec3( mapPos0 ) * 0.1f ) );
 
-// 	// } else {
+				break;
+			}
+		// }
 
-// 	// 	// ray pointing away from the box
-// 	// 	intersection.dTravel = maxDistace + 1.0f;
-// 	// 	intersection.materialID = NOHIT;
+		sideDist0 = sideDist1;
+		mapPos0 = mapPos1;
+	}
 
-// 	// }
-
-
-// 	// float dTravel;
-// 	// vec3 albedo;
-// 	// vec3 normal;
-// 	// bool frontFaceHit;
-// 	// int materialID;
-// }
+	// return the state, when we drop out of the loop
+	return intersection;
+}
 
 
 intersection_t VoxelIntersection( in ray_t ray ) {
-	intersection_t intersection;
-	intersection.materialID = NOHIT;
-	intersection.dTravel = maxDistance;
+	intersection_t intersection = DefaultIntersection();
 
-	const float blockSize = 10.0f;
-	iqIntersect boundingBoxIntersection = IntersectBox( ray, vec3( 0.0f ), vec3( blockSize ) );
+	iqIntersect boundingBoxIntersection = IntersectBox( ray, vec3( 0.0f ), vec3( blockSize / 2.0f ) );
 	const bool boxBehindOrigin = ( boundingBoxIntersection.a.x < 0.0f && boundingBoxIntersection.b.x < 0.0f );
 	const bool backfaceHit = ( boundingBoxIntersection.a.x < 0.0f && boundingBoxIntersection.b.x >= 0.0f );
 
 	if ( !IsEmpty( boundingBoxIntersection ) && !boxBehindOrigin ) {
-		if ( !backfaceHit ) { // adjusting the ray to the bounds
-			ray.origin += ray.direction * boundingBoxIntersection.a.x;
-		}
 
-		// intersection = DDATraversal( ray );
+		// intersection.dTravel = backfaceHit ? boundingBoxIntersection.b.x : boundingBoxIntersection.a.x;
+		// intersection.albedo = vec3( 0.5f );
+		// intersection.normal = backfaceHit ? boundingBoxIntersection.b.yzw : boundingBoxIntersection.a.yzw;
+		// intersection.frontfaceHit = !backfaceHit;
+		// intersection.materialID = DIFFUSE;
 
-
+		intersection = DDATraversal( ray, boundingBoxIntersection.a.x );
 	}
 
 	return intersection;
