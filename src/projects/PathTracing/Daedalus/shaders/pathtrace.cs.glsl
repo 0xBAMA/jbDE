@@ -322,7 +322,7 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 
 		case EMISSIVE: { // light emitting material
-			// ray.direction = randomVectorDiffuse;
+			ray.direction = randomVectorDiffuse;
 			finalColor += throughput * intersection.albedo;
 			break;
 		}
@@ -333,7 +333,10 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 		}
 
-		case
+		case METALLIC: {
+			throughput *= intersection.albedo;
+			ray.direction = randomVectorSpecular;
+		}
 
 		default:
 			break;
@@ -401,17 +404,33 @@ float de( in vec3 p ) {
 			// set material specifics - hitColor, hitSurfaceType
 		// }
 
-		const float dFractal = max( deFractal( p ), distance( p, vec3( 0.0f ) ) - 15.0f );
+		const float dFractal = max( deFractal( p ), fRoundedBox( p, vec3( 1.0f, 1.0f, 3.0f ), 0.1f ) );
 		sceneDist = min( sceneDist, dFractal );
 		if ( sceneDist == dFractal && dFractal < epsilon ) {
 			hitColor = vec3( 0.618f );
 			hitSurfaceType = DIFFUSE;
 		}
 
-		const float dSphere = distance( p, vec3( 1.0f ) ) - 0.5f;
-		sceneDist = min( sceneDist, dSphere );
-		if ( sceneDist == dSphere && dSphere < epsilon ) {
-			hitColor = vec3( 0.618f, 0.1f, 0.1f ) * 4.0f;
+		const float ballsRadius = 0.5f;
+		const float ballsSpacing = 2.0f;
+		const float dSphereRed = distance( p, vec3( 0.0f, 0.0f, ballsSpacing ) ) - ballsRadius;
+		sceneDist = min( sceneDist, dSphereRed );
+		if ( sceneDist == dSphereRed && dSphereRed < epsilon ) {
+			hitColor = vec3( 0.618f, 0.0f, 0.0f ) * 4.0f;
+			hitSurfaceType = EMISSIVE;
+		}
+
+		const float dSphereBlue = distance( p, vec3( 0.0f, 0.0f, 0.0f ) ) - ballsRadius;
+		sceneDist = min( sceneDist, dSphereBlue );
+		if ( sceneDist == dSphereBlue && dSphereBlue < epsilon ) {
+			hitColor = vec3( 0.0f, 0.618f, 0.0f ) * 4.0f;
+			hitSurfaceType = EMISSIVE;
+		}
+
+		const float dSphereGreen = distance( p, vec3( 0.0f, 0.0f, -ballsSpacing ) ) - ballsRadius;
+		sceneDist = min( sceneDist, dSphereGreen );
+		if ( sceneDist == dSphereGreen && dSphereGreen < epsilon ) {
+			hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
 			hitSurfaceType = EMISSIVE;
 		}
 	}
