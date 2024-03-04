@@ -609,16 +609,18 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 //=============================================================================================================================
 
 intersection_t GetNearestSceneIntersection( in ray_t ray ) {
-	intersection_t result;
+	intersection_t result = DefaultIntersection();
 
 	// evaluate the different types of primitives, here - return a single intersection_t representing what the ray hits, first
-	// todo, logic to combine, decide which is closest
-
 	intersection_t SDFResult = raymarch( ray );
-	result = SDFResult;
+	intersection_t VoxelResult = VoxelIntersection( ray );
 
-	// intersection_t VoxelResult = VoxelIntersection( ray );
-	// result = VoxelResult;
+	float minDistance = vmin( vec2( SDFResult.dTravel, VoxelResult.dTravel ) );
+	if ( minDistance == SDFResult.dTravel ) {
+		result = SDFResult;
+	} else {
+		result = VoxelResult;
+	}
 
 	return result;
 }
