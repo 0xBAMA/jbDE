@@ -526,7 +526,7 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 }
 
 
-const float blockSize = 100.0f;
+const float blockSize = 10.0f;
 const int blockResolution = 1000;
 
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
@@ -569,11 +569,13 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 		// checking mapPos0 for hit
 		// if ( snoise3D( vec3( mapPos0 ) * 0.06f ) < -0.5f ) {
-		if ( snoise3D( vec3( mapPos0 ) * vec3( 1.0f, 1.0f, 0.2f ) * 0.06f ) < -0.5f ) {
+		// if ( snoise3D( vec3( mapPos0 ) * vec3( 1.0f, 1.0f, 0.2f ) * 0.06f ) < -0.5f ) {
+		if ( snoise2D( vec2( mapPos0.xy ) * 0.003f ) < ( mapPos0.z / 100.0f - 1.5f ) ) {
 
 			// see if we found an intersection - ball will almost fill the grid cell
 			// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), RangeRemapValue( snoise3D( vec3( mapPos0 ) * 0.01f ), 0.0f, 1.0f, 0.01f, 0.65f ) );
 			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.5f );
+			// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.2f );
 			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( RangeRemapValue( pow( snoise3D( vec3( mapPos0 ) * 0.01f ), 2.0f ), 0.0f, 1.0f, 0.01f, 0.5f ) ) );
 			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
 			const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
@@ -594,12 +596,12 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 				intersection.dTravel = distance( ray.origin, rayCache.origin );
 				intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
-				// intersection.materialID = DIFFUSE;
-				// intersection.albedo = vec3( 0.9f );
+				intersection.materialID = DIFFUSE;
+				intersection.albedo = vec3( 0.9f );
 
-				const bool noiseCheck = ( snoise3D( vec3( mapPos0 ) ) < -0.5f );
-				intersection.materialID = noiseCheck ? EMISSIVE : MIRROR;
-				intersection.albedo = noiseCheck ? refPalette( snoise3D( vec3( mapPos0 ) * 0.3f ), 13 ).xyz : vec3( 0.3f );
+				// const bool noiseCheck = ( snoise3D( vec3( mapPos0 ) ) < -0.5f );
+				// intersection.materialID = noiseCheck ? EMISSIVE : DIFFUSE;
+				// intersection.albedo = noiseCheck ? refPalette( snoise3D( vec3( mapPos0 ) * 0.3f ), 14 ).xyz : vec3( 0.6f );
 
 				break;
 			}
