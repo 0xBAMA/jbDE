@@ -32,8 +32,12 @@ vec4 Blue( in ivec2 loc ) {
 #define WEYL	3
 #define WEYLINT	4
 
+//=============================================================================================================================
+
 uniform int sampleNumber;
 uniform int subpixelJitterMethod;
+
+//=============================================================================================================================
 
 vec2 SubpixelOffset () {
 	vec2 offset = vec2( 0.0f );
@@ -272,7 +276,7 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 #define NOHIT						0
 #define EMISSIVE					1
 #define DIFFUSE						2
-#define DIFFUSEAO					3
+#define DIFFUSEAO					3 // this never got used - besides, it only has AO for SDF geo
 #define METALLIC					4
 #define RAINBOW						5
 #define MIRROR						6
@@ -291,27 +295,37 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 #define REFRACTIVE_BACKFACE			100
 #define REFRACTIVE_FROSTED_BACKFACE	101
 
-void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
-	// epsilon bump, along the normal vector, for non-refractive surfaces
-	// if ( result.material != REFRACTIVE && result.material != REFRACTIVE_BACKFACE )
-		ray.origin += 2.0f * epsilon * intersection.normal;
+//=============================================================================================================================
 
+void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
 	// precalculate reflected vector, random diffuse vector, random specular vector
 	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
 	const vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * intersection.normal + RandomUnitVector() );
 	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), 0.1f ) ); // refit this to handle roughness
 
 	// if the ray escapes
-	if ( intersection.materialID == NOHIT ) { // tbd, temporary - does this need to be a distance check?
+	if ( intersection.dTravel >= maxDistance ) {
 		// contribution from the skybox - placeholder
-		finalColor += throughput * vec3( 0.6f );
+		finalColor += throughput * vec3( 0.01f );
 	} else {
 		// material specific behavior
 		switch( intersection.materialID ) {
-		case DIFFUSE:
+		case NOHIT: // no op
+			break;
+
+		case EMISSIVE: { // light emitting material
+			// ray.direction = randomVectorDiffuse;
+			finalColor += throughput * intersection.albedo;
+			break;
+		}
+
+		case DIFFUSE: {
 			throughput *= intersection.albedo;
 			ray.direction = randomVectorDiffuse;
 			break;
+		}
+
+		case
 
 		default:
 			break;
@@ -333,7 +347,38 @@ uniform int raymarchMaxSteps;
 vec3 hitColor;
 int hitSurfaceType;
 
-// Scene SDF
+//=============================================================================================================================
+
+// float deFractal( vec3 p ) {
+// 	float s=3.;
+// 	for(int i = 0; i < 4; i++) {
+// 		p=mod(p-1.,2.)-1.;
+// 		float r=1.2/dot(p,p);
+// 		p*=r; s*=r;
+// 	}
+// 	p = abs(p)-0.8;
+// 	if (p.x < p.z) p.xz = p.zx;
+// 	if (p.y < p.z) p.yz = p.zy;
+// 	if (p.x < p.y) p.xy = p.yx;
+// 	if (p.x < p.z) p.xz = p.zx;
+// 	return length(cross(p,normalize(vec3(0,1,1))))/s-.001;
+// }
+
+float deFractal( vec3 pos ) {
+	vec3 tpos = pos;
+	tpos.xz = abs( 0.5f - mod( tpos.xz, 1.0f ) );
+	vec4 p = vec4( tpos, 1.0f );
+	float y = max( 0.0f, 0.35f - abs( pos.y - 3.35f ) ) / 0.35f;
+	for ( int i = 0; i < 7; i++ ) {
+		p.xyz = abs( p.xyz ) - vec3( -0.02f, 1.98f, -0.02f );
+		p = p * ( 2.0f + 0.0f * y ) / clamp( dot( p.xyz, p.xyz ), 0.4f, 1.0f ) - vec4( 0.5f, 1.0f, 0.4f, 0.0f );
+		p.xz *= mat2( -0.416f, -0.91f, 0.91f, -0.416f );
+	}
+	return ( length( max( abs( p.xyz ) - vec3( 0.1f, 5.0f, 0.1f ), vec3( 0.0f ) ) ) - 0.05f ) / p.w;
+}
+
+//=============================================================================================================================
+
 float de( in vec3 p ) {
 	vec3 pOriginal = p;
 	float sceneDist = 1000.0f;
@@ -348,23 +393,31 @@ float de( in vec3 p ) {
 			// set material specifics - hitColor, hitSurfaceType
 		// }
 
-		pModInterval1( p.x, 1.0f, -5, 5 );
-		pModInterval1( p.y, 1.0f, -5, 5 );
-		pModInterval1( p.z, 1.0f, -5, 5 );
-		const float dSphere = distance( p, vec3( 0.0f ) ) - 0.5f;
+		const float dFractal = max( deFractal( p ), distance( p, vec3( 0.0f ) ) - 15.0f );
+		sceneDist = min( sceneDist, dFractal );
+		if ( sceneDist == dFractal && dFractal < epsilon ) {
+			hitColor = vec3( 0.618f );
+			hitSurfaceType = DIFFUSE;
+		}
+
+		const float dSphere = distance( p, vec3( 1.0f ) ) - 0.5f;
 		sceneDist = min( sceneDist, dSphere );
 		if ( sceneDist == dSphere && dSphere < epsilon ) {
-			hitColor = vec3( 0.618f, 0.1f, 0.1f );
-			hitSurfaceType = DIFFUSE;
+			hitColor = vec3( 0.618f, 0.1f, 0.1f ) * 4.0f;
+			hitSurfaceType = EMISSIVE;
 		}
 	}
 	return sceneDist;
 }
 
+//=============================================================================================================================
+
 vec3 SDFNormal( in vec3 position ) {
 	vec2 e = vec2( epsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 }
+
+//=============================================================================================================================
 
 intersection_t raymarch( in ray_t ray ) {
 	float dQuery = 0.0f;
@@ -378,6 +431,8 @@ intersection_t raymarch( in ray_t ray ) {
 			break;
 		}
 	}
+
+	// fill out the intersection struct
 	intersection_t intersection;
 	intersection.dTravel = dTotal;
 	intersection.albedo = hitColor;
@@ -389,16 +444,156 @@ intersection_t raymarch( in ray_t ray ) {
 
 //=============================================================================================================================
 
+// refactor this, it's a bunch of ugly shit
+
+// explicit intersection primitives
+struct iqIntersect {
+	vec4 a;  // distance and normal at entry
+	vec4 b;  // distance and normal at exit
+};
+
+// false Intersection
+const iqIntersect kEmpty = iqIntersect(
+	vec4( 1e20f, 0.0f, 0.0f, 0.0f ),
+	vec4( -1e20f, 0.0f, 0.0f, 0.0f )
+);
+
+bool IsEmpty( iqIntersect i ) {
+	return i.b.x < i.a.x;
+}
+
+iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
+	vec3 oc = ray.origin - center;
+	vec3 m = 1.0f / ray.direction;
+	vec3 k = vec3( ray.direction.x >= 0.0f ? size.x : -size.x, ray.direction.y >= 0.0f ? size.y : -size.y, ray.direction.z >= 0.0f ? size.z : -size.z );
+	vec3 t1 = ( -oc - k ) * m;
+	vec3 t2 = ( -oc + k ) * m;
+	float tN = max( max( t1.x, t1.y ), t1.z );
+	float tF = min( min( t2.x, t2.y ), t2.z );
+	if ( tN > tF || tF < 0.0f ) return kEmpty;
+	return iqIntersect(
+		vec4( tN, normalize( -sign( ray.direction ) * step( vec3( tN ), t1 ) ) ),
+		vec4( tF, normalize( -sign( ray.direction ) * step( t2, vec3( tF ) ) ) ) );
+}
+
+
+// intersection_t DDATraversal( in ray_t ray ) {
+
+// 	const ivec3 blockDimensions = ivec3( 10.0f ); // imageSize( dataCacheBuffer );
+
+// 	// for trimming edges
+// 	const float epsilon = 0.001f;
+// 	const vec3 hitpointMin = ray.origin + tMin * ray.direction;
+// 	const vec3 hitpointMax = ray.origin + tMax * ray.direction;
+// 	const vec3 blockUVMin = vec3(
+// 		RemapRange( hitpointMin.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, epsilon, blockDimensions.x - epsilon ),
+// 		RemapRange( hitpointMin.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, epsilon, blockDimensions.y - epsilon ),
+// 		RemapRange( hitpointMin.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, epsilon, blockDimensions.z - epsilon )
+// 	);
+
+// 	const vec3 blockUVMax = vec3(
+// 		RemapRange( hitpointMax.x, -blockSize.x / 2.0f, blockSize.x / 2.0f, epsilon, blockDimensions.x - epsilon ),
+// 		RemapRange( hitpointMax.y, -blockSize.y / 2.0f, blockSize.y / 2.0f, epsilon, blockDimensions.y - epsilon ),
+// 		RemapRange( hitpointMax.z, -blockSize.z / 2.0f, blockSize.z / 2.0f, epsilon, blockDimensions.z - epsilon )
+// 	);
+
+// 	// DDA traversal
+// 	// from https://www.shadertoy.com/view/7sdSzH
+// 	vec3 deltaDist = 1.0f / abs( ray.direction );
+// 	ivec3 rayStep = ivec3( sign( ray.direction ) );
+// 	bvec3 mask0 = bvec3( false );
+// 	ivec3 mapPos0 = ivec3( floor( blockUVMin ) );
+// 	vec3 sideDist0 = ( sign( ray.direction ) * ( vec3( mapPos0 ) - blockUVMin ) + ( sign( ray.direction ) * 0.5f ) + 0.5f ) * deltaDist;
+
+// 	#define MAX_RAY_STEPS 2200
+// 	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, blockDimensions ) ) ); i++ ) {
+// 		// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
+// 		bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
+// 		vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
+// 		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
+
+// 		// vec4 read = imageLoad( dataCacheBuffer, mapPos0 );
+
+// 		if ( hit ) {
+// 			// break;
+// 		}
+
+// 		sideDist0 = sideDist1;
+// 		mapPos0 = mapPos1;
+// 	}
+
+
+// // testing
+// 	// // fill it out
+// 	// intersection.materialID = DIFFUSE;
+// 	// intersection.albedo = vec3( 0.5f. 0.1f, 0.1f );
+// 	// if ( tMin > 0.0f ) {
+
+// 	// 	// positive hit from outside
+// 	// 	intersection.dTravel = tMin;
+// 	// 	intersection.frontFaceHit = true;
+
+// 	// } else if ( tMin < 0.0f && tMax > 0.0f ) {
+
+// 	// 	// you are starting inside
+// 	// 	intersection.dTravel = tMax;
+// 	// 	intersection.frontFaceHit = false;
+
+// 	// } else {
+
+// 	// 	// ray pointing away from the box
+// 	// 	intersection.dTravel = maxDistace + 1.0f;
+// 	// 	intersection.materialID = NOHIT;
+
+// 	// }
+
+
+// 	// float dTravel;
+// 	// vec3 albedo;
+// 	// vec3 normal;
+// 	// bool frontFaceHit;
+// 	// int materialID;
+// }
+
+
+intersection_t VoxelIntersection( in ray_t ray ) {
+	intersection_t intersection;
+	intersection.materialID = NOHIT;
+	intersection.dTravel = maxDistance;
+
+	const float blockSize = 10.0f;
+	iqIntersect boundingBoxIntersection = IntersectBox( ray, vec3( 0.0f ), vec3( blockSize ) );
+	const bool boxBehindOrigin = ( boundingBoxIntersection.a.x < 0.0f && boundingBoxIntersection.b.x < 0.0f );
+	const bool backfaceHit = ( boundingBoxIntersection.a.x < 0.0f && boundingBoxIntersection.b.x >= 0.0f );
+
+	if ( !IsEmpty( boundingBoxIntersection ) && !boxBehindOrigin ) {
+		if ( !backfaceHit ) { // adjusting the ray to the bounds
+			ray.origin += ray.direction * boundingBoxIntersection.a.x;
+		}
+
+		// intersection = DDATraversal( ray );
+
+
+	}
+
+	return intersection;
+}
+
+//=============================================================================================================================
+
 intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 	intersection_t result;
 
 	// evaluate the different types of primitives, here - return a single intersection_t representing what the ray hits, first
+	// todo, logic to combine, decide which is closest
+
 	intersection_t SDFResult = raymarch( ray );
+	result = SDFResult;
 
-	// todo, logic to combine, decide
+	// intersection_t VoxelResult = VoxelIntersection( ray );
+	// result = VoxelResult;
 
-	// return result;
-	return SDFResult;
+	return result;
 }
 
 //=============================================================================================================================
