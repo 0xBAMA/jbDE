@@ -105,13 +105,21 @@ struct intersection_t {
 	float dTravel;
 	vec3 albedo;
 	vec3 normal;
-	bool frontFaceHit;
+	bool frontfaceHit;
 	int materialID;
 
 	// tbd:
 	// material properties... IoR, roughness...
 	// absorption state...
 };
+intersection_t DefaultIntersection() {
+	intersection_t intersection;
+	intersection.dTravel = maxDistance;
+	intersection.albedo = vec3( 0.0f );
+	intersection.normal = vec3( 0.0f );
+	intersection.frontfaceHit = false;
+	intersection.materialID = 0;
+}
 //=============================================================================================================================
 struct result_t {
 	vec4 color;
