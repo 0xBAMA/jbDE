@@ -316,7 +316,7 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 		// contribution from the skybox - placeholder
-		finalColor += throughput * vec3( 0.1f );
+		finalColor += throughput * vec3( 0.0f );
 	} else {
 		// material specific behavior
 		switch( intersection.materialID ) {
@@ -324,7 +324,7 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 
 		case EMISSIVE: { // light emitting material
-			ray.direction = randomVectorDiffuse;
+			// ray.direction = randomVectorDiffuse;
 			finalColor += throughput * intersection.albedo;
 			break;
 		}
@@ -338,6 +338,12 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		case METALLIC: {
 			throughput *= intersection.albedo;
 			ray.direction = randomVectorSpecular;
+		}
+
+		case MIRROR: {	// perfect mirror ( some attenuation )
+			throughput *= 0.618f;
+			ray.direction = reflectedVector;
+			break;
 		}
 
 		default:
