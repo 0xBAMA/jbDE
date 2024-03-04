@@ -13,6 +13,7 @@ uniform int wangSeed;
 #include "twigl.glsl"	// noise, some basic math utils
 #include "hg_sdf.glsl"	// SDF modeling + booleans, etc
 #include "mathUtils.h"	// couple random math utilities
+#include "colorRamps.h" // 1d -> 3d color mappings
 
 bool BoundsCheck( in ivec2 loc ) {
 	const ivec2 b = ivec2( imageSize( accumulatorColor ) ).xy;
@@ -519,8 +520,8 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 }
 
 
-const float blockSize = 10.0f;
-const int blockResolution = 100;
+const float blockSize = 100.0f;
+const int blockResolution = 1000;
 
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 	ray_t rayCache = ray;
@@ -532,10 +533,11 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 	// map the ray into the integer grid space
 	const float res = float( blockResolution );
+	const float epsilon = 0.001f;
 	ray.origin = vec3(
-		RangeRemapValue( ray.origin.x, -blockSize / 2.0f, blockSize / 2.0f, 0.0f, res ),
-		RangeRemapValue( ray.origin.y, -blockSize / 2.0f, blockSize / 2.0f, 0.0f, res ),
-		RangeRemapValue( ray.origin.z, -blockSize / 2.0f, blockSize / 2.0f, 0.0f, res )
+		RangeRemapValue( ray.origin.x, -blockSize / 2.0f, blockSize / 2.0f, epsilon, res - epsilon ),
+		RangeRemapValue( ray.origin.y, -blockSize / 2.0f, blockSize / 2.0f, epsilon, res - epsilon ),
+		RangeRemapValue( ray.origin.z, -blockSize / 2.0f, blockSize / 2.0f, epsilon, res - epsilon )
 	);
 
 	// prep for traversal
@@ -550,9 +552,9 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 	ivec3 mapPos0 = ivec3( floor( ray.origin ) );
 	vec3 sideDist0 = ( sign( ray.direction ) * ( vec3( mapPos0 ) - ray.origin ) + ( sign( ray.direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-	#define MAX_RAY_STEPS 200
-	// for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, ivec3( blockResolution ) ) ) ); i++ ) {
-	for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
+	#define MAX_RAY_STEPS 2000
+	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, ivec3( blockResolution ) ) ) ); i++ ) {
+	// for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
 
 		// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
 		bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
@@ -560,12 +562,14 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
 		// checking mapPos0 for hit
-		// if ( snoise3D( vec3( mapPos0 ) * 0.1f ) < 0.5f ) {
-		// if ( true ) {
+		// if ( snoise3D( vec3( mapPos0 ) * 0.06f ) < -0.5f ) {
+		if ( snoise3D( vec3( mapPos0 ) * vec3( 1.0f, 1.0f, 0.2f ) * 0.06f ) < -0.5f ) {
 
 			// see if we found an intersection - ball will almost fill the grid cell
-			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.1f );
-			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.451f ) );
+			// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), RangeRemapValue( snoise3D( vec3( mapPos0 ) * 0.01f ), 0.0f, 1.0f, 0.01f, 0.65f ) );
+			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.5f );
+			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( RangeRemapValue( pow( snoise3D( vec3( mapPos0 ) * 0.01f ), 2.0f ), 0.0f, 1.0f, 0.01f, 0.5f ) ) );
+			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
 			const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
 			// update ray, to indicate hit location
@@ -577,20 +581,23 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 				// map the ray back into the world space
 				ray.origin = vec3(
-					RangeRemapValue( ray.origin.x, 0.0f, res, -blockSize / 2.0f, blockSize / 2.0f ),
-					RangeRemapValue( ray.origin.y, 0.0f, res, -blockSize / 2.0f, blockSize / 2.0f ),
-					RangeRemapValue( ray.origin.z, 0.0f, res, -blockSize / 2.0f, blockSize / 2.0f )
+					RangeRemapValue( ray.origin.x, epsilon, res - epsilon, -blockSize / 2.0f, blockSize / 2.0f ),
+					RangeRemapValue( ray.origin.y, epsilon, res - epsilon, -blockSize / 2.0f, blockSize / 2.0f ),
+					RangeRemapValue( ray.origin.z, epsilon, res - epsilon, -blockSize / 2.0f, blockSize / 2.0f )
 				);
 
 				intersection.dTravel = distance( ray.origin, rayCache.origin );
 				intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
-				intersection.materialID = DIFFUSE;
-				intersection.albedo = vec3( 0.9f );
-				// intersection.albedo = vec3( snoise3D( vec3( mapPos0 ) * 0.1f ) );
+				// intersection.materialID = DIFFUSE;
+				// intersection.albedo = vec3( 0.9f );
+
+				const bool noiseCheck = ( snoise3D( vec3( mapPos0 ) ) < -0.5f );
+				intersection.materialID = noiseCheck ? EMISSIVE : MIRROR;
+				intersection.albedo = noiseCheck ? refPalette( snoise3D( vec3( mapPos0 ) * 0.3f ), 13 ).xyz : vec3( 0.3f );
 
 				break;
 			}
-		// }
+		}
 
 		sideDist0 = sideDist1;
 		mapPos0 = mapPos1;
