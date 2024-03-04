@@ -430,6 +430,10 @@ result_t GetNewSample( in vec2 uv ) {
 		rayPrevious = ray;
 		ray.origin = rayPrevious.origin + intersection.dTravel * rayPrevious.direction;
 
+		// epsilon bump, along the normal vector, for non-refractive surfaces
+		if ( intersection.materialID != REFRACTIVE && intersection.materialID != REFRACTIVE_BACKFACE )
+			ray.origin += 2.0f * epsilon * intersection.normal;
+
 		// evaluate the material - updates finalColor, throughput, ray
 		EvaluateMaterial( finalColor, throughput, intersection, ray, rayPrevious );
 
