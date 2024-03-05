@@ -5,6 +5,7 @@ void Daedalus::ResetAccumulators() {
 	textureManager.ZeroTexture2D( "Color Accumulator" );
 	textureManager.ZeroTexture2D( "Depth/Normals Accumulator" );
 	textureManager.ZeroTexture2D( "Tonemapped" );
+	daedalusConfig.tiles.RegenerateTileList(); // timer / sample count reset
 }
 
 void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
