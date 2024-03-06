@@ -419,26 +419,11 @@ float de( in vec3 p ) {
 			hitSurfaceType = DIFFUSE;
 		}
 
-		const float ballsRadius = 0.5f;
-		const float ballsSpacing = 2.0f;
-		const float dSphereRed = distance( p, vec3( 0.0f, 0.0f, ballsSpacing ) ) - ballsRadius;
-		sceneDist = min( sceneDist, dSphereRed );
-		if ( sceneDist == dSphereRed && dSphereRed < epsilon ) {
-			hitColor = vec3( 0.618f, 0.0f, 0.0f ) * 4.0f;
-			hitSurfaceType = EMISSIVE;
-		}
-
-		const float dSphereBlue = distance( p, vec3( 0.0f, 0.0f, 0.0f ) ) - ballsRadius;
-		sceneDist = min( sceneDist, dSphereBlue );
-		if ( sceneDist == dSphereBlue && dSphereBlue < epsilon ) {
-			hitColor = vec3( 0.0f, 0.618f, 0.0f ) * 4.0f;
-			hitSurfaceType = EMISSIVE;
-		}
-
-		const float dSphereGreen = distance( p, vec3( 0.0f, 0.0f, -ballsSpacing ) ) - ballsRadius;
-		sceneDist = min( sceneDist, dSphereGreen );
-		if ( sceneDist == dSphereGreen && dSphereGreen < epsilon ) {
-			hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
+		const float dBar = fRoundedBox( p, vec3( 0.5f, 0.5f, 1.0f ), 0.03f );
+		sceneDist = min( sceneDist, dBar );
+		if ( sceneDist == dBar && dBar < epsilon ) {
+			// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
+			hitColor = refPalette( saturate( RangeRemapValue( p.z, -0.5f, 0.5f, 0.0f, 1.0f ) ), 17 ).xyz * 1.0f;
 			hitSurfaceType = EMISSIVE;
 		}
 	}
@@ -526,8 +511,34 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 }
 
 
-const float blockSize = 10.0f;
-const int blockResolution = 1000;
+const float blockSize = 2.0f;
+const int blockResolution = 300;
+
+bool CheckValidityOfIdx( ivec3 idx ) {
+	return true;
+
+	// bool blackOrWhite = ( step( 0.0f,
+	// 	cos( PI * 0.05f * float( idx.x ) + PI / 2.0f ) *
+	// 	cos( PI * 0.05f * float( idx.y ) + PI / 2.0f ) *
+	// 	cos( PI * 0.05f * float( idx.z ) + PI / 2.0f ) ) == 0 );
+
+	// return blackOrWhite;
+}
+
+float GetRadiusForIdx( ivec3 idx ) {
+	// return 0.4f;
+
+	// return saturate( ( snoise3D( idx * 0.01f ) / 2.0f ) + 1.0f ) / 2.0f;
+	return snoise3D( idx * 0.04f ) / 2.0f;
+}
+
+vec3 GetColorForIdx( ivec3 idx ) {
+	return vec3( 0.9f );
+}
+
+int GetMaterialIDForIdx( ivec3 idx ) {
+	return DIFFUSE;
+}
 
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 	ray_t rayCache = ray;
@@ -568,15 +579,10 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
 		// checking mapPos0 for hit
-		// if ( snoise3D( vec3( mapPos0 ) * 0.06f ) < -0.5f ) {
-		// if ( snoise3D( vec3( mapPos0 ) * vec3( 1.0f, 1.0f, 0.2f ) * 0.06f ) < -0.5f ) {
-		if ( snoise2D( vec2( mapPos0.xy ) * 0.003f ) < ( mapPos0.z / 100.0f - 1.5f ) ) {
+		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
 			// see if we found an intersection - ball will almost fill the grid cell
-			// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), RangeRemapValue( snoise3D( vec3( mapPos0 ) * 0.01f ), 0.0f, 1.0f, 0.01f, 0.65f ) );
-			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.5f );
-			// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), 0.2f );
-			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( RangeRemapValue( pow( snoise3D( vec3( mapPos0 ) * 0.01f ), 2.0f ), 0.0f, 1.0f, 0.01f, 0.5f ) ) );
+			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), GetRadiusForIdx( mapPos0 ) );
 			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
 			const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
@@ -596,13 +602,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 				intersection.dTravel = distance( ray.origin, rayCache.origin );
 				intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
-				intersection.materialID = DIFFUSE;
-				intersection.albedo = vec3( 0.9f );
-
-				// const bool noiseCheck = ( snoise3D( vec3( mapPos0 ) ) < -0.5f );
-				// intersection.materialID = noiseCheck ? EMISSIVE : DIFFUSE;
-				// intersection.albedo = noiseCheck ? refPalette( snoise3D( vec3( mapPos0 ) * 0.3f ), 14 ).xyz : vec3( 0.6f );
-
+				intersection.materialID = GetMaterialIDForIdx( mapPos0 );
+				intersection.albedo = GetColorForIdx( mapPos0 );
 				break;
 			}
 		}
