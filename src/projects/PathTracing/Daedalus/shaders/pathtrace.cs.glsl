@@ -708,7 +708,7 @@ result_t GetNewSample( in vec2 uv ) {
 
 void ProcessTileInvocation( in ivec2 pixel ) {
 	// calculate the UV from the pixel location
-	vec2 uv = ( vec2( pixel ) + vec2( 0.5f ) ) / imageSize( accumulatorColor ).xy;
+	vec2 uv = ( vec2( pixel ) + SubpixelOffset() ) / imageSize( accumulatorColor ).xy;
 	uv = uv * 2.0f - vec2( 1.0f );
 
 	// get the new color sample
