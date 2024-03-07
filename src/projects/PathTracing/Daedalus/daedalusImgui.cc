@@ -39,6 +39,21 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SliderFloat( "Understep", &daedalusConfig.render.scene.raymarchUnderstep, 0.5f, 1.0f );
 		ImGui::SliderFloat( "Max Distance", &daedalusConfig.render.scene.raymarchMaxDistance, 0.0f, 300.0f );
 		ImGui::SliderInt( "Max Steps", &daedalusConfig.render.scene.raymarchMaxSteps, 0, 300 );
+
+		ImGui::SeparatorText( "DDA Spheres" );
+		ImGui::Checkbox( "Enable##ddaspheres", &daedalusConfig.render.scene.ddaSpheresEnable );
+		ImGui::SliderFloat( "Bounds Size", &daedalusConfig.render.scene.ddaSpheresBoundSize, 0.1f, 10.0f );
+		ImGui::SliderInt( "Resolution", &daedalusConfig.render.scene.ddaSpheresResolution, 5, 1000 );
+		// bounding box center offset
+
+		// constant color, ollj model, ...
+		ImGui::SeparatorText( "Sky" );
+		const char * skyModes[] = { "Constant Color", "ollj", "..." };
+		ImGui::Combo( "Sky Mode", &daedalusConfig.render.scene.skyMode, skyModes, IM_ARRAYSIZE( skyModes ) );
+		if ( daedalusConfig.render.scene.skyMode == 0 ) { // constant color
+			ImGui::ColorEdit3( "Sky Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor, ImGuiColorEditFlags_PickerHueWheel );
+		}
+
 		ImGui::Separator();
 	}
 
@@ -79,8 +94,6 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SliderFloat( "Jitter Radius", &daedalusConfig.render.thinLensJitterRadius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 		const char * bokehModeNames[] = { "NONE", "EDGE BIASED DISK", "UNIFORM DISK", "REJECTION SAMPLED HEXAGON", "UNIFORM SAMPLED HEXAGON", "UNIFORM HEART", "THREE BLADE ROSETTE", "FIVE BLADE ROSETTE", "RING", "PENTAGON", "SEPTAGON", "OCTAGON", "NONAGON", "DECAGON", "11-GON", "5 SIDED STAR", "6 SIDED STAR", "7 SIDED STAR" };
 		ImGui::Combo( "Bokeh Mode", &daedalusConfig.render.bokehMode, bokehModeNames, IM_ARRAYSIZE( bokehModeNames ) );
-
-		// render.maxBounces = 10;
 
 		ImGui::Separator();
 

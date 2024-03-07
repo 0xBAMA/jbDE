@@ -27,6 +27,16 @@ struct sceneConfig_t {
 	float raymarchMaxDistance;
 	float raymarchUnderstep;
 	int raymarchMaxSteps;
+
+	// Hybrid DDA traversal
+	bool ddaSpheresEnable;
+	float ddaSpheresBoundSize;
+	int ddaSpheresResolution;
+	// mode config? may require a lot of parameterization...
+
+	// sky config
+	int skyMode;
+	vec3 skyConstantColor;
 };
 
 struct renderConfig_t {
@@ -106,6 +116,13 @@ struct daedalusConfig_t {
 		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
+
+		render.scene.ddaSpheresEnable = true;
+		render.scene.ddaSpheresBoundSize = 2.0f;
+		render.scene.ddaSpheresResolution = 50;
+
+		render.scene.skyMode = 0;
+		render.scene.skyConstantColor = vec3( 0.01f );
 
 		// ===============================
 
