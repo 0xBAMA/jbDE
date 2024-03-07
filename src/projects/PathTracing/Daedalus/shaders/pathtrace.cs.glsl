@@ -316,7 +316,7 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 		// contribution from the skybox - placeholder
-		finalColor += throughput * vec3( 0.0f );
+		finalColor += throughput * vec3( 0.03f );
 	} else {
 		// material specific behavior
 		switch( intersection.materialID ) {
@@ -396,6 +396,39 @@ float deFractal( vec3 pos ) {
 	return ( length( max( abs( p.xyz ) - vec3( 0.1f, 5.0f, 0.1f ), vec3( 0.0f ) ) ) - 0.05f ) / p.w;
 }
 
+float deLeaf( vec3 p ) {
+	float S = 1.0f;
+	float R, e;
+	float time = 0.5f;
+	p.y += p.z;
+	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+	for( e = p.y - 1.5f; S < 6e2; S += S )
+		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+	return e * R * 0.1f;
+}
+
+float deStairs( vec3 P ) {
+	vec3 Q;
+	float a, d = min( ( P.y - abs( fract( P.z ) - 0.5f ) ) * 0.7f, 1.5f - abs( P.x ) );
+	for ( a = 2.0f; a < 6e2f; a += a )
+		Q = P * a,
+		Q.xz *= rotate2D( a ),
+		d += abs( dot( sin( Q ), Q - Q + 1.0f ) ) / a / 7.0f;
+	return d;
+}
+
+float deAnemone( vec3 p ) {
+	#define V vec2(0.7f,-0.7f)
+	#define G(p)dot(p,V)
+	float i = 0.0f, g = 0.0f, e = 1.0f;
+	float t = 0.34f; // change to see different behavior
+	for ( int j = 0; j++ < 8; ) {
+		p = abs( rotate3D( 0.34f, vec3( 1.0f, -3.0f, 5.0f ) ) * p * 2.0f ) - 1.0f,
+		p.xz -= ( G( p.xz ) - sqrt( G( p.xz ) * G( p.xz ) + 0.05f ) ) * V;
+	}
+	return length( p.xz ) / 3e2f;
+}
+
 //=============================================================================================================================
 
 float de( in vec3 p ) {
@@ -404,7 +437,6 @@ float de( in vec3 p ) {
 	hitColor = vec3( 0.0f );
 	hitSurfaceType = NOHIT;
 
-	if ( raymarchEnable ) {
 	// form for the following:
 		// const d = blah whatever SDF
 		// sceneDist = min( sceneDist, d )
@@ -412,21 +444,21 @@ float de( in vec3 p ) {
 			// set material specifics - hitColor, hitSurfaceType
 		// }
 
-		const float dFractal = max( deFractal( p ), fRoundedBox( p, vec3( 1.0f, 1.0f, 3.0f ), 0.1f ) );
-		sceneDist = min( sceneDist, dFractal );
-		if ( sceneDist == dFractal && dFractal < epsilon ) {
-			hitColor = vec3( 0.618f );
-			hitSurfaceType = DIFFUSE;
-		}
-
-		const float dBar = fRoundedBox( p, vec3( 0.5f, 0.5f, 1.0f ), 0.03f );
-		sceneDist = min( sceneDist, dBar );
-		if ( sceneDist == dBar && dBar < epsilon ) {
-			// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
-			hitColor = refPalette( saturate( RangeRemapValue( p.z, -0.5f, 0.5f, 0.0f, 1.0f ) ), 17 ).xyz * 1.0f;
-			hitSurfaceType = EMISSIVE;
-		}
+	const float dFractal = max( deLeaf( p ), fRoundedBox( p, vec3( 3.0f, 3.0f, 5.0f ), 0.1f ) );
+	sceneDist = min( sceneDist, dFractal );
+	if ( sceneDist == dFractal && dFractal < epsilon ) {
+		hitColor = vec3( 0.618f, 0.1f, 0.1f );
+		hitSurfaceType = METALLIC;
 	}
+
+	const float dBar = fRoundedBox( p, vec3( 0.5f, 0.5f, 5.0f ), 0.03f );
+	sceneDist = min( sceneDist, dBar );
+	if ( sceneDist == dBar && dBar < epsilon ) {
+		// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
+		hitColor = refPalette( saturate( RangeRemapValue( p.z, -4.0f, 4.0f, 0.0f, 1.0f ) ), 6 ).xyz * 1.0f;
+		hitSurfaceType = EMISSIVE;
+	}
+
 	return sceneDist;
 }
 
