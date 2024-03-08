@@ -59,6 +59,9 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "epsilon" ), daedalusConfig.render.epsilon );
 	glUniform1i( glGetUniformLocation( shader, "maxBounces" ), daedalusConfig.render.maxBounces );
 
+	glUniform1i( glGetUniformLocation( shader, "skyMode" ), daedalusConfig.render.scene.skyMode );
+	glUniform3fv( glGetUniformLocation( shader, "skyConstantColor" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor ) );
+
 	glUniform1i( glGetUniformLocation( shader, "raymarchEnable" ), daedalusConfig.render.scene.raymarchEnable );
 	glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), daedalusConfig.render.scene.raymarchMaxSteps );
 	glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), daedalusConfig.render.scene.raymarchUnderstep );

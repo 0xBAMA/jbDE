@@ -280,6 +280,30 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 }
 
 //=============================================================================================================================
+uniform int skyMode;
+uniform vec3 skyConstantColor;
+//=============================================================================================================================
+#define CONSTANT_COLOR	0
+#define OLLJ_SKY		1
+#define HDRI_SKY		2
+//=============================================================================================================================
+// todo: sky pass + texture etc
+	// consider having it be more than just directional, as that technically represents a surface at infinity... keep depth for the skybox... hmmm
+vec3 SkyColor( ray_t ray ) {
+	switch ( skyMode ) {
+
+		case CONSTANT_COLOR:
+			return skyConstantColor;
+			break;
+
+		default:
+			return vec3( 0.0f ); // todo
+			break;
+
+	}
+}
+
+//=============================================================================================================================
 // evaluate the material's effect on this ray
 //=============================================================================================================================
 
@@ -315,9 +339,11 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
-		// contribution from the skybox - placeholder
-		finalColor += throughput * vec3( 0.03f );
-		break;
+
+		// contribution from the skybox
+		finalColor += throughput * SkyColor( ray );
+		return false;
+
 	} else {
 		// material specific behavior
 		switch( intersection.materialID ) {
