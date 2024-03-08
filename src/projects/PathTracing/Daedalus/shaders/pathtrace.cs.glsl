@@ -26,20 +26,15 @@ vec4 Blue( in ivec2 loc ) {
 
 //=============================================================================================================================
 //=============================================================================================================================
-
 #define NONE	0
 #define BLUE	1
 #define UNIFORM	2
 #define WEYL	3
 #define WEYLINT	4
-
 //=============================================================================================================================
-
 uniform int sampleNumber;
 uniform int subpixelJitterMethod;
-
 //=============================================================================================================================
-
 vec2 SubpixelOffset () {
 	vec2 offset = vec2( 0.0f );
 	switch ( subpixelJitterMethod ) {
@@ -71,10 +66,8 @@ vec2 SubpixelOffset () {
 	}
 	return offset;
 }
-
 //=============================================================================================================================
 //=============================================================================================================================
-
 uniform vec3 viewerPosition;
 uniform vec3 basisX;
 uniform vec3 basisY;
@@ -92,7 +85,6 @@ uniform float exposure;
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
 uniform float thinLensJitterRadius;
-
 //=============================================================================================================================
 // key structs
 //=============================================================================================================================
@@ -132,7 +124,6 @@ struct result_t {
 //=============================================================================================================================
 // getting the camera ray for the current pixel
 //=============================================================================================================================
-
 #define NORMAL		0
 #define SPHERICAL	1
 #define SPHERICAL2	2
@@ -140,6 +131,7 @@ struct result_t {
 #define SIMPLEORTHO	4
 #define ORTHO		5
 #define COMPOUND	6
+//=============================================================================================================================
 ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
 
@@ -306,7 +298,6 @@ vec3 SkyColor( ray_t ray ) {
 //=============================================================================================================================
 // evaluate the material's effect on this ray
 //=============================================================================================================================
-
 #define NOHIT						0
 #define EMISSIVE					1
 #define DIFFUSE						2
@@ -324,14 +315,12 @@ vec3 SkyColor( ray_t ray ) {
 #define CHECKER						14
 #define REFRACTIVE					15
 #define REFRACTIVE_FROSTED			16
-
-// objects shouldn't have these materials, it is used in the explicit intersection logic / bounce behavior
+//=============================================================================================================================
+// objects shouldn't have these materials set directly, it is used for backface hits
 #define REFRACTIVE_BACKFACE			100
 #define REFRACTIVE_FROSTED_BACKFACE	101
-
 //=============================================================================================================================
-
-void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
+bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
 	// precalculate reflected vector, random diffuse vector, random specular vector
 	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
 	const vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * intersection.normal + RandomUnitVector() );
@@ -345,9 +334,11 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		return false;
 
 	} else {
+
 		// material specific behavior
 		switch( intersection.materialID ) {
 		case NOHIT: // no op
+			return false;
 			break;
 
 		case EMISSIVE: { // light emitting material
@@ -377,6 +368,8 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 		}
 	}
+	// some material was encountered
+	return true;
 }
 
 //=============================================================================================================================
@@ -421,6 +414,15 @@ float deFractal( vec3 pos ) {
 		p.xz *= mat2( -0.416f, -0.91f, 0.91f, -0.416f );
 	}
 	return ( length( max( abs( p.xyz ) - vec3( 0.1f, 5.0f, 0.1f ), vec3( 0.0f ) ) ) - 0.05f ) / p.w;
+}
+
+float deApollo( vec3 p0 ) {
+	vec4 p = vec4( p0, 1.0f );
+	for ( int i = 0; i < 8; i++ ) {
+		p.xyz = mod( p.xyz - 1.0f, 2.0f ) - 1.0f;
+		p *= 1.4f / dot( p.xyz, p.xyz );
+	}
+	return ( length( p.xz / p.w ) * 0.25f );
 }
 
 float deLeaf( vec3 p ) {
@@ -475,14 +477,14 @@ float de( in vec3 p ) {
 	sceneDist = min( sceneDist, dFractal );
 	if ( sceneDist == dFractal && dFractal < epsilon ) {
 		hitColor = vec3( 0.618f, 0.1f, 0.1f );
-		hitSurfaceType = METALLIC;
+		hitSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
 	}
 
-	const float dBar = fRoundedBox( p, vec3( 0.5f, 0.5f, 5.0f ), 0.03f );
+	const float dBar = fRoundedBox( p, vec3( 0.15f, 0.15f, 5.0f ), 0.03f );
 	sceneDist = min( sceneDist, dBar );
 	if ( sceneDist == dBar && dBar < epsilon ) {
 		// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
-		hitColor = refPalette( saturate( RangeRemapValue( p.z, -4.0f, 4.0f, 0.0f, 1.0f ) ), 6 ).xyz * 1.0f;
+		hitColor = refPalette( saturate( RangeRemapValue( p.z, -4.0f, 4.0f, 0.0f, 1.0f ) ), 9 ).xyz * 1.0f;
 		hitSurfaceType = EMISSIVE;
 	}
 
@@ -576,10 +578,12 @@ uniform float ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
 
 bool CheckValidityOfIdx( ivec3 idx ) {
+	// return true;
 
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
-	return true;
+	// return deStairs( idx * 0.01f - vec3( 0.5f ) ) < 0.001f;
+	return deApollo( idx * 0.01f - vec3( 0.5f ) ) < 0.01f;
 
 	// bool blackOrWhite = ( step( 0.0f,
 	// 	cos( PI * 0.05f * float( idx.x ) + PI / 2.0f ) *
@@ -589,8 +593,18 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 	// return blackOrWhite;
 }
 
+vec3 GetOffsetForIdx( ivec3 idx ) {
+	// return vec3( 0.5f );
+
+	// jitter... not liking the look of this, much
+	return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+}
+
 float GetRadiusForIdx( ivec3 idx ) {
-	return 0.05f;
+	// return 0.25f;
+
+	return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
+
 	// return saturate( ( snoise3D( idx * 0.01f ) / 2.0f ) + 1.0f ) / 2.0f;
 	// return saturate( snoise3D( idx * 0.04f ) / 4.0f );
 }
@@ -600,7 +614,8 @@ vec3 GetColorForIdx( ivec3 idx ) {
 }
 
 int GetMaterialIDForIdx( ivec3 idx ) {
-	return DIFFUSE;
+	// return DIFFUSE;
+	return NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
 }
 
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
@@ -645,7 +660,7 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
 			// see if we found an intersection - ball will almost fill the grid cell
-			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + vec3( 0.5f ), GetRadiusForIdx( mapPos0 ) );
+			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
 			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
 			const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
@@ -745,8 +760,8 @@ result_t GetNewSample( in vec2 uv ) {
 		if ( intersection.materialID != REFRACTIVE && intersection.materialID != REFRACTIVE_BACKFACE )
 			ray.origin += 2.0f * epsilon * intersection.normal;
 
-		// evaluate the material - updates finalColor, throughput, ray
-		EvaluateMaterial( finalColor, throughput, intersection, ray, rayPrevious );
+		// evaluate the material - updates finalColor, throughput, ray - return false on ray escape
+		if ( !EvaluateMaterial( finalColor, throughput, intersection, ray, rayPrevious ) ) break;
 
 		// russian roulette termination
 		float maxChannel = vmax( throughput );
