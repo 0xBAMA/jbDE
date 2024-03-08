@@ -317,6 +317,7 @@ void EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	if ( intersection.dTravel >= maxDistance ) {
 		// contribution from the skybox - placeholder
 		finalColor += throughput * vec3( 0.03f );
+		break;
 	} else {
 		// material specific behavior
 		switch( intersection.materialID ) {
