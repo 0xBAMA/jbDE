@@ -4,7 +4,7 @@
 void engineBase::StartMessage () {
 	ZoneScoped;
 	cout << endl << T_YELLOW << BOLD << "  jbDE - the jb Demo Engine" << newline;
-	cout << " By Jon Baker ( 2020 - 2023 ) " << RESET << newline;
+	cout << " By Jon Baker ( 2020 - 2024 ) " << RESET << newline;
 	cout << "  https://jbaker.graphics/ " << newline << newline;
 }
 
@@ -24,6 +24,7 @@ void engineBase::LoadConfig () {
 		config.windowOffset.y			= j[ "system" ][ "windowOffset" ][ "y" ];
 		config.startOnScreen			= j[ "system" ][ "startOnScreen" ];
 		config.numMsDelayAfterCallback	= j[ "system" ][ "numMsDelayAfterCallback" ];
+		config.severeCallsToKill		= j[ "system" ][ "severeCallsToKill" ];
 		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_FULLSCREEN" ] ? SDL_WINDOW_FULLSCREEN : 0 );
 		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_FULLSCREEN_DESKTOP" ] ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0 );
 		config.windowFlags				|= ( j[ "system" ][ "SDL_WINDOW_BORDERLESS" ] ? SDL_WINDOW_BORDERLESS : 0 );
@@ -86,8 +87,10 @@ void engineBase::CreateWindowAndContext () {
 
 	// setup OpenGL debug callback with configured delay
 	numMsDelayAfterCallback = config.numMsDelayAfterCallback;
+	severeCallsToKill = config.severeCallsToKill;
 	GLDebugEnable();
-	cout << endl << T_YELLOW << "  OpenGL debug callback enabled - " << numMsDelayAfterCallback << "ms delay.\n" << RESET << endl;
+	cout << endl << T_YELLOW << "  OpenGL debug callback enabled - " << numMsDelayAfterCallback << "ms delay.";
+	cout << endl << T_YELLOW << "    " << severeCallsToKill << " GL_DEBUG_SEVERITY_HIGH calls to kill." << RESET << endl << endl;
 }
 
 // split up into vertex, texture funcs + report platform info ( maybe do this later? )

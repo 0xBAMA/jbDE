@@ -5,6 +5,7 @@ void Daedalus::ResetAccumulators() {
 	textureManager.ZeroTexture2D( "Color Accumulator" );
 	textureManager.ZeroTexture2D( "Depth/Normals Accumulator" );
 	textureManager.ZeroTexture2D( "Tonemapped" );
+	daedalusConfig.tiles.RegenerateTileList(); // timer / sample count reset
 }
 
 void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
@@ -47,7 +48,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	if ( sampleCount != daedalusConfig.tiles.SampleCount() ) sampleCount = daedalusConfig.tiles.SampleCount(),
 		blueNoiseOffset = ivec2( daedalusConfig.rng.blueNoiseOffset(), daedalusConfig.rng.blueNoiseOffset() );
 	glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), blueNoiseOffset.x, blueNoiseOffset.y );
-	glUniform1f( glGetUniformLocation( shader, "subpixelJitterMethod" ), daedalusConfig.render.subpixelJitterMethod );
+	glUniform1i( glGetUniformLocation( shader, "subpixelJitterMethod" ), daedalusConfig.render.subpixelJitterMethod );
 	glUniform1i( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
 	glUniform1i( glGetUniformLocation( shader, "bokehMode" ), daedalusConfig.render.bokehMode );
 	glUniform1i( glGetUniformLocation( shader, "cameraType" ), daedalusConfig.render.cameraType );
@@ -58,10 +59,17 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "epsilon" ), daedalusConfig.render.epsilon );
 	glUniform1i( glGetUniformLocation( shader, "maxBounces" ), daedalusConfig.render.maxBounces );
 
+	glUniform1i( glGetUniformLocation( shader, "skyMode" ), daedalusConfig.render.scene.skyMode );
+	glUniform3fv( glGetUniformLocation( shader, "skyConstantColor" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor ) );
+
 	glUniform1i( glGetUniformLocation( shader, "raymarchEnable" ), daedalusConfig.render.scene.raymarchEnable );
 	glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), daedalusConfig.render.scene.raymarchMaxSteps );
 	glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), daedalusConfig.render.scene.raymarchUnderstep );
 	glUniform1f( glGetUniformLocation( shader, "raymarchMaxDistance" ), daedalusConfig.render.scene.raymarchMaxDistance );
+
+	glUniform1i( glGetUniformLocation( shader, "ddaSpheresEnable" ), daedalusConfig.render.scene.ddaSpheresEnable );
+	glUniform1f( glGetUniformLocation( shader, "ddaSpheresBoundSize" ), daedalusConfig.render.scene.ddaSpheresBoundSize );
+	glUniform1i( glGetUniformLocation( shader, "ddaSpheresResolution" ), daedalusConfig.render.scene.ddaSpheresResolution );
 
 	glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( daedalusConfig.render.viewerPosition ) );
 	glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( daedalusConfig.render.basisX ) );

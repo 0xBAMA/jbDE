@@ -1697,15 +1697,6 @@ vec3 ColorSample ( const vec2 uvIn ) {
 				} else {
 					rayDirection = refract( normalize( rayDirection ), result.normal, result.IoR );
 				}
-
-				// // adding noise to IOR? interesting idea, maybe, adds visual vaiations
-				// float IoRLocal = result.IoR + snoise3D( rayOrigin * 10.0f ) * 0.3f;
-				// cannotRefract = ( IoRLocal * sinTheta ) > 1.0f;
-				// if ( cannotRefract || Reflectance( cosTheta, IoRLocal ) > NormalizedRandomFloat() ) {
-				// 	rayDirection = reflect( normalize( rayDirection ), result.normal );
-				// } else {
-				// 	rayDirection = refract( normalize( rayDirection ), result.normal, IoRLocal );
-				// }
 				break;
 			}
 

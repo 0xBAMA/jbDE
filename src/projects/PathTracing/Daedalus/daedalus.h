@@ -52,10 +52,6 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
-		if ( state[ SDL_SCANCODE_S ] ) {
-			palette::PickRandomPalette( true );
-		}
-
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			ResetAccumulators();
 		}
