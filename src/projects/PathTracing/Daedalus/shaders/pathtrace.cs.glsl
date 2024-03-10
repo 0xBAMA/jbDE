@@ -455,6 +455,37 @@ float deAnemone( vec3 p ) {
 	return length( p.xz ) / 3e2f;
 }
 
+float dePillars( vec3 pos ) {
+	vec3 tpos=pos;
+	tpos.xz=abs(.5-mod(tpos.xz,1.));
+	vec4 p=vec4(tpos,1.);
+	float y=max(0.,.35-abs(pos.y-3.35))/.35;
+	for (int i=0; i<7; i++) {
+		p.xyz = abs(p.xyz)-vec3(-0.02,1.98,-0.02);
+		p=p*(2.0+0.*y)/clamp(dot(p.xyz,p.xyz),.4,1.)-vec4(0.5,1.,0.4,0.);
+		p.xz*=mat2(-0.416,-0.91,0.91,-0.416);
+	}
+	return (length(max(abs(p.xyz)-vec3(0.1,5.0,0.1),vec3(0.0)))-0.05)/p.w;
+}
+
+float deWater( vec3 p ) {
+  float e, i=0., j, f, a, w;
+ // p.yz *= mat2(cos(0.7f),sin(0.7f),-sin(0.7f),cos(0.7f));
+  f = 0.3; // wave amplitude
+  i < 45. ? p : p -= .001;
+  e = p.y + 5.;
+  for( a = j = .9; j++ < 30.; a *= .8 ){
+    vec2 m = vec2( 1. ) * mat2(cos(j),sin(j),-sin(j),cos(j));
+    // float x = dot( p.xz, m ) * f + t + t; // time varying behavior
+    float x = dot( p.xz, m ) * f + 0.;
+    w = exp( sin( x ) - 1. );
+    p.xz -= m * w * cos( x ) * a;
+    e -= w * a;
+    f *= 1.2;
+  }
+  return e;
+}
+
 //=============================================================================================================================
 
 float de( in vec3 p ) {
@@ -470,18 +501,21 @@ float de( in vec3 p ) {
 			// set material specifics - hitColor, hitSurfaceType
 		// }
 
-	const float dFractal = max( deLeaf( p ), fRoundedBox( p, vec3( 3.0f, 3.0f, 5.0f ), 0.1f ) );
+	// const float dFractal = max( deLeaf( p ), fRoundedBox( p, vec3( 3.0f, 3.0f, 5.0f ), 0.1f ) );
+	// const float dFractal = deLeaf( p );
+	const float dFractal = deWater( p );
 	sceneDist = min( sceneDist, dFractal );
 	if ( sceneDist == dFractal && dFractal < epsilon ) {
-		hitColor = vec3( 0.618f, 0.1f, 0.1f );
-		hitSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
+		hitColor = vec3( 0.1618f );
+		// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
+		hitSurfaceType = METALLIC;
 	}
 
-	const float dBar = fRoundedBox( p, vec3( 0.15f, 0.15f, 5.0f ), 0.03f );
+	const float dBar = fRoundedBox( p + vec3( 0.0f, 1.0f, 0.0f ), vec3( 0.15f, 0.15f, 100.0f ), 0.03f );
 	sceneDist = min( sceneDist, dBar );
 	if ( sceneDist == dBar && dBar < epsilon ) {
 		// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
-		hitColor = refPalette( saturate( RangeRemapValue( p.z, -4.0f, 4.0f, 0.0f, 1.0f ) ), 9 ).xyz * 1.0f;
+		hitColor = refPalette( smoothstep( saturate( RangeRemapValue( p.z, -10.0f, 10.0f, 0.0f, 1.0f ) ), -1.0f, 0.0f ), 10 ).xyz * 1.0f;
 		hitSurfaceType = EMISSIVE;
 	}
 
@@ -579,15 +613,16 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
-	// return deStairs( idx * 0.01f - vec3( 0.5f ) ) < 0.001f;
-	return deApollo( idx * 0.01f - vec3( 0.5f ) ) < 0.01f;
+	bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
+	// return deApollo( idx * 0.01f - vec3( 0.5f ) ) < 0.01f;
 
-	// bool blackOrWhite = ( step( 0.0f,
-	// 	cos( PI * 0.05f * float( idx.x ) + PI / 2.0f ) *
-	// 	cos( PI * 0.05f * float( idx.y ) + PI / 2.0f ) *
-	// 	cos( PI * 0.05f * float( idx.z ) + PI / 2.0f ) ) == 0 );
+	// bool blackOrWhite = ( step( -0.05f,
+	// 	cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
+	// 	cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
+	// 	cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
 
-	// return blackOrWhite;
+	// return blackOrWhite && mask;
+	return mask;
 }
 
 vec3 GetOffsetForIdx( ivec3 idx ) {
@@ -607,12 +642,15 @@ float GetRadiusForIdx( ivec3 idx ) {
 }
 
 vec3 GetColorForIdx( ivec3 idx ) {
-	return vec3( 0.9f );
+	// return vec3( 0.9f );
+	// return vec3( 0.9f, 0.5f, 0.2f ) * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	return mix( vec3( 0.618f ), vec3( 0.618f, 0.80f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
 }
 
 int GetMaterialIDForIdx( ivec3 idx ) {
 	// return DIFFUSE;
-	return NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
+	// return MIRROR;
+	return NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 }
 
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
