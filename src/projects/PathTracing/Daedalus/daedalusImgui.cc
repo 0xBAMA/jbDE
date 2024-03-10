@@ -48,11 +48,24 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		// constant color, ollj model, ...
 		ImGui::SeparatorText( "Sky" );
-		const char * skyModes[] = { "Constant Color", "ollj", "..." };
+		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model" };
 		ImGui::Combo( "Sky Mode", &daedalusConfig.render.scene.skyMode, skyModes, IM_ARRAYSIZE( skyModes ) );
+		daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		if ( daedalusConfig.render.scene.skyMode == 0 ) { // constant color
-			ImGui::ColorEdit3( "Sky Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor, ImGuiColorEditFlags_PickerHueWheel );
+			ImGui::ColorEdit3( "Sky Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor1, ImGuiColorEditFlags_PickerHueWheel );
+			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
+		} else if ( daedalusConfig.render.scene.skyMode == 1 ) {
+			ImGui::ColorEdit3( "Azimuth Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor1, ImGuiColorEditFlags_PickerHueWheel );
+			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
+			ImGui::ColorEdit3( "Zenith Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor2, ImGuiColorEditFlags_PickerHueWheel );
+			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
+		} else if ( daedalusConfig.render.scene.skyMode == 2 ) {
+			// ollj model needs float slider for time of day
+			ImGui::SliderFloat( "Time Of Day", &daedalusConfig.render.scene.skyTime, 2.0f, 7.0f );
+			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		}
+		ImGui::SliderFloat( "Sky Brightness Scalar", &daedalusConfig.render.scene.skyBrightnessScalar, 0.0f, 5.0f );
+		ImGui::Checkbox( "Invert Sampling Direction", &daedalusConfig.render.scene.skyInvert );
 
 		ImGui::Separator();
 	}
@@ -165,6 +178,9 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		ImGui::SeparatorText( "Tonemapped" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Tonemapped" ), ImVec2( availableWidth, proportionalHeight ) );
+
+		ImGui::SeparatorText( "Sky Cache" );
+		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Sky Cache" ), ImVec2( availableWidth, availableWidth / 2.0f ) );
 	}
 
 	if ( ImGui::CollapsingHeader( "Postprocess" ) ) {
