@@ -31,6 +31,12 @@ public:
 			textureManager.Add( "Tonemapped", opts );
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 
+			// and the texture for the sky
+			opts.wrap			= GL_CLAMP_TO_EDGE;
+			opts.width			= daedalusConfig.render.scene.skyDims.x;
+			opts.height			= daedalusConfig.render.scene.skyDims.y;
+			textureManager.Add( "Sky Cache", opts );
+
 			palette::PickRandomPalette( true );
 
 		}
@@ -173,6 +179,7 @@ public:
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
+	void SendSkyCacheUniforms();
 	void SendBasePathtraceUniforms();
 	void SendInnerLoopPathtraceUniforms();
 	void SendPrepareUniforms();
@@ -189,6 +196,7 @@ public:
 	}
 
 	void CompileShaders() {
+		shaders[ "Sky Cache" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/skyCache.cs.glsl" ).shaderHandle;
 		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
 		shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
@@ -196,6 +204,17 @@ public:
 
 	void ComputePasses () {
 		ZoneScoped;
+
+		{
+			scopedTimer Start( "Sky Cache" );
+			if ( daedalusConfig.render.scene.skyNeedsUpdate == true ) {
+				daedalusConfig.render.scene.skyNeedsUpdate = false;
+				// dispatch for every pixel in the sky cache texture
+				SendSkyCacheUniforms();
+				glDispatchCompute( daedalusConfig.render.scene.skyDims.x / 16, daedalusConfig.render.scene.skyDims.y / 16, 1 );
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
+		}
 
 		{ // do some tiles, update the buffer
 			scopedTimer Start( "Tiled Update" );

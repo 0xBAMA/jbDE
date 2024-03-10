@@ -39,6 +39,19 @@ void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
 	daedalusConfig.view.outputOffset = daedalusConfig.view.outputZoom * ( vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) - vec2( config.width, config.height ) ) / 2.0f;
 }
 
+void Daedalus::SendSkyCacheUniforms() {
+	const GLuint shader = shaders[ "Sky Cache" ];
+	glUseProgram( shader );
+
+	glUniform1f( glGetUniformLocation( shader, "skyTime" ), daedalusConfig.render.scene.skyTime );
+	glUniform1i( glGetUniformLocation( shader, "mode" ), daedalusConfig.render.scene.skyMode );
+	glUniform3fv( glGetUniformLocation( shader, "color1" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor1 ) );
+	glUniform3fv( glGetUniformLocation( shader, "color2" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor2 ) );
+
+	textureManager.BindImageForShader( "Sky Cache", "skyCache", shader, 0 );
+	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 1 );
+}
+
 void Daedalus::SendBasePathtraceUniforms() {
 	const GLuint shader = shaders[ "Pathtrace" ];
 	glUseProgram( shader );
@@ -58,9 +71,8 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "maxDistance" ), daedalusConfig.render.maxDistance );
 	glUniform1f( glGetUniformLocation( shader, "epsilon" ), daedalusConfig.render.epsilon );
 	glUniform1i( glGetUniformLocation( shader, "maxBounces" ), daedalusConfig.render.maxBounces );
-
-	glUniform1i( glGetUniformLocation( shader, "skyMode" ), daedalusConfig.render.scene.skyMode );
-	glUniform3fv( glGetUniformLocation( shader, "skyConstantColor" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor ) );
+	glUniform1i( glGetUniformLocation( shader, "skyInvert" ), daedalusConfig.render.scene.skyInvert );
+	glUniform1f( glGetUniformLocation( shader, "skyBrightnessScalar" ), daedalusConfig.render.scene.skyBrightnessScalar );
 
 	glUniform1i( glGetUniformLocation( shader, "raymarchEnable" ), daedalusConfig.render.scene.raymarchEnable );
 	glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), daedalusConfig.render.scene.raymarchMaxSteps );
@@ -82,6 +94,9 @@ void Daedalus::SendBasePathtraceUniforms() {
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
 	textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
+	textureManager.BindTexForShader( "Sky Cache", "skyCache", shader, 3 );
+
+	
 }
 
 void Daedalus::SendInnerLoopPathtraceUniforms() {

@@ -272,27 +272,24 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 }
 
 //=============================================================================================================================
-uniform int skyMode;
-uniform vec3 skyConstantColor;
+uniform sampler2D skyCache;
+uniform bool skyInvert;
+uniform float skyBrightnessScalar;
 //=============================================================================================================================
-#define CONSTANT_COLOR	0
-#define OLLJ_SKY		1
-#define HDRI_SKY		2
-//=============================================================================================================================
-// todo: sky pass + texture etc
-	// consider having it be more than just directional, as that technically represents a surface at infinity... keep depth for the skybox... hmmm
 vec3 SkyColor( ray_t ray ) {
-	switch ( skyMode ) {
-
-		case CONSTANT_COLOR:
-			return skyConstantColor;
-			break;
-
-		default:
-			return vec3( 0.0f ); // todo
-			break;
-
+	// sample the texture
+	if ( skyInvert ) {
+		ray.direction.y *= -1.0f;
 	}
+	vec2 samplePoint = vec2( 0.0f );
+	float elevationFactor = dot( ray.direction, vec3( 0.0f, 1.0f, 0.0f ) );
+	if ( abs( elevationFactor ) > 0.99f ) {
+		// handle vertical samples, straight up or straight down - compress y into valid range
+		elevationFactor = elevationFactor * 0.99f;
+	}
+	samplePoint.x = RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f, 1.0f );
+	samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
+	return texture( skyCache, samplePoint ).rgb * skyBrightnessScalar;
 }
 
 //=============================================================================================================================

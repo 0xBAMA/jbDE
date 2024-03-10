@@ -35,8 +35,14 @@ struct sceneConfig_t {
 	// mode config? may require a lot of parameterization...
 
 	// sky config
+	uvec2 skyDims;
+	bool skyNeedsUpdate;
 	int skyMode;
-	vec3 skyConstantColor;
+	vec3 skyConstantColor1;
+	vec3 skyConstantColor2;
+	float skyTime;
+	bool skyInvert;
+	float skyBrightnessScalar;
 };
 
 struct renderConfig_t {
@@ -121,8 +127,14 @@ struct daedalusConfig_t {
 		render.scene.ddaSpheresBoundSize = 2.0f;
 		render.scene.ddaSpheresResolution = 50;
 
+		render.scene.skyDims = uvec2( 1024, 512 );
+		render.scene.skyNeedsUpdate = true;
 		render.scene.skyMode = 0;
-		render.scene.skyConstantColor = vec3( 0.01f );
+		render.scene.skyConstantColor1 = vec3( 0.0f );
+		render.scene.skyConstantColor2 = vec3( 0.0f );
+		render.scene.skyInvert = false;
+		render.scene.skyBrightnessScalar = 1.0f;
+		render.scene.skyTime = 5.0f;
 
 		// ===============================
 
