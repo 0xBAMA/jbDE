@@ -283,6 +283,7 @@ vec3 SkyColor( ray_t ray ) {
 	}
 	vec2 samplePoint = vec2( 0.0f );
 	float elevationFactor = dot( ray.direction, vec3( 0.0f, 1.0f, 0.0f ) );
+	// this remap stuff is ugly
 	if ( abs( elevationFactor ) > 0.99f ) {
 		// handle vertical samples, straight up or straight down - compress y into valid range
 		elevationFactor = elevationFactor * 0.99f;
@@ -613,13 +614,13 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
-	bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
-	// return deApollo( idx * 0.01f - vec3( 0.5f ) ) < 0.01f;
+	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
+	bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
 
-	// bool blackOrWhite = ( step( -0.05f,
-	// 	cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
-	// 	cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
-	// 	cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
+	bool blackOrWhite = ( step( -0.0f,
+		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
+		cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
+		cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
 
 	// return blackOrWhite && mask;
 	return mask;

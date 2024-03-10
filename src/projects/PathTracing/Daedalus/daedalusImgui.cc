@@ -74,7 +74,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SliderFloat( "Viewer X", &daedalusConfig.render.viewerPosition.x, -40.0f, 40.0f );
 		ImGui::SliderFloat( "Viewer Y", &daedalusConfig.render.viewerPosition.y, -40.0f, 40.0f );
 		ImGui::SliderFloat( "Viewer Z", &daedalusConfig.render.viewerPosition.z, -40.0f, 40.0f );
-		ImGui::Text( "Basis Vectors:" );
+		ImGui::Text( "Camera Basis Vectors:" );
 		ImGui::Text( " X: %.3f %.3f %.3f", daedalusConfig.render.basisX.x, daedalusConfig.render.basisX.y, daedalusConfig.render.basisX.z );
 		ImGui::Text( " Y: %.3f %.3f %.3f", daedalusConfig.render.basisY.x, daedalusConfig.render.basisY.y, daedalusConfig.render.basisY.z );
 		ImGui::Text( " Z: %.3f %.3f %.3f", daedalusConfig.render.basisZ.x, daedalusConfig.render.basisZ.y, daedalusConfig.render.basisZ.z );
