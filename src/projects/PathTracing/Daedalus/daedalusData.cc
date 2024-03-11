@@ -39,6 +39,22 @@ void Daedalus::ResizeAccumulators( uint32_t x, uint32_t y ) {
 	daedalusConfig.view.outputOffset = daedalusConfig.view.outputZoom * ( vec2( daedalusConfig.targetWidth, daedalusConfig.targetHeight ) - vec2( config.width, config.height ) ) / 2.0f;
 }
 
+void Daedalus::Screenshot( string label, bool srgbConvert, bool fullDepth ) {
+	const GLuint tex = textureManager.Get( label );
+	uvec2 dims = textureManager.GetDimensions( label );
+	std::vector< float > imageBytesToSave;
+	imageBytesToSave.resize( dims.x * dims.y * sizeof( float ) * 4, 0 );
+	glBindTexture( GL_TEXTURE_2D, tex );
+	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+	Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
+	if ( srgbConvert == true ) {
+		// screenshot.SRGBtoRGB();
+		screenshot.RGBtoSRGB();
+	}
+	const string filename = string( "Daedalus-" ) + timeDateString() + string( fullDepth ? ".exr" : ".png" );
+	screenshot.Save( filename, fullDepth ? Image_4F::backend::TINYEXR : Image_4F::backend::LODEPNG );
+}
+
 void Daedalus::SendSkyCacheUniforms() {
 	const GLuint shader = shaders[ "Sky Cache" ];
 	glUseProgram( shader );

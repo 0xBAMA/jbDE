@@ -163,6 +163,7 @@ public:
 
 	void ResetAccumulators();
 	void ResizeAccumulators( uint32_t x, uint32_t y );
+	void Screenshot( string label, bool srgbConvert = true, bool fullDepth = false );
 
 	void ShowDaedalusConfigWindow();
 	void ImguiPass () {

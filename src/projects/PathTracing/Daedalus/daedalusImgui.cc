@@ -14,6 +14,20 @@ void Daedalus::ShowDaedalusConfigWindow() {
 	const string timeLabel = string( "Average: " ) + std::to_string( std::reduce( timeVector.begin(), timeVector.end() ) / timeVector.size() ).substr( 0, 5 ) + string( "ms/frame" );
 	ImGui::PlotLines( " ", timeVector.data(), daedalusConfig.performanceHistorySamples, 0, timeLabel.c_str(), -5.0f, 180.0f, ImVec2( ImGui::GetWindowSize().x - 30, 65 ) );
 
+	ImGui::SeparatorText( " Screenshots " );
+	if ( ImGui::Button( "Capture Tonemapped" ) ) {
+		Screenshot( "Tonemapped", true, false );
+	}
+	ImGui::SameLine();
+	if ( ImGui::Button( "Capture Color Accumulator" ) ) {
+		Screenshot( "Color Accumulator", false, true );
+	}
+	ImGui::SameLine();
+	if ( ImGui::Button( "Capture Depth/Normals Accumulator" ) ) {
+		Screenshot( "Depth/Normals Accumulator", false, true );
+	}
+	ImGui::Separator();
+
 	if ( ImGui::CollapsingHeader( "Viewer Config" ) ) {
 		ImGui::Text( "  Output: " );
 		ImGui::Text( "  Zoom: %f, Offset: [%f, %f]", daedalusConfig.view.outputZoom, daedalusConfig.view.outputOffset.x, daedalusConfig.view.outputOffset.y );
@@ -164,20 +178,32 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		ImGui::SeparatorText( "Display Texture" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Display Texture" ), ImVec2( availableWidth, proportionalHeight ) );
+		if ( ImGui::Button( "Capture##DisplayTexture" ) ) {
+			Screenshot( "Display Texture" );
+		}
 
 		proportionalHeight = availableWidth * ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
 
 		ImGui::SeparatorText( "Color Accumulator" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Color Accumulator" ), ImVec2( availableWidth, proportionalHeight ) );
+		if ( ImGui::Button( "Capture##ColorAccumulator" ) ) {
+			Screenshot( "Color Accumulator", true, true );
+		}
 
 		ImGui::SeparatorText( "Color Accumulator Scratch" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Color Accumulator Scratch" ), ImVec2( availableWidth, proportionalHeight ) );
 
 		ImGui::SeparatorText( "Depth/Normals Accumulator" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Depth/Normals Accumulator" ), ImVec2( availableWidth, proportionalHeight ) );
+		if ( ImGui::Button( "Capture##DepthNormalAccumulator" ) ) {
+			Screenshot( "Depth/Normals Accumulator", true, true );
+		}
 
 		ImGui::SeparatorText( "Tonemapped" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Tonemapped" ), ImVec2( availableWidth, proportionalHeight ) );
+		if ( ImGui::Button( "Capture##Tonemapped" ) ) {
+			Screenshot( "Tonemapped", true, false );
+		}
 
 		ImGui::SeparatorText( "Sky Cache" );
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Sky Cache" ), ImVec2( availableWidth, availableWidth / 2.0f ) );

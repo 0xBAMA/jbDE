@@ -308,6 +308,16 @@ public:
 		return std::numeric_limits< GLint >::max();
 	}
 
+	uvec2 GetDimensions ( const string label ) {
+		textureOptions_t opts;
+		for ( auto& tex : textures ) {
+			if ( tex.label == label ) {
+				opts = tex.creationOptions;
+			}
+		}
+		return uvec2( opts.width, opts.height );
+	}
+
 // I think this is the way we're going to use this now...
 	// additionally, we can drop the glUniform1i if using layout qualifiers in the shader code
 
@@ -382,7 +392,6 @@ public:
 		return total;
 	}
 
-	// TODO
 	void Remove ( string label ) {
 		// delete texture
 		GLuint tex = Get( label );

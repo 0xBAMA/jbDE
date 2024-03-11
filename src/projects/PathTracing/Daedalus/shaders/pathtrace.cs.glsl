@@ -504,19 +504,21 @@ float de( in vec3 p ) {
 
 	// const float dFractal = max( deLeaf( p ), fRoundedBox( p, vec3( 3.0f, 3.0f, 5.0f ), 0.1f ) );
 	// const float dFractal = deLeaf( p );
-	const float dFractal = deWater( p );
-	sceneDist = min( sceneDist, dFractal );
-	if ( sceneDist == dFractal && dFractal < epsilon ) {
-		hitColor = vec3( 0.1618f );
-		// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
-		hitSurfaceType = METALLIC;
-	}
+	// const float dFractal = deWater( p );
+	// sceneDist = min( sceneDist, dFractal );
+	// if ( sceneDist == dFractal && dFractal < epsilon ) {
+	// 	hitColor = vec3( 0.1618f );
+	// 	// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
+	// 	// hitSurfaceType = METALLIC;
+	// 	hitSurfaceType = DIFFUSE;
+	// }
 
-	const float dBar = fRoundedBox( p + vec3( 0.0f, 1.0f, 0.0f ), vec3( 0.15f, 0.15f, 100.0f ), 0.03f );
+	// const float dBar = fRoundedBox( p + vec3( 0.0f, 1.0f, 0.0f ), vec3( 0.15f, 0.15f, 0.15f ), 0.03f );
+	const float dBar = fRoundedBox( p, vec3( 0.1f, 0.1f, 0.45f ), 0.03f );
 	sceneDist = min( sceneDist, dBar );
 	if ( sceneDist == dBar && dBar < epsilon ) {
 		// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
-		hitColor = refPalette( smoothstep( saturate( RangeRemapValue( p.z, -10.0f, 10.0f, 0.0f, 1.0f ) ), -1.0f, 0.0f ), 10 ).xyz * 1.0f;
+		hitColor = refPalette( saturate( RangeRemapValue( p.z, -0.5f, 0.5f, 0.0f, 1.0f ) ), 12 ).xyz;
 		hitSurfaceType = EMISSIVE;
 	}
 
