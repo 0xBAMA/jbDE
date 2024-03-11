@@ -114,13 +114,15 @@ void main () {
 		}
 
 		result -= ditherValue;
+
+		if ( vignette ) {
+			// add vignetting - this should be configurable
+			vec2 uv = ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( imageSize( outputImage ) );
+			uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
+		}
+
+		result -= 0.1f * ditherValue;
 	}
 
-	if ( vignette ) {
-		// add vignetting - this should be configurable
-		vec2 uv = ( vec2( writeLoc ) + vec2( 0.5f ) ) / vec2( imageSize( outputImage ) );
-		uv *= 1.0f - uv.yx; result.rgb *= pow( uv.x * uv.y, 0.25f );
-	}
-
-	imageStore( outputImage, writeLoc, vec4( result - 0.1f * ditherValue, 1.0f ) );
+	imageStore( outputImage, writeLoc, vec4( result, 1.0f ) );
 }
