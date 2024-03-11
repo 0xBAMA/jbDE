@@ -416,6 +416,50 @@ public:
 		}
 	}
 
+	// srgb conversions <-> linear light https://www.shadertoy.com/view/4tXcWr
+		// these really only apply to float images
+	void SRGBtoRGB( bool preserveAlpha = true ) {
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color col = GetAtXY( x, y );
+				vec4 sRGB = vec4( col[ 0 ], col[ 1 ], col[ 2 ], col[ 3 ] );
+				bvec4 cutoff = lessThan( sRGB, vec4( 0.04045f ) );
+				vec4 higher = pow( ( sRGB + vec4( 0.055f ) ) / vec4( 1.055f ), vec4( 2.4f ) );
+				vec4 lower = sRGB / vec4( 12.92f );
+				vec4 result =  mix( higher, lower, cutoff );
+				if ( preserveAlpha == true ) {
+					result = vec4( result.rgb(), sRGB.a );
+				}
+				col[ 0 ] = result.r;
+				col[ 1 ] = result.g;
+				col[ 2 ] = result.b;
+				col[ 3 ] = result.a;
+				SetAtXY( x, y, col );
+			}
+		}
+	}
+
+	void RGBtoSRGB( bool preserveAlpha = true ) {
+		for ( uint32_t y { 0 }; y < height; y++ ) {
+			for ( uint32_t x { 0 }; x < width; x++ ) {
+				color col = GetAtXY( x, y );
+				vec4 linearRGB = vec4( col[ 0 ], col[ 1 ], col[ 2 ], col[ 3 ] );
+				bvec4 cutoff = lessThan( linearRGB, vec4( 0.0031308f ) );
+				vec4 higher = vec4( 1.055f ) * pow( linearRGB, vec4( 1.0f / 2.4f ) ) - vec4( 0.055f );
+				vec4 lower = linearRGB * vec4( 12.92f );
+				vec4 result = mix( higher, lower, cutoff );
+				if ( preserveAlpha == true ) {
+					result = vec4( result.rgb(), linearRGB.a );
+				}
+				col[ 0 ] = result.r;
+				col[ 1 ] = result.g;
+				col[ 2 ] = result.b;
+				col[ 3 ] = result.a;
+				SetAtXY( x, y, col );
+			}
+		}
+	}
+
 	// remapping the data in the image ( particularly useful for floating point types, heightmap kind of stuff )
 	enum remapOperation_t {
 		// no op
