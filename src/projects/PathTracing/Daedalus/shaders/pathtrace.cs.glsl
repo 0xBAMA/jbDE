@@ -749,6 +749,42 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 
 //=============================================================================================================================
 
+intersection_t MaskedPlaneIntersect( in ray_t ray, in vec3 normal, in ivec3 dims, vec3 scale ) {
+	// determine the direction of travel, so that we know what order to step through the planes in
+	const float rayDot = dot( ray.direction, normal );
+	const bool nAlign = ( rayDot < 0.0f ); // is this ray going in the same direction as the normal vector
+	const bool planeParallel = ( rayDot == 0.0f );
+
+	intersection_t intersection = DefaultIntersection();
+
+	// if the ray is parallel, we can early out with a nohit
+	if ( planeParallel == true ) {
+		return intersection;
+	}
+
+	// construct the basis for the x,y mapping on the plane... what does this look like?
+
+	const int start  = nAlign ? dims.z - 1 : 0;
+	const int thresh = nAlign ? 0 : dims.z - 1;
+	for ( int i = start; nAlign ? ( i <= thresh ) : ( i >= thresh ); nAlign ? ( i-- ) : ( i++ ) ) {
+		// iterating through the planes
+			// offset by i * spacing - spacing is the scale.z
+			// do the plane test
+			// map onto the plane, how are we constructing the basis?
+				// we can actually early out the first time we get a good hit, passing the mask test, since we are going in order
+	}
+}
+
+intersection_t MaskedPlaneIntersect( in ray_t ray ) {
+	const vec3 normal = vec3( 0.0f, 1.0f, 0.0f );
+	const ivec3 dims = ivec3( 10 );
+	const vec3 scale = vec3( 2.0f, 2.0f, 0.5f );
+
+	return MaskedPlaneIntersect( ray, normal, dims, scale );
+}
+
+//=============================================================================================================================
+
 intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 	// return a single intersection_t representing the closest ray intersection
 	intersection_t SDFResult	= raymarchEnable ? raymarch( ray ) : DefaultIntersection();
