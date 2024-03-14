@@ -48,7 +48,6 @@ void Daedalus::Screenshot( string label, bool srgbConvert, bool fullDepth ) {
 	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
 	Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
 	if ( srgbConvert == true ) {
-		// screenshot.SRGBtoRGB();
 		screenshot.RGBtoSRGB();
 	}
 	const string filename = string( "Daedalus-" ) + timeDateString() + string( fullDepth ? ".exr" : ".png" );

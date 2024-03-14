@@ -470,23 +470,72 @@ float dePillars( vec3 pos ) {
 }
 
 float deWater( vec3 p ) {
-  float e, i=0., j, f, a, w;
- // p.yz *= mat2(cos(0.7f),sin(0.7f),-sin(0.7f),cos(0.7f));
-  f = 0.3; // wave amplitude
-  i < 45. ? p : p -= .001;
-  e = p.y + 5.;
-  for( a = j = .9; j++ < 30.; a *= .8 ){
-    vec2 m = vec2( 1. ) * mat2(cos(j),sin(j),-sin(j),cos(j));
-    // float x = dot( p.xz, m ) * f + t + t; // time varying behavior
-    float x = dot( p.xz, m ) * f + 0.;
-    w = exp( sin( x ) - 1. );
-    p.xz -= m * w * cos( x ) * a;
-    e -= w * a;
-    f *= 1.2;
-  }
-  return e;
+	float e, i=0., j, f, a, w;
+	// p.yz *= mat2(cos(0.7f),sin(0.7f),-sin(0.7f),cos(0.7f));
+	f = 0.3; // wave amplitude
+	i < 45. ? p : p -= .001;
+	e = p.y + 5.;
+	for( a = j = .9; j++ < 30.; a *= .8 ){
+		vec2 m = vec2( 1. ) * mat2(cos(j),sin(j),-sin(j),cos(j));
+		// float x = dot( p.xz, m ) * f + t + t; // time varying behavior
+		float x = dot( p.xz, m ) * f + 0.;
+		w = exp( sin( x ) - 1. );
+		p.xz -= m * w * cos( x ) * a;
+		e -= w * a;
+		f *= 1.2;
+	}
+	return e;
 }
 
+float deRope( vec3 p ) {
+	vec3 q=p;
+	float d, t = 0.0; // t is time adjustment
+	q.xy=fract(q.xy)-.5;
+	for( int j=0; j++<9; q+=q )
+		q.xy=abs(q.xy*rotate2D(q.z + t))-.15;
+		d=(length(q.xy)-.2)/1e3;
+	return d;
+}
+
+// European 4 in 1 Chain Maille Pattern
+#define R(th) mat2(cos(th),sin(th),-sin(th),cos(th))
+float dTorus( vec3 p, float r_large, float r_small ) {
+  float h = length( p.xy ) - r_large;
+  float d = sqrt( h * h + p.z * p.z ) - r_small;
+  return d;
+}
+
+float torusGrid( vec3 p, float r_small, float r_large, float angle, vec2 sep ) {
+  // Create a grid of tori through domain repetition
+  vec3 q = p - vec3( round( p.xy / sep ) * sep, 0 ) - vec3( 0, sep.y / 2., 0 );
+  q.yz *= R( angle );
+  float d = dTorus( q, r_large, r_small );
+  q = p - vec3( round( p.xy / sep ) * sep, 0 ) - vec3( 0, -sep.y / 2., 0 );
+  q.yz *= R( angle );
+  d = min( d, dTorus( q, r_large, r_small ) );
+  return d;
+}
+
+float deMaille( vec3 p ) {
+  float angle = 0.3;
+  vec2 sep = vec2(1,0.8);
+  float d = torusGrid(p, 0.07, 0.4, angle, sep);
+  d = min(d, torusGrid(p-vec3(sep/2.,0), 0.07, 0.4, -angle, sep));
+  // vec3 p2 = 12.3*p // displaced plane background;
+  // p2.yz *= R(0.7);
+  // p2.xz *= R(-0.7);
+  // vec2 q = p2.xy-round(p2.xy);
+  // float bump = dot(q,q) * 0.005;
+  // float d2 = p.z+0.15+bump;
+  // d = min(d, d2);
+  return d;
+}
+
+  float deSS(vec3 p){
+    float k = pi*2.;
+    vec3 v = vec3(0.,3.,fract(k));
+    return (length(cross(cos(p+v),p.zxy))-0.4)*0.2;
+  }
 //=============================================================================================================================
 
 float de( in vec3 p ) {
@@ -605,6 +654,15 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 		vec4( tF, normalize( -sign( ray.direction ) * step( t2, vec3( tF ) ) ) ) );
 }
 
+// // just solve for t, < ro+t*d, nor > - k = 0
+// iqIntersect iPlane ( in vec3 ro, in vec3 rd, vec4 pla ) {
+// 	float k1 = dot( ro, pla.xyz );
+// 	float k2 = dot( rd, pla.xyz );
+// 	float t = ( pla.w - k1 ) / k2;
+// 	vec2 ab = ( k2 > 0.0f ) ? vec2( t, 1e20f ) : vec2( -1e20f, t ); // backface hits
+// 	return Intersection( vec4( ab.x, -pla.xyz ), vec4( ab.y, pla.xyz ) );
+// }
+
 //=============================================================================================================================
 
 uniform bool ddaSpheresEnable;
@@ -618,6 +676,7 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
 	bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
+	// bool mask = deSS( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
 
 	bool blackOrWhite = ( step( -0.0f,
 		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
@@ -748,8 +807,7 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 }
 
 //=============================================================================================================================
-
-intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 basePoint, in ivec3 dims, vec3 scale ) {
+intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 basePoint, in ivec3 dims, in vec3 scale ) {
 	intersection_t intersection = DefaultIntersection();
 
 	// determine the direction of travel, so that we know what order to step through the planes in
@@ -784,35 +842,38 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 				scale.y * dot( intersectionPointInPlane, yVec )
 			);
 
-			// now we have a 2d point to work with
-			bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
-				cos( PI * float( projectedCoords.x ) + PI / 2.0f ) *
-				cos( PI * float( projectedCoords.y ) + PI / 2.0f ) ) == 0 );
-			
-			if ( mask ) {
-				intersection.dTravel = planeDistance;
-				intersection.albedo = vec3( 0.618f );
-				intersection.frontfaceHit = nAlign;
-				intersection.normal = nAlign ? normal : -normal;
-				intersection.frontfaceHit = true;
-				intersection.materialID = DIFFUSE;
-				break; // we can actually early out the first time we get a good hit, passing the mask test, since we are going in order
+			// check the projected coordinates against the input boundary size
+			if ( abs( projectedCoords.x ) <= float( dims.x ) / 2.0f && abs( projectedCoords.y ) <= float( dims.y ) / 2.0f ) {
+				// now we have a 2d point to work with
+				bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
+					cos( PI * float( projectedCoords.x ) + PI / 2.0f ) *
+					cos( PI * float( projectedCoords.y ) + PI / 2.0f ) ) == 0 );
+				
+				if ( mask ) {
+					intersection.dTravel = planeDistance;
+					intersection.albedo = normal == vec3( 0.0f, 0.0f, 1.0f ) ? vec3( 0.618f, 0.0f, 0.0f ) : vec3( 0.618f );
+					intersection.frontfaceHit = nAlign;
+					intersection.normal = nAlign ? normal : -normal;
+					intersection.frontfaceHit = true;
+					intersection.materialID = DIFFUSE;
+					break; // we can actually early out the first time we get a good hit, passing the mask test, since we are going in order
+				}
 			}
 		}
 	}
 	// fall out of the loop and return
 	return intersection;
 }
-
+//=============================================================================================================================
 intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 	const mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
 	const vec3 point = vec3( 0.0f ); // base point for the plane
-	const ivec3 dims = ivec3( 1, 1, 30 ); // "voxel" dimensions - x,y glyph res + z number of planes
-	const vec3 scale = vec3( 0.1f, 0.1f, 0.05f ); // scaling x,y, and z is spacing between the planes
+	const ivec3 dims = ivec3( 10, 10, 100 ); // "voxel" dimensions - x,y glyph res + z number of planes
+	const vec3 scale = vec3( 1.0f, 1.0f, 0.01f ); // scaling x,y, and z is spacing between the planes
 	// return MaskedPlaneIntersect( ray, basis, point, dims, scale );
 
 	intersection_t intersect1 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
-	intersection_t intersect2 = MaskedPlaneIntersect( ray, Rotate3D( 0.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis, point, dims, scale );
+	intersection_t intersect2 = MaskedPlaneIntersect( ray, Rotate3D( 1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( 0.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis, point, dims, scale );
 	intersection_t result = DefaultIntersection();
 	float minDistance = vmin( vec2( intersect1.dTravel, intersect2.dTravel ) );
 	if ( minDistance == intersect1.dTravel ) {
@@ -822,7 +883,6 @@ intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 	}
 	return result;
 }
-
 //=============================================================================================================================
 
 intersection_t GetNearestSceneIntersection( in ray_t ray ) {
