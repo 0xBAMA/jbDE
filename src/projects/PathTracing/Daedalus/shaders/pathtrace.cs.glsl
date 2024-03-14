@@ -749,38 +749,78 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 
 //=============================================================================================================================
 
-intersection_t MaskedPlaneIntersect( in ray_t ray, in vec3 normal, in ivec3 dims, vec3 scale ) {
-	// determine the direction of travel, so that we know what order to step through the planes in
-	const float rayDot = dot( ray.direction, normal );
-	const bool nAlign = ( rayDot < 0.0f ); // is this ray going in the same direction as the normal vector
-	const bool planeParallel = ( rayDot == 0.0f );
-
+intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 basePoint, in ivec3 dims, vec3 scale ) {
 	intersection_t intersection = DefaultIntersection();
 
-	// if the ray is parallel, we can early out with a nohit
-	if ( planeParallel == true ) {
+	// determine the direction of travel, so that we know what order to step through the planes in
+	vec3 normal = transform * vec3( 0.0f, 0.0f, 1.0f );
+	const float rayDot = dot( ray.direction, normal );
+
+	// if the ray is parallel, we can early out with a nohit default intersection
+	if ( rayDot == 0.0f ) {
 		return intersection;
 	}
 
-	// construct the basis for the x,y mapping on the plane... what does this look like?
+	// for x,y mapping on the plane
+	const vec3 xVec = transform * vec3( 1.0f, 0.0f, 0.0f );
+	const vec3 yVec = transform * vec3( 0.0f, 1.0f, 0.0f );
 
+	// is this ray going in the same direction as the normal vector
+	const bool nAlign = ( rayDot < 0.0f );
 	const int start  = nAlign ? dims.z - 1 : 0;
 	const int thresh = nAlign ? 0 : dims.z - 1;
-	for ( int i = start; nAlign ? ( i <= thresh ) : ( i >= thresh ); nAlign ? ( i-- ) : ( i++ ) ) {
-		// iterating through the planes
-			// offset by i * spacing - spacing is the scale.z
-			// do the plane test
-			// map onto the plane, how are we constructing the basis?
-				// we can actually early out the first time we get a good hit, passing the mask test, since we are going in order
+	// iterating through the planes - top to bottom, or bottom to top
+	for ( int i = start; nAlign ? ( i >= thresh ) : ( i <= thresh ); nAlign ? ( i-- ) : ( i++ ) ) {
+		// do the plane test
+		const vec3 planePt = i * scale.z * normal + basePoint;
+		const float planeDistance = -( dot( ray.origin - planePt, normal ) ) / dot( ray.direction, normal );
+		if ( planeDistance > 0.0f ) {
+
+			// get the 2d location on the plane
+			const vec3 planeIntersection = ray.origin + ray.direction * planeDistance;
+			const vec3 intersectionPointInPlane = planeIntersection - planePt;
+			const vec2 projectedCoords = vec2( // vector projected onto vector ( +x,y scale factors )
+				scale.x * dot( intersectionPointInPlane, xVec ),
+				scale.y * dot( intersectionPointInPlane, yVec )
+			);
+
+			// now we have a 2d point to work with
+			bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
+				cos( PI * float( projectedCoords.x ) + PI / 2.0f ) *
+				cos( PI * float( projectedCoords.y ) + PI / 2.0f ) ) == 0 );
+			
+			if ( mask ) {
+				intersection.dTravel = planeDistance;
+				intersection.albedo = vec3( 0.618f );
+				intersection.frontfaceHit = nAlign;
+				intersection.normal = nAlign ? normal : -normal;
+				intersection.frontfaceHit = true;
+				intersection.materialID = DIFFUSE;
+				break; // we can actually early out the first time we get a good hit, passing the mask test, since we are going in order
+			}
+		}
 	}
+	// fall out of the loop and return
+	return intersection;
 }
 
 intersection_t MaskedPlaneIntersect( in ray_t ray ) {
-	const vec3 normal = vec3( 0.0f, 1.0f, 0.0f );
-	const ivec3 dims = ivec3( 10 );
-	const vec3 scale = vec3( 2.0f, 2.0f, 0.5f );
+	const mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
+	const vec3 point = vec3( 0.0f ); // base point for the plane
+	const ivec3 dims = ivec3( 1, 1, 30 ); // "voxel" dimensions - x,y glyph res + z number of planes
+	const vec3 scale = vec3( 0.1f, 0.1f, 0.05f ); // scaling x,y, and z is spacing between the planes
+	// return MaskedPlaneIntersect( ray, basis, point, dims, scale );
 
-	return MaskedPlaneIntersect( ray, normal, dims, scale );
+	intersection_t intersect1 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
+	intersection_t intersect2 = MaskedPlaneIntersect( ray, Rotate3D( 0.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis, point, dims, scale );
+	intersection_t result = DefaultIntersection();
+	float minDistance = vmin( vec2( intersect1.dTravel, intersect2.dTravel ) );
+	if ( minDistance == intersect1.dTravel ) {
+		result = intersect1;
+	} else {
+		result = intersect2;
+	}
+	return result;
 }
 
 //=============================================================================================================================
@@ -789,15 +829,17 @@ intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 	// return a single intersection_t representing the closest ray intersection
 	intersection_t SDFResult	= raymarchEnable ? raymarch( ray ) : DefaultIntersection();
 	intersection_t VoxelResult	= ddaSpheresEnable ? VoxelIntersection( ray ) : DefaultIntersection();
+	intersection_t MaskedPlane	= MaskedPlaneIntersect( ray );
 
 	intersection_t result = DefaultIntersection();
-	float minDistance = vmin( vec2( SDFResult.dTravel, VoxelResult.dTravel ) );
+	float minDistance = vmin( vec3( SDFResult.dTravel, VoxelResult.dTravel, MaskedPlane.dTravel ) );
 	if ( minDistance == SDFResult.dTravel ) {
 		result = SDFResult;
-	} else {
+	} else if ( minDistance == VoxelResult.dTravel ) {
 		result = VoxelResult;
+	} else {
+		result = MaskedPlane;
 	}
-
 	return result;
 }
 
