@@ -11,6 +11,7 @@ uniform int wangSeed;
 
 #include "random.h"		// rng + remapping utilities
 #include "twigl.glsl"	// noise, some basic math utils
+#include "noise.h"		// more noise
 #include "hg_sdf.glsl"	// SDF modeling + booleans, etc
 #include "mathUtils.h"	// couple random math utilities
 #include "colorRamps.h" // 1d -> 3d color mappings
@@ -100,6 +101,7 @@ struct intersection_t {
 	vec3 normal;
 	bool frontfaceHit;
 	int materialID;
+	float IoR;
 
 	// tbd:
 	// material properties... IoR, roughness...
@@ -112,6 +114,7 @@ intersection_t DefaultIntersection() {
 	intersection.normal = vec3( 0.0f );
 	intersection.frontfaceHit = false;
 	intersection.materialID = 0;
+	intersection.IoR = 1.5f;
 	return intersection;
 }
 //=============================================================================================================================
@@ -318,6 +321,13 @@ vec3 SkyColor( ray_t ray ) {
 #define REFRACTIVE_BACKFACE			100
 #define REFRACTIVE_FROSTED_BACKFACE	101
 //=============================================================================================================================
+float Reflectance ( const float cosTheta, const float IoR ) {
+	// Use Schlick's approximation for reflectance
+	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
+	r0 = r0 * r0;
+	return r0 + ( 1.0f - r0 ) * pow( ( 1.0f - cosTheta ), 5.0f );
+}
+//=============================================================================================================================
 bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
 	// precalculate reflected vector, random diffuse vector, random specular vector
 	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
@@ -359,6 +369,67 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		case MIRROR: {	// perfect mirror ( some attenuation )
 			throughput *= 0.618f;
 			ray.direction = reflectedVector;
+			break;
+		}
+
+		case REFRACTIVE:
+		{
+			ray.origin -= 2.0f * epsilon * intersection.normal;
+			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
+			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+			bool cannotRefract = ( intersection.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
+			// disabling this disables first surface reflections
+			if ( cannotRefract || Reflectance( cosTheta, intersection.IoR ) > NormalizedRandomFloat() ) {
+				ray.direction = reflect( normalize( ray.direction ), intersection.normal );
+			} else {
+				ray.direction = refract( normalize( ray.direction ), intersection.normal, intersection.IoR );
+			}
+			break;
+		}
+
+		case REFRACTIVE_BACKFACE:
+		{
+			ray.origin += 2.0f * epsilon * intersection.normal;
+			intersection.normal = -intersection.normal;
+			float adjustedIOR = 1.0f / intersection.IoR;
+			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
+			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+			bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+			if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
+				ray.direction = reflect( normalize( ray.direction ), intersection.normal );
+			} else {
+				ray.direction = refract( normalize( ray.direction ), intersection.normal, adjustedIOR );
+			}
+			break;
+		}
+
+		case REFRACTIVE_FROSTED:
+		{
+			ray.origin -= 2.0f * epsilon * intersection.normal;
+			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
+			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+			bool cannotRefract = ( intersection.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
+			if ( cannotRefract || Reflectance( cosTheta, intersection.IoR ) > NormalizedRandomFloat() ) {
+				ray.direction = normalize( mix( reflect( normalize( ray.direction ), intersection.normal ), RandomUnitVector(), 0.1f ) );
+			} else {
+				ray.direction = normalize( mix( refract( normalize( ray.direction ), intersection.normal, intersection.IoR ), RandomUnitVector(), 0.1f ) );
+			}
+			break;
+		}
+
+		case REFRACTIVE_FROSTED_BACKFACE:
+		{
+			ray.origin += 2.0f * epsilon * intersection.normal;
+			intersection.normal = -intersection.normal;
+			float adjustedIOR = 1.0f / intersection.IoR;
+			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
+			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+			bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+			if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
+				ray.direction = normalize( mix( reflect( normalize( ray.direction ), intersection.normal ), RandomUnitVector(), 0.1f ) );
+			} else {
+				ray.direction = normalize( mix( refract( normalize( ray.direction ), intersection.normal, adjustedIOR ), RandomUnitVector(), 0.1f ) );
+			}
 			break;
 		}
 
@@ -712,6 +783,7 @@ vec3 GetColorForIdx( ivec3 idx ) {
 int GetMaterialIDForIdx( ivec3 idx ) {
 	// return DIFFUSE;
 	// return MIRROR;
+	// return REFRACTIVE;
 	return NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 }
 
@@ -777,7 +849,9 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 				intersection.dTravel = distance( ray.origin, rayCache.origin );
 				intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
-				intersection.materialID = GetMaterialIDForIdx( mapPos0 );
+				// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
+				// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+				intersection.materialID = intersection.frontfaceHit ? REFRACTIVE_FROSTED : REFRACTIVE_FROSTED_BACKFACE;
 				intersection.albedo = GetColorForIdx( mapPos0 );
 				break;
 			}
@@ -806,6 +880,9 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 	return intersection;
 }
 
+//=============================================================================================================================
+// bool maskedPlaneMaskEval( in vec3 location ) {
+// }
 //=============================================================================================================================
 intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 basePoint, in ivec3 dims, in vec3 scale ) {
 	intersection_t intersection = DefaultIntersection();
@@ -845,9 +922,12 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 			// check the projected coordinates against the input boundary size
 			if ( abs( projectedCoords.x ) <= float( dims.x ) / 2.0f && abs( projectedCoords.y ) <= float( dims.y ) / 2.0f ) {
 				// now we have a 2d point to work with
-				bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
-					cos( PI * float( projectedCoords.x ) + PI / 2.0f ) *
-					cos( PI * float( projectedCoords.y ) + PI / 2.0f ) ) == 0 );
+
+				bool mask = perlinfbm( vec3( projectedCoords.xy / 100.0f, float( i ) / 30.0f ), 10.0f, 6 ) < -0.3f;
+
+				// bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
+				// 	cos( PI * float( projectedCoords.x ) + PI / 2.0f ) *
+				// 	cos( PI * float( projectedCoords.y ) + PI / 2.0f ) ) == 0 );
 				
 				if ( mask ) {
 					intersection.dTravel = planeDistance;
@@ -868,8 +948,8 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 	const mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
 	const vec3 point = vec3( 0.0f ); // base point for the plane
-	const ivec3 dims = ivec3( 10, 10, 100 ); // "voxel" dimensions - x,y glyph res + z number of planes
-	const vec3 scale = vec3( 1.0f, 1.0f, 0.01f ); // scaling x,y, and z is spacing between the planes
+	const ivec3 dims = ivec3( 500, 300, 100 ); // "voxel" dimensions - x,y glyph res + z number of planes
+	const vec3 scale = vec3( 100.0f, 100.0f, 0.01f ); // scaling x,y, and z is spacing between the planes
 	// return MaskedPlaneIntersect( ray, basis, point, dims, scale );
 
 	intersection_t intersect1 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
