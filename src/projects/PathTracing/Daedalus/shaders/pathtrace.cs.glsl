@@ -114,7 +114,7 @@ intersection_t DefaultIntersection() {
 	intersection.normal = vec3( 0.0f );
 	intersection.frontfaceHit = false;
 	intersection.materialID = 0;
-	intersection.IoR = 1.5f;
+	intersection.IoR = 1.0f / 1.5f;
 	return intersection;
 }
 //=============================================================================================================================
@@ -602,11 +602,6 @@ float deMaille( vec3 p ) {
   return d;
 }
 
-  float deSS(vec3 p){
-    float k = pi*2.;
-    vec3 v = vec3(0.,3.,fract(k));
-    return (length(cross(cos(p+v),p.zxy))-0.4)*0.2;
-  }
 //=============================================================================================================================
 
 float de( in vec3 p ) {
@@ -634,11 +629,14 @@ float de( in vec3 p ) {
 	// }
 
 	// const float dBar = fRoundedBox( p + vec3( 0.0f, 1.0f, 0.0f ), vec3( 0.15f, 0.15f, 0.15f ), 0.03f );
-	const float dBar = fRoundedBox( p, vec3( 0.1f, 0.1f, 0.45f ), 0.03f );
+	const float dBar = fRoundedBox( p, vec3( 0.5f, 0.5f, 100.0f ), 0.03f );
+	// const float dBar = fRoundedBox( p, vec3( 0.3f, 0.3f, 0.5f ), 0.03f );
+	// const float dBar = deRope( p * 0.1f ) / 0.1f;
+	
 	sceneDist = min( sceneDist, dBar );
 	if ( sceneDist == dBar && dBar < epsilon ) {
 		// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
-		hitColor = refPalette( saturate( RangeRemapValue( p.z, -0.5f, 0.5f, 0.0f, 1.0f ) ), 12 ).xyz;
+		hitColor = refPalette( saturate( RangeRemapValue( p.z, -100.0f, 100.0f, 0.0f, 1.0f ) ), 6 ).xyz / 3.0f;
 		hitSurfaceType = EMISSIVE;
 	}
 
@@ -746,8 +744,8 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
-	bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
-	// bool mask = deSS( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
+	// bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
+	bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
 
 	bool blackOrWhite = ( step( -0.0f,
 		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
@@ -759,16 +757,18 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 }
 
 vec3 GetOffsetForIdx( ivec3 idx ) {
-	// return vec3( 0.5f );
+	return vec3( 0.5f );
 
 	// jitter... not liking the look of this, much
-	return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	// return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	// return vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
 
 float GetRadiusForIdx( ivec3 idx ) {
-	// return 0.25f;
+	return 0.25f;
 
-	return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
+	// return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
+	// return NormalizedRandomFloat() / 2.0f;
 
 	// return saturate( ( snoise3D( idx * 0.01f ) / 2.0f ) + 1.0f ) / 2.0f;
 	// return saturate( snoise3D( idx * 0.04f ) / 4.0f );
