@@ -137,8 +137,8 @@ public:
 			}
 
 			if ( event.type == SDL_MOUSEWHEEL ) {
-				// float wheel_x = -event.wheel.preciseX;
-				const float wheel_y = event.wheel.preciseY;
+				// float wheel_x = -event.wheel.x;
+				const float wheel_y = event.wheel.y;
 
 				const float previousZoom = daedalusConfig.view.outputZoom;
 				const vec2 previousOffset = daedalusConfig.view.outputOffset;
