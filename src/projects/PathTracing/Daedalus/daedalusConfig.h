@@ -34,6 +34,8 @@ struct sceneConfig_t {
 	int ddaSpheresResolution;
 	// mode config? may require a lot of parameterization...
 
+	bool maskedPlaneEnable;
+
 	// sky config
 	uvec2 skyDims;
 	bool skyNeedsUpdate;
@@ -126,6 +128,8 @@ struct daedalusConfig_t {
 		render.scene.ddaSpheresEnable = true;
 		render.scene.ddaSpheresBoundSize = 2.0f;
 		render.scene.ddaSpheresResolution = 50;
+
+		render.scene.maskedPlaneEnable = true;
 
 		render.scene.skyDims = uvec2( 1024, 512 );
 		render.scene.skyNeedsUpdate = true;

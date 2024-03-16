@@ -881,6 +881,8 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 }
 
 //=============================================================================================================================
+uniform bool maskedPlaneEnable;
+//=============================================================================================================================
 // bool maskedPlaneMaskEval( in vec3 location ) {
 // }
 //=============================================================================================================================
@@ -969,7 +971,7 @@ intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 	// return a single intersection_t representing the closest ray intersection
 	intersection_t SDFResult	= raymarchEnable ? raymarch( ray ) : DefaultIntersection();
 	intersection_t VoxelResult	= ddaSpheresEnable ? VoxelIntersection( ray ) : DefaultIntersection();
-	intersection_t MaskedPlane	= MaskedPlaneIntersect( ray );
+	intersection_t MaskedPlane	= maskedPlaneEnable ? MaskedPlaneIntersect( ray ) : DefaultIntersection();
 
 	intersection_t result = DefaultIntersection();
 	float minDistance = vmin( vec3( SDFResult.dTravel, VoxelResult.dTravel, MaskedPlane.dTravel ) );
@@ -977,7 +979,7 @@ intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 		result = SDFResult;
 	} else if ( minDistance == VoxelResult.dTravel ) {
 		result = VoxelResult;
-	} else {
+	} else if ( minDistance == MaskedPlane.dTravel ) {
 		result = MaskedPlane;
 	}
 	return result;

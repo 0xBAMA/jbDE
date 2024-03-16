@@ -60,6 +60,9 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SliderInt( "Resolution", &daedalusConfig.render.scene.ddaSpheresResolution, 5, 1000 );
 		// bounding box center offset
 
+		ImGui::SeparatorText( "Masked Plane" );
+		ImGui::Checkbox( "Enable##maskedPlane", &daedalusConfig.render.scene.maskedPlaneEnable );
+
 		// constant color, ollj model, ...
 		ImGui::SeparatorText( "Sky" );
 		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model" };
