@@ -883,8 +883,24 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 //=============================================================================================================================
 uniform bool maskedPlaneEnable;
 //=============================================================================================================================
-// bool maskedPlaneMaskEval( in vec3 location ) {
-// }
+#include "glyphs.h"
+bool maskedPlaneMaskEval( in vec3 location ) {
+	// bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
+	// 	cos( PI * float( location.x ) + PI / 2.0f ) *
+	// 	cos( PI * float( location.y ) + PI / 2.0f ) ) == 0 );
+
+	ivec2 pixelIndex = ivec2( floor( location.xy ) );
+	ivec2 bin = ivec2( floor( pixelIndex.xy / vec2( 8.0f, 16.0f ) ) );
+	ivec2 offset = ivec2( pixelIndex.xy ) % ivec2( 8, 16 );
+
+	// return ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
+	// 	cos( PI * float( pixelIndex.x ) + PI / 2.0f ) *
+	// 	cos( PI * float( pixelIndex.y ) + PI / 2.0f ) ) == 0 );
+
+	// uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, i ) ); // repeated
+	int onGlyph = fontRef( int( abs( snoise3D( vec3( bin.xy, location.z ) ) ) * 255 ), offset );
+	return onGlyph > 0;
+}
 //=============================================================================================================================
 intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 basePoint, in ivec3 dims, in vec3 scale ) {
 	intersection_t intersection = DefaultIntersection();
@@ -924,16 +940,9 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 			// check the projected coordinates against the input boundary size
 			if ( abs( projectedCoords.x ) <= float( dims.x ) / 2.0f && abs( projectedCoords.y ) <= float( dims.y ) / 2.0f ) {
 				// now we have a 2d point to work with
-
-				bool mask = perlinfbm( vec3( projectedCoords.xy / 100.0f, float( i ) / 30.0f ), 10.0f, 6 ) < -0.3f;
-
-				// bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
-				// 	cos( PI * float( projectedCoords.x ) + PI / 2.0f ) *
-				// 	cos( PI * float( projectedCoords.y ) + PI / 2.0f ) ) == 0 );
-				
-				if ( mask ) {
+				if ( maskedPlaneMaskEval( vec3( projectedCoords, i ) ) ) {
 					intersection.dTravel = planeDistance;
-					intersection.albedo = normal == vec3( 0.0f, 0.0f, 1.0f ) ? vec3( 0.618f, 0.0f, 0.0f ) : vec3( 0.618f );
+					intersection.albedo = vec3( 0.618f );
 					intersection.frontfaceHit = nAlign;
 					intersection.normal = nAlign ? normal : -normal;
 					intersection.frontfaceHit = true;
@@ -948,20 +957,31 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 }
 //=============================================================================================================================
 intersection_t MaskedPlaneIntersect( in ray_t ray ) {
-	const mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
+	mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
 	const vec3 point = vec3( 0.0f ); // base point for the plane
-	const ivec3 dims = ivec3( 500, 300, 100 ); // "voxel" dimensions - x,y glyph res + z number of planes
-	const vec3 scale = vec3( 100.0f, 100.0f, 0.01f ); // scaling x,y, and z is spacing between the planes
+	const ivec3 dims = ivec3( 500, 300, 10 ); // "voxel" dimensions - x,y glyph res + z number of planes
+	const vec3 scale = vec3( 10.0f, 10.0f, 0.1f ); // scaling x,y, and z is spacing between the planes
 	// return MaskedPlaneIntersect( ray, basis, point, dims, scale );
 
 	intersection_t intersect1 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
-	intersection_t intersect2 = MaskedPlaneIntersect( ray, Rotate3D( 1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( 0.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis, point, dims, scale );
+	intersect1.albedo = vec3( 0.618f, 0.0f, 0.0f );
+
+	basis = Rotate3D( 1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( 0.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis;
+	intersection_t intersect2 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
+	intersect2.albedo = vec3( 0.0f, 0.618f, 0.0f );
+
+	basis = Rotate3D( 1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( 2.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis;
+	intersection_t intersect3 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
+	intersect3.albedo = vec3( 0.0f, 0.0f, 0.618f );
+
 	intersection_t result = DefaultIntersection();
-	float minDistance = vmin( vec2( intersect1.dTravel, intersect2.dTravel ) );
+	float minDistance = vmin( vec3( intersect1.dTravel, intersect2.dTravel, intersect3.dTravel ) );
 	if ( minDistance == intersect1.dTravel ) {
 		result = intersect1;
-	} else {
+	} else if ( minDistance == intersect2.dTravel ) {
 		result = intersect2;
+	} else {
+		result = intersect3;
 	}
 	return result;
 }
