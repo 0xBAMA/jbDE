@@ -1,30 +1,31 @@
 #version 430 core
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
-
+//=============================================================================================================================
 layout( location = 0, rgba8ui ) uniform uimage2D blueNoise;
 layout( location = 1, rgba32f ) uniform image2D accumulatorColor;
 layout( location = 2, rgba32f ) uniform image2D accumulatorNormalsAndDepth;
-
+//=============================================================================================================================
 uniform ivec2 tileOffset;
 uniform ivec2 noiseOffset;
 uniform int wangSeed;
-
+//=============================================================================================================================
 #include "random.h"		// rng + remapping utilities
 #include "twigl.glsl"	// noise, some basic math utils
 #include "noise.h"		// more noise
+#include "wood.h"		// DeanTheCoder's procedural wood texture
 #include "hg_sdf.glsl"	// SDF modeling + booleans, etc
 #include "mathUtils.h"	// couple random math utilities
 #include "colorRamps.h" // 1d -> 3d color mappings
-
+#include "glyphs.h"		// the uint encoded glyph masks
+//=============================================================================================================================
 bool BoundsCheck( in ivec2 loc ) {
 	const ivec2 b = ivec2( imageSize( accumulatorColor ) ).xy;
 	return ( loc.x < b.x && loc.y < b.y && loc.x >= 0 && loc.y >= 0 );
 }
-
+//=============================================================================================================================
 vec4 Blue( in ivec2 loc ) {
 	return imageLoad( blueNoise, ( loc + noiseOffset ) % imageSize( blueNoise ).xy );
 }
-
 //=============================================================================================================================
 //=============================================================================================================================
 #define NONE	0
@@ -108,6 +109,9 @@ struct intersection_t {
 	// material properties... IoR, roughness...
 	// absorption state...
 };
+//=============================================================================================================================
+// default "constructor"
+//=============================================================================================================================
 intersection_t DefaultIntersection() {
 	intersection_t intersection;
 	intersection.dTravel = maxDistance;
@@ -297,18 +301,17 @@ vec3 SkyColor( ray_t ray ) {
 	samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
 	return texture( skyCache, samplePoint ).rgb * skyBrightnessScalar;
 }
-
 //=============================================================================================================================
 // evaluate the material's effect on this ray
 //=============================================================================================================================
 #define NOHIT						0
 #define EMISSIVE					1
 #define DIFFUSE						2
-#define DIFFUSEAO					3 // this never got used - besides, it only has AO for SDF geo
-#define METALLIC					4
-#define RAINBOW						5
-#define MIRROR						6
-#define PERFECTMIRROR				7
+#define METALLIC					3
+#define RAINBOW						4
+#define MIRROR						5
+#define PERFECTMIRROR				6
+#define POLISHEDWOOD				7
 #define WOOD						8
 #define MALACHITE					9
 #define LUMARBLE					10
@@ -536,21 +539,17 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	// some material was encountered
 	return true;
 }
-
 //=============================================================================================================================
 // SDF RAYMARCH GEOMETRY
 //=============================================================================================================================
-
-// parameters
 uniform bool raymarchEnable;
 uniform float raymarchMaxDistance;
 uniform float raymarchUnderstep;
 uniform int raymarchMaxSteps;
-
+//=============================================================================================================================
 // global state tracking
 vec3 hitColor;
 int hitSurfaceType;
-
 //=============================================================================================================================
 
 // float deFractal( vec3 p ) {
@@ -697,9 +696,7 @@ float deMaille( vec3 p ) {
   // d = min(d, d2);
   return d;
 }
-
 //=============================================================================================================================
-
 float de( in vec3 p ) {
 	vec3 pOriginal = p;
 	float sceneDist = 1000.0f;
@@ -738,16 +735,12 @@ float de( in vec3 p ) {
 
 	return sceneDist;
 }
-
 //=============================================================================================================================
-
 vec3 SDFNormal( in vec3 position ) {
 	vec2 e = vec2( epsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 }
-
 //=============================================================================================================================
-
 intersection_t raymarch( in ray_t ray ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
@@ -760,7 +753,6 @@ intersection_t raymarch( in ray_t ray ) {
 			break;
 		}
 	}
-
 	// fill out the intersection struct
 	intersection_t intersection;
 	intersection.dTravel = dTotal;
@@ -770,12 +762,10 @@ intersection_t raymarch( in ray_t ray ) {
 	intersection.frontfaceHit = ( dot( intersection.normal, ray.direction ) <= 0.0f );
 	return intersection;
 }
-
 //=============================================================================================================================
-
-// refactor this, it's a bunch of ugly shit
-
-// explicit intersection primitives
+//	explicit intersection primitives
+//		refactor this, or put it in a header, it's a bunch of ugly shit
+//=============================================================================================================================
 struct iqIntersect {
 	vec4 a;  // distance and normal at entry
 	vec4 b;  // distance and normal at exit
@@ -819,39 +809,30 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 		vec4( tF, normalize( -sign( ray.direction ) * step( t2, vec3( tF ) ) ) ) );
 }
 
-// // just solve for t, < ro+t*d, nor > - k = 0
-// iqIntersect iPlane ( in vec3 ro, in vec3 rd, vec4 pla ) {
-// 	float k1 = dot( ro, pla.xyz );
-// 	float k2 = dot( rd, pla.xyz );
-// 	float t = ( pla.w - k1 ) / k2;
-// 	vec2 ab = ( k2 > 0.0f ) ? vec2( t, 1e20f ) : vec2( -1e20f, t ); // backface hits
-// 	return Intersection( vec4( ab.x, -pla.xyz ), vec4( ab.y, pla.xyz ) );
-// }
-
 //=============================================================================================================================
-
 uniform bool ddaSpheresEnable;
 uniform float ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
-
+//=============================================================================================================================
 bool CheckValidityOfIdx( ivec3 idx ) {
 	// return true;
 
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
-	// bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
-	bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
+	bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
+	// bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
 
 	bool blackOrWhite = ( step( -0.0f,
 		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
 		cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
 		cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
 
-	// return blackOrWhite && mask;
 	return mask;
+	// return blackOrWhite && mask;
+	// return blackOrWhite;
 }
-
+//=============================================================================================================================
 vec3 GetOffsetForIdx( ivec3 idx ) {
 	return vec3( 0.5f );
 
@@ -859,9 +840,9 @@ vec3 GetOffsetForIdx( ivec3 idx ) {
 	// return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
 	// return vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
-
+//=============================================================================================================================
 float GetRadiusForIdx( ivec3 idx ) {
-	return 0.25f;
+	return 0.49f;
 
 	// return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
 	// return NormalizedRandomFloat() / 2.0f;
@@ -869,20 +850,20 @@ float GetRadiusForIdx( ivec3 idx ) {
 	// return saturate( ( snoise3D( idx * 0.01f ) / 2.0f ) + 1.0f ) / 2.0f;
 	// return saturate( snoise3D( idx * 0.04f ) / 4.0f );
 }
-
+//=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
 	// return vec3( 0.9f );
-	// return vec3( 0.9f, 0.5f, 0.2f ) * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
-	return mix( vec3( 0.618f ), vec3( 0.618f, 0.80f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
+	return vec3( 0.9f, 0.5f, 0.2f ) * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
 }
-
+//=============================================================================================================================
 int GetMaterialIDForIdx( ivec3 idx ) {
 	// return DIFFUSE;
 	// return MIRROR;
 	// return REFRACTIVE;
 	return NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 }
-
+//=============================================================================================================================
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 	ray_t rayCache = ray;
 
