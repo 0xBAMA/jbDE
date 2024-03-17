@@ -102,6 +102,7 @@ struct intersection_t {
 	bool frontfaceHit;
 	int materialID;
 	float IoR;
+	float roughness;
 
 	// tbd:
 	// material properties... IoR, roughness...
@@ -115,6 +116,7 @@ intersection_t DefaultIntersection() {
 	intersection.frontfaceHit = false;
 	intersection.materialID = 0;
 	intersection.IoR = 1.0f / 1.5f;
+	intersection.roughness = 0.1f;
 	return intersection;
 }
 //=============================================================================================================================
@@ -366,14 +368,109 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			ray.direction = randomVectorSpecular;
 		}
 
-		case MIRROR: {	// perfect mirror ( some attenuation )
+		case MIRROR: {	// mirror surface ( some attenuation )
 			throughput *= 0.618f;
 			ray.direction = reflectedVector;
 			break;
 		}
 
-		case REFRACTIVE:
-		{
+		case PERFECTMIRROR: {	// perfect mirror
+			ray.direction = reflectedVector;
+			break;
+		}
+
+		case POLISHEDWOOD: {
+			if ( NormalizedRandomFloat() < 0.01f ) { // mirror behavior
+				ray.direction = reflectedVector;
+			} else {
+				throughput *= matWood( ray.origin / 10.0f );
+				ray.direction = randomVectorDiffuse;
+			}
+			break;
+		}
+
+		case WOOD: {
+			throughput *= matWood( ray.origin / 10.0f );
+			ray.direction = randomVectorDiffuse;
+			break;
+		}
+
+		case MALACHITE: {
+			if ( NormalizedRandomFloat() < 0.1f ) {
+				ray.direction = reflectedVector;
+			} else {
+				throughput *= matWood( ray.origin ).brg; // this swizzle makes a nice light green / dark green mix
+				ray.direction = randomVectorDiffuse;
+			}
+			break;
+		}
+
+		case LUMARBLE: {
+			if ( NormalizedRandomFloat() < 0.05f ) {
+				ray.direction = reflectedVector;
+			} else {
+				throughput *= GetLuma( matWood( ray.origin ) ); // grayscale version of the wood material
+				ray.direction = randomVectorDiffuse;
+			}
+			break;
+		}
+
+		case LUMARBLE2: {
+			float lumaValue = GetLuma( matWood( ray.origin ) ).x;
+			throughput *= lumaValue;
+			ray.direction = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), 1.0f - lumaValue ) );
+			break;
+		}
+
+		case LUMARBLE3: {
+			float lumaValue = GetLuma( matWood( ray.origin ) ).x;
+			throughput *= lumaValue;
+			ray.direction = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), lumaValue ) );
+			break;
+		}
+
+		case LUMARBLECHECKER: {
+			// the checkerboard
+			bool blackOrWhite = ( step( 0.0f,
+				cos( PI * ray.origin.x + PI / 2.0f ) *
+				cos( PI * ray.origin.y + PI / 2.0f ) *
+				cos( PI * ray.origin.z + PI / 2.0f ) ) == 0 );
+
+			float lumaValue = GetLuma( matWood( ray.origin ) ).x;
+			throughput *= lumaValue;
+			ray.direction = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), blackOrWhite ? lumaValue : 1.0f - lumaValue ) );
+			break;
+		}
+
+		case CHECKER: {
+			// diffuse material
+			const float thresh = 0.01f;
+			const float threshSmaller = 0.005f;
+			vec3 p = ray.origin;
+
+			bool redLines = (
+				// thick lines at zero
+				( abs( p.x ) < thresh ) ||
+				( abs( p.y ) < thresh ) ||
+				( abs( p.z ) < thresh ) ||
+				// thinner lines every 5
+				( abs( mod( p.x, 5.0f ) ) < threshSmaller ) ||
+				( abs( mod( p.y, 5.0f ) ) < threshSmaller ) ||
+				( abs( mod( p.z, 5.0f ) ) < threshSmaller ) );
+
+			// the checkerboard
+			bool blackOrWhite = ( step( 0.0f,
+				cos( PI * p.x + PI / 2.0f ) *
+				cos( PI * p.y + PI / 2.0f ) *
+				cos( PI * p.z + PI / 2.0f ) ) == 0 );
+
+			vec3 color = redLines ? vec3( 1.0f, 0.1f, 0.1f ) : ( blackOrWhite ? vec3( 0.618f ) : vec3( 0.1618f ) );
+			throughput *= color;
+			ray.direction = ( blackOrWhite || redLines ) ? randomVectorDiffuse : reflectedVector;
+			break;
+		}
+
+		case REFRACTIVE: {
 			ray.origin -= 2.0f * epsilon * intersection.normal;
 			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
 			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
@@ -387,8 +484,7 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 		}
 
-		case REFRACTIVE_BACKFACE:
-		{
+		case REFRACTIVE_BACKFACE: {
 			ray.origin += 2.0f * epsilon * intersection.normal;
 			intersection.normal = -intersection.normal;
 			float adjustedIOR = 1.0f / intersection.IoR;
@@ -403,22 +499,22 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 		}
 
-		case REFRACTIVE_FROSTED:
-		{
+		case REFRACTIVE_FROSTED: {
+			throughput *= vec3( 1.0f ) - intersection.albedo;
+
 			ray.origin -= 2.0f * epsilon * intersection.normal;
 			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
 			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 			bool cannotRefract = ( intersection.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
 			if ( cannotRefract || Reflectance( cosTheta, intersection.IoR ) > NormalizedRandomFloat() ) {
-				ray.direction = normalize( mix( reflect( normalize( ray.direction ), intersection.normal ), RandomUnitVector(), 0.1f ) );
+				ray.direction = normalize( mix( reflect( normalize( ray.direction ), intersection.normal ), RandomUnitVector(), intersection.roughness ) );
 			} else {
-				ray.direction = normalize( mix( refract( normalize( ray.direction ), intersection.normal, intersection.IoR ), RandomUnitVector(), 0.1f ) );
+				ray.direction = normalize( mix( refract( normalize( ray.direction ), intersection.normal, intersection.IoR ), RandomUnitVector(), intersection.roughness ) );
 			}
 			break;
 		}
 
-		case REFRACTIVE_FROSTED_BACKFACE:
-		{
+		case REFRACTIVE_FROSTED_BACKFACE: {
 			ray.origin += 2.0f * epsilon * intersection.normal;
 			intersection.normal = -intersection.normal;
 			float adjustedIOR = 1.0f / intersection.IoR;
@@ -426,9 +522,9 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
 			bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
 			if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
-				ray.direction = normalize( mix( reflect( normalize( ray.direction ), intersection.normal ), RandomUnitVector(), 0.1f ) );
+				ray.direction = normalize( mix( reflect( normalize( ray.direction ), intersection.normal ), RandomUnitVector(), intersection.roughness ) );
 			} else {
-				ray.direction = normalize( mix( refract( normalize( ray.direction ), intersection.normal, adjustedIOR ), RandomUnitVector(), 0.1f ) );
+				ray.direction = normalize( mix( refract( normalize( ray.direction ), intersection.normal, adjustedIOR ), RandomUnitVector(), intersection.roughness ) );
 			}
 			break;
 		}
