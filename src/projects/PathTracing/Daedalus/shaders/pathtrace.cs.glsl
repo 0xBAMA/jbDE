@@ -337,22 +337,23 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	// precalculate reflected vector, random diffuse vector, random specular vector
 	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
 	const vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * intersection.normal + RandomUnitVector() );
-	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), 0.1f ) ); // refit this to handle roughness
+	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), intersection.roughness ) );
 
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 
-		// contribution from the skybox
-		finalColor += throughput * SkyColor( ray );
+		// contribution from the skybox - dithered slightly to deal with banding
+		finalColor += throughput * SkyColor( ray ) + ( RandomUnitVector() * 0.02f - 0.01f );
 		return false;
 
 	} else {
 
 		// material specific behavior
 		switch( intersection.materialID ) {
-		case NOHIT: // no op
+		case NOHIT: { // no op
 			return false;
 			break;
+		}
 
 		case EMISSIVE: { // light emitting material
 			// ray.direction = randomVectorDiffuse;
