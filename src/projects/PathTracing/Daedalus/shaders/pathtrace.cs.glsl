@@ -320,11 +320,9 @@ vec3 SkyColor( ray_t ray ) {
 #define LUMARBLECHECKER				13
 #define CHECKER						14
 #define REFRACTIVE					15
-#define REFRACTIVE_FROSTED			16
 //=============================================================================================================================
-// objects shouldn't have these materials set directly, it is used for backface hits
+// objects shouldn't have this material set directly, it is used for backface hits
 #define REFRACTIVE_BACKFACE			100
-#define REFRACTIVE_FROSTED_BACKFACE	101
 //=============================================================================================================================
 float Reflectance ( const float cosTheta, const float IoR ) {
 	// Use Schlick's approximation for reflectance
@@ -475,36 +473,7 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		}
 
 		case REFRACTIVE: {
-			ray.origin -= 2.0f * epsilon * intersection.normal;
-			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
-			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
-			bool cannotRefract = ( intersection.IoR * sinTheta ) > 1.0f; // accounting for TIR effects
-			// disabling this disables first surface reflections
-			if ( cannotRefract || Reflectance( cosTheta, intersection.IoR ) > NormalizedRandomFloat() ) {
-				ray.direction = reflect( normalize( ray.direction ), intersection.normal );
-			} else {
-				ray.direction = refract( normalize( ray.direction ), intersection.normal, intersection.IoR );
-			}
-			break;
-		}
-
-		case REFRACTIVE_BACKFACE: {
-			ray.origin += 2.0f * epsilon * intersection.normal;
-			intersection.normal = -intersection.normal;
-			float adjustedIOR = 1.0f / intersection.IoR;
-			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
-			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
-			bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
-			if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
-				ray.direction = reflect( normalize( ray.direction ), intersection.normal );
-			} else {
-				ray.direction = refract( normalize( ray.direction ), intersection.normal, adjustedIOR );
-			}
-			break;
-		}
-
-		case REFRACTIVE_FROSTED: {
-			throughput *= vec3( 1.0f ) - intersection.albedo;
+			throughput *= intersection.albedo; // temp
 
 			ray.origin -= 2.0f * epsilon * intersection.normal;
 			float cosTheta = min( dot( -normalize( ray.direction ), intersection.normal ), 1.0f );
@@ -518,7 +487,9 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 			break;
 		}
 
-		case REFRACTIVE_FROSTED_BACKFACE: {
+		case REFRACTIVE_BACKFACE: {
+			throughput *= intersection.albedo; // temp
+
 			ray.origin += 2.0f * epsilon * intersection.normal;
 			intersection.normal = -intersection.normal;
 			float adjustedIOR = 1.0f / intersection.IoR;
