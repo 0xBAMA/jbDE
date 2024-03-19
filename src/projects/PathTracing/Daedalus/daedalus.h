@@ -164,6 +164,7 @@ public:
 	void ResetAccumulators();
 	void ResizeAccumulators( uint32_t x, uint32_t y );
 	void Screenshot( string label, bool srgbConvert = true, bool fullDepth = false );
+	void ApplyFilter( int mode, int count );
 
 	void ShowDaedalusConfigWindow();
 	void ImguiPass () {
@@ -201,10 +202,16 @@ public:
 		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
 		shaders[ "Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
 		shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
+		shaders[ "Filter" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
+		shaders[ "Copy Back" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
 	}
 
 	void ComputePasses () {
 		ZoneScoped;
+
+		if ( daedalusConfig.filterEveryFrame ) {
+			ApplyFilter( daedalusConfig.filterSelector, 1 );
+		}
 
 		{
 			scopedTimer Start( "Sky Cache" );

@@ -54,6 +54,29 @@ void Daedalus::Screenshot( string label, bool srgbConvert, bool fullDepth ) {
 	screenshot.Save( filename, fullDepth ? Image_4F::backend::TINYEXR : Image_4F::backend::LODEPNG );
 }
 
+void Daedalus::ApplyFilter( int mode, int count ) {
+	rngi pick = rngi( 0, 3 );
+	GLuint shader;
+	const uvec2 dims = textureManager.GetDimensions( "Color Accumulator" );
+	for ( int i = 0; i < count; i++ ) {
+		shader = shaders[ "Filter" ];
+		glUseProgram( shader );
+		glUniform1i( glGetUniformLocation( shader, "mode" ), mode == 4 ? pick() : mode );
+		textureManager.BindImageForShader( "Color Accumulator", "sourceData", shader, 0 );
+		textureManager.BindImageForShader( "Color Accumulator Scratch", "destData", shader, 1 );
+		glDispatchCompute( ( dims.x + 15 ) / 16, ( dims.y + 15 ) / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		shader = shaders[ "Copy Back" ];
+		glUseProgram( shader );
+		textureManager.BindImageForShader( "Color Accumulator Scratch", "sourceData", shader, 0 );
+		textureManager.BindImageForShader( "Color Accumulator", "destData", shader, 1 );
+		glDispatchCompute( ( dims.x + 15 ) / 16, ( dims.y + 15 ) / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
+}
+
+
 void Daedalus::SendSkyCacheUniforms() {
 	const GLuint shader = shaders[ "Sky Cache" ];
 	glUseProgram( shader );

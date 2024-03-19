@@ -212,8 +212,36 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Sky Cache" ), ImVec2( availableWidth, availableWidth / 2.0f ) );
 	}
 
+	if ( ImGui::CollapsingHeader( "Filters" ) ) {
+		ImGui::Text( "Filter Mode: " );
+		ImGui::SameLine();
+		ImGui::RadioButton( " Gaussian ", &daedalusConfig.filterSelector, 0 );
+		ImGui::SameLine();
+		ImGui::RadioButton( " Median ", &daedalusConfig.filterSelector, 1 );
+		ImGui::SameLine();
+		ImGui::RadioButton( " Combo ", &daedalusConfig.filterSelector, 2 );
+		ImGui::SameLine();
+		ImGui::RadioButton( " Kuwahara ", &daedalusConfig.filterSelector, 3 );
+		ImGui::SameLine();
+		ImGui::RadioButton( " Random ", &daedalusConfig.filterSelector, 4 );
+
+		ImGui::Text( "Apply: " );
+		ImGui::SameLine();
+		if ( ImGui::Button( " 1x " ) ) {
+			ApplyFilter( daedalusConfig.filterSelector, 1 );
+		} ImGui::SameLine();
+		if ( ImGui::Button( " 10x " ) ) {
+			ApplyFilter( daedalusConfig.filterSelector, 10 );
+		} ImGui::SameLine();
+		if ( ImGui::Button( " 100x " ) ) {
+			ApplyFilter( daedalusConfig.filterSelector, 100 );
+		}
+		ImGui::Checkbox( "Random Every Frame", &daedalusConfig.filterEveryFrame );
+	}
+
 	if ( ImGui::CollapsingHeader( "Postprocess" ) ) {
 		ImGui::Indent();
+		// this needs significant work
 		PostProcessImguiMenu();
 		ImGui::Unindent();
 	}

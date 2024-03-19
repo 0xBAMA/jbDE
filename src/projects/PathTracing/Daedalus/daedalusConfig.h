@@ -98,6 +98,8 @@ struct daedalusConfig_t {
 		showConfigWindow = true;
 		view.outputZoom = 1.0f;
 		view.outputOffset = ( vec2( targetWidth, targetHeight ) - vec2( outputWidth, outputHeight ) ) / 2.0f;
+		filterEveryFrame = false;
+		filterSelector = 0;
 
 		// ===============================
 
@@ -159,6 +161,10 @@ struct daedalusConfig_t {
 	// performance settings / monitoring
 	uint32_t performanceHistorySamples;
 	std::deque< float > timeHistory;	// ms per frame
+
+	// filter operation config
+	bool filterEveryFrame;
+	int filterSelector;
 
 	bool showConfigWindow;	// tabbed interface for configuring scene/rendering parameters
 	viewConfig_t view;		// parameters for ouput presentation
