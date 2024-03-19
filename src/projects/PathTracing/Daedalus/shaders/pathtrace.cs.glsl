@@ -906,35 +906,79 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		// checking mapPos0 for hit
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
-			// see if we found an intersection - ball will almost fill the grid cell
-			iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
-			// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
-			const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
-			// update ray, to indicate hit location
-			if ( !IsEmpty( test ) && !behindOrigin ) {
-				intersection.frontfaceHit = !( test.a.x < 0.0f && test.b.x >= 0.0f );
+// changing behavior of the traversal - the disks are not super compatible with the sphere/box intersection code
+// #define SPHEREORBOX
+#define DISKS
 
-				// get the location of the intersection
-				ray.origin = ray.origin + ray.direction * ( intersection.frontfaceHit ? test.a.x : test.b.x );
+			#ifdef SPHEREORBOX
+				// see if we found an intersection - ball will almost fill the grid cell
+				iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
+				// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
+				const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
-				// map the ray back into the world space
-				ray.origin = vec3(
-					RangeRemapValue( ray.origin.x, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
-					RangeRemapValue( ray.origin.y, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
-					RangeRemapValue( ray.origin.z, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f )
+				// update ray, to indicate hit location
+				if ( !IsEmpty( test ) && !behindOrigin ) {
+					intersection.frontfaceHit = !( test.a.x < 0.0f && test.b.x >= 0.0f );
+
+					// get the location of the intersection
+					ray.origin = ray.origin + ray.direction * ( intersection.frontfaceHit ? test.a.x : test.b.x );
+
+					ray.origin = vec3( // map the ray back into the world space
+						RangeRemapValue( ray.origin.x, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
+						RangeRemapValue( ray.origin.y, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
+						RangeRemapValue( ray.origin.z, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f )
+					);
+
+					intersection.dTravel = distance( ray.origin, rayCache.origin );
+					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
+					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE_FROSTED : REFRACTIVE_FROSTED_BACKFACE;
+					intersection.albedo = GetColorForIdx( mapPos0 );
+					break;
+				}
+			#endif
+
+			#ifdef DISKS
+				// disk test
+				const vec3 planePt = vec3( mapPos0 ) + vec3( 0.5f );
+				vec2 e = vec2( epsilon, 0.0f );
+				const vec3 normal = normalize(
+					vec3( deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) ) ) - vec3(
+						vec3( deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) - e.xyy ), deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) - e.yxy ), deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) - e.yyx ) )
+					)
 				);
 
-				intersection.dTravel = distance( ray.origin, rayCache.origin );
-				intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
-				// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-				// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-				intersection.materialID = intersection.frontfaceHit ? REFRACTIVE_FROSTED : REFRACTIVE_FROSTED_BACKFACE;
-				intersection.albedo = GetColorForIdx( mapPos0 );
-				break;
-			}
-		}
+				const float planeDistance = -( dot( ray.origin - planePt, normal ) ) / dot( ray.direction, normal );
+				const vec3 hitPointInPlane = ray.origin + ray.direction * planeDistance;
+				const float radius = 0.5f;
 
+				if ( distance( planePt, hitPointInPlane ) < radius ) {
+
+					// get the location of the intersection
+					ray.origin = hitPointInPlane;
+
+					ray.origin = vec3( // map the ray back into the world space
+						RangeRemapValue( ray.origin.x, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
+						RangeRemapValue( ray.origin.y, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
+						RangeRemapValue( ray.origin.z, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f )
+					);
+
+					intersection.dTravel = distance( ray.origin, rayCache.origin );
+					intersection.frontfaceHit = dot( normal, ray.direction ) < 0.0f;
+					intersection.normal = intersection.frontfaceHit ? normal : -normal;
+					intersection.roughness = 0.1f;
+					intersection.IoR = 1.5f;
+					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE_FROSTED : REFRACTIVE_FROSTED_BACKFACE;
+					intersection.materialID = DIFFUSE;
+					intersection.albedo = GetColorForIdx( mapPos0 );
+					break;
+				}
+			#endif
+		}
 		sideDist0 = sideDist1;
 		mapPos0 = mapPos1;
 	}
@@ -957,11 +1001,9 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 
 	return intersection;
 }
-
 //=============================================================================================================================
 uniform bool maskedPlaneEnable;
 //=============================================================================================================================
-#include "glyphs.h"
 bool maskedPlaneMaskEval( in vec3 location ) {
 	// bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
 	// 	cos( PI * float( location.x ) + PI / 2.0f ) *
