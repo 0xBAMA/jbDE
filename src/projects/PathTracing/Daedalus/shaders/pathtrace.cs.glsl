@@ -77,6 +77,7 @@ uniform vec3 basisZ;
 
 uniform float uvScalar;
 uniform int cameraType;
+uniform bool cameraOriginJitter;
 uniform int maxBounces;
 uniform int bokehMode;
 uniform float FoV;
@@ -267,6 +268,10 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 
 	default:
 		break;
+	}
+
+	if ( cameraOriginJitter ) {
+		r.origin += ( Blue( ivec2( gl_GlobalInvocationID.xy ) ).z / 255.0f ) * 0.1f * r.direction;
 	}
 
 	if ( thinLensEnable || cameraType == SPHEREBUG ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
@@ -800,23 +805,24 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 		cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
 		cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
 
+	// return true;
 	return mask;
 	// return blackOrWhite && mask;
 	// return blackOrWhite;
 }
 //=============================================================================================================================
 vec3 GetOffsetForIdx( ivec3 idx ) {
-	return vec3( 0.5f );
+	// return vec3( 0.5f );
 
 	// jitter... not liking the look of this, much
-	// return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
 	// return vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
 //=============================================================================================================================
 float GetRadiusForIdx( ivec3 idx ) {
-	return 0.49f;
+	// return 0.46f;
 
-	// return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
+	return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
 	// return NormalizedRandomFloat() / 2.0f;
 
 	// return saturate( ( snoise3D( idx * 0.01f ) / 2.0f ) + 1.0f ) / 2.0f;
@@ -825,7 +831,8 @@ float GetRadiusForIdx( ivec3 idx ) {
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
 	// return vec3( 0.9f );
-	return vec3( 0.9f, 0.5f, 0.2f ) * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) * 0.2f + vec3( 0.8f );
+	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
 }
 //=============================================================================================================================
@@ -877,15 +884,14 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		// checking mapPos0 for hit
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
-
 // changing behavior of the traversal - the disks are not super compatible with the sphere/box intersection code
-// #define SPHEREORBOX
-#define DISKS
+#define SPHEREORBOX
+// #define DISKS
 
 			#ifdef SPHEREORBOX
 				// see if we found an intersection - ball will almost fill the grid cell
 				iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
-				// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
+				// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.35f ), vec3( 0.5f ) );
 				const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
 				// update ray, to indicate hit location
@@ -904,8 +910,7 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE_FROSTED : REFRACTIVE_FROSTED_BACKFACE;
+					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}
@@ -938,13 +943,13 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
 					intersection.frontfaceHit = dot( normal, ray.direction ) < 0.0f;
-					intersection.normal = intersection.frontfaceHit ? normal : -normal;
-					intersection.roughness = 0.1f;
-					intersection.IoR = 1.5f;
+					// intersection.normal = intersection.frontfaceHit ? normal : -normal;
+					intersection.normal = intersection.frontfaceHit ? -normal : normal;
+					intersection.roughness = 0.01f;
+					intersection.IoR = 1.0f / 1.5f;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE_FROSTED : REFRACTIVE_FROSTED_BACKFACE;
-					intersection.materialID = DIFFUSE;
+					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// intersection.materialID = DIFFUSE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}

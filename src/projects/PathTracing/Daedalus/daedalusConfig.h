@@ -65,6 +65,7 @@ struct renderConfig_t {
 	float thinLensJitterRadius;
 	int bokehMode;
 	int cameraType;
+	bool cameraOriginJitter;
 	int maxBounces;
 
 	sceneConfig_t scene;
@@ -120,9 +121,11 @@ struct daedalusConfig_t {
 		render.thinLensJitterRadius = 1.0f;
 		render.bokehMode = 4;
 		render.cameraType = 0;
+		render.cameraOriginJitter = true;
 		render.maxBounces = 10;
 
-		render.scene.raymarchEnable = true;
+		// render.scene.raymarchEnable = true;
+		render.scene.raymarchEnable = false;
 		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
@@ -131,12 +134,13 @@ struct daedalusConfig_t {
 		render.scene.ddaSpheresBoundSize = 2.0f;
 		render.scene.ddaSpheresResolution = 50;
 
-		render.scene.maskedPlaneEnable = true;
+		// render.scene.maskedPlaneEnable = true;
+		render.scene.maskedPlaneEnable = false;
 
 		render.scene.skyDims = uvec2( 1024, 512 );
 		render.scene.skyNeedsUpdate = true;
 		render.scene.skyMode = 0;
-		render.scene.skyConstantColor1 = vec3( 0.0f );
+		render.scene.skyConstantColor1 = vec3( 1.0f );
 		render.scene.skyConstantColor2 = vec3( 0.0f );
 		render.scene.skyInvert = false;
 		render.scene.skyBrightnessScalar = 1.0f;

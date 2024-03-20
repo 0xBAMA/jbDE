@@ -103,6 +103,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1i( glGetUniformLocation( shader, "sampleNumber" ), daedalusConfig.tiles.SampleCount() );
 	glUniform1i( glGetUniformLocation( shader, "bokehMode" ), daedalusConfig.render.bokehMode );
 	glUniform1i( glGetUniformLocation( shader, "cameraType" ), daedalusConfig.render.cameraType );
+	glUniform1i( glGetUniformLocation( shader, "cameraOriginJitter" ), daedalusConfig.render.cameraOriginJitter );
 	glUniform1f( glGetUniformLocation( shader, "uvScalar" ), daedalusConfig.render.uvScalar ); // consider making this 2d
 	glUniform1f( glGetUniformLocation( shader, "exposure" ), daedalusConfig.render.exposure );
 	glUniform1f( glGetUniformLocation( shader, "FoV" ), daedalusConfig.render.FoV );
