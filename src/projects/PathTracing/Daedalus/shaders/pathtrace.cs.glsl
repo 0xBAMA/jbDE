@@ -1082,21 +1082,68 @@ intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 	return result;
 }
 //=============================================================================================================================
-
+// 
+//=============================================================================================================================
+// CPU-generated sphere array
+	// I want to generalize this:
+		// primitive type
+		// primitive parameters
+		// material details
+const int numExplicitPrimitives = 10;
+const bool explicitListEnable = true;
+struct sphere_t {
+	vec4 positionRadius;
+	vec4 colorMaterial;
+};
+layout( binding = 0, std430 ) buffer sphereData {
+	sphere_t spheres[];
+};
+//=============================================================================================================================
+intersection_t ExplicitListIntersect( in ray_t ray ) {
+	iqIntersect iResult = kEmpty;
+	int indexOfHit = -1;
+	float nearestOverallHit = 1e20f;
+	for ( int i = 0; i < numExplicitPrimitives; i++ ) {
+		iqIntersect current = IntersectSphere( ray, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
+		// iqIntersect current = ( i % 2 == 0 ) ? IntersectBox( origin, direction, spheres[ i ].positionRadius.xyz, vec3( spheres[ i ].positionRadius.w ) )
+			// : IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
+		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1e20f : current.b.x : current.a.x;
+		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
+		if ( currentNearestPositive == nearestOverallHit ) {
+			iResult = current;
+			indexOfHit = i;
+		}
+	}
+	intersection_t result = DefaultIntersection();
+	if ( indexOfHit != -1 ) { // at least one primitive got a valid hit
+		result.dTravel = nearestOverallHit;
+		result.frontfaceHit = ( iResult.a.x == nearestOverallHit );
+		result.normal = result.frontfaceHit ? iResult.a.yzw : iResult.b.yzw;
+		result.materialID = int( spheres[ indexOfHit ].colorMaterial.w );
+		result.albedo = spheres[ indexOfHit ].colorMaterial.xyz;
+		result.IoR = spheres[ indexOfHit ].colorMaterial.b;
+		result.roughness = 0.0f;
+	}
+	return result;
+}
+//=============================================================================================================================
 intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 	// return a single intersection_t representing the closest ray intersection
-	intersection_t SDFResult	= raymarchEnable ? raymarch( ray ) : DefaultIntersection();
-	intersection_t VoxelResult	= ddaSpheresEnable ? VoxelIntersection( ray ) : DefaultIntersection();
-	intersection_t MaskedPlane	= maskedPlaneEnable ? MaskedPlaneIntersect( ray ) : DefaultIntersection();
+	intersection_t SDFResult		= raymarchEnable		? raymarch( ray )				: DefaultIntersection();
+	intersection_t VoxelResult		= ddaSpheresEnable		? VoxelIntersection( ray )		: DefaultIntersection();
+	intersection_t MaskedPlane		= maskedPlaneEnable		? MaskedPlaneIntersect( ray )	: DefaultIntersection();
+	intersection_t ExplicitList		= explicitListEnable	? ExplicitListIntersect( ray )	: DefaultIntersection();
 
 	intersection_t result = DefaultIntersection();
-	float minDistance = vmin( vec3( SDFResult.dTravel, VoxelResult.dTravel, MaskedPlane.dTravel ) );
+	float minDistance = vmin( vec4( SDFResult.dTravel, VoxelResult.dTravel, MaskedPlane.dTravel, ExplicitList.dTravel ) );
 	if ( minDistance == SDFResult.dTravel ) {
 		result = SDFResult;
 	} else if ( minDistance == VoxelResult.dTravel ) {
 		result = VoxelResult;
 	} else if ( minDistance == MaskedPlane.dTravel ) {
 		result = MaskedPlane;
+	} else if ( minDistance == ExplicitList.dTravel ) {
+		result = ExplicitList;
 	}
 	return result;
 }

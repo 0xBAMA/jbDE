@@ -34,7 +34,14 @@ struct sceneConfig_t {
 	int ddaSpheresResolution;
 	// mode config? may require a lot of parameterization...
 
+	// additional config? tbd
 	bool maskedPlaneEnable;
+
+	// config for the spheres
+	bool explicitListEnable;
+	int numExplicitPrimitives;
+	GLuint explicitPrimitiveSSBO;
+	std::vector< vec4 > explicitPrimitiveData;
 
 	// sky config
 	uvec2 skyDims;
@@ -136,6 +143,10 @@ struct daedalusConfig_t {
 
 		// render.scene.maskedPlaneEnable = true;
 		render.scene.maskedPlaneEnable = false;
+
+		// explicit primitive list
+		render.scene.explicitListEnable = true;
+		render.scene.numExplicitPrimitives = 10;
 
 		render.scene.skyDims = uvec2( 1024, 512 );
 		render.scene.skyNeedsUpdate = true;

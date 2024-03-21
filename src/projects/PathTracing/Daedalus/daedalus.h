@@ -37,10 +37,12 @@ public:
 			opts.height			= daedalusConfig.render.scene.skyDims.y;
 			textureManager.Add( "Sky Cache", opts );
 
-			palette::PickRandomPalette( true );
-
+			// more to do on this, but... yeah, it'll work
+			glGenBuffers( 1, &daedalusConfig.render.scene.explicitPrimitiveSSBO );
+			PrepSphereBufferRandom();
+			RelaxSphereList();
+			SendExplicitPrimitiveSSBO();
 		}
-
 	}
 
 	void HandleCustomEvents () {
@@ -167,7 +169,7 @@ public:
 	void ApplyFilter( int mode, int count );
 
 	void ShowDaedalusConfigWindow();
-	void ImguiPass () {
+	void ImguiPass() {
 		ZoneScoped;
 		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 		if ( daedalusConfig.showConfigWindow == true ) { ShowDaedalusConfigWindow(); }
@@ -177,7 +179,6 @@ public:
 			profilerWindow.gpuGraph.LoadFrameData( &tasks_GPU[ 0 ], tasks_GPU.size() );
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
-
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -186,6 +187,12 @@ public:
 	void SendInnerLoopPathtraceUniforms();
 	void SendPrepareUniforms();
 	void SendPresentUniforms();
+
+	void PrepSphereBufferRandom();
+	void PrepSphereBufferPacking();
+	void RelaxSphereList();
+	void SendExplicitPrimitiveSSBO();
+	void PrepGlyphBuffer();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
@@ -198,12 +205,12 @@ public:
 	}
 
 	void CompileShaders() {
-		shaders[ "Sky Cache" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/skyCache.cs.glsl" ).shaderHandle;
-		shaders[ "Pathtrace" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
-		shaders[ "Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
-		shaders[ "Present" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
-		shaders[ "Filter" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
-		shaders[ "Copy Back" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
+		shaders[ "Sky Cache" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/skyCache.cs.glsl" ).shaderHandle;
+		shaders[ "Pathtrace" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Prepare" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
+		shaders[ "Present" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
+		shaders[ "Filter" ]		= computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
+		shaders[ "Copy Back" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
 	}
 
 	void ComputePasses () {

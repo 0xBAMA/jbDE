@@ -177,3 +177,123 @@ void Daedalus::SendPresentUniforms() {
 	textureManager.BindTexForShader( "Tonemapped", "preppedImage", shader, 1 );
 	textureManager.BindImageForShader( "Display Texture", "outputImage", shader, 2 );
 }
+
+void Daedalus::PrepSphereBufferRandom() {
+	// clear it out
+	daedalusConfig.render.scene.explicitPrimitiveData.clear();
+	palette::PickRandomPalette( true );
+
+	// simple implementation, randomizing all parameters
+	rng c = rng(  0.3f, 1.0f );
+	rng o = rng( -1.0f, 1.0f );
+	rng r = rng(  0.1f, 0.4f );
+	for ( int idx = 0; idx < daedalusConfig.render.scene.numExplicitPrimitives; idx++ ) {
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() ) );			// position
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( c(), c() * 0.5f, c(), 5.0f ) );	// color
+	}
+}
+
+void Daedalus::PrepSphereBufferPacking() {
+	// TODO
+
+	// // stochastic sphere packing, inside the volume
+	// vec3 min = vec3( -8.0f, -1.5f, -8.0f );
+	// vec3 max = vec3(  8.0f,  1.5f,  8.0f );
+	// uint32_t maxIterations = 500;
+	// float currentRadius = 1.3f;
+	// rng paletteRefVal = rng( 0.0f, 1.0f );
+	// int material = 6;
+	// vec4 currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
+	// while ( ( sirenConfig.sphereLocationsPlusColors.size() / 2 ) < sirenConfig.maxSpheres ) {
+	// 	rng x = rng( min.x + currentRadius, max.x - currentRadius );
+	// 	rng y = rng( min.y + currentRadius, max.y - currentRadius );
+	// 	rng z = rng( min.z + currentRadius, max.z - currentRadius );
+	// 	uint32_t iterations = maxIterations;
+	// 	// redundant check, but I think it's the easiest way not to run over
+	// 	while ( iterations-- && ( sirenConfig.sphereLocationsPlusColors.size() / 2 ) < sirenConfig.maxSpheres ) {
+	// 		// generate point inside the parent cube
+	// 		vec3 checkP = vec3( x(), y(), z() );
+	// 		// check for intersection against all other spheres
+	// 		bool foundIntersection = false;
+	// 		for ( uint idx = 0; idx < sirenConfig.sphereLocationsPlusColors.size() / 2; idx++ ) {
+	// 			vec4 otherSphere = sirenConfig.sphereLocationsPlusColors[ 2 * idx ];
+	// 			if ( glm::distance( checkP, otherSphere.xyz() ) < ( currentRadius + otherSphere.a ) ) {
+	// 				// cout << "intersection found in iteration " << iterations << endl;
+	// 				foundIntersection = true;
+	// 				break;
+	// 			}
+	// 		}
+	// 		// if there are no intersections, add it to the list with the current material
+	// 		if ( !foundIntersection ) {
+	// 			// cout << "adding sphere, " << currentRadius << endl;
+	// 			sirenConfig.sphereLocationsPlusColors.push_back( vec4( checkP, currentRadius ) );
+	// 			sirenConfig.sphereLocationsPlusColors.push_back( currentMaterial );
+	// 			cout << "\r" << fixedWidthNumberString( sirenConfig.sphereLocationsPlusColors.size() / 2, 6, ' ' ) << " / " << sirenConfig.maxSpheres << " after " << Tock() / 1000.0f << "s                          ";
+	// 		}
+	// 	}
+	// 	// if you've gone max iterations, time to halve the radius and double the max iteration count, get new material
+	// 		currentMaterial = vec4( palette::paletteRef( paletteRefVal() ), material );
+	// 		currentRadius /= 1.618f;
+	// 		maxIterations *= 3;
+
+	// 		// doing this makes it pack flat
+	// 		// min.y /= 1.5f;
+	// 		// max.y /= 1.5f;
+
+	// 		// slowly shrink bounds to accentuate the earlier placed spheres
+	// 		min *= 0.95f;
+	// 		max *= 0.95f;
+	// }
+
+}
+
+void Daedalus::RelaxSphereList() {
+	// this only applies to spheres... whatever
+	rng o = rng( -0.1f, 0.1f );
+	int iterations = 0;
+	const int maxIterations = 100;
+	while ( 1 ) { // relaxation step
+		// walk the list, repulstion force between pairs
+		for ( int i = 0; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) {
+			for ( int j = i + 1; j < daedalusConfig.render.scene.numExplicitPrimitives; j++ ) {
+				// sphere i and sphere j move slightly away from one another if intersecting
+				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * i ];
+				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * j ];
+				float combinedRadius = sphereI.w + sphereJ.w;
+				vec3 displacement = sphereI.xyz() - sphereJ.xyz();
+				float lengthDisplacement = glm::length( displacement );
+				if ( lengthDisplacement < combinedRadius ) {
+					const float offset = combinedRadius - lengthDisplacement;
+					daedalusConfig.render.scene.explicitPrimitiveData[ 2 * i ] = glm::vec4( sphereI.xyz() + ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereI.w );
+					daedalusConfig.render.scene.explicitPrimitiveData[ 2 * j ] = glm::vec4( sphereJ.xyz() - ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereJ.w );
+				}
+			}
+		}
+		// break out when there are no intersections
+		bool existsIntersections = false;
+		for ( int i = 0; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) {
+			for ( int j = i + 1; j < daedalusConfig.render.scene.numExplicitPrimitives; j++ ) {
+				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * i ];
+				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * j ];
+				float combinedRadius = sphereI.w + sphereJ.w;
+				vec3 displacement = sphereI.xyz() - sphereJ.xyz();
+				if ( glm::length( displacement ) < combinedRadius ) {
+					existsIntersections = true;
+				}
+			}
+		}
+		// we have made sure nobody intersects, or something is hanging
+		if ( !existsIntersections || ( iterations++ == maxIterations ) ) break;
+	}
+}
+
+void Daedalus::SendExplicitPrimitiveSSBO() {
+	// send the data from the vector to the GPU
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.scene.explicitPrimitiveSSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * daedalusConfig.render.scene.numExplicitPrimitives, ( GLvoid * ) &daedalusConfig.render.scene.explicitPrimitiveData[ 0 ], GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, daedalusConfig.render.scene.explicitPrimitiveSSBO );
+}
+
+void Daedalus::PrepGlyphBuffer() {
+
+}
