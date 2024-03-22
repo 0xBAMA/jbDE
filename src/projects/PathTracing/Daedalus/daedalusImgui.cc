@@ -65,6 +65,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		ImGui::SeparatorText( "Explicit Primitives" );
 		ImGui::Checkbox( "Enable##explicit", &daedalusConfig.render.scene.explicitListEnable );
+		ImGui::SliderInt( "Count##explicit", &daedalusConfig.render.scene.numExplicitPrimitives, 0, 1000 );
 		if ( ImGui::Button( "Regen List" ) ) {
 			PrepSphereBufferRandom();
 			RelaxSphereList();
@@ -73,16 +74,18 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		// constant color, ollj model, ...
 		ImGui::SeparatorText( "Sky" );
-		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model" };
+		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model", "Hard Cut North Pole Sun", "Two Suns" };
 		ImGui::Combo( "Sky Mode", &daedalusConfig.render.scene.skyMode, skyModes, IM_ARRAYSIZE( skyModes ) );
 		daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		if ( daedalusConfig.render.scene.skyMode == 0 ) { // constant color
 			ImGui::ColorEdit3( "Sky Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor1, ImGuiColorEditFlags_PickerHueWheel );
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
-		} else if ( daedalusConfig.render.scene.skyMode == 1 ) {
+		} else if ( daedalusConfig.render.scene.skyMode == 1 || daedalusConfig.render.scene.skyMode == 3 || daedalusConfig.render.scene.skyMode == 4 ) {
 			ImGui::ColorEdit3( "Azimuth Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor1, ImGuiColorEditFlags_PickerHueWheel );
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 			ImGui::ColorEdit3( "Zenith Color", ( float * ) &daedalusConfig.render.scene.skyConstantColor2, ImGuiColorEditFlags_PickerHueWheel );
+			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
+			ImGui::SliderInt( "Sun Threshold", &daedalusConfig.render.scene.sunThresh, 0, 500 );
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		} else if ( daedalusConfig.render.scene.skyMode == 2 ) {
 			// ollj model needs float slider for time of day

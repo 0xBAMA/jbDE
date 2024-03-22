@@ -85,6 +85,7 @@ void Daedalus::SendSkyCacheUniforms() {
 	glUniform1i( glGetUniformLocation( shader, "mode" ), daedalusConfig.render.scene.skyMode );
 	glUniform3fv( glGetUniformLocation( shader, "color1" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor1 ) );
 	glUniform3fv( glGetUniformLocation( shader, "color2" ), 1, glm::value_ptr( daedalusConfig.render.scene.skyConstantColor2 ) );
+	glUniform1i( glGetUniformLocation( shader, "sunThresh" ), daedalusConfig.render.scene.sunThresh );
 
 	textureManager.BindImageForShader( "Sky Cache", "skyCache", shader, 0 );
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 1 );
@@ -190,11 +191,14 @@ void Daedalus::PrepSphereBufferRandom() {
 	rng c = rng(  0.3f, 1.0f );
 	rng o = rng( -1.0f, 1.0f );
 	rng r = rng(  0.1f, 0.4f );
+	rng IoR = rng( 1.0f / 1.1f, 1.0f / 1.5f );
+	rng Roughness = rng( 0.0f, 0.001f );
 
 	for ( int idx = 0; idx < daedalusConfig.render.scene.numExplicitPrimitives; idx++ ) {
 		vec3 color = palette::paletteRef( c() );
 		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() ) );				// position
 		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( color.x, color.y, color.z, 15.0f ) );	// color
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), Roughness(), 0.0f, 0.0f ) );	// material properties
 	}
 }
 
@@ -262,15 +266,15 @@ void Daedalus::RelaxSphereList() {
 		for ( int i = 0; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) {
 			for ( int j = i + 1; j < daedalusConfig.render.scene.numExplicitPrimitives; j++ ) {
 				// sphere i and sphere j move slightly away from one another if intersecting
-				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * i ];
-				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * j ];
+				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * i ];
+				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * j ];
 				float combinedRadius = sphereI.w + sphereJ.w;
 				vec3 displacement = sphereI.xyz() - sphereJ.xyz();
 				float lengthDisplacement = glm::length( displacement );
 				if ( lengthDisplacement < combinedRadius ) {
 					const float offset = combinedRadius - lengthDisplacement;
-					daedalusConfig.render.scene.explicitPrimitiveData[ 2 * i ] = glm::vec4( sphereI.xyz() + ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereI.w );
-					daedalusConfig.render.scene.explicitPrimitiveData[ 2 * j ] = glm::vec4( sphereJ.xyz() - ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereJ.w );
+					daedalusConfig.render.scene.explicitPrimitiveData[ 3 * i ] = glm::vec4( sphereI.xyz() + ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereI.w );
+					daedalusConfig.render.scene.explicitPrimitiveData[ 3 * j ] = glm::vec4( sphereJ.xyz() - ( offset / 2.0f + o() ) * glm::normalize( displacement ), sphereJ.w );
 				}
 			}
 		}
@@ -278,8 +282,8 @@ void Daedalus::RelaxSphereList() {
 		bool existsIntersections = false;
 		for ( int i = 0; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) {
 			for ( int j = i + 1; j < daedalusConfig.render.scene.numExplicitPrimitives; j++ ) {
-				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * i ];
-				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 2 * j ];
+				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * i ];
+				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * j ];
 				float combinedRadius = sphereI.w + sphereJ.w;
 				vec3 displacement = sphereI.xyz() - sphereJ.xyz();
 				if ( glm::length( displacement ) < combinedRadius ) {
@@ -295,10 +299,10 @@ void Daedalus::RelaxSphereList() {
 void Daedalus::SendExplicitPrimitiveSSBO() {
 	// send the data from the vector to the GPU
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.scene.explicitPrimitiveSSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 8 * daedalusConfig.render.scene.numExplicitPrimitives, ( GLvoid * ) &daedalusConfig.render.scene.explicitPrimitiveData[ 0 ], GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 4 * 3 * daedalusConfig.render.scene.numExplicitPrimitives, ( GLvoid * ) &daedalusConfig.render.scene.explicitPrimitiveData[ 0 ], GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, daedalusConfig.render.scene.explicitPrimitiveSSBO );
 }
 
 void Daedalus::PrepGlyphBuffer() {
-
+	// todo
 }

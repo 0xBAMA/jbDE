@@ -10,6 +10,7 @@ uniform float skyTime;
 uniform int mode;
 uniform vec3 color1;
 uniform vec3 color2;
+uniform int sunThresh;
 
 // https://www.shadertoy.com/view/ttcyRS
 vec3 oklab_mix( vec3 colA, vec3 colB, float h ) {
@@ -31,7 +32,7 @@ vec3 oklab_mix( vec3 colA, vec3 colB, float h ) {
 }
 
 void main () {
-	vec3 col;
+	vec3 col = vec3( 0.0f );
 
 	switch ( mode ) {
 		case 0: col = color1;
@@ -41,6 +42,18 @@ void main () {
 		break;
 
 		case 2: col = skyColor();
+		break;
+
+		case 3: col = ( gl_GlobalInvocationID.y > ( imageSize( skyCache ).y - sunThresh ) ) ? color1 : color2;
+		break;
+
+		case 4: {
+			if ( gl_GlobalInvocationID.y > imageSize( skyCache ).y - sunThresh ) {
+				col = color1;
+			} else if ( gl_GlobalInvocationID.y < sunThresh ) {
+				col = color2;
+			}
+		}
 		break;
 	}
 

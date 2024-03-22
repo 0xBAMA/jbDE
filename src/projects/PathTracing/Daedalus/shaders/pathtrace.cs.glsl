@@ -830,8 +830,8 @@ float GetRadiusForIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
-	// return vec3( 0.9f );
-	return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) * 0.2f + vec3( 0.8f );
+	return vec3( 0.618f );
+	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) * 0.2f + vec3( 0.8f );
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
 }
@@ -885,8 +885,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
 // changing behavior of the traversal - the disks are not super compatible with the sphere/box intersection code
-#define SPHEREORBOX
-// #define DISKS
+// #define SPHEREORBOX
+#define DISKS
 
 			#ifdef SPHEREORBOX
 				// see if we found an intersection - ball will almost fill the grid cell
@@ -948,8 +948,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.roughness = 0.01f;
 					intersection.IoR = 1.0f / 1.5f;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					// intersection.materialID = DIFFUSE;
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					intersection.materialID = DIFFUSE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}
@@ -1094,6 +1094,7 @@ uniform bool explicitListEnable;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
+	vec4 materialProps;
 };
 layout( binding = 0, std430 ) buffer sphereData {
 	sphere_t spheres[];
@@ -1123,8 +1124,8 @@ intersection_t ExplicitListIntersect( in ray_t ray ) {
 		if ( result.materialID == REFRACTIVE && result.frontfaceHit == false )
 			result.materialID = REFRACTIVE_BACKFACE; // this needs to be more generalized
 		result.albedo = spheres[ indexOfHit ].colorMaterial.xyz;
-		result.IoR = spheres[ indexOfHit ].colorMaterial.b;
-		result.roughness = 0.0f;
+		result.IoR = spheres[ indexOfHit ].materialProps.r;
+		result.roughness = spheres[ indexOfHit ].materialProps.g;
 	}
 	return result;
 }

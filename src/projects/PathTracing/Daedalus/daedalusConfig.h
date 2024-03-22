@@ -49,6 +49,7 @@ struct sceneConfig_t {
 	int skyMode;
 	vec3 skyConstantColor1;
 	vec3 skyConstantColor2;
+	int sunThresh;
 	float skyTime;
 	bool skyInvert;
 	float skyBrightnessScalar;
@@ -153,6 +154,7 @@ struct daedalusConfig_t {
 		render.scene.skyMode = 0;
 		render.scene.skyConstantColor1 = vec3( 1.0f );
 		render.scene.skyConstantColor2 = vec3( 0.0f );
+		render.scene.sunThresh = 100;
 		render.scene.skyInvert = false;
 		render.scene.skyBrightnessScalar = 1.0f;
 		render.scene.skyTime = 5.0f;
@@ -160,7 +162,7 @@ struct daedalusConfig_t {
 		// ===============================
 
 		// load a config file and shit? ( src/projects/PathTracing/Daedalus/config.json individual config )
-			// tbd, that could be a nice way to handle this
+			// tbd, that could be a nice(r) way to handle this
 	}
 
 	// size of output
