@@ -1089,8 +1089,8 @@ intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 		// primitive type
 		// primitive parameters
 		// material details
-const int numExplicitPrimitives = 10;
-const bool explicitListEnable = true;
+uniform int numExplicitPrimitives;
+uniform bool explicitListEnable;
 struct sphere_t {
 	vec4 positionRadius;
 	vec4 colorMaterial;
@@ -1120,6 +1120,8 @@ intersection_t ExplicitListIntersect( in ray_t ray ) {
 		result.frontfaceHit = ( iResult.a.x == nearestOverallHit );
 		result.normal = result.frontfaceHit ? iResult.a.yzw : iResult.b.yzw;
 		result.materialID = int( spheres[ indexOfHit ].colorMaterial.w );
+		if ( result.materialID == REFRACTIVE && result.frontfaceHit == false )
+			result.materialID = REFRACTIVE_BACKFACE; // this needs to be more generalized
 		result.albedo = spheres[ indexOfHit ].colorMaterial.xyz;
 		result.IoR = spheres[ indexOfHit ].colorMaterial.b;
 		result.roughness = 0.0f;

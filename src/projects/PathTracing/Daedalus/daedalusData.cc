@@ -124,6 +124,9 @@ void Daedalus::SendBasePathtraceUniforms() {
 
 	glUniform1i( glGetUniformLocation( shader, "maskedPlaneEnable" ), daedalusConfig.render.scene.maskedPlaneEnable );
 
+	glUniform1i( glGetUniformLocation( shader, "numExplicitPrimitives" ), daedalusConfig.render.scene.numExplicitPrimitives );
+	glUniform1i( glGetUniformLocation( shader, "explicitListEnable" ), daedalusConfig.render.scene.explicitListEnable );
+
 	glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( daedalusConfig.render.viewerPosition ) );
 	glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( daedalusConfig.render.basisX ) );
 	glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( daedalusConfig.render.basisY ) );
@@ -187,9 +190,11 @@ void Daedalus::PrepSphereBufferRandom() {
 	rng c = rng(  0.3f, 1.0f );
 	rng o = rng( -1.0f, 1.0f );
 	rng r = rng(  0.1f, 0.4f );
+
 	for ( int idx = 0; idx < daedalusConfig.render.scene.numExplicitPrimitives; idx++ ) {
-		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() ) );			// position
-		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( c(), c() * 0.5f, c(), 5.0f ) );	// color
+		vec3 color = palette::paletteRef( c() );
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() ) );				// position
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( color.x, color.y, color.z, 15.0f ) );	// color
 	}
 }
 

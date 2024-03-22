@@ -1448,8 +1448,6 @@ public:
 		// 	data.SetAtXY( uint32_t( xD() ), uint32_t( yD() ) + uint32_t( zD() ) * texD, col );
 		// }
 
-
-
 		// swatch test
 		// palette::PickRandomPalette( true );
 		// for ( uint x = 0; x < 16; x++ )
@@ -1462,8 +1460,6 @@ public:
 		// 		data.SetAtXY( uint32_t( x * 16.0f + dist() + 8 ), uint32_t( y * 16.0f + dist() + 8 ) + uint32_t( distL() + 128 ) * texD, col );
 		// 	}
 		// }
-
-
 
 		// do N randomly selected
 		for ( uint32_t op = 0; op < numOps; op++ ) {

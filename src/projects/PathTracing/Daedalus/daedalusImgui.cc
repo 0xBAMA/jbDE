@@ -63,6 +63,14 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SeparatorText( "Masked Plane" );
 		ImGui::Checkbox( "Enable##maskedPlane", &daedalusConfig.render.scene.maskedPlaneEnable );
 
+		ImGui::SeparatorText( "Explicit Primitives" );
+		ImGui::Checkbox( "Enable##explicit", &daedalusConfig.render.scene.explicitListEnable );
+		if ( ImGui::Button( "Regen List" ) ) {
+			PrepSphereBufferRandom();
+			RelaxSphereList();
+			SendExplicitPrimitiveSSBO();
+		}
+
 		// constant color, ollj model, ...
 		ImGui::SeparatorText( "Sky" );
 		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model" };

@@ -146,7 +146,7 @@ struct daedalusConfig_t {
 
 		// explicit primitive list
 		render.scene.explicitListEnable = true;
-		render.scene.numExplicitPrimitives = 10;
+		render.scene.numExplicitPrimitives = 100;
 
 		render.scene.skyDims = uvec2( 1024, 512 );
 		render.scene.skyNeedsUpdate = true;
