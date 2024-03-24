@@ -979,8 +979,9 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 }
 //=============================================================================================================================
 uniform bool maskedPlaneEnable;
+layout( rgba8ui ) uniform uimage3D textBuffer;
 //=============================================================================================================================
-bool maskedPlaneMaskEval( in vec3 location ) {
+bool maskedPlaneMaskEval( in vec3 location, out vec3 color ) {
 	// bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
 	// 	cos( PI * float( location.x ) + PI / 2.0f ) *
 	// 	cos( PI * float( location.y ) + PI / 2.0f ) ) == 0 );
@@ -993,8 +994,13 @@ bool maskedPlaneMaskEval( in vec3 location ) {
 	// 	cos( PI * float( pixelIndex.x ) + PI / 2.0f ) *
 	// 	cos( PI * float( pixelIndex.y ) + PI / 2.0f ) ) == 0 );
 
-	// uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, i ) ); // repeated
-	int onGlyph = fontRef( int( abs( snoise3D( vec3( bin.xy, location.z ) ) ) * 255 ), offset );
+	const uvec3 texDims = uvec3( imageSize( textBuffer ) );
+	uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, location.z ) ); // repeated
+
+	color = vec3( sampleValue.xyz ) / 255.0f;
+
+	// int onGlyph = fontRef( int( abs( snoise3D( vec3( bin.xy, location.z ) ) ) * 255 ), offset );
+	int onGlyph = fontRef( int( sampleValue.a ), offset );
 	return onGlyph > 0;
 }
 //=============================================================================================================================
@@ -1034,11 +1040,12 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 			);
 
 			// check the projected coordinates against the input boundary size
-			if ( abs( projectedCoords.x ) <= float( dims.x ) / 2.0f && abs( projectedCoords.y ) <= float( dims.y ) / 2.0f ) {
+			if ( abs( projectedCoords.x ) <= float( dims.x * scale.x ) / 2.0f && abs( projectedCoords.y ) <= float( dims.y * scale.y ) / 2.0f ) {
 				// now we have a 2d point to work with
-				if ( maskedPlaneMaskEval( vec3( projectedCoords, i ) ) ) {
+				vec3 color;
+				if ( maskedPlaneMaskEval( vec3( projectedCoords, i ), color ) ) {
 					intersection.dTravel = planeDistance;
-					intersection.albedo = vec3( 0.618f );
+					intersection.albedo = color;
 					intersection.frontfaceHit = nAlign;
 					intersection.normal = nAlign ? normal : -normal;
 					intersection.frontfaceHit = true;
@@ -1055,20 +1062,17 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 	mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
 	const vec3 point = vec3( 0.0f ); // base point for the plane
-	const ivec3 dims = ivec3( 500, 300, 10 ); // "voxel" dimensions - x,y glyph res + z number of planes
-	const vec3 scale = vec3( 10.0f, 10.0f, 0.1f ); // scaling x,y, and z is spacing between the planes
+	const ivec3 dims = ivec3( imageSize( textBuffer ) ); // "voxel" dimensions - x,y glyph res + z number of planes
+	const vec3 scale = vec3( 1000.0f, 1000.0f, 0.01f ); // scaling x,y, and z is spacing between the planes
 	// return MaskedPlaneIntersect( ray, basis, point, dims, scale );
 
 	intersection_t intersect1 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
-	intersect1.albedo = vec3( 0.618f, 0.0f, 0.0f );
 
 	basis = Rotate3D( 1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( 0.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis;
 	intersection_t intersect2 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
-	intersect2.albedo = vec3( 0.0f, 0.618f, 0.0f );
 
 	basis = Rotate3D( 1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( 2.5f, vec3( 1.0f, 1.0f, 0.0f ) ) * basis;
 	intersection_t intersect3 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
-	intersect3.albedo = vec3( 0.0f, 0.0f, 0.618f );
 
 	intersection_t result = DefaultIntersection();
 	float minDistance = vmin( vec3( intersect1.dTravel, intersect2.dTravel, intersect3.dTravel ) );

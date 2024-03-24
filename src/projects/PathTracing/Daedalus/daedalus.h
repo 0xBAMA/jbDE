@@ -42,6 +42,9 @@ public:
 			PrepSphereBufferRandom();
 			RelaxSphereList();
 			SendExplicitPrimitiveSSBO();
+
+			// prepare the glyph buffers
+			PrepGlyphBuffer();
 		}
 	}
 

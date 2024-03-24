@@ -140,8 +140,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
 	textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
 	textureManager.BindTexForShader( "Sky Cache", "skyCache", shader, 3 );
-
-	
+	textureManager.BindImageForShader( "TextBuffer", "textBuffer", shader, 4 );
 }
 
 void Daedalus::SendInnerLoopPathtraceUniforms() {
@@ -304,5 +303,296 @@ void Daedalus::SendExplicitPrimitiveSSBO() {
 }
 
 void Daedalus::PrepGlyphBuffer() {
-	// todo
+	// block dimensions
+	uint32_t texW = 96;
+	uint32_t texH = 64;
+	uint32_t texD = 32;
+
+	texW = 256;
+	texH = 256;
+	texD = 1024;
+
+	Image_4U data( texW, texH * texD );
+
+	// create the voxel model inside the flat image
+		// update the data
+	const uint32_t numOps = 0;
+	rngi opPick = rngi( 0, 34 );
+	rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 4, 20 );
+	rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 4, 12 );
+	rngi zPick = rngi( 0, texD - 1 ); rngi zDPick = rngi( 4, 10 );
+	rngi glyphPick = rngi( 176, 223 );
+	rngi thinPick = rngi( 0, 4 );
+
+	// look at a random, narrow slice of a random palette
+	palette::PickRandomPalette( true );
+	rng ppPick = rng( 0.1f, 0.9f );
+	rng pwPick = rng( 0.01f, 0.3f );
+	rngN pPick = rngN( ppPick(), pwPick() );
+
+	color_4U col = color_4U( { 0u, 0u, 0u, 1u } );
+	uint32_t length = 0;
+	PerlinNoise p;
+
+	rng noiseScale = rng( 10.0f, 50.0f );
+	const vec3 n = vec3( noiseScale(), noiseScale(), 10.0f * noiseScale() );
+
+	rng offset = rng( -10.0f, 10.0f );
+	const vec3 o = vec3( offset(), offset(), offset() );
+
+	auto fnSimplex = FastNoise::New<FastNoise::Simplex>();
+	auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
+	fnFractal->SetSource( fnSimplex );
+	fnFractal->SetOctaveCount( 5 );
+
+	rngi noiseSeedGen = rngi( 0, 1000000 );
+	int noiseSeed = noiseSeedGen();
+	int noiseSeed2 = noiseSeedGen();
+
+	for ( uint32_t x = 0; x < texW; x++ )
+	for ( uint32_t y = 0; y < texH; y++ )
+	for ( uint32_t z = 0; z < texD; z++ ) {
+		// float d = glm::distance( vec3( texW / 2.0f, texH / 2.0f, texD / 2.0f ), vec3( x, y, z ) );
+		// float d2 = glm::distance( vec2( texW / 2.0f, texH / 2.0f ), vec2( x, y ) );
+		// if ( d < 64.0f && d2 > 26.0f || d2 < 22.0f && d2 > 12.0f ) {
+
+			// float noiseValue = p.noise( x / n.x + o.x, y / n.y + o.y, z / n.z + o.z );
+			// if ( noiseValue < 0.5f ) {
+				// vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+				// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+				// vec3 c = palette::paletteRef( noiseValue ) * 255.0f;
+				// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+				// data.SetAtXY( x, y + z * texH, col );
+			// }
+		// }
+
+		// frame test
+		const ivec3 numBeams = ivec3( 2, 2, 4 );
+		const ivec3 beamWidths = ivec3( 12, 16, 46 );
+		const bool xValid = ( x % ( ( texW - beamWidths.x / 2 ) / numBeams.x ) < beamWidths.x );
+		const bool yValid = ( y % ( ( texH - beamWidths.y / 2 ) / numBeams.y ) < beamWidths.y );
+		const bool zValid = ( z % ( ( texD - beamWidths.z / 2 ) / numBeams.z ) < beamWidths.z );
+		if ( ( xValid && yValid ) || ( yValid && zValid ) || ( xValid && zValid ) ) {
+			// vec3 c = palette::paletteRef( 0.5f );
+			// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+			// col = color_4U( { 0u, 128u, 0u, ( uint8_t ) glyphPick() } );
+			vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+			col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+			data.SetAtXY( x, y + z * texH, col );
+		}
+
+		// // noise test
+		// if ( fnFractal->GenSingle3D( x / 40.0f, y / 40.0f, z / 500.0f, noiseSeed ) < -0.4f ) {
+		// 	vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+		// 	col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+		// 	data.SetAtXY( x, y + z * texH, col );
+		// }
+
+	}
+
+	palette::PickRandomPalette( true );
+
+	std::vector< float > noiseOutput( texW * texH * texD );
+	std::vector< float > noiseOutput2( texW * texH * texD );
+	// std::vector< float > noiseOutput3( texD * texH );
+	fnFractal->GenUniformGrid3D( noiseOutput.data(), 0, 0, 0, texD, texH, texW, 0.01f, noiseSeed );
+	fnFractal->GenUniformGrid3D( noiseOutput2.data(), 0, 0, 0, texW, texH, texD, 0.005f, noiseSeed2 );
+	// fnFractal->GenUniformGrid2D( noiseOutput3.data(), 0, 0, texD, texH, 0.01f, noiseSeed2 );
+	int index = 0;
+	// int index2 = 0;
+	for ( uint32_t x = 0; x < texW; x++ ) {
+		for ( uint32_t y = 0; y < texH; y++ ) {
+			float heightmapRead = fnFractal->GenSingle3D( x / 120.0f, y / 120.0f, 10.0f, noiseSeed ) * 0.5f + 0.45f;
+			for ( uint32_t z = 0; z < texD; z++ ) {
+				// noise test
+				int i = index++;
+				float noiseValue = noiseOutput[ i ];
+				float noiseValue2 = noiseOutput2[ i ];
+				// if ( noiseValue < -0.4f ) {
+				// if ( ( z / texD ) < heightmapRead ) {
+				if ( float( z ) / float( texD ) < heightmapRead && noiseValue < -0.3f ) {
+					// vec3 c = palette::paletteRef( abs( noiseValue2 ) ) * 255.0f;
+					vec3 c = palette::paletteRef( abs( heightmapRead ) ) * 255.0f;
+					col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+					// col = color_4U( { ( uint8_t ) heightmapRead * 255, ( uint8_t ) heightmapRead * 255, ( uint8_t ) heightmapRead * 255, ( uint8_t ) glyphPick() } );
+					data.SetAtXY( x, y + z * texH, col );
+				}
+			}
+		}
+	}
+
+	// beam/block test
+	// palette::PickRandomPalette( true );
+	// // rngi xD = rngi( texH / 2.0f - 50.0f, texH / 2.0f + 50.0f );
+	// // rngi yD = rngi( texW / 2.0f - 50.0f, texW / 2.0f + 50.0f );
+	// // rngi zD = rngi( texD / 2.0f - 50.0f, texD / 2.0f + 50.0f );
+	// rngN xD = rngN( texH / 2.0f, 20.0f );
+	// rngN yD = rngN( texW / 2.0f, 20.0f );
+	// rngN zD = rngN( texD / 2.0f, 20.0f );
+	// for ( int i = 0; i < 400000; i++ ) {
+	// 	vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+	// 	col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 	data.SetAtXY( uint32_t( xD() ), uint32_t( yD() ) + uint32_t( zD() ) * texD, col );
+	// }
+
+	// swatch test
+	// palette::PickRandomPalette( true );
+	// for ( uint x = 0; x < 16; x++ )
+	// for ( uint y = 0; y < 16; y++ ) {
+	// 	rngN dist = rngN( 0.0, 2.0f );
+	// 	rngN distL = rngN( 0.0, 20.0f );
+	// 	for ( int i = 0; i < 1000; i++ ) {
+	// 		vec3 c = palette::paletteRef( ( x + 16 * y ) / 255.0f ) * 255.0f;
+	// 		col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) ( x + 16 * y ) } );
+	// 		data.SetAtXY( uint32_t( x * 16.0f + dist() + 8 ), uint32_t( y * 16.0f + dist() + 8 ) + uint32_t( distL() + 128 ) * texD, col );
+	// 	}
+	// }
+
+	// do N randomly selected
+	for ( uint32_t op = 0; op < numOps; op++ ) {
+		vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+		switch ( opPick() ) {
+		case 0: // AABB
+		case 1:
+		{
+			// col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+			col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+
+			uvec3 base = uvec3( xPick(),  yPick(),  zPick() );
+			uvec3 dims = uvec3( xDPick(), yDPick(), zDPick() );
+			for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
+			for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
+			for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
+				data.SetAtXY( x, y + z * texH, col );
+			break;
+		}
+
+		case 2: // lines
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		{
+			col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+			uvec3 base = uvec3( xPick(), yPick(), zPick() );
+			length = xDPick();
+			for ( uint32_t x = base.x; x < base.x + length; x++ )
+				data.SetAtXY( x, base.y + base.z * texH, col );
+			break;
+		}
+
+		case 7: // other lines
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		{
+			col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+			uvec3 base = uvec3( xPick(), yPick(), zPick() );
+			length = yDPick();
+			for ( uint32_t y = base.y; y < base.y + length; y++ )
+				data.SetAtXY( base.x, y + base.z * texH, col );
+			break;
+		}
+
+		case 12: // more other-er lines
+		case 13:
+		case 14:
+		case 15:
+		case 16:
+		case 17:
+		{
+			col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+			uvec3 base = uvec3( xPick(), yPick(), zPick() );
+			length = zDPick();
+			for ( uint32_t z = base.z; z < base.z + length; z++ )
+				data.SetAtXY( base.x, base.y + z * texH, col );
+			break;
+		}
+
+		case 18: // should come out emissive
+		case 20:
+		case 21:
+		{
+			col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+			// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+
+			uvec3 base = uvec3( xPick(), yPick(), zPick() );
+			uvec3 dims = uvec3( thinPick() + 1, thinPick() + 1, thinPick() + 1 );
+			for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
+			for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
+			for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
+				data.SetAtXY( x, y + z * texH, col );
+			break;
+		}
+
+		case 22: // string text
+		case 23:
+		case 24:
+		case 25:
+		case 26:
+		{
+			static rngi wordPick = rngi( 0, colorWords.size() - 1 );
+			string word = colorWords[ wordPick() ];
+			uvec3 basePt = uvec3( xPick(), yPick(), zPick() );
+			for ( size_t i = 0; i < word.length(); i++ ) {
+				col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) word[ i ] } );
+				data.SetAtXY( basePt.x + i, basePt.y + basePt.z * texH, col );
+			}
+			break;
+		}
+
+		case 27:
+		case 28:
+		case 29:
+		case 30:
+		case 31:
+		case 32:
+		case 33:
+		case 34:
+		{	// clear out an AABB
+			col = color_4U( { 0u, 0u, 0u, 0u } );
+			uvec3 base = uvec3( xPick(),  yPick(),  zPick() );
+			uvec3 dims = uvec3( xDPick(), yDPick(), zDPick() );
+			for ( uint32_t x = base.x; x < base.x + dims.x; x++ )
+			for ( uint32_t y = base.y; y < base.y + dims.y; y++ )
+			for ( uint32_t z = base.z; z < base.z + dims.z; z++ )
+				data.SetAtXY( x, y + z * texH, col );
+			break;
+		}
+
+		case 35:
+		{
+			col = color_4U( { 255u, 255u, 255u, ( uint8_t ) glyphPick() } );
+			ivec3 base = ivec3( xPick(),  yPick(),  zPick() );
+			data.SetAtXY( base.x, base.y + base.z * texH, col );
+			break;
+		}
+
+		default:
+			break;
+		}
+	}
+
+	// texture is ready to be used in the pathtrace
+		// create a texture, and send the data
+	static bool firstRun = true;
+	if ( firstRun ) {
+		firstRun = false;
+		textureOptions_t opts;
+		opts.width			= texW;
+		opts.height			= texH;
+		opts.depth			= texD;
+		opts.dataType		= GL_RGBA8UI;
+		opts.minFilter		= GL_NEAREST;
+		opts.magFilter		= GL_NEAREST;
+		opts.textureType	= GL_TEXTURE_3D;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
+		opts.initialData = ( void * ) data.GetImageDataBasePtr();
+		textureManager.Add( "TextBuffer", opts );
+	} else {
+		// pass the new generated texture data to the existing texture
+		glBindTexture( GL_TEXTURE_3D, textureManager.Get( "TextBuffer" ) );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8UI, texW, texH, texD, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) data.GetImageDataBasePtr() );
+	}
 }
