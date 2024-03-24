@@ -141,7 +141,7 @@ public:
 				quitConfirm = !quitConfirm; // this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
 			}
 
-			if ( event.type == SDL_MOUSEWHEEL ) {
+			if ( event.type == SDL_MOUSEWHEEL && !ImGui::GetIO().WantCaptureMouse ) {
 				// float wheel_x = -event.wheel.x;
 				const float wheel_y = event.wheel.y;
 
