@@ -62,10 +62,14 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		ImGui::SeparatorText( "Masked Plane" );
 		ImGui::Checkbox( "Enable##maskedPlane", &daedalusConfig.render.scene.maskedPlaneEnable );
+		if ( ImGui::Button( "Generate" ) ) {
+			PrepGlyphBuffer();
+		}
 
 		ImGui::SeparatorText( "Explicit Primitives" );
 		ImGui::Checkbox( "Enable##explicit", &daedalusConfig.render.scene.explicitListEnable );
 		ImGui::SliderInt( "Count##explicit", &daedalusConfig.render.scene.numExplicitPrimitives, 0, 1000 );
+		// more involved parameterization
 		if ( ImGui::Button( "Regen List" ) ) {
 			PrepSphereBufferRandom();
 			RelaxSphereList();
