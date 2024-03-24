@@ -995,7 +995,8 @@ bool maskedPlaneMaskEval( in vec3 location, out vec3 color ) {
 	// 	cos( PI * float( pixelIndex.y ) + PI / 2.0f ) ) == 0 );
 
 	const uvec3 texDims = uvec3( imageSize( textBuffer ) );
-	uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, location.z ) ); // repeated
+	// uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, location.z ) ); // repeated
+	uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x, bin.y, location.z ) );
 
 	color = vec3( sampleValue.xyz ) / 255.0f;
 
@@ -1035,8 +1036,8 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 			const vec3 planeIntersection = ray.origin + ray.direction * planeDistance;
 			const vec3 intersectionPointInPlane = planeIntersection - planePt;
 			const vec2 projectedCoords = vec2( // vector projected onto vector ( +x,y scale factors )
-				scale.x * dot( intersectionPointInPlane, xVec ),
-				scale.y * dot( intersectionPointInPlane, yVec )
+				scale.x * dot( intersectionPointInPlane, xVec ) - imageSize( textBuffer ).x / 2,
+				scale.y * dot( intersectionPointInPlane, yVec ) - imageSize( textBuffer ).y / 2
 			);
 
 			// check the projected coordinates against the input boundary size
@@ -1063,7 +1064,7 @@ intersection_t MaskedPlaneIntersect( in ray_t ray ) {
 	mat3 basis = mat3( 1.0f ); // identity matrix - should be able to support rotation
 	const vec3 point = vec3( 0.0f ); // base point for the plane
 	const ivec3 dims = ivec3( imageSize( textBuffer ) ); // "voxel" dimensions - x,y glyph res + z number of planes
-	const vec3 scale = vec3( 1000.0f, 1000.0f, 0.01f ); // scaling x,y, and z is spacing between the planes
+	const vec3 scale = vec3( 1000.0f, 1000.0f, 0.003f ); // scaling x,y, and z is spacing between the planes
 	// return MaskedPlaneIntersect( ray, basis, point, dims, scale );
 
 	intersection_t intersect1 = MaskedPlaneIntersect( ray, basis, point, dims, scale );
