@@ -306,17 +306,13 @@ void Daedalus::PrepGlyphBuffer() {
 	// block dimensions
 	uint32_t texW = 96;
 	uint32_t texH = 64;
-	uint32_t texD = 32;
-
-	texW = 256;
-	texH = 256;
-	texD = 1024;
+	uint32_t texD = 48;
 
 	Image_4U data( texW, texH * texD );
 
 	// create the voxel model inside the flat image
 		// update the data
-	const uint32_t numOps = 0;
+	const uint32_t numOps = 20000;
 	rngi opPick = rngi( 0, 34 );
 	rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 4, 20 );
 	rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 4, 12 );
@@ -349,77 +345,77 @@ void Daedalus::PrepGlyphBuffer() {
 	int noiseSeed = noiseSeedGen();
 	int noiseSeed2 = noiseSeedGen();
 
-	for ( uint32_t x = 0; x < texW; x++ )
-	for ( uint32_t y = 0; y < texH; y++ )
-	for ( uint32_t z = 0; z < texD; z++ ) {
-		// float d = glm::distance( vec3( texW / 2.0f, texH / 2.0f, texD / 2.0f ), vec3( x, y, z ) );
-		// float d2 = glm::distance( vec2( texW / 2.0f, texH / 2.0f ), vec2( x, y ) );
-		// if ( d < 64.0f && d2 > 26.0f || d2 < 22.0f && d2 > 12.0f ) {
+	// for ( uint32_t x = 0; x < texW; x++ )
+	// for ( uint32_t y = 0; y < texH; y++ )
+	// for ( uint32_t z = 0; z < texD; z++ ) {
+	// 	// float d = glm::distance( vec3( texW / 2.0f, texH / 2.0f, texD / 2.0f ), vec3( x, y, z ) );
+	// 	// float d2 = glm::distance( vec2( texW / 2.0f, texH / 2.0f ), vec2( x, y ) );
+	// 	// if ( d < 64.0f && d2 > 26.0f || d2 < 22.0f && d2 > 12.0f ) {
 
-			// float noiseValue = p.noise( x / n.x + o.x, y / n.y + o.y, z / n.z + o.z );
-			// if ( noiseValue < 0.5f ) {
-				// vec3 c = palette::paletteRef( pPick() ) * 255.0f;
-				// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
-				// vec3 c = palette::paletteRef( noiseValue ) * 255.0f;
-				// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
-				// data.SetAtXY( x, y + z * texH, col );
-			// }
-		// }
+	// 		// float noiseValue = p.noise( x / n.x + o.x, y / n.y + o.y, z / n.z + o.z );
+	// 		// if ( noiseValue < 0.5f ) {
+	// 			// vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+	// 			// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 			// vec3 c = palette::paletteRef( noiseValue ) * 255.0f;
+	// 			// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 			// data.SetAtXY( x, y + z * texH, col );
+	// 		// }
+	// 	// }
 
-		// frame test
-		const ivec3 numBeams = ivec3( 2, 2, 4 );
-		const ivec3 beamWidths = ivec3( 12, 16, 46 );
-		const bool xValid = ( x % ( ( texW - beamWidths.x / 2 ) / numBeams.x ) < beamWidths.x );
-		const bool yValid = ( y % ( ( texH - beamWidths.y / 2 ) / numBeams.y ) < beamWidths.y );
-		const bool zValid = ( z % ( ( texD - beamWidths.z / 2 ) / numBeams.z ) < beamWidths.z );
-		if ( ( xValid && yValid ) || ( yValid && zValid ) || ( xValid && zValid ) ) {
-			// vec3 c = palette::paletteRef( 0.5f );
-			// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
-			// col = color_4U( { 0u, 128u, 0u, ( uint8_t ) glyphPick() } );
-			vec3 c = palette::paletteRef( pPick() ) * 255.0f;
-			col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
-			data.SetAtXY( x, y + z * texH, col );
-		}
+	// 	// frame test
+	// 	const ivec3 numBeams = ivec3( 2, 2, 4 );
+	// 	const ivec3 beamWidths = ivec3( 12, 16, 46 );
+	// 	const bool xValid = ( x % ( ( texW - beamWidths.x / 2 ) / numBeams.x ) < beamWidths.x );
+	// 	const bool yValid = ( y % ( ( texH - beamWidths.y / 2 ) / numBeams.y ) < beamWidths.y );
+	// 	const bool zValid = ( z % ( ( texD - beamWidths.z / 2 ) / numBeams.z ) < beamWidths.z );
+	// 	if ( ( xValid && yValid ) || ( yValid && zValid ) || ( xValid && zValid ) ) {
+	// 		// vec3 c = palette::paletteRef( 0.5f );
+	// 		// col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 		// col = color_4U( { 0u, 128u, 0u, ( uint8_t ) glyphPick() } );
+	// 		vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+	// 		col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 		data.SetAtXY( x, y + z * texH, col );
+	// 	}
 
-		// // noise test
-		// if ( fnFractal->GenSingle3D( x / 40.0f, y / 40.0f, z / 500.0f, noiseSeed ) < -0.4f ) {
-		// 	vec3 c = palette::paletteRef( pPick() ) * 255.0f;
-		// 	col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
-		// 	data.SetAtXY( x, y + z * texH, col );
-		// }
+	// 	// // noise test
+	// 	// if ( fnFractal->GenSingle3D( x / 40.0f, y / 40.0f, z / 500.0f, noiseSeed ) < -0.4f ) {
+	// 	// 	vec3 c = palette::paletteRef( pPick() ) * 255.0f;
+	// 	// 	col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 	// 	data.SetAtXY( x, y + z * texH, col );
+	// 	// }
 
-	}
+	// }
 
-	palette::PickRandomPalette( true );
+	// palette::PickRandomPalette( true );
 
-	std::vector< float > noiseOutput( texW * texH * texD );
-	std::vector< float > noiseOutput2( texW * texH * texD );
-	// std::vector< float > noiseOutput3( texD * texH );
-	fnFractal->GenUniformGrid3D( noiseOutput.data(), 0, 0, 0, texD, texH, texW, 0.01f, noiseSeed );
-	fnFractal->GenUniformGrid3D( noiseOutput2.data(), 0, 0, 0, texW, texH, texD, 0.005f, noiseSeed2 );
-	// fnFractal->GenUniformGrid2D( noiseOutput3.data(), 0, 0, texD, texH, 0.01f, noiseSeed2 );
-	int index = 0;
-	// int index2 = 0;
-	for ( uint32_t x = 0; x < texW; x++ ) {
-		for ( uint32_t y = 0; y < texH; y++ ) {
-			float heightmapRead = fnFractal->GenSingle3D( x / 120.0f, y / 120.0f, 10.0f, noiseSeed ) * 0.5f + 0.45f;
-			for ( uint32_t z = 0; z < texD; z++ ) {
-				// noise test
-				int i = index++;
-				float noiseValue = noiseOutput[ i ];
-				float noiseValue2 = noiseOutput2[ i ];
-				// if ( noiseValue < -0.4f ) {
-				// if ( ( z / texD ) < heightmapRead ) {
-				if ( float( z ) / float( texD ) < heightmapRead && noiseValue < -0.3f ) {
-					// vec3 c = palette::paletteRef( abs( noiseValue2 ) ) * 255.0f;
-					vec3 c = palette::paletteRef( abs( heightmapRead ) ) * 255.0f;
-					col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
-					// col = color_4U( { ( uint8_t ) heightmapRead * 255, ( uint8_t ) heightmapRead * 255, ( uint8_t ) heightmapRead * 255, ( uint8_t ) glyphPick() } );
-					data.SetAtXY( x, y + z * texH, col );
-				}
-			}
-		}
-	}
+	// std::vector< float > noiseOutput( texW * texH * texD );
+	// std::vector< float > noiseOutput2( texW * texH * texD );
+	// // std::vector< float > noiseOutput3( texD * texH );
+	// fnFractal->GenUniformGrid3D( noiseOutput.data(), 0, 0, 0, texD, texH, texW, 0.01f, noiseSeed );
+	// fnFractal->GenUniformGrid3D( noiseOutput2.data(), 0, 0, 0, texW, texH, texD, 0.005f, noiseSeed2 );
+	// // fnFractal->GenUniformGrid2D( noiseOutput3.data(), 0, 0, texD, texH, 0.01f, noiseSeed2 );
+	// int index = 0;
+	// // int index2 = 0;
+	// for ( uint32_t x = 0; x < texW; x++ ) {
+	// 	for ( uint32_t y = 0; y < texH; y++ ) {
+	// 		float heightmapRead = fnFractal->GenSingle3D( x / 120.0f, y / 120.0f, 10.0f, noiseSeed ) * 0.5f + 0.45f;
+	// 		for ( uint32_t z = 0; z < texD; z++ ) {
+	// 			// noise test
+	// 			int i = index++;
+	// 			float noiseValue = noiseOutput[ i ];
+	// 			float noiseValue2 = noiseOutput2[ i ];
+	// 			// if ( noiseValue < -0.4f ) {
+	// 			// if ( ( z / texD ) < heightmapRead ) {
+	// 			if ( float( z ) / float( texD ) < heightmapRead && noiseValue < -0.3f ) {
+	// 				// vec3 c = palette::paletteRef( abs( noiseValue2 ) ) * 255.0f;
+	// 				vec3 c = palette::paletteRef( abs( heightmapRead ) ) * 255.0f;
+	// 				col = color_4U( { ( uint8_t ) c.x, ( uint8_t ) c.y, ( uint8_t ) c.z, ( uint8_t ) glyphPick() } );
+	// 				// col = color_4U( { ( uint8_t ) heightmapRead * 255, ( uint8_t ) heightmapRead * 255, ( uint8_t ) heightmapRead * 255, ( uint8_t ) glyphPick() } );
+	// 				data.SetAtXY( x, y + z * texH, col );
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	// beam/block test
 	// palette::PickRandomPalette( true );
