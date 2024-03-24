@@ -7,6 +7,8 @@ layout( location = 2, rgba32f ) uniform image2D accumulatorNormalsAndDepth;
 layout( location = 3, rgba32f ) uniform image2D tonemappedResult;
 
 void main() { // This is where tonemapping etc will be happening on the accumulated image
+	const ivec2 location = ivec2( gl_GlobalInvocationID.xy );
+	vec4 color = imageLoad( accumulatorColor, location );
 
 	// tonemapping
 
@@ -20,8 +22,5 @@ void main() { // This is where tonemapping etc will be happening on the accumula
 
 	// ...
 
-
-
-	const ivec2 location = ivec2( gl_GlobalInvocationID.xy );
-	imageStore( tonemappedResult, location, imageLoad( accumulatorColor, location ) );
+	imageStore( tonemappedResult, location, color );
 }
