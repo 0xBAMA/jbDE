@@ -631,3 +631,44 @@ void Daedalus::PrepGlyphBuffer() {
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8UI, texW, texH, texD, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) data.GetImageDataBasePtr() );
 	}
 }
+
+void Daedalus::DDAVATTex() { // want to do this as a quick little test
+	/*
+	static glm::vec4 color0 = glm::vec4( 200.0f,  49.0f, 11.0f,  10.0f ) / 255.0f;
+	static glm::vec4 color1 = glm::vec4( 207.0f, 179.0f,  7.0f, 125.0f ) / 255.0f;
+	static glm::vec4 color2 = glm::vec4( 190.0f,  95.0f,  0.0f, 155.0f ) / 255.0f;
+	static float lambda = 0.35f;
+	static float beta = 0.5f;
+	static float mag = 0.0f;
+	static bool respectMask = true;
+	static int initMode = 3;
+	static float flip;
+	static char inputString[ 256 ] = "";
+	static bool plusX = false, plusY = false, plusZ = false;
+	static bool minusX = false, minusY = true, minusZ = false;
+
+	voxelAutomataTerrain vR( blockLevelsDeep, flip, string( "r" ), initMode, lambda, beta, mag, glm::bvec3( minusX, minusY, minusZ ), glm::bvec3( plusX, plusY, plusZ ) );
+	strcpy( inputString, vR.getShortRule().c_str() );
+	std::vector<uint8_t> loaded;
+	loaded.reserve( BLOCKDIM * BLOCKDIM * BLOCKDIM * 4 );
+	for ( int x = 0; x < BLOCKDIM; x++ ) {
+		for ( int y = 0; y < BLOCKDIM; y++ ) {
+			for ( int z = 0; z < BLOCKDIM; z++ ) {
+				glm::vec4 color;
+				switch ( vR.state[ x ][ y ][ z ] ) {
+					case 0: color = color0; break;
+					case 1: color = color1; break;
+					case 2: color = color2; break;
+					default: color = color0; break;
+				}
+				loaded.push_back( static_cast<uint8_t>( color.x * 255.0 ) );
+				loaded.push_back( static_cast<uint8_t>( color.y * 255.0 ) );
+				loaded.push_back( static_cast<uint8_t>( color.z * 255.0 ) );
+				loaded.push_back( static_cast<uint8_t>( color.w * 255.0 ) );
+			}
+		}
+	}
+	glBindTexture( GL_TEXTURE_3D, textures[ "LoadBuffer" ] );
+	glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8, BLOCKDIM, BLOCKDIM, BLOCKDIM, 0, GL_RGBA, GL_UNSIGNED_BYTE, &loaded[ 0 ] );
+	*/
+}
