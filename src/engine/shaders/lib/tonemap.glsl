@@ -368,8 +368,7 @@ vec3 Tonemap( int tonemapMode, vec3 col ) {
 					col.xyz = JTtonemap( col.xyz );
 					break;
 			case 10: // robobo1221s
-					// col.xyz = robobo1221sTonemap( col.xyz );
-					col.xyz = do_agx( col.xyz );
+					col.xyz = robobo1221sTonemap( col.xyz );
 					break;
 			case 11: // robo
 					col.xyz = roboTonemap( col.xyz );
@@ -386,9 +385,13 @@ vec3 Tonemap( int tonemapMode, vec3 col ) {
 			case 15: // jodieReinhard2
 					col.xyz = jodieReinhard2ElectricBoogaloo( col.xyz );
 					break;
-			case 16: // AgX from https://www.shadertoy.com/view/ctffRr
-					// todo
+			case 16: // AgX1 from https://www.shadertoy.com/view/ctffRr
+					col.xyz = do_agx( col.xyz );
 					break;
+
+			// some more agx variants
+			// https://www.shadertoy.com/view/clGGWG agx mmts
+			// https://www.shadertoy.com/view/Dt3XDr agx ds
 	}
 	return col;
 }

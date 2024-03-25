@@ -117,7 +117,7 @@ void engineBase::TonemapControlsWindow () {
 void engineBase::PostProcessImguiMenu() {
 	if ( ImGui::CollapsingHeader( "Color Management" ) ) {
 		ImGui::SeparatorText( "Basic" );
-		ImGui::SliderFloat( "Exposure", &tonemap.postExposure, 0.0f, 5.0f );
+		ImGui::SliderFloat( "Exposure##post", &tonemap.postExposure, 0.0f, 5.0f );
 		ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
 
 		ImGui::SeparatorText( "Adjustments" );
@@ -143,7 +143,8 @@ void engineBase::PostProcessImguiMenu() {
 			"jodieRobo",
 			"jodieRobo2",
 			"jodieReinhard",
-			"jodieReinhard2"
+			"jodieReinhard2",
+			"AgX"
 		};
 		ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
 		ImGui::Text( " " );
