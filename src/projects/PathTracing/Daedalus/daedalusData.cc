@@ -223,14 +223,17 @@ void Daedalus::PrepSphereBufferRandom() {
 
 	// simple implementation, randomizing all parameters
 	rng c = rng(  0.3f, 1.0f );
-	rng o = rng( -1.0f, 1.0f );
-	rng r = rng(  0.1f, 0.4f );
+	rngN o = rngN( 0.0f, 0.125f );
+	rng r = rng(  0.1f, 0.25f );
 	rng IoR = rng( 1.0f / 1.1f, 1.0f / 1.5f );
-	rng Roughness = rng( 0.0f, 0.001f );
+	rng Roughness = rng( 0.0f, 0.5f );
 
+	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );	// position
+	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 1.0f, 1.0f, 1.0f, 15.0f ) );	// color
+	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), 0.0f, 0.0f, 0.0f ) );	// material properties
 	for ( int idx = 0; idx < daedalusConfig.render.scene.numExplicitPrimitives; idx++ ) {
 		vec3 color = palette::paletteRef( c() );
-		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() ) );				// position
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() * r() ) );				// position
 		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( color.x, color.y, color.z, 15.0f ) );	// color
 		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), Roughness(), 0.0f, 0.0f ) );	// material properties
 	}
@@ -297,7 +300,7 @@ void Daedalus::RelaxSphereList() {
 	const int maxIterations = 100;
 	while ( 1 ) { // relaxation step
 		// walk the list, repulstion force between pairs
-		for ( int i = 0; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) {
+		for ( int i = 1; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) { // hack for the middle sphere 0->1
 			for ( int j = i + 1; j < daedalusConfig.render.scene.numExplicitPrimitives; j++ ) {
 				// sphere i and sphere j move slightly away from one another if intersecting
 				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * i ];
@@ -312,9 +315,10 @@ void Daedalus::RelaxSphereList() {
 				}
 			}
 		}
+		daedalusConfig.render.scene.explicitPrimitiveData[ 0 ] = vec4( 0.0f, 0.0f, 0.0f, 1.0f ); // hack for the middle sphere, setting location each iteration
 		// break out when there are no intersections
 		bool existsIntersections = false;
-		for ( int i = 0; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) {
+		for ( int i = 1; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) { // hack for the middle sphere 0->1
 			for ( int j = i + 1; j < daedalusConfig.render.scene.numExplicitPrimitives; j++ ) {
 				vec4 sphereI = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * i ];
 				vec4 sphereJ = daedalusConfig.render.scene.explicitPrimitiveData[ 3 * j ];
