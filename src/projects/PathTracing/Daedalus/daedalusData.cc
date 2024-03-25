@@ -343,15 +343,15 @@ void Daedalus::SendExplicitPrimitiveSSBO() {
 
 void Daedalus::PrepGlyphBuffer() {
 	// block dimensions
-	uint32_t texW = 96;
-	uint32_t texH = 64;
-	uint32_t texD = 48;
+	uint32_t texW = 128;
+	uint32_t texH = 96;
+	uint32_t texD = 64;
 
 	Image_4U data( texW, texH * texD );
 
 	// create the voxel model inside the flat image
 		// update the data
-	const uint32_t numOps = 20000;
+	const uint32_t numOps = 30000;
 	rngi opPick = rngi( 0, 34 );
 	rngi xPick = rngi( 0, texW - 1 ); rngi xDPick = rngi( 4, 20 );
 	rngi yPick = rngi( 0, texH - 1 ); rngi yDPick = rngi( 4, 12 );
@@ -369,20 +369,20 @@ void Daedalus::PrepGlyphBuffer() {
 	uint32_t length = 0;
 	PerlinNoise p;
 
-	rng noiseScale = rng( 10.0f, 50.0f );
-	const vec3 n = vec3( noiseScale(), noiseScale(), 10.0f * noiseScale() );
+	// rng noiseScale = rng( 10.0f, 50.0f );
+	// const vec3 n = vec3( noiseScale(), noiseScale(), 10.0f * noiseScale() );
 
-	rng offset = rng( -10.0f, 10.0f );
-	const vec3 o = vec3( offset(), offset(), offset() );
+	// rng offset = rng( -10.0f, 10.0f );
+	// const vec3 o = vec3( offset(), offset(), offset() );
 
-	auto fnSimplex = FastNoise::New<FastNoise::Simplex>();
-	auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
-	fnFractal->SetSource( fnSimplex );
-	fnFractal->SetOctaveCount( 5 );
+	// auto fnSimplex = FastNoise::New<FastNoise::Simplex>();
+	// auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
+	// fnFractal->SetSource( fnSimplex );
+	// fnFractal->SetOctaveCount( 5 );
 
-	rngi noiseSeedGen = rngi( 0, 1000000 );
-	int noiseSeed = noiseSeedGen();
-	int noiseSeed2 = noiseSeedGen();
+	// rngi noiseSeedGen = rngi( 0, 1000000 );
+	// int noiseSeed = noiseSeedGen();
+	// int noiseSeed2 = noiseSeedGen();
 
 	// for ( uint32_t x = 0; x < texW; x++ )
 	// for ( uint32_t y = 0; y < texH; y++ )

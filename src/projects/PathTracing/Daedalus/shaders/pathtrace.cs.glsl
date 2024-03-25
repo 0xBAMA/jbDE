@@ -640,38 +640,47 @@ float deRope( vec3 p ) {
 	return d;
 }
 
-// European 4 in 1 Chain Maille Pattern
-#define R(th) mat2(cos(th),sin(th),-sin(th),cos(th))
-float dTorus( vec3 p, float r_large, float r_small ) {
-  float h = length( p.xy ) - r_large;
-  float d = sqrt( h * h + p.z * p.z ) - r_small;
-  return d;
+mat2 rot(float a) {
+	return mat2(cos(a),sin(a),-sin(a),cos(a));
+}
+vec4 formula(vec4 p) {
+	p.xz = abs(p.xz+1.)-abs(p.xz-1.)-p.xz;
+	p=p*2./clamp(dot(p.xyz,p.xyz),.15,1.)-vec4(0.5,0.5,0.8,0.);
+	p.xy*=rot(.5);
+	return p;
+}
+float screen(vec3 p) {
+	float d1=length(p.yz-vec2(.25,0.))-.5;
+	float d2=length(p.yz-vec2(.25,2.))-.5;
+	return min(max(d1,abs(p.x-.3)-.01),max(d2,abs(p.x+2.3)-.01));
+}
+float deChannel(vec3 pos) {
+	vec3 tpos=pos;
+	tpos.z=abs(2.-mod(tpos.z,4.));
+	vec4 p=vec4(tpos,1.5);
+	float y=max(0.,.35-abs(pos.y-3.35))/.35;
+
+	for (int i=0; i<8; i++) {p=formula(p);}
+	float fr=max(-tpos.x-4.,(length(max(vec2(0.),p.yz-3.)))/p.w);
+
+	float sc=screen(tpos);
+	return min(sc,fr);
 }
 
-float torusGrid( vec3 p, float r_small, float r_large, float angle, vec2 sep ) {
-  // Create a grid of tori through domain repetition
-  vec3 q = p - vec3( round( p.xy / sep ) * sep, 0 ) - vec3( 0, sep.y / 2., 0 );
-  q.yz *= R( angle );
-  float d = dTorus( q, r_large, r_small );
-  q = p - vec3( round( p.xy / sep ) * sep, 0 ) - vec3( 0, -sep.y / 2., 0 );
-  q.yz *= R( angle );
-  d = min( d, dTorus( q, r_large, r_small ) );
-  return d;
+#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+float deFF(vec3 p){
+	for(int j=0;++j<8;)
+	p.z-=.3,
+	p.xz=abs(p.xz),
+	p.xz=(p.z>p.x)?p.zx:p.xz,
+	p.xy=(p.y>p.x)?p.yx:p.xy,
+	p.z=1.-abs(p.z-1.),
+	p=p*3.-vec3(10,4,2);
+	return length(p)/6e3-.001;
 }
 
-float deMaille( vec3 p ) {
-  float angle = 0.3;
-  vec2 sep = vec2(1,0.8);
-  float d = torusGrid(p, 0.07, 0.4, angle, sep);
-  d = min(d, torusGrid(p-vec3(sep/2.,0), 0.07, 0.4, -angle, sep));
-  // vec3 p2 = 12.3*p // displaced plane background;
-  // p2.yz *= R(0.7);
-  // p2.xz *= R(-0.7);
-  // vec2 q = p2.xy-round(p2.xy);
-  // float bump = dot(q,q) * 0.005;
-  // float d2 = p.z+0.15+bump;
-  // d = min(d, d2);
-  return d;
+float deGG(vec3 p){
+	return min(.65-length(fract(p+.5)-.5),p.y+.2);
 }
 //=============================================================================================================================
 float de( in vec3 p ) {
@@ -687,26 +696,33 @@ float de( in vec3 p ) {
 			// set material specifics - hitColor, hitSurfaceType
 		// }
 
-	// const float dFractal = max( deLeaf( p ), fRoundedBox( p, vec3( 3.0f, 3.0f, 5.0f ), 0.1f ) );
-	// const float dFractal = deLeaf( p );
-	// const float dFractal = deWater( p );
+	// const float scale = 3.0f;
+	// // const float dFractal = max( deChannel( p * 10.0f ) / 10.0f, distance( p, vec3( 0.0f ) ) - 0.99f );
+	// // const float dFractal = deChannel( p * 10.0f ) / 10.0f;
+	// const float dFractal = deFF( p * scale ) / scale;
 	// sceneDist = min( sceneDist, dFractal );
 	// if ( sceneDist == dFractal && dFractal < epsilon ) {
-	// 	hitColor = vec3( 0.1618f );
-	// 	// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? MIRROR : DIFFUSE;
-	// 	// hitSurfaceType = METALLIC;
-	// 	hitSurfaceType = DIFFUSE;
+	// 	// const float noiseSample1 = snoise3D( p * 16.0f );
+	// 	// const bool noiseSample = ( noiseSample1 > 0.5f && noiseSample1 < 0.6f );
+	// 	// const bool noiseSample = false;
+	// 	// const float noiseSample2 = snoise3D( p * 22.0f );
+	// 	// hitColor = noiseSample ? mix( vec3( 0.793f, 0.793f, 0.664f ), vec3( 0.618f ), noiseSample2 * 0.25f ) : vec3( 0.9f, 0.7f, 0.3f );
+	// 	// hitSurfaceType = noiseSample ? DIFFUSE : METALLIC;
+	// 	hitColor = vec3( 0.9f, 0.7f, 0.3f );
+	// 	hitSurfaceType = METALLIC;
 	// }
 
-	// const float dBar = fRoundedBox( p + vec3( 0.0f, 1.0f, 0.0f ), vec3( 0.15f, 0.15f, 0.15f ), 0.03f );
-	const float dBar = fRoundedBox( p, vec3( 0.5f, 0.5f, 100.0f ), 0.03f );
-	// const float dBar = fRoundedBox( p, vec3( 0.3f, 0.3f, 0.5f ), 0.03f );
-	// const float dBar = deRope( p * 0.1f ) / 0.1f;
-	
-	sceneDist = min( sceneDist, dBar );
-	if ( sceneDist == dBar && dBar < epsilon ) {
-		// hitColor = vec3( 0.0f, 0.0f, 0.618f ) * 4.0f;
-		hitColor = refPalette( saturate( RangeRemapValue( p.z, -100.0f, 100.0f, 0.0f, 1.0f ) ), 6 ).xyz / 3.0f;
+	const float dHall = deGG( p * 0.2f ) / 0.2f;
+	sceneDist = min( sceneDist, dHall );
+	if ( sceneDist == dHall && dHall < epsilon ) {
+		hitColor = vec3( 0.618f );
+		hitSurfaceType = DIFFUSE;
+	}
+
+	const float dLight = distance( p, vec3( 0.0f ) ) - 0.1f;
+	sceneDist = min( sceneDist, dLight );
+	if ( sceneDist == dLight && dLight < epsilon ) {
+		hitColor = vec3( 1.0f );
 		hitSurfaceType = EMISSIVE;
 	}
 
@@ -790,6 +806,7 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 uniform bool ddaSpheresEnable;
 uniform float ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
+layout( rgba8ui ) uniform uimage2D DDATex;
 //=============================================================================================================================
 bool CheckValidityOfIdx( ivec3 idx ) {
 	// return true;
@@ -830,8 +847,9 @@ float GetRadiusForIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
-	return vec3( 0.618f );
-	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) * 0.2f + vec3( 0.8f );
+	// return vec3( 0.23f, 0.618f, 0.123f );
+	return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) + vec3( 0.8f );
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
 }
@@ -885,13 +903,13 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
 // changing behavior of the traversal - the disks are not super compatible with the sphere/box intersection code
-// #define SPHEREORBOX
-#define DISKS
+#define SPHEREORBOX
+// #define DISKS
 
 			#ifdef SPHEREORBOX
 				// see if we found an intersection - ball will almost fill the grid cell
-				iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
-				// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.35f ), vec3( 0.5f ) );
+				// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
+				iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
 				const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
 				// update ray, to indicate hit location
@@ -910,7 +928,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					intersection.materialID = EMISSIVE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}
@@ -1036,8 +1055,8 @@ intersection_t MaskedPlaneIntersect( in ray_t ray, in mat3 transform, in vec3 ba
 			const vec3 planeIntersection = ray.origin + ray.direction * planeDistance;
 			const vec3 intersectionPointInPlane = planeIntersection - planePt;
 			const vec2 projectedCoords = vec2( // vector projected onto vector ( +x,y scale factors )
-				scale.x * dot( intersectionPointInPlane, xVec ) - imageSize( textBuffer ).x / 2,
-				scale.y * dot( intersectionPointInPlane, yVec ) - imageSize( textBuffer ).y / 2
+				scale.x * dot( intersectionPointInPlane, xVec ) + imageSize( textBuffer ).x / 2,
+				scale.y * dot( intersectionPointInPlane, yVec ) + imageSize( textBuffer ).y / 2
 			);
 
 			// check the projected coordinates against the input boundary size
