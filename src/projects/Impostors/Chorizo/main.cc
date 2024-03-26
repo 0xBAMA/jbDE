@@ -67,16 +67,23 @@ public:
 		}
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
-
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// go go go
+
+		const GLuint shader = shaders[ "BBox" ];
+		glUseProgram( shader );
 		glBindVertexArray( ChorizoConfig.vao );
-		glUseProgram( shaders[ "BBox" ] );
-		glDrawArrays( GL_TRIANGLES, 0, 3 );
+
+		const mat4 transform =
+			glm::perspective( 45.0f, float( config.width ) / float( config.height ), 0.001f, 1000.0f ) *
+			glm::lookAt( vec3( 2.0f, 0.0f, 0.0f ), vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) ) *
+			glm::rotate( SDL_GetTicks() / 5000.0f, glm::normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) *
+			glm::scale( vec3( 0.2f ) );
+		glUniformMatrix4fv( glGetUniformLocation( shader, "transform" ), 1, GL_FALSE, glm::value_ptr( transform ) );
+
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
 	}
 
 	void ComputePasses () {
