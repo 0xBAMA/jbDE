@@ -10,12 +10,9 @@ void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	// basic xor pattern
-	uint x = uint( writeLoc.x ) % 256;
-	uint y = uint( writeLoc.y ) % 256;
-	uint xor = ( x ^ y );
-	vec3 col = vec3( xor / 255.0f );
+	// blue noise pattern
+	vec4 blue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ) / 255.0f;
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, blue );
 }
