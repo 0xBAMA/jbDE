@@ -28,6 +28,11 @@ public:
 			// create and bind a basic vertex array
 			glCreateVertexArrays( 1, &ChorizoConfig.vao );
 			glBindVertexArray( ChorizoConfig.vao );
+
+			// single sided polys - only draw those which are facing outwards
+			glEnable( GL_CULL_FACE );
+			glCullFace( GL_BACK );
+			glFrontFace( GL_CCW );
 		}
 	}
 
