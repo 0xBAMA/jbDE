@@ -388,3 +388,15 @@ target_link_libraries( VertextureClassic
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# Chorizo
+# =================================================================================================
+add_executable( Chorizo
+	src/projects/Impostors/Chorizo/main.cc
+)
+
+target_link_libraries( Chorizo
+	PUBLIC
+	engineBase
+)

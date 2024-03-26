@@ -1,9 +1,15 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 
-class engineDemo : public engineBase {	// example derived class
+struct ChorizoConfig_t {
+	GLuint vao;
+};
+
+class Chorizo : public engineBase {
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	Chorizo () { Init(); OnInit(); PostInit(); }
+	~Chorizo () { Quit(); }
+
+	ChorizoConfig_t ChorizoConfig;
 
 	void OnInit () {
 		ZoneScoped;
@@ -11,62 +17,18 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/EngineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
-		// very interesting - can call stuff from the command line
-		// std::system( "./scripts/build.sh" ); // <- this works as expected, to run the build script
+			// setup raster shader
+			shaders[ "BBox" ] = regularShader(
+				"./src/projects/Impostors/Chorizo/shaders/bbox.vs.glsl",
+				"./src/projects/Impostors/Chorizo/shaders/bbox.fs.glsl"
+			).shaderHandle;
 
-			// imagemagick? standalone image processing stuff in another jbDE child app? there's a huge amount of potential here
-				// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
-				// something like bin/imageProcess <json path>, and have that json specify source file, a list of ops, and destination path
-
-			// Image_4F testImage;
-			// testImage.Load( "test.png" );
-
-			// // extract the image's bytes out
-			// std::vector< unsigned char > bytes;
-			// for ( uint y = 0; y < testImage.Height(); y++ ) {
-			// 	for ( uint x = 0; x < testImage.Width(); x++ ) {
-
-			// 		color_4F color = testImage.GetAtXY( x, y );
-			// 		float sourceData[ 4 ];
-			// 		sourceData[ 0 ] = color[ red ];
-			// 		sourceData[ 1 ] = color[ green ];
-			// 		sourceData[ 2 ] = color[ blue ];
-			// 		sourceData[ 3 ] = color[ alpha ];
-
-			// 		for ( int i = 0; i < 4; i++ ) {
-
-						// probably mess with this again, but with a low chance for random bit flips
-							// needs nan checking, etc
-
-			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 0 ) );
-			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 1 ) );
-			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 2 ) );
-			// 			bytes.push_back( *(( uint8_t* ) &sourceData[ i ] + 3 ) );
-			// 		}
-			// 	}
-			// }
-
-			// // shuffle the bytes
-			// std::random_shuffle( bytes.begin() + 1500000, bytes.end() - 1500000 );
-
-			// // put the bytes back into the array
-			// for ( uint i = 0; i < bytes.size(); i += 4 ) {
-			// 	uint8_t data[ 4 ] = { bytes[ i ], bytes[ i + 1 ], bytes[ i + 2 ], bytes[ i + 3 ] };
-			// 	testImage.GetImageDataBasePtr()[ i / 4 ] = std::clamp( *( float* )&data[ 0 ], 0.0f, 1.0f );
-			// }
-
-			// // save the image back out
-			// testImage.Save( "out.png" );
-
-
-		// report platform specific sized long floats
-			// ( quad must be at least as precise as double, double as precise as float - only guarantee in the spec )
-			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
-
+			// create and bind a basic vertex array
+			glCreateVertexArrays( 1, &ChorizoConfig.vao );
+			glBindVertexArray( ChorizoConfig.vao );
 		}
-
 	}
 
 	void HandleCustomEvents () {
@@ -106,7 +68,10 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit - need to add a hello triangle to this, so I have an easier starting point for raster stuff
+		// go go go
+		glBindVertexArray( ChorizoConfig.vao );
+		glUseProgram( shaders[ "BBox" ] );
+		glDrawArrays( GL_TRIANGLES, 0, 3 );
 	}
 
 	void ComputePasses () {
@@ -189,7 +154,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	Chorizo engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
