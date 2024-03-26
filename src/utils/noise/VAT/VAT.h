@@ -14,9 +14,9 @@
 using std::cout;
 using std::endl;
 
-class voxel_automata_terrain {
+class voxelAutomataTerrain {
 public:
-	voxel_automata_terrain( int levels_deep, float flip_p, std::string rule, int initmode, float lamb, float bet, float mg, glm::bvec3 minimums, glm::bvec3 maximums )
+	voxelAutomataTerrain( int levels_deep, float flip_p, std::string rule, int initmode, float lamb, float bet, float mg, glm::bvec3 minimums, glm::bvec3 maximums )
     :L( levels_deep ),
     K( ( 1 << levels_deep ) + 1 ),
     flipP( flip_p ),
@@ -657,7 +657,7 @@ public:
 
 // int main( int argc, char** argv )
 // {
-// 	voxel_automata_terrain v( 6, 0.0 );
+// 	voxelAutomataTerrain v( 6, 0.0 );
 
 // 	std::cout << "hello" << std::endl;
 // 	return 0;
