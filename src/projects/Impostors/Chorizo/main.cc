@@ -55,9 +55,9 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
-		}
+
+		// if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
+		// if ( tonemap.showTonemapWindow ) TonemapControlsWindow();
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
