@@ -806,7 +806,7 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 uniform bool ddaSpheresEnable;
 uniform float ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
-layout( rgba8ui ) uniform uimage2D DDATex;
+layout( rgba8ui ) uniform uimage3D DDATex;
 //=============================================================================================================================
 bool CheckValidityOfIdx( ivec3 idx ) {
 	// return true;
@@ -814,8 +814,10 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
-	bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
+	// bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
 	// bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
+
+	bool mask = ( imageLoad( DDATex, idx ).a != 0 );
 
 	bool blackOrWhite = ( step( -0.0f,
 		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
@@ -829,10 +831,10 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 vec3 GetOffsetForIdx( ivec3 idx ) {
-	// return vec3( 0.5f );
+	return vec3( 0.5f );
 
 	// jitter... not liking the look of this, much
-	return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	// return vec3( 0.26f ) + 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f );
 	// return vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 }
 //=============================================================================================================================
@@ -848,10 +850,11 @@ float GetRadiusForIdx( ivec3 idx ) {
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
 	// return vec3( 0.23f, 0.618f, 0.123f );
-	return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f );
 	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) + vec3( 0.8f );
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
+	return imageLoad( DDATex, idx ).rgb / 255.0f;
 }
 //=============================================================================================================================
 int GetMaterialIDForIdx( ivec3 idx ) {
@@ -929,7 +932,7 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
 					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					intersection.materialID = EMISSIVE;
+					intersection.materialID = DIFFUSE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}

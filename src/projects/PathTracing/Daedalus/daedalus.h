@@ -43,8 +43,9 @@ public:
 			RelaxSphereList();
 			SendExplicitPrimitiveSSBO();
 
-			// prepare the glyph buffers
+			// prepare the glyph and DDA VAT buffers
 			PrepGlyphBuffer();
+			DDAVATTex();
 		}
 	}
 
@@ -196,6 +197,7 @@ public:
 	void RelaxSphereList();
 	void SendExplicitPrimitiveSSBO();
 	void PrepGlyphBuffer();
+	void DDAVATTex();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;

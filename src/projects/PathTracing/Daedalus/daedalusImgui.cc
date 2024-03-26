@@ -58,6 +58,9 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::Checkbox( "Enable##ddaspheres", &daedalusConfig.render.scene.ddaSpheresEnable );
 		ImGui::SliderFloat( "Bounds Size", &daedalusConfig.render.scene.ddaSpheresBoundSize, 0.1f, 10.0f );
 		ImGui::SliderInt( "Resolution", &daedalusConfig.render.scene.ddaSpheresResolution, 5, 1000 );
+		if ( ImGui::Button( "Regen" ) ) {
+			DDAVATTex();
+		}
 		// bounding box center offset
 
 		ImGui::SeparatorText( "Masked Plane" );

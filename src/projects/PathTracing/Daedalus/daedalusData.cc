@@ -141,6 +141,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
 	textureManager.BindTexForShader( "Sky Cache", "skyCache", shader, 3 );
 	textureManager.BindImageForShader( "TextBuffer", "textBuffer", shader, 4 );
+	textureManager.BindImageForShader( "DDATex", "DDATex", shader, 5 );
 }
 
 void Daedalus::SendInnerLoopPathtraceUniforms() {
@@ -632,24 +633,24 @@ void Daedalus::PrepGlyphBuffer() {
 	}
 }
 
-void Daedalus::DDAVATTex() { // want to do this as a quick little test
-	/*
-	static glm::vec4 color0 = glm::vec4( 200.0f,  49.0f, 11.0f,  10.0f ) / 255.0f;
-	static glm::vec4 color1 = glm::vec4( 207.0f, 179.0f,  7.0f, 125.0f ) / 255.0f;
-	static glm::vec4 color2 = glm::vec4( 190.0f,  95.0f,  0.0f, 155.0f ) / 255.0f;
+void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen is crashing... why?
+	palette::PickRandomPalette( true );
+	static glm::vec4 color0 = glm::vec4( palette::paletteRef( 0.2f ), 0.0f );
+	static glm::vec4 color1 = glm::vec4( palette::paletteRef( 0.5f ), 1.0f );
+	static glm::vec4 color2 = glm::vec4( palette::paletteRef( 0.8f ), 1.0f );
 	static float lambda = 0.35f;
 	static float beta = 0.5f;
 	static float mag = 0.0f;
-	static bool respectMask = true;
 	static int initMode = 3;
-	static float flip;
+	static float flip = 0.04;
 	static char inputString[ 256 ] = "";
 	static bool plusX = false, plusY = false, plusZ = false;
 	static bool minusX = false, minusY = true, minusZ = false;
 
-	voxelAutomataTerrain vR( blockLevelsDeep, flip, string( "r" ), initMode, lambda, beta, mag, glm::bvec3( minusX, minusY, minusZ ), glm::bvec3( plusX, plusY, plusZ ) );
+	#define BLOCKDIM 512
+	voxelAutomataTerrain vR( 9, flip, string( "r" ), initMode, lambda, beta, mag, glm::bvec3( minusX, minusY, minusZ ), glm::bvec3( plusX, plusY, plusZ ) );
 	strcpy( inputString, vR.getShortRule().c_str() );
-	std::vector<uint8_t> loaded;
+	std::vector< uint8_t > loaded;
 	loaded.reserve( BLOCKDIM * BLOCKDIM * BLOCKDIM * 4 );
 	for ( int x = 0; x < BLOCKDIM; x++ ) {
 		for ( int y = 0; y < BLOCKDIM; y++ ) {
@@ -668,7 +669,23 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test
 			}
 		}
 	}
-	glBindTexture( GL_TEXTURE_3D, textures[ "LoadBuffer" ] );
-	glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8, BLOCKDIM, BLOCKDIM, BLOCKDIM, 0, GL_RGBA, GL_UNSIGNED_BYTE, &loaded[ 0 ] );
-	*/
+	static bool firstRun = true;
+	if ( firstRun ) {
+		firstRun = false;
+		textureOptions_t opts;
+		opts.width			= BLOCKDIM;
+		opts.height			= BLOCKDIM;
+		opts.depth			= BLOCKDIM;
+		opts.dataType		= GL_RGBA8UI;
+		opts.minFilter		= GL_NEAREST;
+		opts.magFilter		= GL_NEAREST;
+		opts.textureType	= GL_TEXTURE_3D;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
+		opts.initialData	= ( void * ) &loaded[ 0 ];
+		textureManager.Add( "DDATex", opts );
+	} else {
+		// pass the new generated texture data to the existing texture
+		glBindTexture( GL_TEXTURE_3D, textureManager.Get( "DDATex" ) );
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8UI, BLOCKDIM, BLOCKDIM, BLOCKDIM, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &loaded[ 0 ] );
+	}
 }
