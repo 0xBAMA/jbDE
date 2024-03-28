@@ -12,6 +12,7 @@ void main () {
 
 	// blue noise pattern
 	vec4 blue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ) / 255.0f;
+	blue = vec4( blue.xyz / 5.0f, 1.0f );
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, blue );
