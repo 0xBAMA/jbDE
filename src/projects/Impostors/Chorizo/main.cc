@@ -33,6 +33,9 @@ public:
 			glEnable( GL_CULL_FACE );
 			glCullFace( GL_BACK );
 			glFrontFace( GL_CCW );
+
+			// create the transforms buffer
+
 		}
 	}
 
@@ -76,18 +79,19 @@ public:
 		glUseProgram( shader );
 		glBindVertexArray( ChorizoConfig.vao );
 
-		const mat4 mvp =
-			glm::perspective( 45.0f, float( config.width ) / float( config.height ), 0.001f, 10.0f ) *
-			glm::lookAt( vec3( 2.0f, 0.0f, 0.0f ), vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+		const float aspectRatio = float( config.width ) / float( config.height );
+		// const vec3 eyePosition = vec3( 2.0f, 0.0f, 0.0f );
+		const float time = SDL_GetTicks() / 1000.0f;
+		const vec3 eyePosition = vec3( 5.0f * sin( time ), 3.0f * cos( time * 0.2f ), sin( time * 0.3f ) );
+		const mat4 viewTransform =
+			glm::perspective( 45.0f, aspectRatio, 0.001f, 10.0f ) *
+			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 
-		const mat4 transform =
-			glm::rotate( SDL_GetTicks() / 5000.0f, glm::normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) *
-			glm::scale( vec3( 0.5f ) );
-
-		glUniformMatrix4fv( glGetUniformLocation( shader, "mvp" ), 1, GL_FALSE, glm::value_ptr( mvp ) );
-		glUniformMatrix4fv( glGetUniformLocation( shader, "transform" ), 1, GL_FALSE, glm::value_ptr( transform ) );
+		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
+		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
 
 		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		// glDrawArrays( GL_TRIANGLES, 0, 36 * 2 );
 	}
 
 	void ComputePasses () {
