@@ -1,62 +1,18 @@
 #version 430
-
-#include "mathUtils.h"
-uniform mat4 mvp;
-uniform mat4 transform;
-
 out vec4 vofiColor;
 
-vec4 CubeVert( int idx ) {
-	const vec4 points[ 36 ] = {
-		vec4( -1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f,-1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4( -1.0f, 1.0f, 1.0f, 1.0f ),
-		vec4(  1.0f,-1.0f, 1.0f, 1.0f )
-	};
+#include "mathUtils.h"
+#include "cubeVerts.h"
 
-	return points[ idx % 36 ];
-}
+uniform mat4 viewTransform;
+layout( binding = 0, std430 ) buffer transforms {
+	mat3 transforms[];
+};
 
 void main() {
-	const vec4 colors[ 3 ] = {
-		vec4( 1.0f, 0.0f, 0.0f, 1.0f ),
-		vec4( 0.0f, 1.0f, 0.0f, 1.0f ),
-		vec4( 0.0f, 0.0f, 1.0f, 1.0f )
-	};
+	const mat3 modelTransform = transforms[ gl_VertexID / 36 ];		// stride of 36 verts
+	const vec3 position = modelTransform * CubeVert( gl_VertexID % 36 );	// within the stride
 
-	vec4 pos = transform * CubeVert( gl_VertexID );
-	gl_Position	= mvp * pos;
-	vofiColor	= pos;
+	gl_Position	= viewTransform * vec4( position, 1.0f );
+	vofiColor	= vec4( 1.0f );	// placeholder color
 }
