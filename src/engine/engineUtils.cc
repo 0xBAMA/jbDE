@@ -60,14 +60,18 @@ void engineBase::BlitToScreen () {
 	glUseProgram( shader );
 	glBindVertexArray( displayVAO );
 
-	textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
-	
-	// glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+	// cache current depth mask state, and set to false - fullscreen triangle will not write depth
+	GLboolean currentDepthmaskState;
+	glGetBooleanv( GL_DEPTH_WRITEMASK, &currentDepthmaskState );
+	glDepthMask( GL_FALSE );
 
-	ivec2 windowSize = window.GetWindowSize();
+	const ivec2 windowSize = window.GetWindowSize();
 	glUniform2f( glGetUniformLocation( shader, "resolution" ), windowSize.x, windowSize.y );
-
+	textureManager.BindTexForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
+
+	// restore state of depth mask value
+	glDepthMask( currentDepthmaskState );
 }
 
 void engineBase::HandleTridentEvents () {
