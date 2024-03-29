@@ -2,6 +2,10 @@
 
 struct ChorizoConfig_t {
 	GLuint vao;
+
+	GLuint transformBuffer;
+
+	int numSpheres = 100;
 };
 
 class Chorizo : public engineBase {
@@ -35,7 +39,24 @@ public:
 			glFrontFace( GL_CCW );
 
 			// create the transforms buffer
+			std::vector< mat4 > transforms;
+			transforms.reserve( ChorizoConfig.numSpheres );
+			rng rotation( 0.0f, 10.0f );
+			rng scale( 0.1f, 0.5f );
+			rng position( -1.5f, 1.5f );
+			for ( int i = 0; i < ChorizoConfig.numSpheres; i++ ) {
+				transforms.push_back(
+					glm::translate( vec3( position(), position(), position() ) ) *
+					glm::rotate( rotation(), glm::normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) *
+					glm::scale( vec3( scale() ) ) *
+					mat4( 1.0f )
+				);
+			}
 
+			glGenBuffers( 1, &ChorizoConfig.transformBuffer );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.transformBuffer );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.transformBuffer );
 		}
 	}
 
@@ -84,14 +105,13 @@ public:
 		const float time = SDL_GetTicks() / 1000.0f;
 		const vec3 eyePosition = vec3( 5.0f * sin( time ), 3.0f * cos( time * 0.2f ), sin( time * 0.3f ) );
 		const mat4 viewTransform =
-			glm::perspective( 45.0f, aspectRatio, 0.001f, 10.0f ) *
+			glm::perspective( 45.0f, aspectRatio, 0.001f, 100.0f ) *
 			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 
 		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
 		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
 
-		glDrawArrays( GL_TRIANGLES, 0, 36 );
-		// glDrawArrays( GL_TRIANGLES, 0, 36 * 2 );
+		glDrawArrays( GL_TRIANGLES, 0, 36 * ChorizoConfig.numSpheres );
 	}
 
 	void ComputePasses () {

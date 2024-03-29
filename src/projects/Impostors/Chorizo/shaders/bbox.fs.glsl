@@ -38,29 +38,31 @@ void main() {
 		// transform the ray, origin + direction, into "primitive space"
 
 	// this assumes that the sphere is located at the origin
-	const mat4 inverseTransform = inverse(
-		mat4( // replace with the actual transform
-			0.2f, 0.0f, 0.0f, 0.0f,
-			0.0f, 0.2f, 0.0f, 0.0f,
-			0.0f, 0.0f, 0.2f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		)
-	);
+	const mat4 transform = transforms[ vofiIndex ];
+	const mat4 inverseTransform = inverse( transform );
+	const vec3 eyeVectorToFragment = vofiPosition - eyePosition;
 	const vec3 rayOrigin = ( inverseTransform * vec4( eyePosition, 1.0f ) ).xyz;
-	const vec3 rayDirection = ( inverseTransform * vec4( vofiPosition - eyePosition, 0.0f ) ).xyz;
-	const vec3 sphereCenter = ( inverseTransform * vec4( vec3( 0.0f ), 1.0f ) ).xyz;
+	const vec3 rayDirection = ( inverseTransform * vec4( eyeVectorToFragment, 0.0f ) ).xyz;
+	const vec3 sphereCenter = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
 
 	vec2 result = RaySphereIntersect( rayOrigin, rayDirection, sphereCenter, 1.0f );
 	if ( result == vec2( -1.0f, -1.0f ) ) { // miss condition
-		if ( ( int( gl_FragCoord.x ) % 2 == 0 ) )
-			outColor = vec4( 1.0f );
-		else
+		// if ( ( int( gl_FragCoord.x ) % 2 == 0 ) ) {
+			// outColor = vec4( 1.0f ); // placeholder, helps visualize bounding box
+		// } else {
 			discard;
+		// }
 	} else {
-		// fractional depth... need to figure out a more consistent way to handle this
-		vec3 hitPosition = rayOrigin + result.x * rayDirection;
-		gl_FragDepth = result.x / 10.0f;
-		// outColor = vec4( vofiColor.rgb, 1.0f );
+		const vec3 hitVector = rayOrigin + result.x * rayDirection;
+		const vec3 hitPosition = ( transform * vec4( hitVector, 1.0f ) ).xyz;
 		outColor = vec4( hitPosition, 1.0f );
+
+		// fractional depth... need to figure out a more consistent way to handle this
+		gl_FragDepth = gl_FragCoord.z;
+		
+		// these are fucked
+		// const float depthOffset = length( eyeVectorToFragment - hitVector ) / 100.0f;
+		// const float depthOffset = length( hitPosition - vofiPosition ) / 100.0f;
+		// gl_FragDepth = gl_FragCoord.z + depthOffset;
 	}
 }

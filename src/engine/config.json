@@ -173,7 +173,7 @@
 		}
 	},
 	"system": {
-		"MSAACount": 8,
+		"MSAACount": 1,
 		"OpenGLVerboseInit": false,
 		"OpenGLVersionMajor": 4,
 		"OpenGLVersionMinor": 5,
