@@ -5,7 +5,7 @@ struct ChorizoConfig_t {
 
 	GLuint transformBuffer;
 
-	int numSpheres = 100;
+	int numSpheres = 10000;
 };
 
 class Chorizo : public engineBase {
@@ -42,11 +42,11 @@ public:
 			std::vector< mat4 > transforms;
 			transforms.reserve( ChorizoConfig.numSpheres );
 			rng rotation( 0.0f, 10.0f );
-			rng scale( 0.1f, 0.5f );
+			rng scale( 0.01f, 0.1f );
 			rng position( -1.5f, 1.5f );
 			for ( int i = 0; i < ChorizoConfig.numSpheres; i++ ) {
 				transforms.push_back(
-					glm::translate( vec3( position(), position(), position() ) ) *
+					glm::translate( vec3( 3.0f * position(), position(), position() ) ) *
 					glm::rotate( rotation(), glm::normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) *
 					glm::scale( vec3( scale() ) ) *
 					mat4( 1.0f )
