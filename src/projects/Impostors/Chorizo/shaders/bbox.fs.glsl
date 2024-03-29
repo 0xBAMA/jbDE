@@ -57,12 +57,7 @@ void main() {
 		const vec3 hitPosition = ( transform * vec4( hitVector, 1.0f ) ).xyz;
 		outColor = vec4( hitPosition, 1.0f );
 
-		// fractional depth... need to figure out a more consistent way to handle this
-		gl_FragDepth = gl_FragCoord.z;
-		
-		// these are fucked
-		// const float depthOffset = length( eyeVectorToFragment - hitVector ) / 100.0f;
-		// const float depthOffset = length( hitPosition - vofiPosition ) / 100.0f;
-		// gl_FragDepth = gl_FragCoord.z + depthOffset;
+		vec4 projectedPosition = viewTransform * vec4( hitPosition, 1.0f );
+		gl_FragDepth = ( projectedPosition.z / projectedPosition.w + 1.0f ) * 0.5f;
 	}
 }
