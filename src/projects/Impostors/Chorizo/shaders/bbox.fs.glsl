@@ -56,9 +56,8 @@ void main() {
 		const vec3 hitVector = rayOrigin + result.x * rayDirection;
 		const vec3 hitPosition = ( transform * vec4( hitVector, 1.0f ) ).xyz;
 		const vec3 normal = normalize( ( transform * vec4( hitVector - sphereCenter, 0.0f ) ).xyz );
-		// outColor = vec4( hitPosition, 1.0f );
-		// outColor = mix( vec4( 1.0f, 0.0f, 0.0f, 1.0f ), vec4( 0.0f, 0.0f, 1.0f, 1.0f ), float( vofiIndex ) / 10000.0f );
-		outColor = vec4( normal, 1.0f );
+		outColor = mix( vec4( 1.0f, 0.0f, 0.0f, 1.0f ), vec4( 0.0f, 0.0f, 1.0f, 1.0f ), float( vofiIndex ) / 5000.0f );
+		outColor.xyz += clamp( dot( normal, normalize( vec3( 1.0f ) ) ), 0.0f, 1.0f );
 
 		vec4 projectedPosition = viewTransform * vec4( hitPosition, 1.0f );
 		gl_FragDepth = ( projectedPosition.z / projectedPosition.w + 1.0f ) * 0.5f;
