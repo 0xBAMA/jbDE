@@ -28,10 +28,15 @@ vec2 RaySphereIntersect ( vec3 r0, vec3 rd, vec3 s0, float sr ) {
 	}
 }
 
+
+
 uniform mat4 viewTransform;
 layout( binding = 0, std430 ) buffer transformsBuffer {
 	mat4 transforms[];
 };
+
+// visalizing the fragments that get drawn
+// #define SHOWDISCARDS
 
 void main() {
 	// how do we do the math here?
@@ -47,11 +52,15 @@ void main() {
 
 	vec2 result = RaySphereIntersect( rayOrigin, rayDirection, sphereCenter, 1.0f );
 	if ( result == vec2( -1.0f, -1.0f ) ) { // miss condition
-		// if ( ( int( gl_FragCoord.x ) % 2 == 0 ) ) {
-			// outColor = vec4( 1.0f ); // placeholder, helps visualize bounding box
-		// } else {
-			discard;
-		// }
+		#ifdef SHOWDISCARDS
+			if ( ( int( gl_FragCoord.x ) % 2 == 0 ) ) {
+				outColor = vec4( 1.0f ); // placeholder, helps visualize bounding box
+			} else {
+		#endif
+				discard;
+		#ifdef SHOWDISCARDS
+			}
+		#endif
 	} else {
 		const vec3 hitVector = rayOrigin + result.x * rayDirection;
 		const vec3 hitPosition = ( transform * vec4( hitVector, 1.0f ) ).xyz;
