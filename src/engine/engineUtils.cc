@@ -173,6 +173,11 @@ void engineBase::PrepareProfilingData () {
 	timerQueries_engine.clear(); // prepare for next frame's data
 }
 
+void engineBase::ExitMessage() {
+	cout << T_BLUE << "Exiting after " << RESET << T_RED << TotalTime() / 1000.0f << "s." << RESET << newline;
+	cout << T_BLUE << "Goodbye." << newline;
+}
+
 //=============================================================================
 //==== std::chrono Wrapper - Simplified Tick() / Tock() Interface =============
 //=============================================================================

@@ -35,4 +35,5 @@ void engineBase::Quit () {
 	ZoneScoped;
 	ImguiQuit();
 	window.Kill();
+	ExitMessage();
 }

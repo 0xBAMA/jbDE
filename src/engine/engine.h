@@ -84,6 +84,7 @@ public:
 
 //====== Shutdown Procedures ==================================================
 protected:
+	void ExitMessage();
 	void ImguiQuit();
 	void Quit();
 
