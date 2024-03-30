@@ -175,7 +175,7 @@ void engineBase::PrepareProfilingData () {
 
 void engineBase::ExitMessage() {
 	cout << T_BLUE << "Exiting after " << RESET << T_RED << TotalTime() / 1000.0f << "s." << RESET << newline;
-	cout << T_BLUE << "Goodbye." << newline;
+	cout << T_BLUE << "Goodbye." << newline << newline;
 }
 
 //=============================================================================
