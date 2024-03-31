@@ -8,30 +8,15 @@ out vec4 outColor;
 // location of the viewer
 uniform vec3 eyePosition;
 
-// https://iquilezles.org/articles/intersectors/ some good resources here
-
-vec2 RaySphereIntersect ( vec3 r0, vec3 rd, vec3 s0, float sr ) {
-	// r0 is ray origin
-	// rd is ray direction
-	// s0 is sphere center
-	// sr is sphere radius
-	// return is the roots of the quadratic, includes negative hits
-	r0 = r0 - s0;
-	float b = dot( rd, r0 );
-	float c = dot( r0, r0 ) - ( sr * sr );
-	float disc = b * b - c;
-	if ( disc < 0.0f ) {
-		return vec2( -1.0f, -1.0f );
-	} else {
-		return vec2( -b - sqrt( disc ), -b + sqrt( disc ) );
-	}
-}
-
-
+#include "consistentPrimitives.glsl.h"
 
 uniform mat4 viewTransform;
+struct transform_t {
+	mat4 transform;
+	mat4 inverseTransform;
+};
 layout( binding = 0, std430 ) buffer transformsBuffer {
-	mat4 transforms[];
+	transform_t transforms[];
 };
 
 // visalizing the fragments that get drawn
@@ -41,16 +26,20 @@ void main() {
 	const mat4 transform = transforms[ vofiIndex ].transform;
 	const mat4 inverseTransform = transforms[ vofiIndex ].inverseTransform;
 
-	// this assumes that the sphere is located at the origin
-	const mat4 transform = transforms[ vofiIndex ];
-	const mat4 inverseTransform = inverse( transform );
+	// transform the view ray, origin + direction, into "primitive space"
 	const vec3 eyeVectorToFragment = vofiPosition - eyePosition;
 	const vec3 rayOrigin = ( inverseTransform * vec4( eyePosition, 1.0f ) ).xyz;
-	const vec3 rayDirection = normalize( ( inverseTransform * vec4( eyeVectorToFragment, 0.0f ) ).xyz );
-	const vec3 sphereCenter = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
+	const vec3 rayDirection = normalize( inverseTransform * vec4( eyeVectorToFragment, 0.0f ) ).xyz;
+	const vec3 centerPoint = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
 
-	vec2 result = RaySphereIntersect( rayOrigin, rayDirection, sphereCenter, 1.0f );
-	if ( result == vec2( -1.0f, -1.0f ) ) { // miss condition
+	// this assumes that the contained primitive is located at the origin of the box
+	vec3 normal = vec3( 0.0f );
+	// float result = iSphere( rayOrigin - centerPoint, rayDirection, normal, 1.0f );
+	float result = iCapsule( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.7f ), vec3( 0.7f ), 0.25f );
+	// float result = iRoundedCone( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.9f ), vec3( 0.7f ), 0.1f, 0.3f );
+	// float result = iRoundedBox( rayOrigin - centerPoint, rayDirection, normal, vec3( 0.9f ), 0.1f );
+
+	if ( result == MAX_DIST ) { // miss condition
 		#ifdef SHOWDISCARDS
 			if ( ( int( gl_FragCoord.x ) % 2 == 0 ) ) {
 				outColor = vec4( 1.0f ); // placeholder, helps visualize bounding box
@@ -61,11 +50,14 @@ void main() {
 			}
 		#endif
 	} else {
-		const vec3 hitVector = rayOrigin + result.x * rayDirection;
+		const vec3 hitVector = rayOrigin + result * rayDirection;
 		const vec3 hitPosition = ( transform * vec4( hitVector, 1.0f ) ).xyz;
-		const vec3 normal = normalize( ( transform * vec4( hitVector - sphereCenter, 0.0f ) ).xyz );
-		outColor = mix( vec4( 1.0f, 0.0f, 0.0f, 1.0f ), vec4( 0.0f, 0.0f, 1.0f, 1.0f ), float( vofiIndex ) / 5000.0f );
-		outColor.xyz += clamp( dot( normal, normalize( vec3( 1.0f ) ) ), 0.0f, 1.0f );
+		const vec3 transformedNormal = normalize( ( transform * vec4( normal, 0.0f ) ).xyz );
+
+		// shading
+		outColor.xyz = viridis( float( vofiIndex ) / 500000.0f ) * 0.25f;
+		outColor.xyz += 0.25f * clamp( dot( transformedNormal, normalize( vec3( 1.0f ) ) ), 0.0f, 1.0f );
+		outColor.a = 1.0f;
 
 		vec4 projectedPosition = viewTransform * vec4( hitPosition, 1.0f );
 		gl_FragDepth = ( projectedPosition.z / projectedPosition.w + 1.0f ) * 0.5f;
