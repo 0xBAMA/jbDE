@@ -65,7 +65,7 @@ layout( binding = 0, std430 ) buffer sphereData {
 #include "random.h"
 #include "wood.h"
 #include "glyphs.h"
-#include "colorRamps.h"
+#include "colorRamps.glsl.h"
 #include "mathUtils.h"
 
 // other cool procedural materials to explore/learn from:

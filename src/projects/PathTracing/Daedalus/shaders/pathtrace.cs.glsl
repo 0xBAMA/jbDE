@@ -15,7 +15,7 @@ uniform int wangSeed;
 #include "wood.h"		// DeanTheCoder's procedural wood texture
 #include "hg_sdf.glsl"	// SDF modeling + booleans, etc
 #include "mathUtils.h"	// couple random math utilities
-#include "colorRamps.h" // 1d -> 3d color mappings
+#include "colorRamps.glsl.h" // 1d -> 3d color mappings
 #include "glyphs.h"		// the uint encoded glyph masks
 //=============================================================================================================================
 bool BoundsCheck( in ivec2 loc ) {

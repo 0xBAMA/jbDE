@@ -1,26 +1,26 @@
 // from https://www.shadertoy.com/view/Nd3fR2
 
-/* 
-Grayscale is boring. Feel free to use these for your projects. 
+/*
+Grayscale is boring. Feel free to use these for your projects.
 
-I wanted more colormaps to choose from than Mattz functions. I had 
+I wanted more colormaps to choose from than Mattz functions. I had
 a cmap translator into textures, graphs, and csv laying around.
-I added a simple scipy fitter to translate any cmap into poly6 
-functions too. It doesn't work for all colormaps, but all the 
-pretty ones work great. 
+I added a simple scipy fitter to translate any cmap into poly6
+functions too. It doesn't work for all colormaps, but all the
+pretty ones work great.
 
 If you want to add a colormap thats not here you can use my
 python code to make it yourself (https://pastebin.com/mf5GfGCc)
 
-If you wonder how all the other colormaps look, see an 
-incomplete list the matplotlib documentation 
+If you wonder how all the other colormaps look, see an
+incomplete list the matplotlib documentation
 (https://matplotlib.org/stable/tutorials/colors/colormaps.html)
 or my graphs with everything (https://imgur.com/a/xfZlxlp).
 
-If you want to imporve the default mpl color maps use gamma 
+If you want to imporve the default mpl color maps use gamma
 adjustment suggested by xrx to remove color bleeding:
 fragColor.xyz = pow(fragColor.xyz,vec3( .455));f
- Gamma Colorf  Adjustment isf  showcased here: 
+ Gamma Colorf  Adjustment isf  showcased here:
 https://www.shadertoy.com/view/WdXGzl
 */
 
@@ -156,6 +156,17 @@ vec3 inferno ( float t ) {
 	return c0 + t * ( c1 + t * ( c2 + t * ( c3 + t * ( c4 + t * ( c5 + t * c6 ) ) ) ) );
 }
 
+vec3 inferno2( float t ) {
+	const vec3 c0 = vec3( 0.0002189403691192265f, 0.001651004631001012f, -0.01948089843709184f );
+	const vec3 c1 = vec3( 0.1065134194856116f, 0.5639564367884091f, 3.932712388889277f );
+	const vec3 c2 = vec3( 11.60249308247187f, -3.972853965665698f, -15.9423941062914f );
+	const vec3 c3 = vec3( -41.70399613139459f, 17.43639888205313f, 44.35414519872813f );
+	const vec3 c4 = vec3( 77.162935699427f, -33.40235894210092f, -81.80730925738993f );
+	const vec3 c5 = vec3( -71.31942824499214f, 32.62606426397723f, 73.20951985803202f );
+	const vec3 c6 = vec3( 25.13112622477341f, -12.24266895238567f, -23.07032500287172f );
+	return c0 + t * ( c1 + t * ( c2 + t * ( c3 + t * ( c4 + t * ( c5 + t * c6 ) ) ) ) );
+}
+
 // makes jet colormap with polynimal 6
 vec3 jet ( float t ) {
 	const vec3 c0 = vec3( -0.071839f, 0.105300f, 0.510959f );
@@ -288,6 +299,17 @@ vec3 viridis ( float t ) {
 	return c0 + t * ( c1 + t * ( c2 + t * ( c3 + t * ( c4 + t * ( c5 + t * c6 ) ) ) ) );
 }
 
+vec3 viridis2( float t ) {
+	const vec3 c0 = vec3( 0.2777273272234177f, 0.005407344544966578f, 0.3340998053353061f );
+	const vec3 c1 = vec3( 0.1050930431085774f, 1.404613529898575f, 1.384590162594685f );
+	const vec3 c2 = vec3( -0.3308618287255563f, 0.214847559468213f, 0.09509516302823659f );
+	const vec3 c3 = vec3( -4.634230498983486f, -5.799100973351585f, -19.33244095627987f );
+	const vec3 c4 = vec3( 6.228269936347081f, 14.17993336680509f, 56.69055260068105f );
+	const vec3 c5 = vec3( 4.776384997670288f, -13.74514537774601f, -65.35303263337234f );
+	const vec3 c6 = vec3( -5.435455855934631f, 4.645852612178535f, 26.3124352495832f );
+	return c0 + t * ( c1 + t * ( c2 + t * ( c3 + t * ( c4 + t * ( c5 + t * c6 ) ) ) ) );
+}
+
 // makes YlGnGn_r colormap with polynimal 6
 vec3 YlGnGn_r ( float t ) {
 	const vec3 c0 = vec3( 0.006153f, 0.269865f, 0.154795f );
@@ -324,94 +346,65 @@ vec3 YlGnRd_r ( float t ) {
 	return c0 + t * ( c1 + t * ( c2 + t * ( c3 + t * ( c4 + t * ( c5 + t * c6 ) ) ) ) );
 }
 
-// void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-//	 vec2 uv = fragCoord / iResolution.xy;
-//	 float cmapCount = 25.;
-//	 float x = floor(uv.x*cmapCount);	
-//	 fragColor = vec4(0, 0, 0, 1);
-
-//	 if (x == 0.) {
-//		 fragColor.xyz = afmhot(uv.y);
-//	 } else if (x == 1.) {
-//		 fragColor.xyz = Blues_r(uv.y);
-//	 } else if (x == 2.) {
-//		 fragColor.xyz = bone(uv.y);
-//	 } else if (x == 3.) {
-//		 fragColor.xyz = BuPu_r(uv.y);
-//	 } else if (x == 4.) {
-//		 fragColor.xyz = cividis(uv.y);
-//	 } else if (x == 5.) {
-//		 fragColor.xyz = CMRmap(uv.y);
-//	 } else if (x == 6.) {
-//		 fragColor.xyz = coolwarm(uv.y);
-//	 } else if (x == 7.) {
-//		 fragColor.xyz = cubehelix(uv.y);
-//	 } else if (x == 8.) {
-//		 fragColor.xyz = gist_earth(uv.y);
-//	 } else if (x == 9.) {
-//		 fragColor.xyz = hsv(uv.y);
-//	 } else if (x == 10.) {
-//		 fragColor.xyz = inferno(uv.y);
-//	 } else if (x == 11.) {
-//		 fragColor.xyz = jet(uv.y);
-//	 } else if (x == 12.) {
-//		 fragColor.xyz = magma(uv.y);
-//	 } else if (x == 13.) {
-//		 fragColor.xyz = ocean(uv.y);
-//	 } else if (x == 14.) {
-//		 fragColor.xyz = PuBu_r(uv.y);
-//	 } else if (x == 15.) {
-//		 fragColor.xyz = rainbow(uv.y);
-//	 } else if (x == 16.) {
-//		 fragColor.xyz = PuRd_r(uv.y);
-//	 } else if (x == 17.) {
-//		 fragColor.xyz = RdYlBu_r(uv.y);
-//	 } else if (x == 18.) {
-//		 fragColor.xyz = Spectral_r(uv.y);
-//	 } else if (x == 19.) {
-//		 fragColor.xyz = twilight(uv.y);
-//	 } else if (x == 20.) {
-//		 fragColor.xyz = twilight_shifted(uv.y);
-//	 } else if (x == 21.) {
-//		 fragColor.xyz = viridis(uv.y);
-//	 } else if (x == 22.) {
-//		 fragColor.xyz = YlGnGn_r(uv.y);
-//	 } else if (x == 23.) {
-//		 fragColor.xyz = YlGnBu_r(uv.y);
-//	 } else if (x == 24.) {
-//		 fragColor.xyz = YlGnRd_r(uv.y);
-//	 }
-// }
+#define AFMHOT		0
+#define BLUESR		1
+#define BONE		2
+#define BUPUR		3
+#define CIVIDIS		4
+#define CMRMAP		5
+#define COOLWARM	6
+#define CUBEHELIX	7
+#define GISTEARTH	8
+#define HSV			9
+#define INFERNO		10
+#define INFERNO2	11
+#define JET			12
+#define MAGMA		13
+#define OCEAN		14
+#define PUBUR		15
+#define RAINBOW		16
+#define PURDR		17
+#define RDYLBUR		18
+#define SPECTRALR	19
+#define TWILIGHT	20
+#define TWILIGHT2	21
+#define VIRIDIS		22
+#define VIRIDIS2	23
+#define YLGNGNR		24
+#define YLGNBUR		25
+#define YLGNRDR		26
 
 vec4 refPalette ( float t, int idx ) {
 	vec4 fragColor = vec4( 0.0f, 0.0f, 0.0f, 1.0f );
 	switch ( idx ) {
-	case 0:		fragColor.xyz = afmhot( t );			break;
-	case 1:		fragColor.xyz = Blues_r( t );			break;
-	case 2:		fragColor.xyz = bone( t );				break;
-	case 3:		fragColor.xyz = BuPu_r( t );			break;
-	case 4:		fragColor.xyz = cividis( t );			break;
-	case 5:		fragColor.xyz = CMRmap( t );			break;
-	case 6:		fragColor.xyz = coolwarm( t );			break;
-	case 7:		fragColor.xyz = cubehelix( t );			break;
-	case 8:		fragColor.xyz = gist_earth( t );		break;
-	case 9:		fragColor.xyz = hsv( t );				break;
-	case 10:	fragColor.xyz = inferno( t );			break;
-	case 11:	fragColor.xyz = jet( t );				break;
-	case 12:	fragColor.xyz = magma( t );				break;
-	case 13:	fragColor.xyz = ocean( t );				break;
-	case 14:	fragColor.xyz = PuBu_r( t );			break;
-	case 15:	fragColor.xyz = rainbow( t );			break;
-	case 16:	fragColor.xyz = PuRd_r( t );			break;
-	case 17:	fragColor.xyz = RdYlBu_r( t );			break;
-	case 18:	fragColor.xyz = Spectral_r( t );		break;
-	case 19:	fragColor.xyz = twilight( t );			break;
-	case 20:	fragColor.xyz = twilight_shifted( t );	break;
-	case 21:	fragColor.xyz = viridis( t );			break;
-	case 22:	fragColor.xyz = YlGnGn_r( t );			break;
-	case 23:	fragColor.xyz = YlGnBu_r( t );			break;
-	case 24:	fragColor.xyz = YlGnRd_r( t );			break;
-	default:	break;
+		case AFMHOT:	fragColor.xyz = afmhot( t );			break;
+		case BLUESR:	fragColor.xyz = Blues_r( t );			break;
+		case BONE:		fragColor.xyz = bone( t );				break;
+		case BUPUR:		fragColor.xyz = BuPu_r( t );			break;
+		case CIVIDIS:	fragColor.xyz = cividis( t );			break;
+		case CMRMAP:	fragColor.xyz = CMRmap( t );			break;
+		case COOLWARM:	fragColor.xyz = coolwarm( t );			break;
+		case CUBEHELIX:	fragColor.xyz = cubehelix( t );			break;
+		case GISTEARTH:	fragColor.xyz = gist_earth( t );		break;
+		case HSV:		fragColor.xyz = hsv( t );				break;
+		case INFERNO:	fragColor.xyz = inferno( t );			break;
+		case INFERNO2:	fragColor.xyz = inferno2( t );			break;
+		case JET:		fragColor.xyz = jet( t );				break;
+		case MAGMA:		fragColor.xyz = magma( t );				break;
+		case OCEAN:		fragColor.xyz = ocean( t );				break;
+		case PUBUR:		fragColor.xyz = PuBu_r( t );			break;
+		case RAINBOW:	fragColor.xyz = rainbow( t );			break;
+		case PURDR:		fragColor.xyz = PuRd_r( t );			break;
+		case RDYLBUR:	fragColor.xyz = RdYlBu_r( t );			break;
+		case SPECTRALR:	fragColor.xyz = Spectral_r( t );		break;
+		case TWILIGHT:	fragColor.xyz = twilight( t );			break;
+		case TWILIGHT2:	fragColor.xyz = twilight_shifted( t );	break;
+		case VIRIDIS:	fragColor.xyz = viridis( t );			break;
+		case VIRIDIS2:	fragColor.xyz = viridis2( t );			break;
+		case YLGNGNR:	fragColor.xyz = YlGnGn_r( t );			break;
+		case YLGNBUR:	fragColor.xyz = YlGnBu_r( t );			break;
+		case YLGNRDR:	fragColor.xyz = YlGnRd_r( t );			break;
+		default:												break;
 	};
 	return fragColor;
 }
