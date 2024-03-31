@@ -38,8 +38,8 @@ layout( binding = 0, std430 ) buffer transformsBuffer {
 // #define SHOWDISCARDS
 
 void main() {
-	// how do we do the math here?
-		// transform the ray, origin + direction, into "primitive space"
+	const mat4 transform = transforms[ vofiIndex ].transform;
+	const mat4 inverseTransform = transforms[ vofiIndex ].inverseTransform;
 
 	// this assumes that the sphere is located at the origin
 	const mat4 transform = transforms[ vofiIndex ];

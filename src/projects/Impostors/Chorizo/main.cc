@@ -2,10 +2,9 @@
 
 struct ChorizoConfig_t {
 	GLuint vao;
-
 	GLuint transformBuffer;
 
-	int numSpheres = 5000;
+	int numSpheres = 500000;
 };
 
 class Chorizo : public engineBase {
@@ -42,20 +41,21 @@ public:
 			std::vector< mat4 > transforms;
 			transforms.reserve( ChorizoConfig.numSpheres );
 			rng rotation( 0.0f, 10.0f );
-			rng scale( 0.005f, 0.05f );
-			rng position( -1.5f, 1.5f );
+			rng scale( 0.005f, 0.03f );
+			rng position( -5.5f, 5.5f );
 			for ( int i = 0; i < ChorizoConfig.numSpheres; i++ ) {
-				transforms.push_back(
-					glm::translate( vec3( position(), 0.12f * position(), position() ) ) *
-					glm::rotate( rotation(), glm::normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) *
+				mat4 temp = glm::translate( vec3( position(), 0.12f * position(), position() ) ) *
+					glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
 					glm::scale( vec3( scale() ) ) *
-					mat4( 1.0f )
-				);
+					mat4( 1.0f );
+
+				transforms.push_back( temp );
+				transforms.push_back( glm::inverse( temp ) );
 			}
 
 			glGenBuffers( 1, &ChorizoConfig.transformBuffer );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.transformBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.transformBuffer );
 		}
 	}
@@ -103,7 +103,7 @@ public:
 		const float aspectRatio = float( config.width ) / float( config.height );
 		// const vec3 eyePosition = vec3( 2.0f, 0.0f, 0.0f );
 		const float time = SDL_GetTicks() / 1000.0f;
-		const vec3 eyePosition = vec3( 5.0f * sin( time ), 3.0f * cos( time * 0.2f ), sin( time * 0.3f ) );
+		const vec3 eyePosition = vec3( 5.0f * sin( time ), 5.0f * cos( time * 0.2f ), 2.0f * sin( time * 0.3f ) );
 		const mat4 viewTransform =
 			glm::perspective( 45.0f, aspectRatio, 0.001f, 100.0f ) *
 			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
