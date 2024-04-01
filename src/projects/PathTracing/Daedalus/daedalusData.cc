@@ -134,7 +134,8 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( daedalusConfig.render.basisZ ) );
 	glUniform1i( glGetUniformLocation( shader, "thinLensEnable" ), daedalusConfig.render.thinLensEnable );
 	glUniform1f( glGetUniformLocation( shader, "thinLensFocusDistance" ), daedalusConfig.render.thinLensFocusDistance );
-	glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadius" ), daedalusConfig.render.thinLensJitterRadius );
+	glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadiusInner" ), daedalusConfig.render.thinLensJitterRadiusInner );
+	glUniform1f( glGetUniformLocation( shader, "thinLensJitterRadiusOuter" ), daedalusConfig.render.thinLensJitterRadiusOuter );
 
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );

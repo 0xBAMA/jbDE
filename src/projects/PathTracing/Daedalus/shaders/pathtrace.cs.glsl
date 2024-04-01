@@ -87,7 +87,8 @@ uniform float exposure;
 
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
-uniform float thinLensJitterRadius;
+uniform float thinLensJitterRadiusInner;
+uniform float thinLensJitterRadiusOuter;
 //=============================================================================================================================
 // key structs
 //=============================================================================================================================
@@ -144,6 +145,8 @@ struct result_t {
 //=============================================================================================================================
 ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
+
+	const vec2 uvCache = uv;
 
 	ray_t r;
 	r.origin	= vec3( 0.0f );
@@ -277,7 +280,11 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 	if ( thinLensEnable || cameraType == SPHEREBUG ) { // or we want that fucked up split sphere behavior... sphericalFucked, something
 		// thin lens adjustment
 		vec3 focuspoint = r.origin + ( ( r.direction * thinLensFocusDistance ) / dot( r.direction, basisZ ) );
-		vec2 diskOffset = thinLensJitterRadius * GetBokehOffset( bokehMode );
+
+		// maybe try some different mappings... something non-linear, ramping up more quickly at the edges
+		const float dCenter = distance( uvCache, vec2( 0.0f ) );
+		float lerpedRadius = mix( thinLensJitterRadiusInner, thinLensJitterRadiusOuter, dCenter * dCenter * dCenter );
+		vec2 diskOffset = lerpedRadius * GetBokehOffset( bokehMode );
 		r.origin += diskOffset.x * basisX + diskOffset.y * basisY;
 		r.direction = normalize( focuspoint - r.origin );
 	}

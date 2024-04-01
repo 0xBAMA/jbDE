@@ -70,7 +70,8 @@ struct renderConfig_t {
 
 	bool thinLensEnable;
 	float thinLensFocusDistance;
-	float thinLensJitterRadius;
+	float thinLensJitterRadiusInner;
+	float thinLensJitterRadiusOuter;
 	int bokehMode;
 	int cameraType;
 	bool cameraOriginJitter;
@@ -126,7 +127,8 @@ struct daedalusConfig_t {
 
 		render.thinLensEnable = false;
 		render.thinLensFocusDistance = 10.0f;
-		render.thinLensJitterRadius = 1.0f;
+		render.thinLensJitterRadiusInner = 0.2f;
+		render.thinLensJitterRadiusOuter = 1.0f;
 		render.bokehMode = 4;
 		render.cameraType = 0;
 		render.cameraOriginJitter = true;
