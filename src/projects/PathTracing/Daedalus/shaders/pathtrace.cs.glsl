@@ -313,18 +313,17 @@ vec3 SkyColor( ray_t ray ) {
 #define EMISSIVE					1
 #define DIFFUSE						2
 #define METALLIC					3
-#define RAINBOW						4
-#define MIRROR						5
-#define PERFECTMIRROR				6
-#define POLISHEDWOOD				7
-#define WOOD						8
-#define MALACHITE					9
-#define LUMARBLE					10
-#define LUMARBLE2					11
-#define LUMARBLE3					12
-#define LUMARBLECHECKER				13
-#define CHECKER						14
-#define REFRACTIVE					15
+#define MIRROR						4
+#define PERFECTMIRROR				5
+#define POLISHEDWOOD				6
+#define WOOD						7
+#define MALACHITE					8
+#define LUMARBLE					9
+#define LUMARBLE2					10
+#define LUMARBLE3					11
+#define LUMARBLECHECKER				12
+#define CHECKER						13
+#define REFRACTIVE					14
 //=============================================================================================================================
 // objects shouldn't have this material set directly, it is used for backface hits
 #define REFRACTIVE_BACKFACE			100
@@ -527,6 +526,7 @@ uniform int raymarchMaxSteps;
 // global state tracking
 vec3 hitColor;
 int hitSurfaceType;
+vec3 orbitColor;
 //=============================================================================================================================
 
 // float deFractal( vec3 p ) {
@@ -572,8 +572,10 @@ float deLeaf( vec3 p ) {
 	float time = 0.5f;
 	p.y += p.z;
 	p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
-	for( e = p.y - 1.5f; S < 6e2; S += S )
+	for( e = p.y - 1.5f; S < 6e2; S += S ) {
 		e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+		orbitColor = mix( orbitColor, refPalette( mod( 0.4f * S, 1.0f ), INFERNO2 ).xyz, 0.9f );
+	}
 	return e * R * 0.1f;
 }
 
@@ -682,6 +684,58 @@ float deFF(vec3 p){
 float deGG(vec3 p){
 	return min(.65-length(fract(p+.5)-.5),p.y+.2);
 }
+
+float deTMT( vec3 p ) {
+//   //Too many trees
+//   float scale = 1.9073f;
+//   float angle1 = -9.83f;
+//   float angle2 = -1.16f;
+//   vec3 shift = vec3( -3.508f, -3.593f, 3.295f );
+//   vec3 color = vec3( -0.34, 0.12f, -0.08f );
+
+// // Jump the crater
+//   float scale = 1.8f;
+//   float angle1 = -0.12f;
+//   float angle2 = 0.5f;
+//   vec3 shift = vec3( -2.12f, -2.75f, 0.49f );
+//   vec3 color = vec3( 0.42f, 0.38f, 0.19f );
+
+//   //Beware Of Bumps
+//   float scale = 1.66f;
+//   float angle1 = 1.52f;
+//   float angle2 = 0.19f;
+//   vec3 shift = vec3( -3.83f, -1.94f, -1.09f );
+//   vec3 color = vec3( 0.42f, 0.38f, 0.19f );
+
+  //Mega Citadel
+  float scale = 1.4731f;
+  float angle1 = 0.0f;
+  float angle2 = 0.0f;
+  vec3 shift = vec3( -10.27f, 3.28f, -1.90f );
+  vec3 color = vec3( 1.17f, 0.07f, 1.27f );
+
+  vec2 a1 = vec2(sin(angle1), cos(angle1));
+  vec2 a2 = vec2(sin(angle2), cos(angle2));
+  mat2 rmZ = mat2(a1.y, a1.x, -a1.x, a1.y);
+  mat2 rmX = mat2(a2.y, a2.x, -a2.x, a2.y);
+  float s = 1.0;
+  orbitColor = vec3( 0.0f );
+  for (int i = 0; i <11; ++i) {
+    p.xyz = abs(p.xyz);
+    p.xy *= rmZ;
+    p.xy += min( p.x - p.y, 0.0 ) * vec2( -1., 1. );
+    p.xz += min( p.x - p.z, 0.0 ) * vec2( -1., 1. );
+    p.yz += min( p.y - p.z, 0.0 ) * vec2( -1., 1. );
+    p.yz *= rmX;
+    p *= scale;
+    s *= scale;
+    p.xyz += shift;
+    orbitColor = max( orbitColor, p.xyz * color);
+  }
+  vec3 d = abs( p ) - vec3( 6.0f );
+  return ( min( max( d.x, max( d.y, d.z ) ), 0.0 ) + length( max( d, 0.0 ) ) ) / s;
+}
+
 //=============================================================================================================================
 float de( in vec3 p ) {
 	vec3 pOriginal = p;
@@ -712,10 +766,11 @@ float de( in vec3 p ) {
 	// 	hitSurfaceType = METALLIC;
 	// }
 
-	const float dHall = deGG( p * 0.2f ) / 0.2f;
+	const float dHall = max( deLeaf( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
 	sceneDist = min( sceneDist, dHall );
 	if ( sceneDist == dHall && dHall < epsilon ) {
-		hitColor = vec3( 0.618f );
+		hitColor = orbitColor;
+		// hitColor = vec3( 0.618f );
 		hitSurfaceType = DIFFUSE;
 	}
 

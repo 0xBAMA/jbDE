@@ -4,7 +4,7 @@ struct ChorizoConfig_t {
 	GLuint vao;
 	GLuint transformBuffer;
 
-	int numSpheres = 500000;
+	int numSpheres = 50000;
 };
 
 class Chorizo : public engineBase {
@@ -41,13 +41,28 @@ public:
 			std::vector< mat4 > transforms;
 			transforms.reserve( ChorizoConfig.numSpheres );
 			rng rotation( 0.0f, 10.0f );
-			rng scale( 0.005f, 0.03f );
-			rng position( -5.5f, 5.5f );
-			for ( int i = 0; i < ChorizoConfig.numSpheres; i++ ) {
-				mat4 temp = glm::translate( vec3( position(), 0.12f * position(), position() ) ) *
-					glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
-					glm::scale( vec3( scale() ) ) *
-					mat4( 1.0f );
+			rng scale( 0.0001f, 0.01f );
+			rng position( -1.5f, 1.5f );
+
+			float t = position();
+
+			rng parameters( 0.01f, 0.1f );
+			vec4 params = vec4( parameters(), parameters(), parameters(), parameters() );
+
+			for ( int i = 0; i < ChorizoConfig.numSpheres; i++, t += 0.05f ) {
+
+				mat4 temp;
+				// if ( i % 2 == 0 ) {
+					temp = glm::translate( vec3( cos( t * params.x ), sin( t * ( params.y / 3.0f ) ), cos( t * ( params.z / 5.0f ) ) * cos( t * ( params.x / 7.0f ) ) ) ) *
+						glm::rotate( t / 4.0f, glm::normalize( vec3( 1.0f, 1.0f, 0.0f ) ) ) *
+						glm::scale( vec3( 0.03f ) ) *
+						mat4( 1.0f );
+				// } else {
+				// 	temp = glm::translate( vec3( position(), position(), position() ) ) *
+				// 		glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
+				// 		glm::scale( vec3( scale() ) ) *
+				// 		mat4( 1.0f );
+				// }
 
 				transforms.push_back( temp );
 				transforms.push_back( glm::inverse( temp ) );
@@ -108,6 +123,7 @@ public:
 			glm::perspective( 45.0f, aspectRatio, 0.001f, 100.0f ) *
 			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 
+		glUniform1f( glGetUniformLocation( shader, "numPrimitives" ), ChorizoConfig.numSpheres );
 		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
 		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
 
