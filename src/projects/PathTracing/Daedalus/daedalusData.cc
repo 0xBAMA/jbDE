@@ -231,11 +231,11 @@ void Daedalus::PrepSphereBufferRandom() {
 	rng Roughness = rng( 0.0f, 0.5f );
 
 	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );	// position
-	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 1.0f, 1.0f, 1.0f, 15.0f ) );	// color
+	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 1.0f, 1.0f, 1.0f, 14.0f ) );	// color
 	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), 0.0f, 0.0f, 0.0f ) );	// material properties
 	for ( int idx = 0; idx < daedalusConfig.render.scene.numExplicitPrimitives; idx++ ) {
 		vec3 color = palette::paletteRef( c() );
-		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() * r() ) );				// position
+		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( o(), o(), o(), r() * r() ) );			// position
 		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( color.x, color.y, color.z, 14.0f ) );	// color
 		daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), Roughness(), 0.0f, 0.0f ) );	// material properties
 	}
