@@ -95,12 +95,12 @@ public:
 			daedalusConfig.render.basisZ = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
 		}
 		if ( state[ SDL_SCANCODE_Q ] ) {
-			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisZ ); // and again for basisZ
+			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisZ ); // and again for basisZ
 			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
 			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
 		}
 		if ( state[ SDL_SCANCODE_E ] ) {
-			glm::quat rot = glm::angleAxis( scalar, daedalusConfig.render.basisZ );
+			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisZ );
 			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
 			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
 		}
