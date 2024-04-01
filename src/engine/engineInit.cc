@@ -81,7 +81,8 @@ void engineBase::CreateWindowAndContext () {
 	}
 
 	{
-		Block Start( "Setting Up OpenGL Context" );
+		string StringWithVersionNumber = string( "Setting Up OpenGL " ) + string( to_string( window.config->OpenGLVersionMajor ) ) + string( "." ) + string( to_string( window.config->OpenGLVersionMinor ) ) + string( " Context" );
+		Block Start( StringWithVersionNumber );
 		window.OpenGLSetup();
 	}
 

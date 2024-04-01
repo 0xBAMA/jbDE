@@ -55,7 +55,8 @@ public:
 		SDL_GL_SetSwapInterval( config->vSyncEnable ? 1 : 0 );
 
 		// load OpenGL functions
-		if ( glewInit() != GLEW_OK ) { cout << "Failed to Initialize OpenGL Loader!" << newline; abort(); }
+		if ( glewInit() != GLEW_OK ) { cout << "Failed to Initialize OpenGL Loader!" << endl; abort(); }
+		// if ( gl3wInit() != 0 ) { cout << "Failed to Initialize OpenGL Loader!" << endl; abort(); } // this seems to be the only thing that is different... not sure
 
 		// basic OpenGL Config
 		// glEnable( GL_LINE_SMOOTH );
