@@ -5,9 +5,10 @@ in vec3 vofiPosition;
 in vec4 vofiColor;
 out vec4 outColor;
 
-// location of the viewer
-uniform vec3 eyePosition;
+uniform vec3 eyePosition;	// location of the viewer
+uniform float numPrimitives;
 
+#include "colorRamps.glsl.h"
 #include "consistentPrimitives.glsl.h"
 
 uniform mat4 viewTransform;
@@ -55,7 +56,7 @@ void main() {
 		const vec3 transformedNormal = normalize( ( transform * vec4( normal, 0.0f ) ).xyz );
 
 		// shading
-		outColor.xyz = viridis( float( vofiIndex ) / 500000.0f ) * 0.25f;
+		outColor.xyz = refPalette( float( vofiIndex ) / numPrimitives, INFERNO ).xyz * 0.25f;
 		outColor.xyz += 0.25f * clamp( dot( transformedNormal, normalize( vec3( 1.0f ) ) ), 0.0f, 1.0f );
 		outColor.a = 1.0f;
 
