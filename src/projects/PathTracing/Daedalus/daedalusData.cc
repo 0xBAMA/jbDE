@@ -588,11 +588,14 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 		// opts.initialData	= ( void * ) &loaded[ 0 ];
 		// textureManager.Add( "DDATex", opts );
 
+		glFlush();
+		glFinish();
 		glBindTexture( GL_TEXTURE_3D, textureManager.Get( "DDATex" ) );
 		#define PASSBYSLICES
 		#ifdef PASSBYSLICES
 			for ( int i = 0; i < BLOCKDIM; i++ ) { // same issue, no improvement
 				glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, i, BLOCKDIM, BLOCKDIM, 1, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &loaded[ BLOCKDIM * BLOCKDIM * i ] );
+				glFinish();
 			}
 		#else
 			glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8UI, BLOCKDIM, BLOCKDIM, BLOCKDIM, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &loaded[ 0 ] ); // crashes after first run... why? no idea
@@ -600,5 +603,7 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 		#ifdef PASSBYSLICES
 		#undef PASSBYSLICES
 		#endif
+		glFlush();
+		glFinish();
 	}
 }
