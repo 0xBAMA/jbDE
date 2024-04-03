@@ -533,7 +533,7 @@ uniform int raymarchMaxSteps;
 // global state tracking
 vec3 hitColor;
 int hitSurfaceType;
-vec3 orbitColor;
+vec3 orbitColor = vec3( 0.0f );
 //=============================================================================================================================
 
 // float deFractal( vec3 p ) {
@@ -550,6 +550,19 @@ vec3 orbitColor;
 // 	if (p.x < p.z) p.xz = p.zx;
 // 	return length(cross(p,normalize(vec3(0,1,1))))/s-.001;
 // }
+
+float deFractal2 ( vec3 p ) {
+  float d = 0.0f;
+  float t = 0.3f;
+  float s = 1.0f;
+  vec4 r = vec4( 0.0f );
+  vec4 q = vec4( p, 0.0f );
+  for ( int j = 0; j < 4 ; j++ )
+    r = max( r *= r *= r = mod( q * s + 1.0f, 2.0f ) - 1.0f, r.yzxw ),
+    d = max( d, ( 0.27f - length( r ) * 0.3f ) / s ),
+    s *= 3.1f;
+  return d;
+}
 
 float deFractal( vec3 pos ) {
 	vec3 tpos = pos;
@@ -773,12 +786,15 @@ float de( in vec3 p ) {
 	// 	hitSurfaceType = METALLIC;
 	// }
 
-	const float dHall = max( deLeaf( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
+	const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
+	// const float dHall = deFractal2( p * 1.0f ) / 1.0f;
 	sceneDist = min( sceneDist, dHall );
 	if ( sceneDist == dHall && dHall < epsilon ) {
-		hitColor = orbitColor;
-		// hitColor = vec3( 0.618f );
+		// hitColor = orbitColor;
+		hitColor = vec3( 0.618f );
+		// hitSurfaceType = POLISHEDWOOD;
 		hitSurfaceType = DIFFUSE;
+		// hitColor = vec3( 0.7f, 0.2f, 0.1f );
 	}
 
 	const float dLight = distance( p, vec3( 0.0f ) ) - 0.1f;
