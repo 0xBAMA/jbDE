@@ -4,6 +4,7 @@
 struct ChorizoConfig_t {
 	GLuint vao;
 	GLuint transformBuffer;
+	GLuint primaryFramebuffer[ 2 ];
 
 	int numSpheres = 500;
 };
@@ -48,9 +49,58 @@ public:
 
 			glGenBuffers( 1, &ChorizoConfig.transformBuffer );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.transformBuffer );
-			// glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_STATIC_DRAW );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
+			// glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_STATIC_DRAW );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.transformBuffer );
+
+			// == Render Framebuffer(s) ===========
+			textureOptions_t opts;
+			// ==== Depth =========================
+			opts.dataType = GL_DEPTH_COMPONENT32;
+			opts.textureType = GL_TEXTURE_2D;
+			opts.width = config.width;
+			opts.height = config.height;
+			textureManager.Add( "Framebuffer Depth 0", opts );
+			textureManager.Add( "Framebuffer Depth 1", opts );
+			// ==== Normal =======================
+			opts.dataType = GL_RGBA16F;
+			textureManager.Add( "Framebuffer Normal 0", opts );
+			textureManager.Add( "Framebuffer Normal 1", opts );
+			// ==== Position ======================
+			textureManager.Add( "Framebuffer Position 0", opts );
+			textureManager.Add( "Framebuffer Position 1", opts );
+			// ==== Primitive ID ==================
+			opts.dataType = GL_RG32UI;
+			textureManager.Add( "Framebuffer Primitive ID 0", opts );
+			textureManager.Add( "Framebuffer Primitive ID 1", opts );
+			// ====================================
+
+			// setup the buffers for the rendering process
+			glGenFramebuffers( 2, &ChorizoConfig.primaryFramebuffer[ 0 ] );
+
+			// both framebuffers have depth + 3 color attachments
+			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
+			// creating the actual framebuffers with their attachments
+			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 0 ] );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth 0" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal 0" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Position 0" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager.Get( "Framebuffer Primitive ID 0" ), 0 );
+			glDrawBuffers( 3, bufs ); // how many active attachments, and their attachment locations
+			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+				cout << newline << "front framebuffer creation successful" << endl;
+			}
+
+			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 1 ] );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth 1" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal 1" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Position 1" ), 0 );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager.Get( "Framebuffer Primitive ID 1" ), 0 );
+			glDrawBuffers( 3, bufs );
+			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+				cout << "back framebuffer creation successful" << endl;
+			}
 		}
 	}
 
@@ -90,13 +140,19 @@ public:
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 
+		static uint32_t frameCount = 0;
+		frameCount++;
+
+		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( frameCount % 2 ) ] );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
 		const GLuint shader = shaders[ "BBox" ];
 		glUseProgram( shader );
 		glBindVertexArray( ChorizoConfig.vao );
 
 		const float aspectRatio = float( config.width ) / float( config.height );
 		// const vec3 eyePosition = vec3( 2.0f, 0.0f, 0.0f );
-		const float time = SDL_GetTicks() / 1000.0f;
+		const float time = SDL_GetTicks() / 10000.0f;
 		const vec3 eyePosition = vec3( 5.0f * sin( time ), 5.0f * cos( time * 0.2f ), 2.0f * sin( time * 0.3f ) );
 		const mat4 viewTransform =
 			glm::perspective( 45.0f, aspectRatio, 0.001f, 100.0f ) *
@@ -106,7 +162,11 @@ public:
 		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
 		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
 
+		glViewport( 0, 0, config.width, config.height );
 		glDrawArrays( GL_TRIANGLES, 0, 36 * ChorizoConfig.numSpheres );
+
+		// revert to default framebuffer
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
 	void ComputePasses () {
