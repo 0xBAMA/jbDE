@@ -7,6 +7,7 @@ struct ChorizoConfig_t {
 	GLuint primaryFramebuffer[ 2 ];
 
 	int numSpheres = 500;
+	uint32_t frameCount = 0;
 };
 
 class Chorizo : public engineBase {
@@ -45,7 +46,7 @@ public:
 			// recursiveTreeBuild( transforms, glm::scale( vec3( 0.1f ) ) * mat4( 1.0f ), 0, 12 );
 			randomPlacement( transforms, 500000 );
 			ChorizoConfig.numSpheres = transforms.size() / 2;
-			cout << "created " << ChorizoConfig.numSpheres / 2 << " primitives" << endl;
+			cout << newline << newline << "created " << ChorizoConfig.numSpheres / 2 << " primitives" << newline;
 
 			glGenBuffers( 1, &ChorizoConfig.transformBuffer );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.transformBuffer );
@@ -66,9 +67,6 @@ public:
 			opts.dataType = GL_RGBA16F;
 			textureManager.Add( "Framebuffer Normal 0", opts );
 			textureManager.Add( "Framebuffer Normal 1", opts );
-			// ==== Position ======================
-			textureManager.Add( "Framebuffer Position 0", opts );
-			textureManager.Add( "Framebuffer Position 1", opts );
 			// ==== Primitive ID ==================
 			opts.dataType = GL_RG32UI;
 			textureManager.Add( "Framebuffer Primitive ID 0", opts );
@@ -78,29 +76,30 @@ public:
 			// setup the buffers for the rendering process
 			glGenFramebuffers( 2, &ChorizoConfig.primaryFramebuffer[ 0 ] );
 
-			// both framebuffers have depth + 3 color attachments
-			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+			// both framebuffers have implicit depth + 2 color attachments
+			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 
 			// creating the actual framebuffers with their attachments
 			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 0 ] );
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth 0" ), 0 );
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal 0" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Position 0" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager.Get( "Framebuffer Primitive ID 0" ), 0 );
-			glDrawBuffers( 3, bufs ); // how many active attachments, and their attachment locations
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Primitive ID 0" ), 0 );
+			glDrawBuffers( 2, bufs ); // how many active attachments, and their attachment locations
 			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-				cout << newline << "front framebuffer creation successful" << endl;
+				cout << newline << "front framebuffer creation successful" << newline;
 			}
 
 			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 1 ] );
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth 1" ), 0 );
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal 1" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Position 1" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureManager.Get( "Framebuffer Primitive ID 1" ), 0 );
-			glDrawBuffers( 3, bufs );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Primitive ID 1" ), 0 );
+			glDrawBuffers( 2, bufs );
 			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-				cout << "back framebuffer creation successful" << endl;
+				cout << "back framebuffer creation successful" << newline << newline;
 			}
+
+			// bind default framebuffer
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		}
 	}
 
@@ -140,10 +139,9 @@ public:
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
 
-		static uint32_t frameCount = 0;
-		frameCount++;
+		ChorizoConfig.frameCount++;
 
-		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( frameCount % 2 ) ] );
+		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( ChorizoConfig.frameCount % 2 ) ] );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		const GLuint shader = shaders[ "BBox" ];
@@ -180,6 +178,8 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
+
+		// add the code for deferred shading, etc, here
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
