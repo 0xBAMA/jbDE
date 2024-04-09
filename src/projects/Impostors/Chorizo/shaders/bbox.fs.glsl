@@ -20,9 +20,13 @@ layout( binding = 0, std430 ) buffer transformsBuffer {
 	transform_t transforms[];
 };
 
+// TAA resources:
+// https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/
+// https://sugulee.wordpress.com/2021/06/21/temporal-anti-aliasingtaa-tutorial/
+
 out float gl_FragDepth;
 layout( location = 0 ) out vec4 normalResult;
-layout( location = 1 ) out uvec4 materialID;
+layout( location = 1 ) out uvec4 primitiveID;
 
 // visalizing the fragments that get drawn
 // #define SHOWDISCARDS
@@ -55,19 +59,14 @@ void main() {
 			}
 		#endif
 	} else {
-		const vec3 hitVector = rayOrigin + result * rayDirection;
-		const vec3 hitPosition = ( transform * vec4( hitVector, 1.0f ) ).xyz;
+		const vec3 hitPosition = ( transform * vec4( rayOrigin + result * rayDirection, 1.0f ) ).xyz;
 		const vec3 transformedNormal = normalize( ( transform * vec4( normal, 0.0f ) ).xyz );
 
-		materialID = uvec4( vofiIndex, 0, 0, 0 );
+		primitiveID = uvec4( vofiIndex, 0, 0, 0 );
 		normalResult = vec4( transformedNormal, 1.0f );
 
-		// shading
-		outColor.xyz = refPalette( float( vofiIndex ) / numPrimitives, INFERNO ).xyz * 0.25f;
-		outColor.xyz += 0.25f * clamp( dot( transformedNormal, normalize( vec3( 1.0f ) ) ), 0.0f, 1.0f );
-		outColor.a = 1.0f;
-
-		vec4 projectedPosition = viewTransform * vec4( hitPosition, 1.0f );
+		// writing correct depths
+		const vec4 projectedPosition = viewTransform * vec4( hitPosition, 1.0f );
 		gl_FragDepth = ( projectedPosition.z / projectedPosition.w + 1.0f ) * 0.5f;
 	}
 }

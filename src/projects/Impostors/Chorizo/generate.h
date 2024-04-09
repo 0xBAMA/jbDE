@@ -38,7 +38,7 @@ void randomPlacement( std::vector< mat4 > &transforms, int count ) {
 			// 	glm::scale( vec3( 0.03f ) ) *
 			// 	mat4( 1.0f );
 		// } else {
-			temp = glm::translate( vec3( position(), position(), position() ) ) *
+			temp = glm::translate( vec3( 0.12f * position(), position(), position() ) ) *
 				glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
 				glm::scale( vec3( scale() ) ) *
 				mat4( 1.0f );
