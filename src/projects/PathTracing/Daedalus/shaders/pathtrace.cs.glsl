@@ -365,7 +365,7 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		}
 
 		case EMISSIVE: { // light emitting material
-			// ray.direction = randomVectorDiffuse;
+			ray.direction = randomVectorDiffuse;
 			finalColor += throughput * intersection.albedo;
 			break;
 		}
@@ -533,6 +533,7 @@ uniform int raymarchMaxSteps;
 // global state tracking
 vec3 hitColor;
 int hitSurfaceType;
+float hitRoughness;
 vec3 orbitColor = vec3( 0.0f );
 //=============================================================================================================================
 
@@ -757,11 +758,14 @@ float deTMT( vec3 p ) {
 }
 
 //=============================================================================================================================
+#include "oldTestChamber.h.glsl"
+//=============================================================================================================================
 float de( in vec3 p ) {
 	vec3 pOriginal = p;
 	float sceneDist = 1000.0f;
 	hitColor = vec3( 0.0f );
 	hitSurfaceType = NOHIT;
+	hitRoughness = 0.0f;
 
 	// form for the following:
 		// const d = blah whatever SDF
@@ -786,23 +790,45 @@ float de( in vec3 p ) {
 	// 	hitSurfaceType = METALLIC;
 	// }
 
-	const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
-	// const float dHall = deFractal2( p * 1.0f ) / 1.0f;
-	sceneDist = min( sceneDist, dHall );
-	if ( sceneDist == dHall && dHall < epsilon ) {
-		// hitColor = orbitColor;
+	// sceneDist = deOldTestChamber( p );
+
+	vec3 pBars = p;
+
+	pModInterval1( pBars.x, 0.2f, -15.0f, 15.0f );
+	pModInterval1( pBars.y, 0.2f, -15.0f, 15.0f );
+
+	const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
+	sceneDist = min( sceneDist, dRails );
+	if ( sceneDist == dRails && dRails < epsilon ) {
 		hitColor = vec3( 0.618f );
-		// hitSurfaceType = POLISHEDWOOD;
-		hitSurfaceType = DIFFUSE;
-		// hitColor = vec3( 0.7f, 0.2f, 0.1f );
+		hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
 	}
 
-	const float dLight = distance( p, vec3( 0.0f ) ) - 0.1f;
-	sceneDist = min( sceneDist, dLight );
-	if ( sceneDist == dLight && dLight < epsilon ) {
-		hitColor = vec3( 1.0f );
-		hitSurfaceType = EMISSIVE;
-	}
+	// const float dHall = max(
+	// 	fOpUnionRound(
+	// 		fOpUnionRound( fPlane( pOriginal, vec3( 0.0f, -1.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3(  0.0f, 0.0f, 1.0f ), 2.0f ), 0.5f ),
+	// 		fOpUnionRound( fPlane( pOriginal, vec3( 1.0f,  0.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3( -1.0f, 0.0f, 0.0f ), 2.0f ), 0.5f ),
+	// 	0.5f ), fBox( pOriginal, vec3( 3.0f ) ) );
+
+	// // const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
+	// // const float dHall = deFractal2( p * 1.0f ) / 1.0f;
+	// sceneDist = min( sceneDist, dHall );
+	// if ( sceneDist == dHall && dHall < epsilon ) {
+	// 	// hitColor = vec3( 0.7f, 0.5f, 0.3f );
+	// 	hitColor = vec3( 0.618f );
+	// 	// hitSurfaceType = POLISHEDWOOD;
+	// 	// hitSurfaceType = DIFFUSE;
+	// 	hitSurfaceType = METALLIC;
+	// 	hitRoughness = 0.8f;
+	// }
+
+	// pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
+	// const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
+	// sceneDist = min( sceneDist, dLight );
+	// if ( sceneDist == dLight && dLight < epsilon ) {
+	// 	hitColor = refPalette( RangeRemapValue( pOriginal.x, -2.0f, 2.0f, 0.0f, 1.0f ), PURDR ).rgb;
+	// 	hitSurfaceType = EMISSIVE;
+	// }
 
 	return sceneDist;
 }
@@ -829,6 +855,7 @@ intersection_t raymarch( in ray_t ray ) {
 	intersection.dTravel = dTotal;
 	intersection.albedo = hitColor;
 	intersection.materialID = hitSurfaceType;
+	intersection.roughness = hitRoughness;
 	intersection.normal = SDFNormal( ray.origin + dTotal * ray.direction );
 	intersection.frontfaceHit = ( dot( intersection.normal, ray.direction ) <= 0.0f );
 	return intersection;
