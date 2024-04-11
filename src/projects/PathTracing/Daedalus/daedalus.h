@@ -122,12 +122,22 @@ public:
 		ivec2 mouse;
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
 		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
-			// vec2 fractionalPosition = vec2( float( mouse.x ) / float( daedalusConfig.targetWidth ), 1.0f - ( float( mouse.y ) / float( daedalusConfig.targetHeight ) ) );
-			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
-			ImGui::ResetMouseDragDelta();
-			const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
-			daedalusConfig.view.outputOffset.x -= currentMouseDrag.x * aspectRatio * daedalusConfig.view.outputZoom;
-			daedalusConfig.view.outputOffset.y += currentMouseDrag.y * daedalusConfig.view.outputZoom;
+			if ( shift == true ) { // autofocus
+				daedalusConfig.view.clickPosition = vec2( mouse.x, config.height - mouse.y );
+				vec2 pixelLocation = daedalusConfig.view.clickPosition * daedalusConfig.view.outputZoom + daedalusConfig.view.outputOffset;
+				if ( pixelLocation.x >= 0 && pixelLocation.y >= 0 && pixelLocation.x < daedalusConfig.targetWidth && pixelLocation.y < daedalusConfig.targetHeight ) {
+					float value[ 4 ]; // get the value from the depth buffer - determine where to set the focal plane for the DoF
+					const GLuint texture = textureManager.Get( "Depth/Normals Accumulator" );
+					glGetTextureSubImage( texture, 0, pixelLocation.x,  daedalusConfig.targetHeight - pixelLocation.y, 0, 1, 1, 1, GL_RGBA, GL_FLOAT, 16, &value );
+					daedalusConfig.render.thinLensFocusDistance = value[ 3 ];
+				}
+			} else { // panning control
+				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
+				ImGui::ResetMouseDragDelta();
+				const float aspectRatio = ( float ) daedalusConfig.targetHeight / ( float ) daedalusConfig.targetWidth;
+				daedalusConfig.view.outputOffset.x -= currentMouseDrag.x * aspectRatio * daedalusConfig.view.outputZoom;
+				daedalusConfig.view.outputOffset.y += currentMouseDrag.y * daedalusConfig.view.outputZoom;
+			}
 		}
 
 		SDL_Event event;

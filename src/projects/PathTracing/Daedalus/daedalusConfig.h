@@ -19,6 +19,8 @@ struct viewConfig_t {
 	// main display, grid pan + zoom
 	float outputZoom;
 	vec2 outputOffset;
+
+	vec2 clickPosition;
 };
 
 struct sceneConfig_t {
@@ -93,7 +95,7 @@ struct daedalusConfig_t {
 		// configuring the accumulator
 		targetWidth = 1920;
 		targetHeight = 1080;
-		tileSize = 16;
+		tileSize = 256;
 
 		// initialize the tile dispenser
 		tiles = tileDispenser( tileSize, targetWidth, targetHeight );
@@ -111,9 +113,11 @@ struct daedalusConfig_t {
 		filterEveryFrame = false;
 		filterSelector = 0;
 
+		view.clickPosition = vec2( 0.0f );
+
 		// ===============================
 
-		render.subpixelJitterMethod = 1;
+		render.subpixelJitterMethod = 3;
 		render.uvScalar = 1.0f;
 		render.exposure = 1.0f;
 		render.FoV = 0.618f;
@@ -125,6 +129,7 @@ struct daedalusConfig_t {
 		render.basisY = vec3( 0.0f, 1.0f, 0.0f );
 		render.basisZ = vec3( 0.0f, 0.0f, 1.0f );
 
+		// thin lens config
 		render.thinLensEnable = false;
 		render.thinLensFocusDistance = 10.0f;
 		render.thinLensJitterRadiusInner = 0.2f;
@@ -134,23 +139,24 @@ struct daedalusConfig_t {
 		render.cameraOriginJitter = true;
 		render.maxBounces = 10;
 
-		// render.scene.raymarchEnable = true;
+		// SDF raymarch geo
 		render.scene.raymarchEnable = false;
 		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
 
 		render.scene.ddaSpheresEnable = true;
-		render.scene.ddaSpheresBoundSize = 2.0f;
-		render.scene.ddaSpheresResolution = 50;
+		render.scene.ddaSpheresBoundSize = 10.0f;
+		render.scene.ddaSpheresResolution = 513;
 
-		// render.scene.maskedPlaneEnable = true;
+		// masked planes
 		render.scene.maskedPlaneEnable = false;
 
 		// explicit primitive list
-		render.scene.explicitListEnable = true;
+		render.scene.explicitListEnable = false;
 		render.scene.numExplicitPrimitives = 100;
 
+		// sky config
 		render.scene.skyDims = uvec2( 1024, 512 );
 		render.scene.skyNeedsUpdate = true;
 		render.scene.skyMode = 0;
