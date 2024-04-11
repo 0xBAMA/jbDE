@@ -797,7 +797,8 @@ float de( in vec3 p ) {
 	pModInterval1( pBars.x, 0.2f, -15.0f, 15.0f );
 	pModInterval1( pBars.y, 0.2f, -15.0f, 15.0f );
 
-	const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
+	// const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
+	const float dRails = fOpUnionRound( fCylinder( pBars, 0.03f, 2.0f ), fCylinder( pBars.yxz, 0.03f, 2.0f ), 0.05f );
 	sceneDist = min( sceneDist, dRails );
 	if ( sceneDist == dRails && dRails < epsilon ) {
 		hitColor = vec3( 0.618f );
@@ -944,9 +945,9 @@ vec3 GetOffsetForIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 float GetRadiusForIdx( ivec3 idx ) {
-	// return 0.46f;
+	return 0.47f;
 
-	return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
+	// return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
 	// return NormalizedRandomFloat() / 2.0f;
 
 	// return saturate( ( snoise3D( idx * 0.01f ) / 2.0f ) + 1.0f ) / 2.0f;
@@ -1016,8 +1017,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 			#ifdef SPHEREORBOX
 				// see if we found an intersection - ball will almost fill the grid cell
-				// iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
-				iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
+				iqIntersect test = IntersectSphere( ray, vec3( mapPos0 ) + GetOffsetForIdx( mapPos0 ), GetRadiusForIdx( mapPos0 ) );
+				// iqIntersect test = IntersectBox( ray, vec3( mapPos0 ) + vec3( 0.5f ), vec3( 0.5f ) );
 				const bool behindOrigin = ( test.a.x < 0.0f && test.b.x < 0.0f );
 
 				// update ray, to indicate hit location
@@ -1036,8 +1037,9 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					intersection.materialID = DIFFUSE;
+					intersection.roughness = 0.04f;
+					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// intersection.materialID = NormalizedRandomFloat() < 0.5f ? MIRROR : DIFFUSE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}

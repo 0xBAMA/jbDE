@@ -524,6 +524,9 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 	static glm::vec4 color0 = glm::vec4( palette::paletteRef( 0.2f ), 0.0f );
 	static glm::vec4 color1 = glm::vec4( palette::paletteRef( 0.5f ), 1.0f );
 	static glm::vec4 color2 = glm::vec4( palette::paletteRef( 0.8f ), 1.0f );
+
+	rng jitter = rng( -0.1f, 0.1f );
+
 	static float lambda = 0.35f;
 	static float beta = 0.5f;
 	static float mag = 0.0f;
@@ -543,9 +546,13 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 			for ( int z = 0; z < BLOCKDIM; z++ ) {
 				glm::vec4 color;
 				switch ( vR.state[ x ][ y ][ z ] ) {
-					case 0: color = color0; break;
-					case 1: color = color1; break;
-					case 2: color = color2; break;
+					// case 0: color = color0; break;
+					// case 1: color = color1; break;
+					// case 2: color = color2; break;
+					// default: color = color0; break;
+					case 0: color = glm::vec4( palette::paletteRef( 0.2f + jitter() ), 0.0f ); break;
+					case 1: color = glm::vec4( palette::paletteRef( 0.5f + jitter() ), 1.0f ); break;
+					case 2: color = glm::vec4( palette::paletteRef( 0.8f + jitter() ), 1.0f ); break;
 					default: color = color0; break;
 				}
 				loaded.push_back( static_cast<uint8_t>( color.x * 255.0 ) );
