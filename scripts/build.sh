@@ -18,6 +18,7 @@ fi
 mkdir build
 cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release
 cd build
+
 # -j arg is max jobs + 1, here configured for 16 compilation threads
 
 # engine stuff
@@ -53,8 +54,8 @@ cd build
 # time make -j17 VertextureClassic		# Vertexture, with the trees
 # time make -j17 ProjectedFramebuffers	# projected framebuffers using the vertexture renderer
 
-# this runs all the targets in parallel
-	# use the above individual targets to enable / disable piecemeal
-time make -j17 all
+# this runs all the targets in parallel, scaled with the number of processors on the machine ( e.g. -j4, -j16, etc )
+	# can use the above individual targets to enable / disable piecemeal
+time make -j$(nproc) all
 
 cd ..
