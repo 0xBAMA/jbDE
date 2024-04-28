@@ -25,7 +25,7 @@ void recursiveTreeBuild( std::vector< mat4 > &transforms, mat4 currentTransform,
 void randomPlacement( std::vector< mat4 > &transforms, int count ) {
 	transforms.reserve( count );
 	rng rotation( 0.0f, 10.0f );
-	rng scale( 0.0001f, 0.01f );
+	rng scale( 0.01f, 0.1f );
 	rng position( -5.5f, 5.5f );
 	float t = position();
 	rng parameters( 0.0001f, 0.01f );
@@ -38,12 +38,27 @@ void randomPlacement( std::vector< mat4 > &transforms, int count ) {
 			// 	glm::scale( vec3( 0.03f ) ) *
 			// 	mat4( 1.0f );
 		// } else {
-			temp = glm::translate( vec3( 0.12f * position(), position(), position() ) ) *
+			temp = glm::translate( vec3( 0.12f * position(), 0.3f * position(), 0.619f * position() ) ) *
 				glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
 				glm::scale( vec3( scale() ) ) *
 				mat4( 1.0f );
 		// }
 		transforms.push_back( temp );
 		transforms.push_back( glm::inverse( temp ) );
+	}
+}
+
+void gridPlacement( std::vector< mat4 > &transforms, const ivec3 dims ) {
+	for ( int x = -dims.x / 2; x < dims.x / 2; x++ ) {
+		for ( int y = -dims.y / 2; y < dims.y / 2; y++ ) {
+			for ( int z = -dims.z / 2; z < dims.z / 2; z++ ) {
+				mat4 temp = glm::translate( vec3( 0.1f * x, 0.1f * y, 0.1f * z ) ) *
+					// glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
+					glm::scale( vec3( 0.045f ) ) *
+					mat4( 1.0f );
+				transforms.push_back( temp );
+				transforms.push_back( glm::inverse( temp ) );
+			}
+		}
 	}
 }
