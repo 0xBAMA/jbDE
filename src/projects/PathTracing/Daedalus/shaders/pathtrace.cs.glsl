@@ -954,6 +954,10 @@ float GetRadiusForIdx( ivec3 idx ) {
 	// return saturate( snoise3D( idx * 0.04f ) / 4.0f );
 }
 //=============================================================================================================================
+uint GetAlphaValueForIdx( ivec3 idx ) {
+	return imageLoad( DDATex, idx ).a;
+}
+//=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
 	// return vec3( 0.23f, 0.618f, 0.123f );
 	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f );
@@ -1038,9 +1042,21 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
 					intersection.roughness = 0.04f;
-					intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					// intersection.materialID = NormalizedRandomFloat() < 0.5f ? MIRROR : DIFFUSE;
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// intersection.materialID = NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
+					if ( GetAlphaValueForIdx( mapPos0 ) < 35 ) {
+						// intersection.albedo *= 3.0f;
+						// intersection.materialID = EMISSIVE;
+						intersection.materialID = DIFFUSE;
+					} else if ( GetAlphaValueForIdx( mapPos0 ) < 130 ) {
+						intersection.materialID = MIRROR;
+						// intersection.materialID = NormalizedRandomFloat() > 0.9f ? MIRROR : DIFFUSE;
+						// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					} else {
+						// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+						intersection.materialID = DIFFUSE;
+					}
 					break;
 				}
 			#endif
@@ -1125,7 +1141,7 @@ bool maskedPlaneMaskEval( in vec3 location, out vec3 color ) {
 
 	const uvec3 texDims = uvec3( imageSize( textBuffer ) );
 	// uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x % texDims.x, bin.y % texDims.y, location.z ) ); // repeated
-	uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x, bin.y, location.z ) );
+	uvec4 sampleValue = imageLoad( textBuffer, ivec3( bin.x, bin.y % texDims.y, location.z ) );
 
 	color = vec3( sampleValue.xyz ) / 255.0f;
 
