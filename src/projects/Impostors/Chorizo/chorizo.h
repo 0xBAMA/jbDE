@@ -1,12 +1,17 @@
 #include "../../../engine/engine.h"
 #include "generate.h"
 
+// struct primitiveParameters {
+
+// };
+
 struct ChorizoConfig_t {
 	GLuint vao;
-	GLuint transformBuffer;
+	GLuint shapeParametersBuffer;
+	GLuint AABBTransformBuffer;
 	GLuint primaryFramebuffer[ 2 ];
 
-	int numSpheres = 500;
+	int numPrimitives = 500;
 	uint32_t frameCount = 0;
 };
 
@@ -23,7 +28,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/draw.cs.glsl" ).shaderHandle;
 
 			// setup raster shader
 			shaders[ "BBox" ] = regularShader(
@@ -41,18 +46,24 @@ public:
 			glFrontFace( GL_CCW );
 			glDisable( GL_BLEND );
 
+
+
+	// what does the data setup look like, with the new approach?
+
 			// create the transforms buffer
 			std::vector< mat4 > transforms;
-			// recursiveTreeBuild( transforms, glm::scale( vec3( 0.1f ) ) * mat4( 1.0f ), 0, 12 );
-			randomPlacement( transforms, 500000 );
-			ChorizoConfig.numSpheres = transforms.size() / 2;
-			cout << newline << newline << "created " << ChorizoConfig.numSpheres / 2 << " primitives" << newline;
+			gridPlacement( transforms, ivec3( 34, 24, 9 ) );
+			ChorizoConfig.numPrimitives = transforms.size() / 2;
+			cout << newline << newline << "created " << ChorizoConfig.numPrimitives / 2 << " primitives" << newline;
 
-			glGenBuffers( 1, &ChorizoConfig.transformBuffer );
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.transformBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
-			// glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numSpheres * 2, ( GLvoid * ) transforms.data(), GL_STATIC_DRAW );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.transformBuffer );
+			glGenBuffers( 1, &ChorizoConfig.AABBTransformBuffer );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.AABBTransformBuffer );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numPrimitives * 2, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.AABBTransformBuffer );
+
+
+
+
 
 			// == Render Framebuffer(s) ===========
 			textureOptions_t opts;
@@ -73,11 +84,9 @@ public:
 			textureManager.Add( "Framebuffer Primitive ID 1", opts );
 			// ====================================
 
-			// setup the buffers for the rendering process
+			// setup the buffers for the rendering process - front and back framebuffers
 			glGenFramebuffers( 2, &ChorizoConfig.primaryFramebuffer[ 0 ] );
-
-			// both framebuffers have implicit depth + 2 color attachments
-			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 }; // both framebuffers have implicit depth + 2 color attachments
 
 			// creating the actual framebuffers with their attachments
 			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 0 ] );
@@ -138,48 +147,62 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-
-		ChorizoConfig.frameCount++;
-
-		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( ChorizoConfig.frameCount % 2 ) ] );
+		RasterGeoDataSetup();
+		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( ChorizoConfig.frameCount++ % 2 ) ] );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-		const GLuint shader = shaders[ "BBox" ];
-		glUseProgram( shader );
-		glBindVertexArray( ChorizoConfig.vao );
-
-		const float aspectRatio = float( config.width ) / float( config.height );
-		// const vec3 eyePosition = vec3( 2.0f, 0.0f, 0.0f );
-		const float time = SDL_GetTicks() / 10000.0f;
-		const vec3 eyePosition = vec3( 5.0f * sin( time ), 5.0f * cos( time * 0.2f ), 2.0f * sin( time * 0.3f ) );
-		const mat4 viewTransform =
-			glm::perspective( 45.0f, aspectRatio, 0.001f, 100.0f ) *
-			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
-
-		glUniform1f( glGetUniformLocation( shader, "numPrimitives" ), ChorizoConfig.numSpheres );
-		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
-		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
-
 		glViewport( 0, 0, config.width, config.height );
-		glDrawArrays( GL_TRIANGLES, 0, 36 * ChorizoConfig.numSpheres );
+		glDrawArrays( GL_TRIANGLES, 0, 36 * ChorizoConfig.numPrimitives );
 
 		// revert to default framebuffer
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
+	void RasterGeoDataSetup () {
+		const GLuint shader = shaders[ "BBox" ];
+		glUseProgram( shader );
+		glBindVertexArray( ChorizoConfig.vao );
+		const float time = SDL_GetTicks() / 10000.0f;
+
+		// setting up the orbiting camera
+		rng ampGen = rng( 2.0f, 4.0f );
+		rng orbitGen = rng( 0.5f, 1.6f );
+		static const vec3 amplitudes = vec3( ampGen(), ampGen(), ampGen() );
+		static const vec3 orbitRatios = vec3( orbitGen(), orbitGen(), orbitGen() );
+		const vec3 eyePosition = vec3(
+			amplitudes.x * sin( time * orbitRatios.x ),
+			amplitudes.y * cos( time * orbitRatios.y ),
+			amplitudes.z * sin( time * orbitRatios.z ) );
+
+		const float aspectRatio = float( config.width ) / float( config.height );
+		const mat4 viewTransform =
+			glm::perspective( 45.0f, aspectRatio, 0.1f, 100.0f ) *
+			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+
+		glUniform1f( glGetUniformLocation( shader, "numPrimitives" ), ChorizoConfig.numPrimitives );
+		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
+		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
+	}
+
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // dummy draw - draw something into accumulatorTexture
+		{ // doing the deferred processing from rasterizer results to rendered result
 			scopedTimer Start( "Drawing" );
-			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+
+			string index = ChorizoConfig.frameCount % 2 ? "0" : "1";
+			string indexBack = ChorizoConfig.frameCount % 2 ? "1" : "0";
+			textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shader, 0 );
+			textureManager.BindImageForShader( "Framebuffer Normal " + index, "normals", shader, 1 );
+			textureManager.BindImageForShader( "Framebuffer Normal " + indexBack, "normalsBack", shader, 2 );
+			textureManager.BindImageForShader( "Framebuffer Primitive ID " + index, "primitiveID", shader, 3 );
+			textureManager.BindImageForShader( "Framebuffer Primitive ID " + indexBack, "primitiveIDBack", shader, 4 );
+			textureManager.BindImageForShader( "Accumulator", "accumulatorTexture", shader, 5 );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// add the code for deferred shading, etc, here
 
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
@@ -190,23 +213,11 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
-
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
-
-		{ // show trident with current orientation
-			// scopedTimer Start( "Trident" );
-			// trident.Update( textureManager.Get( "Display Texture" ) );
-			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 	}
 
@@ -218,9 +229,9 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
+		DrawAPIGeometry();			// draw the cubes on top, into the ping-ponging framebuffer
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
-		DrawAPIGeometry();			// draw the cubes on top
 		{
 			scopedTimer Start( "ImGUI Pass" );
 			ImguiFrameStart();		// start the imgui frame
