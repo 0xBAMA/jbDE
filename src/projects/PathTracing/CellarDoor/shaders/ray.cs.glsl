@@ -121,22 +121,24 @@ void main () {
 	vec3 colorScalars = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() );
 
 	// generate ray source point
-	// const vec3 offset = RandomUnitVector();
+	const vec3 offset = RandomUnitVector();
 	// vec3 Origin = ( offset * 20.0f ) + vec3( 30.0f, 30.0f, 100.0f );
 	// vec3 Direction = normalize( vec3( 1.0f, 2.3f, 0.0f ) );
 
 
-	vec3 Origin = vec3( 300.0f, 300.0f, 10.0f );
-	vec3 Direction = normalize( RandomUnitVector() + vec3( 0.1f, 0.3f, 0.75f ) );
+	// vec3 Origin = vec3( 300.0f, 300.0f, 10.0f );
+	// vec3 Direction = normalize( RandomUnitVector() + vec3( 0.1f, 0.3f, 0.75f ) );
 
 
 	// vec3 Origin = vec3( NormalizedRandomFloat() * size.x / 10.0f + size.x / 2.0f, NormalizedRandomFloat() * size.y / 10.0f + size.y / 2.0f, NormalizedRandomFloat() * size.z + size.z / 2.0f );
+	// vec3 Origin = vec3( NormalizedRandomFloat() * size.x / 3.0f + size.x / 2.0f, NormalizedRandomFloat() * size.y / 3.0f + size.y / 2.0f, NormalizedRandomFloat() * size.z + size.z / 2.0f );
 	// vec3 Origin = vec3( ( NormalizedRandomFloat() - 0.5f ) * size.x / 10.0f + size.x / 2.0f, ( NormalizedRandomFloat() - 0.5f ) * size.y / 10.0f + size.y / 2.0f,  ( NormalizedRandomFloat() - 0.5f ) * size.z / 10.0f + size.z / 2.0f );
 	// vec3 Origin = vec3( NormalizedRandomFloat() * size.x, NormalizedRandomFloat() * size.y, 5.0f );
-	// vec3 Direction = normalize( vec3( RandomInUnitDisk(), 0.0f ) + 0.618f * RandomUnitVector() ).yzx;
+	// vec3 Direction = normalize( vec3( Ra/ndomInUnitDisk(), 0.0f ) + 0.618f * RandomUnitVector() ).yzx;
 	// vec3 Direction = RandomUnitVector();
 	// vec3 Direction = vec3( RandomInUnitDisk(), 0.0f );
 	// vec3 Direction = vec3( 0.0f, 0.0f, -1.0f );
+	// vec3 Direction = vec3( 0.0f, 1.0f, 0.0f );
 
 	// vec3 Origin = size / 2.0f + 10.0f * RandomUnitVector();
 	// vec3 Direction = normalize( vec3( RandomInUnitDisk(), 1.0f ) );
@@ -144,7 +146,10 @@ void main () {
 	// Direction.xy = sign( Direction.xy );
 	// Direction = sign( Direction );
 
-	
+	vec3 Origin = vec3( RandomInUnitDisk().xy * size.xy / 2.0f + size.xy / 2.0f, 10.0f );
+	vec3 Direction = normalize( vec3( RandomInUnitDisk(), 1.0f ) );
+	// vec3 Direction = RandomUnitVector();
+	// vec3 Direction = vec3( 0.0f, 0.0f, 1.0f );
 
 	// const bool pick = ( NormalizedRandomFloat() < 0.1f );
 	// vec3 Origin = pick ? ( ( offset * 10.0f ) + vec3( 30.0f, 30.0f, 100.0f ) ) : vec3( NormalizedRandomFloat() * 600, 590, NormalizedRandomFloat() * 300 );
@@ -153,7 +158,6 @@ void main () {
 
 	// vec3 Origin = vec3( UniformSampleHexagon( blue.xy ) * 100.0f + vec2( 300.0f, 300.0f ), NormalizedRandomFloat() * 20.0f + 90.0f );
 	// vec3 Direction = normalize( Origin - vec3( 300.0f, 300.0f, 100.0f ) );
-
 
 
 	// vec3 Origin = vec3( UniformSampleHexagon( blue.xy ) * 250.0f + vec2( 300.0f, 300.0f ), NormalizedRandomFloat() * 20.0f + 90.0f );
