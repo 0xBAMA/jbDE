@@ -26,6 +26,7 @@ uniform int lensDistortColorWeightMode;
 // vignetting
 uniform bool enableVignette;
 uniform float vignettePower;
+uniform float hueShift;
 
 #include "tonemap.glsl"
 
@@ -64,9 +65,8 @@ void main() { // This is where tonemapping etc will be happening on the accumula
 		color = imageLoad( accumulatorColor, location );
 	}
 
-	// lens distort - tbd, texture binding, also?
-
-	// chromatic aberration
+	// hue shifting
+	color.rgb = oklch_to_srgb( srgb_to_oklch( color.rgb ) + vec3( 0.0f, 0.0f, hueShift ) );
 
 	// SSAO, since we have access to depth and normals
 

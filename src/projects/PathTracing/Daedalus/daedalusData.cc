@@ -190,6 +190,7 @@ void Daedalus::SendPrepareUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "postExposure" ),				tonemap.postExposure );
 	glUniform1i( glGetUniformLocation( shader, "enableVignette" ), 				tonemap.enableVignette );
 	glUniform1f( glGetUniformLocation( shader, "vignettePower" ), 				tonemap.vignettePower );
+	glUniform1f( glGetUniformLocation( shader, "hueShift" ),					tonemap.hueShift );
 
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
