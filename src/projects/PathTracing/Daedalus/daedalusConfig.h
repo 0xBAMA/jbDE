@@ -82,6 +82,15 @@ struct renderConfig_t {
 	sceneConfig_t scene;
 };
 
+struct postConfig_t {
+	bool enableLensDistort = true;
+	bool lensDistortNormalize = true;
+	int lensDistortNumSamples = 100;
+	vec3 lensDistortParametersStart = vec3( 0.0f, 0.02f, 0.0f );
+	vec3 lensDistortParametersEnd = vec3( 0.02f, 0.0f, 0.0f );
+	bool lensDistortChromab = true;
+};
+
 struct daedalusConfig_t {
 
 	daedalusConfig_t() {
@@ -146,7 +155,7 @@ struct daedalusConfig_t {
 		render.scene.raymarchUnderstep = 0.9f;
 
 		render.scene.ddaSpheresEnable = true;
-		render.scene.ddaSpheresBoundSize = 10.0f;
+		render.scene.ddaSpheresBoundSize = 1.6f;
 		render.scene.ddaSpheresResolution = 513;
 
 		// masked planes
@@ -194,6 +203,7 @@ struct daedalusConfig_t {
 	bool showConfigWindow;	// tabbed interface for configuring scene/rendering parameters
 	viewConfig_t view;		// parameters for ouput presentation
 	renderConfig_t render;	// parameters for the tiled renderer
+	postConfig_t post;
 
 	// class holding the random number generators
 	rngen_t rng;

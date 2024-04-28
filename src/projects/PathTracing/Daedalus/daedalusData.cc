@@ -188,12 +188,19 @@ void Daedalus::SendPrepareUniforms() {
 	glUniformMatrix3fv( glGetUniformLocation( shader, "saturation" ), 1, false,	glm::value_ptr( saturationMatrix ) );
 	glUniform1f( glGetUniformLocation( shader, "gamma" ),						tonemap.gamma );
 	glUniform1f( glGetUniformLocation( shader, "postExposure" ),				tonemap.postExposure );
-	glUniform1i( glGetUniformLocation( shader, "enableVignette" ), 				tonemap.enableVignette );
-	glUniform1f( glGetUniformLocation( shader, "vignettePower" ), 				tonemap.vignettePower );
+	glUniform1i( glGetUniformLocation( shader, "enableVignette" ),				tonemap.enableVignette );
+	glUniform1f( glGetUniformLocation( shader, "vignettePower" ),				tonemap.vignettePower );
 	glUniform1f( glGetUniformLocation( shader, "hueShift" ),					tonemap.hueShift );
+	glUniform1i( glGetUniformLocation( shader, "enableLensDistort" ),			daedalusConfig.post.enableLensDistort );
+	glUniform1i( glGetUniformLocation( shader, "lensDistortNormalize" ),		daedalusConfig.post.lensDistortNormalize );
+	glUniform1i( glGetUniformLocation( shader, "lensDistortNumSamples" ),		daedalusConfig.post.lensDistortNumSamples );
+	glUniform3fv( glGetUniformLocation( shader, "lensDistortParametersStart" ), 1, glm::value_ptr( daedalusConfig.post.lensDistortParametersStart ) );
+	glUniform3fv( glGetUniformLocation( shader, "lensDistortParametersEnd" ), 1, glm::value_ptr( daedalusConfig.post.lensDistortParametersEnd ) );
+	glUniform1i( glGetUniformLocation( shader, "lensDistortChromab" ),			daedalusConfig.post.lensDistortChromab );
 
 	textureManager.BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 	textureManager.BindImageForShader( "Color Accumulator", "accumulatorColor", shader, 1 );
+	textureManager.BindTexForShader( "Color Accumulator", "accumulatorColorTex", shader, 1 );
 	textureManager.BindImageForShader( "Depth/Normals Accumulator", "accumulatorNormalsAndDepth", shader, 2 );
 	textureManager.BindImageForShader( "Tonemapped", "tonemappedResult", shader, 3 );
 }
@@ -527,6 +534,7 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 	static glm::vec4 color2 = glm::vec4( palette::paletteRef( 0.8f ), 1.0f );
 
 	rng jitter = rng( -0.1f, 0.1f );
+	rng alphaOffset = rng( 0.0f, 0.5f );
 
 	static float lambda = 0.35f;
 	static float beta = 0.5f;
@@ -552,8 +560,8 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 					// case 2: color = color2; break;
 					// default: color = color0; break;
 					case 0: color = glm::vec4( palette::paletteRef( 0.2f + jitter() ), 0.0f ); break;
-					case 1: color = glm::vec4( palette::paletteRef( 0.5f + jitter() ), 1.0f ); break;
-					case 2: color = glm::vec4( palette::paletteRef( 0.8f + jitter() ), 1.0f ); break;
+					case 1: color = glm::vec4( palette::paletteRef( 0.5f + jitter() ), 0.1f ); break;
+					case 2: color = glm::vec4( palette::paletteRef( 0.8f + jitter() ), 0.2f + alphaOffset() ); break;
 					default: color = color0; break;
 				}
 				loaded.push_back( static_cast<uint8_t>( color.x * 255.0 ) );
