@@ -261,8 +261,80 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 	if ( ImGui::CollapsingHeader( "Postprocess" ) ) {
 		ImGui::Indent();
+
 		// this needs significant work
-		PostProcessImguiMenu();
+		if ( ImGui::CollapsingHeader( "Color Management" ) ) {
+			ImGui::SeparatorText( "Basic" );
+			ImGui::SliderFloat( "Exposure##post", &tonemap.postExposure, 0.0f, 5.0f );
+			ImGui::SliderFloat( "Gamma", &tonemap.gamma, 0.0f, 3.0f );
+
+			ImGui::SeparatorText( "Adjustments" );
+			ImGui::SliderFloat( "Hue Shift", &tonemap.hueShift, -2.0f, 2.0f );
+			ImGui::SliderFloat( "Saturation", &tonemap.saturation, 0.0f, 4.0f );
+			ImGui::Checkbox( "Saturation Uses Improved Weight Vector", &tonemap.saturationImprovedWeights );
+			ImGui::SliderFloat( "Color Temperature", &tonemap.colorTemp, 1000.0f, 40000.0f );
+
+			ImGui::SeparatorText( "Tonemap" );
+			const char* tonemapModesList[] = {
+				"None (Linear)",
+				"ACES (Narkowicz 2015)",
+				"Unreal Engine 3",
+				"Unreal Engine 4",
+				"Uncharted 2",
+				"Gran Turismo",
+				"Modified Gran Turismo",
+				"Rienhard",
+				"Modified Rienhard",
+				"jt",
+				"robobo1221s",
+				"robo",
+				"reinhardRobo",
+				"jodieRobo",
+				"jodieRobo2",
+				"jodieReinhard",
+				"jodieReinhard2",
+				"AgX"
+			};
+			ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
+			ImGui::Text( " " );
+		}
+
+		if ( ImGui::CollapsingHeader( "Vignette" ) ) {
+			ImGui::Checkbox( "Enable Vignette", &tonemap.enableVignette );
+			if ( tonemap.enableVignette ) {
+				ImGui::SliderFloat( "Vignette Power", &tonemap.vignettePower, 0.0f, 2.0f );
+			}
+			ImGui::Text( " " );
+		}
+
+		if ( ImGui::CollapsingHeader( "Bloom" ) ) {
+			ImGui::Text( "todo" );
+			ImGui::Text( " " );
+		}
+
+		if ( ImGui::CollapsingHeader( "Lens Distort" ) ) {
+			// // lens distortion
+			ImGui::Checkbox( "Enable##lensDistort", &daedalusConfig.post.enableLensDistort );
+			ImGui::Checkbox( "Normalize##lensDistort", &daedalusConfig.post.lensDistortNormalize );
+			ImGui::Checkbox( "Chromatic Aberration##lensDistort", &daedalusConfig.post.lensDistortChromab );
+			ImGui::SliderInt( "Samples##lensDistort", &daedalusConfig.post.lensDistortNumSamples, 3, 100 );
+			ImGui::SliderFloat( "K1 Start", &daedalusConfig.post.lensDistortParametersStart.x, -0.1f, 0.1f );
+			ImGui::SliderFloat( "K1 End", &daedalusConfig.post.lensDistortParametersEnd.x, -0.1f, 0.1f );
+			ImGui::SliderFloat( "K2 Start", &daedalusConfig.post.lensDistortParametersStart.y, -0.1f, 0.1f );
+			ImGui::SliderFloat( "K2 End", &daedalusConfig.post.lensDistortParametersEnd.y, -0.1f, 0.1f );
+			ImGui::SliderFloat( "T1 Start", &daedalusConfig.post.lensDistortParametersStart.z, -0.1f, 0.1f );
+			ImGui::SliderFloat( "T1 End", &daedalusConfig.post.lensDistortParametersEnd.z, -0.1f, 0.1f );
+		}
+
+		if ( ImGui::CollapsingHeader( "Dithering" ) ) {
+			ImGui::Text( "todo" );
+			ImGui::Text( " " );
+		}
+
+		if ( ImGui::Button( "Reset to Defaults" ) ) {
+			TonemapDefaults(); // revisit how this works
+		}
+
 		ImGui::Unindent();
 	}
 
