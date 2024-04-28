@@ -3,7 +3,7 @@
 void recursiveTreeBuild( std::vector< mat4 > &transforms, mat4 currentTransform, int levelsDeep, int maxLevelsDeep ) {
 	vec3 x = ( currentTransform * vec4( 1.0f, 0.0f, 0.0f, 0.0f ) ).xyz();
 	vec3 y = ( currentTransform * vec4( 0.0f, 1.0f, 0.0f, 0.0f ) ).xyz();
-	vec3 z = ( currentTransform * vec4( 0.0f, 0.0f, 1.0f, 0.0f ) ).xyz();
+	// vec3 z = ( currentTransform * vec4( 0.0f, 0.0f, 1.0f, 0.0f ) ).xyz();
 
 	if ( levelsDeep == maxLevelsDeep ) {
 		return;
@@ -28,8 +28,8 @@ void randomPlacement( std::vector< mat4 > &transforms, int count ) {
 	rng scale( 0.01f, 0.1f );
 	rng position( -5.5f, 5.5f );
 	float t = position();
-	rng parameters( 0.0001f, 0.01f );
-	vec4 params = vec4( parameters(), parameters(), parameters(), parameters() );
+	// rng parameters( 0.0001f, 0.01f );
+	// vec4 params = vec4( parameters(), parameters(), parameters(), parameters() );
 	for ( int i = 0; i < count; i++, t += 0.05f ) {
 		mat4 temp;
 		// if ( i % 2 == 0 ) {
@@ -49,13 +49,22 @@ void randomPlacement( std::vector< mat4 > &transforms, int count ) {
 }
 
 void gridPlacement( std::vector< mat4 > &transforms, const ivec3 dims ) {
+	mat4 temp;
+	rng reject = rng( 0.0f, 1.0f );
 	for ( int x = -dims.x / 2; x < dims.x / 2; x++ ) {
 		for ( int y = -dims.y / 2; y < dims.y / 2; y++ ) {
 			for ( int z = -dims.z / 2; z < dims.z / 2; z++ ) {
-				mat4 temp = glm::translate( vec3( 0.1f * x, 0.1f * y, 0.1f * z ) ) *
-					// glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
-					glm::scale( vec3( 0.045f ) ) *
-					mat4( 1.0f );
+				if ( reject() > 0.916f ) continue;
+				else if ( reject() > 0.3f )
+					temp = glm::translate( vec3( 0.1f * x, 0.1f * y, 0.1f * z ) ) *
+						glm::scale( vec3( 0.015f + 0.03f * reject() ) ) *
+						mat4( 1.0f );
+				else {
+					temp = glm::translate( vec3( 0.1f * x, 0.1f * y, 0.1f * z ) ) *
+						// glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
+						glm::scale( vec3( 0.045f ) ) *
+						mat4( 1.0f );
+				}
 				transforms.push_back( temp );
 				transforms.push_back( glm::inverse( temp ) );
 			}
