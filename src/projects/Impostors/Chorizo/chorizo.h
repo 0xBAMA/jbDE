@@ -1,18 +1,16 @@
 #include "../../../engine/engine.h"
 #include "generate.h"
 
-// struct primitiveParameters {
-
-// };
-
 struct ChorizoConfig_t {
 	GLuint vao;
 	GLuint shapeParametersBuffer;
-	GLuint AABBTransformBuffer;
+	GLuint boundsTransformBuffer;
 	GLuint primaryFramebuffer[ 2 ];
 
-	int numPrimitives = 500;
+	int numPrimitives = 64;
 	uint32_t frameCount = 0;
+
+	geometryManager_t geometryManager;
 };
 
 class Chorizo : public engineBase {
@@ -29,6 +27,7 @@ public:
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Draw" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Bounds" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/bounds.cs.glsl" ).shaderHandle;
 
 			// setup raster shader
 			shaders[ "BBox" ] = regularShader(
@@ -46,24 +45,8 @@ public:
 			glFrontFace( GL_CCW );
 			glDisable( GL_BLEND );
 
-
-
-	// what does the data setup look like, with the new approach?
-
-			// create the transforms buffer
-			std::vector< mat4 > transforms;
-			gridPlacement( transforms, ivec3( 10, 12, 4 ) );
-			ChorizoConfig.numPrimitives = transforms.size() / 2;
-			cout << newline << newline << "created " << ChorizoConfig.numPrimitives / 2 << " primitives" << newline;
-
-			glGenBuffers( 1, &ChorizoConfig.AABBTransformBuffer );
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.AABBTransformBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numPrimitives * 2, ( GLvoid * ) transforms.data(), GL_DYNAMIC_COPY );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.AABBTransformBuffer );
-
-
-
-
+			// get some initial data for the impostor shapes
+			PrepSSBOs();
 
 			// == Render Framebuffer(s) ===========
 			textureOptions_t opts;
@@ -112,6 +95,32 @@ public:
 		}
 	}
 
+	void PrepSSBOs () {
+
+		// add some number of primitives to the buffer
+		for ( float x = -1.0f; x < 1.0f; x += 0.1f ) {
+			for ( float y = -1.0f; y < 1.0f; y += 0.1f ) {
+				ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, -0.1f ), vec3( x, y, 0.1f ), 0.01f );
+			}
+		}
+
+		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
+		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
+
+		// create the transforms buffer
+		glGenBuffers( 1, &ChorizoConfig.boundsTransformBuffer );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.boundsTransformBuffer );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numPrimitives * 2, NULL, GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.boundsTransformBuffer );
+
+		// shape parameterization buffer
+		glGenBuffers( 1, &ChorizoConfig.shapeParametersBuffer );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
+
+	}
+
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
@@ -134,7 +143,6 @@ public:
 
 		// if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 		// if ( tonemap.showTonemapWindow ) TonemapControlsWindow();
-
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
 			profilerWindow.cpuGraph.LoadFrameData( &tasks_CPU[ 0 ], tasks_CPU.size() );
@@ -147,6 +155,14 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
+
+		// prepare the bounding boxes
+		const GLuint shader = shaders[ "Bounds" ];
+		glUseProgram( shader );
+		glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		// then draw, using the prepared data
 		RasterGeoDataSetup();
 		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( ChorizoConfig.frameCount++ % 2 ) ] );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
