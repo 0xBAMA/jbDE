@@ -41,8 +41,8 @@ transform_t CapsuleBounds( parameters_t parameters ) {
 	const vec3 refVector = 0.5f * d * ( ( length( d ) + 2.0f * radius ) / length( d ) );
 
 	vec3 displacementVector = normalize( d );
-	const vec3 up = vec3( 0.0f, 1.0f, 0.0f );
-	if ( normalize( displacementVector ) == up ) {
+	const vec3 up = vec3( 1.0f, 1.0f, 1.0f );
+	if ( dot( normalize( displacementVector ), up ) > 0.999f ) {
 		// is it along some reference vector? if yes, we need to do the math with some linearly independent vector
 		displacementVector = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
 	}
