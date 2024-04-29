@@ -12,12 +12,21 @@ uniform float numPrimitives;
 #include "consistentPrimitives.glsl.h"
 
 uniform mat4 viewTransform;
+// ===================================================================================================
 struct transform_t {
 	mat4 transform;
 	mat4 inverseTransform;
 };
 layout( binding = 0, std430 ) buffer transformsBuffer {
 	transform_t transforms[];
+};
+
+// ===================================================================================================
+struct parameters_t {
+	float data[ 16 ];
+};
+layout( binding = 1, std430 ) buffer parametersBuffer {
+	parameters_t parametersList[];
 };
 
 // TAA resources:
@@ -39,19 +48,24 @@ void main() {
 	const vec3 eyeVectorToFragment = vofiPosition - eyePosition;
 	const vec3 rayOrigin = ( inverseTransform * vec4( eyePosition, 1.0f ) ).xyz;
 	const vec3 rayDirection = normalize( inverseTransform * vec4( eyeVectorToFragment, 0.0f ) ).xyz;
-	const vec3 centerPoint = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
 
 	// this assumes that the contained primitive is located at the origin of the box
-	vec3 normal = vec3( 0.0f );
+	// const vec3 centerPoint = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
 	// float result = iSphere( rayOrigin - centerPoint, rayDirection, normal, 1.0f );
 	// float result = iCapsule( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.7f ), vec3( 0.7f ), 0.25f );
 	// float result = iRoundedCone( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.9f ), vec3( 0.7f ), 0.1f, 0.3f );
-	float result = iRoundedBox( rayOrigin - centerPoint, rayDirection, normal, vec3( 0.9f ), 0.1f );
+	// float result = iRoundedBox( rayOrigin - centerPoint, rayDirection, normal, vec3( 0.9f ), 0.1f );
+
+	// intersecting with the contained primitive
+	parameters_t parameters = parametersList[ vofiIndex ];
+	vec3 normal = vec3( 0.0f );
+	float result = iCapsule( rayOrigin, rayDirection, normal, vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] ), vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] ), parameters.data[ 4 ] );
 
 	if ( result == MAX_DIST ) { // miss condition
 		#ifdef SHOWDISCARDS
 			if ( ( int( gl_FragCoord.x ) % 2 == 0 ) ) {
 				outColor = vec4( 1.0f ); // placeholder, helps visualize bounding box
+				primitiveID = uvec4( 0xffff );
 			} else {
 		#endif
 				discard;
