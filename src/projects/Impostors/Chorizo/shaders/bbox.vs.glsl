@@ -3,7 +3,6 @@
 #include "cubeVerts.h"
 
 out flat uint vofiIndex;
-out vec4 vofiColor;
 out vec3 vofiPosition;
 
 uniform mat4 viewTransform;
@@ -17,8 +16,6 @@ layout( binding = 0, std430 ) buffer transformsBuffer {
 void main() {
 	vofiIndex = gl_VertexID / 36;
 	vec4 position = transforms[ vofiIndex ].transform * vec4( CubeVert( gl_VertexID % 36 ), 1.0f );
-
-	vofiColor = vec4( 1.0f ); // placeholder color
 	vofiPosition = position.xyz;
 	gl_Position = viewTransform * position;
 }

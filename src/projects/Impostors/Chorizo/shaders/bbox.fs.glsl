@@ -2,7 +2,6 @@
 
 in flat uint vofiIndex;
 in vec3 vofiPosition;
-in vec4 vofiColor;
 out vec4 outColor;
 
 uniform vec3 eyePosition;	// location of the viewer
