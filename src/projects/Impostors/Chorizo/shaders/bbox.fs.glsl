@@ -14,15 +14,6 @@ uniform float numPrimitives;
 // ===================================================================================================
 uniform mat4 viewTransform;
 // ===================================================================================================
-struct transform_t {
-	mat4 transform;
-	mat4 inverseTransform;
-};
-layout( binding = 0, std430 ) buffer transformsBuffer {
-	transform_t transforms[];
-};
-
-// ===================================================================================================
 struct parameters_t {
 	float data[ 16 ];
 };
@@ -42,18 +33,12 @@ layout( location = 1 ) out uvec4 primitiveID;
 // #define SHOWDISCARDS
 
 void main() {
-	const mat4 transform = transforms[ vofiIndex ].transform;
-	const mat4 inverseTransform = transforms[ vofiIndex ].inverseTransform;
-
 	// eye parameter
 	const vec3 eyeVectorToFragment = vofiPosition - eyePosition;
 	const vec3 rayOrigin = eyePosition;
 	const vec3 rayDirection = normalize( eyeVectorToFragment );
 
-	// this assumes that the contained primitive is located at the origin of the box
-	// const vec3 centerPoint = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
 	// float result = iSphere( rayOrigin - centerPoint, rayDirection, normal, 1.0f );
-	// float result = iCapsule( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.7f ), vec3( 0.7f ), 0.25f );
 	// float result = iRoundedCone( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.9f ), vec3( 0.7f ), 0.1f, 0.3f );
 	// float result = iRoundedBox( rayOrigin - centerPoint, rayDirection, normal, vec3( 0.9f ), 0.1f );
 

@@ -9,7 +9,6 @@ out vec3 vofiPosition;
 uniform mat4 viewTransform;
 struct transform_t {
 	mat4 transform;
-	mat4 inverseTransform;
 };
 layout( binding = 0, std430 ) buffer transformsBuffer {
 	transform_t transforms[];

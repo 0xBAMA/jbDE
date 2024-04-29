@@ -118,7 +118,7 @@ public:
 		// create the transforms buffer
 		glGenBuffers( 1, &ChorizoConfig.boundsTransformBuffer );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.boundsTransformBuffer );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numPrimitives * 2, NULL, GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numPrimitives, NULL, GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.boundsTransformBuffer );
 
 		// shape parameterization buffer

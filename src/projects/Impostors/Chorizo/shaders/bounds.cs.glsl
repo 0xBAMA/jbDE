@@ -9,7 +9,6 @@ layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 // ===================================================================================================
 struct transform_t {
 	mat4 transform;
-	mat4 inverseTransform;
 };
 layout( binding = 0, std430 ) buffer transformsBuffer {
 	transform_t transforms[];
@@ -62,9 +61,7 @@ transform_t CapsuleBounds( parameters_t parameters ) {
 		firstOrthoVec, 0.0f,
 		midPoint, 1.0f
 	);
-	// result.transform = mat4( 1.0f );
 
-	result.inverseTransform = inverse( result.transform );
 	return result;
 }
 
