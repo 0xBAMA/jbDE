@@ -14,17 +14,22 @@ void main () {
 	// pixel location
 	const ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
+	// data from the framebuffer
 	const uint idSample = imageLoad( primitiveID, writeLoc ).r;
 	const vec3 normalSample = imageLoad( normals, writeLoc ).rgb;
 
+	// todo: compute SSAO
 
 	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
 		// write the data to the image
 		imageStore( accumulatorTexture, writeLoc, vec4( normalSample, 1.0f ) );
+
+		// vec3 color = vec3( 0.1618f );
+		// color += vec3( 0.2f, 0.1f, 0.1f ) * clamp( dot( normalSample, vec3( 1.0f ) ), 0.0f, 1.0f );
+		// imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
+
 	} else {
-		// vec4 blue = imageLoad( blueNoiseTexture, writeLoc % imageSize( blueNoiseTexture ) ) / 255.0f;
-		// const vec4 previousValue = imageLoad( accumulatorTexture, ivec2( writeLoc + blue.xy * 3.0f ) );
-		// const vec4 previousValue = imageLoad( accumulatorTexture, writeLoc );
+		// else this is a background colored pixel
 		imageStore( accumulatorTexture, writeLoc, vec4( 0.0f ) );
 	}
 }

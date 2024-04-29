@@ -52,7 +52,7 @@ public:
 
 			// create the transforms buffer
 			std::vector< mat4 > transforms;
-			gridPlacement( transforms, ivec3( 34, 24, 9 ) );
+			gridPlacement( transforms, ivec3( 10, 12, 4 ) );
 			ChorizoConfig.numPrimitives = transforms.size() / 2;
 			cout << newline << newline << "created " << ChorizoConfig.numPrimitives / 2 << " primitives" << newline;
 

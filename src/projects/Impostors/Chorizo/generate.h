@@ -54,15 +54,19 @@ void gridPlacement( std::vector< mat4 > &transforms, const ivec3 dims ) {
 	for ( int x = -dims.x / 2; x < dims.x / 2; x++ ) {
 		for ( int y = -dims.y / 2; y < dims.y / 2; y++ ) {
 			for ( int z = -dims.z / 2; z < dims.z / 2; z++ ) {
-				if ( reject() > 0.916f ) continue;
-				else if ( reject() > 0.3f )
+				if ( reject() > 0.3f ) continue;
+				else if ( reject() > 0.8f )
 					temp = glm::translate( vec3( 0.1f * x, 0.1f * y, 0.1f * z ) ) *
 						glm::scale( vec3( 0.015f + 0.03f * reject() ) ) *
 						mat4( 1.0f );
 				else {
 					temp = glm::translate( vec3( 0.1f * x, 0.1f * y, 0.1f * z ) ) *
 						// glm::rotate( rotation(), glm::normalize( vec3( position(), position(), position() ) ) ) *
-						glm::scale( vec3( 0.045f ) ) *
+						( ( reject() > 0.7f ) ?
+							glm::scale( vec3( 0.075f ) ) :
+							( ( reject() > 0.5f ) ?
+								glm::scale( vec3( 0.03f, 0.05f, 0.03f ) ) :
+								glm::scale( vec3( 0.03f, 0.03f, 0.05f ) ) ) ) *
 						mat4( 1.0f );
 				}
 				transforms.push_back( temp );
