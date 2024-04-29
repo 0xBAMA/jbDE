@@ -99,17 +99,16 @@ public:
 	void PrepSSBOs () {
 
 		// add some number of primitives to the buffer
-		rng pick = rng( 0.0f, 1.0f );
-		for ( float x = -0.6f; x <= 0.6f; x += 0.03f ) {
-			for ( float y = -0.3f; y <= 0.3f; y += 0.03f ) {
-				for ( float z = -1.0f; z <= 1.0f; z += 0.03f ) {
-					if ( pick() < 0.3f ) {
-						ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, z ), vec3( x + 0.03f, y, z ), 0.006f );
-						ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, z ), vec3( x, y - 0.03f, z ), 0.006f );
-						ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, z ), vec3( x, y, z + 0.03f ), 0.006f );
-					}
-				}
-			}
+		// rng pick = rng( 0.0f, 1.0f );
+		const float xSpan = 1.6f;
+		const float xSpacing = 0.2f;
+		const float ySpan = 0.8f;
+		const float ySpacing = 0.2f;
+		for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
+			ChorizoConfig.geometryManager.AddCapsule( vec3( x, ySpan, 0.0f ), vec3( x, -ySpan, 0.0f ), 0.03f );
+		}
+		for ( float y = -ySpan; y <= ySpan; y += ySpacing ) {
+			ChorizoConfig.geometryManager.AddCapsule( vec3( -xSpan, y, 0.0f ), vec3( xSpan, y, 0.0f ), 0.03f );
 		}
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
