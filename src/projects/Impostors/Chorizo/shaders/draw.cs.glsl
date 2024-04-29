@@ -10,6 +10,8 @@ layout( binding = 5, rgba16f ) uniform image2D accumulatorTexture;
 
 uniform float time;
 
+#define UINT_MAX (0xFFFFFFFF-1)
+
 void main () {
 	// pixel location
 	const ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
@@ -20,13 +22,9 @@ void main () {
 
 	// todo: compute SSAO
 
-	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
+	if ( idSample != UINT_MAX ) { // these are texels which wrote out a fragment during the raster geo pass
 		// write the data to the image
 		imageStore( accumulatorTexture, writeLoc, vec4( normalSample, 1.0f ) );
-
-		// vec3 color = vec3( 0.1618f );
-		// color += vec3( 0.2f, 0.1f, 0.1f ) * clamp( dot( normalSample, vec3( 1.0f ) ), 0.0f, 1.0f );
-		// imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
 
 	} else {
 		// else this is a background colored pixel
