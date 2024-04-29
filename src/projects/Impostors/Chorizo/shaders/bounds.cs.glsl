@@ -7,11 +7,8 @@ layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 // ===================================================================================================
 // output from the bounds stage
 // ===================================================================================================
-struct transform_t {
-	mat4 transform;
-};
 layout( binding = 0, std430 ) buffer transformsBuffer {
-	transform_t transforms[];
+	mat4 transforms[];
 };
 
 // ===================================================================================================
@@ -27,9 +24,9 @@ layout( binding = 1, std430 ) buffer parametersBuffer {
 // ===================================================================================================
 // capsule bounds - primary axis is between endpoints, then some cross products to get the others
 // ===================================================================================================
-transform_t CapsuleBounds( parameters_t parameters ) {
-	transform_t result;
-	result.transform = mat4( 1.0f );
+mat4 CapsuleBounds( parameters_t parameters ) {
+	mat4 result;
+	result = mat4( 1.0f );
 
 	const vec3 pointA = vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] );
 	const vec3 pointB = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
@@ -55,7 +52,7 @@ transform_t CapsuleBounds( parameters_t parameters ) {
 			// third axis is that second orthogonal vector, of length radius
 	const vec3 secondOrthoVec = radius * normalize( cross( displacementVector, firstOrthoVec ) );
 
-	result.transform = mat4(
+	result = mat4(
 		refVector, 0.0f,
 		secondOrthoVec, 0.0f,
 		firstOrthoVec, 0.0f,
@@ -71,7 +68,7 @@ void main () {
 	// getting this object's parameters
 	uint index = gl_GlobalInvocationID.x;
 	parameters_t parameters = parametersList[ index ];
-	transform_t result;
+	mat4 result;
 
 	// changing behavior, based on the contained primitive
 	switch( int( parameters.data[ 0 ] ) ) {

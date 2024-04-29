@@ -6,16 +6,13 @@ out flat uint vofiIndex;
 out vec3 vofiPosition;
 
 uniform mat4 viewTransform;
-struct transform_t {
-	mat4 transform;
-};
 layout( binding = 0, std430 ) buffer transformsBuffer {
-	transform_t transforms[];
+	mat4 transforms[];
 };
 
 void main() {
 	vofiIndex = gl_VertexID / 36;
-	vec4 position = transforms[ vofiIndex ].transform * vec4( CubeVert( gl_VertexID % 36 ), 1.0f );
+	vec4 position = transforms[ vofiIndex ] * vec4( CubeVert( gl_VertexID % 36 ), 1.0f );
 	vofiPosition = position.xyz;
 	gl_Position = viewTransform * position;
 }
