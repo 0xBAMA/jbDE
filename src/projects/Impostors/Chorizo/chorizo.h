@@ -28,6 +28,7 @@ public:
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Draw" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/draw.cs.glsl" ).shaderHandle;
 			shaders[ "Bounds" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/bounds.cs.glsl" ).shaderHandle;
+			shaders[ "Animate" ] = computeShader( "./src/projects/Impostors/Chorizo/shaders/animate.cs.glsl" ).shaderHandle;
 
 			// setup raster shader
 			shaders[ "BBox" ] = regularShader(
@@ -98,12 +99,15 @@ public:
 	void PrepSSBOs () {
 
 		// add some number of primitives to the buffer
-		rng jitter = rng( -0.2f, 0.2f );
-		rng jitter2 = rng( 0.0f, 0.01f );
-		for ( float x = -1.0f; x <= 1.0f; x += 0.5f ) {
-			for ( float y = -1.0f; y <= 1.0f; y += 0.5f ) {
-				for ( int i = 0; i < 10000; i++ ) {
-					ChorizoConfig.geometryManager.AddCapsule( vec3( x + jitter(), y + jitter(), jitter() ), vec3( x + jitter(), y + jitter(), jitter() ), 0.001f + jitter2() );
+		rng pick = rng( 0.0f, 1.0f );
+		for ( float x = -0.6f; x <= 0.6f; x += 0.03f ) {
+			for ( float y = -0.3f; y <= 0.3f; y += 0.03f ) {
+				for ( float z = -1.0f; z <= 1.0f; z += 0.03f ) {
+					if ( pick() < 0.3f ) {
+						ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, z ), vec3( x + 0.03f, y, z ), 0.006f );
+						ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, z ), vec3( x, y - 0.03f, z ), 0.006f );
+						ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, z ), vec3( x, y, z + 0.03f ), 0.006f );
+					}
 				}
 			}
 		}
@@ -181,7 +185,7 @@ public:
 		const GLuint shader = shaders[ "BBox" ];
 		glUseProgram( shader );
 		glBindVertexArray( ChorizoConfig.vao );
-		const float time = SDL_GetTicks() / 10000.0f;
+		const float time = SDL_GetTicks() / 3000.0f;
 
 		// setting up the orbiting camera
 		rng ampGen = rng( 2.0f, 4.0f );
@@ -243,7 +247,11 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
+		// const GLuint shader = shaders[ "Animate" ];
+		// glUseProgram( shader );
+		// glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 3000.0f );
+		// glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
 	void OnRender () {

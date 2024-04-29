@@ -39,7 +39,7 @@ layout( location = 0 ) out vec4 normalResult;
 layout( location = 1 ) out uvec4 primitiveID;
 
 // visalizing the fragments that get drawn
-#define SHOWDISCARDS
+// #define SHOWDISCARDS
 
 void main() {
 	const mat4 transform = transforms[ vofiIndex ].transform;
