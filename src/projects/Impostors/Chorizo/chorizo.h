@@ -98,9 +98,13 @@ public:
 	void PrepSSBOs () {
 
 		// add some number of primitives to the buffer
-		for ( float x = -1.0f; x < 1.0f; x += 0.1f ) {
-			for ( float y = -1.0f; y < 1.0f; y += 0.1f ) {
-				ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, -0.1f ), vec3( x, y, 0.1f ), 0.01f );
+		rng jitter = rng( -0.2f, 0.2f );
+		rng jitter2 = rng( 0.0f, 0.01f );
+		for ( float x = -1.0f; x <= 1.0f; x += 0.5f ) {
+			for ( float y = -1.0f; y <= 1.0f; y += 0.5f ) {
+				for ( int i = 0; i < 10000; i++ ) {
+					ChorizoConfig.geometryManager.AddCapsule( vec3( x + jitter(), y + jitter(), jitter() ), vec3( x + jitter(), y + jitter(), jitter() ), 0.001f + jitter2() );
+				}
 			}
 		}
 

@@ -38,14 +38,12 @@ transform_t CapsuleBounds( parameters_t parameters ) {
 	const float radius = parameters.data[ 4 ];
 
 	// compute the primary axis between pointA and pointB, and is of length 2 * radius + length( A - B )
-	const vec3 refVector = ( pointA - pointB ) * ( 1.0f + 2.0f * radius );
-	result.transform[ 0 ][ 2 ] = refVector.x;
-	result.transform[ 1 ][ 2 ] = refVector.y;
-	result.transform[ 2 ][ 2 ] = refVector.z;
+	const vec3 d = ( pointA - pointB );
+	const vec3 refVector = 0.5f * d * ( ( length( d ) + 2.0f * radius ) / length( d ) );
 
-	vec3 displacementVector = refVector;
+	vec3 displacementVector = normalize( d );
 	const vec3 up = vec3( 0.0f, 1.0f, 0.0f );
-	if ( normalize( refVector ) == up ) {
+	if ( normalize( displacementVector ) == up ) {
 		// is it along some reference vector? if yes, we need to do the math with some linearly independent vector
 		displacementVector = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
 	}
@@ -53,23 +51,19 @@ transform_t CapsuleBounds( parameters_t parameters ) {
 	// box transform needs to be constructed such that:
 		// cross product to get first orthogonal vector
 			// second axis is that first orthogonal vector, of length radius
-	const vec3 firstOrthoVec = radius * normalize( cross( displacementVector, up ) );
-	result.transform[ 0 ][ 1 ] = firstOrthoVec.x;
-	result.transform[ 1 ][ 1 ] = firstOrthoVec.y;
-	result.transform[ 2 ][ 1 ] = firstOrthoVec.z;
-
+	const vec3 firstOrthoVec = radius * normalize( cross( up, displacementVector ) );
 		// cross product again to get second orthogonal vector
 			// third axis is that second orthogonal vector, of length radius
-	const vec3 secondOrthoVec = radius * normalize( cross( firstOrthoVec, displacementVector ) );
-	result.transform[ 0 ][ 0 ] = secondOrthoVec.x;
-	result.transform[ 1 ][ 0 ] = secondOrthoVec.y;
-	result.transform[ 2 ][ 0 ] = secondOrthoVec.z;
+	const vec3 secondOrthoVec = radius * normalize( cross( displacementVector, firstOrthoVec ) );
 
-	result.transform[ 0 ][ 3 ] = midPoint.x;
-	result.transform[ 1 ][ 3 ] = midPoint.y;
-	result.transform[ 2 ][ 3 ] = midPoint.z;
-
+	result.transform = mat4(
+		refVector, 0.0f,
+		secondOrthoVec, 0.0f,
+		firstOrthoVec, 0.0f,
+		midPoint, 1.0f
+	);
 	// result.transform = mat4( 1.0f );
+
 	result.inverseTransform = inverse( result.transform );
 	return result;
 }

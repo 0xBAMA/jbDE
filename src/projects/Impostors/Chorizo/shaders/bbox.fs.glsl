@@ -11,6 +11,7 @@ uniform float numPrimitives;
 #include "colorRamps.glsl.h"
 #include "consistentPrimitives.glsl.h"
 
+// ===================================================================================================
 uniform mat4 viewTransform;
 // ===================================================================================================
 struct transform_t {
@@ -38,16 +39,16 @@ layout( location = 0 ) out vec4 normalResult;
 layout( location = 1 ) out uvec4 primitiveID;
 
 // visalizing the fragments that get drawn
-// #define SHOWDISCARDS
+#define SHOWDISCARDS
 
 void main() {
 	const mat4 transform = transforms[ vofiIndex ].transform;
 	const mat4 inverseTransform = transforms[ vofiIndex ].inverseTransform;
 
-	// transform the view ray, origin + direction, into "primitive space"
+	// eye parameter
 	const vec3 eyeVectorToFragment = vofiPosition - eyePosition;
-	const vec3 rayOrigin = ( inverseTransform * vec4( eyePosition, 1.0f ) ).xyz;
-	const vec3 rayDirection = normalize( inverseTransform * vec4( eyeVectorToFragment, 0.0f ) ).xyz;
+	const vec3 rayOrigin = eyePosition;
+	const vec3 rayDirection = normalize( eyeVectorToFragment );
 
 	// this assumes that the contained primitive is located at the origin of the box
 	// const vec3 centerPoint = ( inverseTransform * vec4( vec3( 0.0f ), 0.0f ) ).xyz;
@@ -59,7 +60,11 @@ void main() {
 	// intersecting with the contained primitive
 	parameters_t parameters = parametersList[ vofiIndex ];
 	vec3 normal = vec3( 0.0f );
-	float result = iCapsule( rayOrigin, rayDirection, normal, vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] ), vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] ), parameters.data[ 4 ] );
+	float result = iCapsule( rayOrigin, rayDirection, normal,
+		vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] ), // point A
+		vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] ), // point B
+		parameters.data[ 4 ] ); // radius
+
 
 	if ( result == MAX_DIST ) { // miss condition
 		#ifdef SHOWDISCARDS
@@ -73,14 +78,14 @@ void main() {
 			}
 		#endif
 	} else {
-		const vec3 hitPosition = ( transform * vec4( rayOrigin + result * rayDirection, 1.0f ) ).xyz;
-		const vec3 transformedNormal = normalize( ( transform * vec4( normal, 0.0f ) ).xyz );
 
+		// rasterizer outputs
 		primitiveID = uvec4( vofiIndex, 0, 0, 0 );
-		normalResult = vec4( transformedNormal, 1.0f );
+		normalResult = vec4( normal, 1.0f );
 
 		// writing correct depths
-		const vec4 projectedPosition = viewTransform * vec4( hitPosition, 1.0f );
+		const vec4 projectedPosition = viewTransform * vec4( rayOrigin + result * rayDirection, 1.0f );
 		gl_FragDepth = ( projectedPosition.z / projectedPosition.w + 1.0f ) * 0.5f;
+
 	}
 }
