@@ -104,11 +104,18 @@ public:
 		const float xSpacing = 0.2f;
 		const float ySpan = 0.8f;
 		const float ySpacing = 0.2f;
+		// for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
+		// 	ChorizoConfig.geometryManager.AddCapsule( vec3( x, -ySpan, 0.0f ), vec3( x, ySpan, 0.0f ), 0.03f );
+		// }
+		// for ( float y = -ySpan; y <= ySpan; y += ySpacing ) {
+		// 	ChorizoConfig.geometryManager.AddCapsule( vec3( -xSpan, y, 0.0f ), vec3( xSpan, y, 0.0f ), 0.03f );
+		// }
+
 		for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
-			ChorizoConfig.geometryManager.AddCapsule( vec3( x, ySpan, 0.0f ), vec3( x, -ySpan, 0.0f ), 0.03f );
-		}
-		for ( float y = -ySpan; y <= ySpan; y += ySpacing ) {
-			ChorizoConfig.geometryManager.AddCapsule( vec3( -xSpan, y, 0.0f ), vec3( xSpan, y, 0.0f ), 0.03f );
+			for ( float y = -ySpan; y <= ySpan; y += ySpacing ) {
+				ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, 0.0f ), vec3( x + xSpacing, y, 0.0f ), 0.03f );
+				ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, 0.0f ), vec3( x, y + ySpacing, 0.0f ), 0.03f );
+			}
 		}
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
@@ -246,11 +253,11 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		// const GLuint shader = shaders[ "Animate" ];
-		// glUseProgram( shader );
-		// glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 3000.0f );
-		// glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
-		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		const GLuint shader = shaders[ "Animate" ];
+		glUseProgram( shader );
+		glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 3000.0f );
+		glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 
 	void OnRender () {
