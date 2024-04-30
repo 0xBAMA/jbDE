@@ -103,14 +103,49 @@ public:
 		}
 	}
 
+	struct recursiveTreeConfig {
+		int numBranches = 5;
+		float branchTilt = 0.1f;
+		float branchLength = 0.3f;
+		float branchRadius = 0.01f;
+		float lengthShrink = 0.8f;
+		float radiusShrink = 0.7f;
+		int levelsDeep = 0;
+		int maxLevels = 5;
+		vec3 basePoint = vec3( 0.0f, 0.8f, 0.0f );
+		mat3 basis = mat3( 1.0f );
+	};
+
+	void TreeRecurse ( recursiveTreeConfig config ) {
+		vec3 basePointNext = config.basePoint + config.branchLength * config.basis * vec3( 0.0f, 0.0f, 1.0f );
+		ChorizoConfig.geometryManager.AddCapsule( config.basePoint, basePointNext, config.branchRadius );
+		config.basePoint = basePointNext;
+		if ( config.levelsDeep == config.maxLevels ) {
+			return;
+		} else {
+			rng jitter = rng( 0.0f, 0.5f );
+			rng jitter2 = rng( 0.8f, 1.1f );
+			config.levelsDeep++;
+			config.branchRadius = config.branchRadius * ( config.radiusShrink * jitter2() );
+			config.branchLength = config.branchLength * ( config.lengthShrink * jitter2() );
+			vec3 xBasis = config.basis * vec3( 1.0f, 0.0f, 0.0f );
+			vec3 zBasis = config.basis * vec3( 0.0f, 0.0f, 1.0f );
+			config.basis = mat3( glm::rotate( config.branchTilt + jitter(), xBasis ) ) * config.basis;
+			const float rotateIncrement = 6.28f / float( config.numBranches );
+			for ( int i = 0; i < config.numBranches; i++ ) {
+				TreeRecurse( config );
+				config.basis = mat3( glm::rotate( rotateIncrement + jitter(), zBasis ) ) * config.basis;
+			}
+		}
+	}
+
 	void PrepSSBOs () {
 
-		// add some number of primitives to the buffer
-		rng pickKER = rng( -2.0f, 2.0f );
-		const float xSpan = 1.6f;
-		const float xSpacing = 0.2f;
-		const float ySpan = 0.8f;
-		const float ySpacing = 0.2f;
+		// // add some number of primitives to the buffer
+		// const float xSpan = 1.6f;
+		// const float xSpacing = 0.2f;
+		// const float ySpan = 0.8f;
+		// const float ySpacing = 0.2f;
 
 		// for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
 		// 	ChorizoConfig.geometryManager.AddCapsule( vec3( x, -ySpan, 0.0f ), vec3( x, ySpan, 0.0f ), 0.03f );
@@ -126,8 +161,19 @@ public:
 		// 	}
 		// }
 
-		for ( int i = 0; i < 10000; i++ ) {
-			ChorizoConfig.geometryManager.AddCapsule( vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), 0.003f );
+		// rng pickKER = rng( -2.0f, 2.0f );
+		// for ( int i = 0; i < 10000; i++ ) {
+			// ChorizoConfig.geometryManager.AddCapsule( vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), 0.003f );
+		// }
+
+		recursiveTreeConfig config;
+		config.basis = mat3( glm::rotate( 3.14f, vec3( 1.0f, 0.0f, 0.0f ) ) ) * config.basis;
+		for ( float x = -2.0f; x < 2.0; x += 0.75f ) {
+			config.basePoint.x = x;
+			for ( float y = -2.0f; y < 2.0f; y += 0.75f ) {
+				config.basePoint.y = y;
+				TreeRecurse( config );
+			}
 		}
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
