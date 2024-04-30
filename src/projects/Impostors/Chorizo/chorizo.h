@@ -108,10 +108,10 @@ public:
 		float branchTilt = 0.1f;
 		float branchLength = 0.3f;
 		float branchRadius = 0.01f;
-		float lengthShrink = 0.8f;
-		float radiusShrink = 0.7f;
+		float lengthShrink = 0.7f;
+		float radiusShrink = 0.75f;
 		int levelsDeep = 0;
-		int maxLevels = 5;
+		int maxLevels = 6;
 		vec3 basePoint = vec3( 0.0f, 0.8f, 0.0f );
 		mat3 basis = mat3( 1.0f );
 	};
@@ -168,13 +168,15 @@ public:
 
 		recursiveTreeConfig config;
 		config.basis = mat3( glm::rotate( 3.14f, vec3( 1.0f, 0.0f, 0.0f ) ) ) * config.basis;
-		for ( float x = -2.0f; x < 2.0; x += 0.75f ) {
+		for ( float x = -3.0f; x < 3.0; x += 0.75f ) {
 			config.basePoint.x = x;
-			for ( float y = -2.0f; y < 2.0f; y += 0.75f ) {
+			for ( float y = -1.0f; y < 1.0f; y += 1.0f ) {
 				config.basePoint.y = y;
 				TreeRecurse( config );
 			}
 		}
+
+		
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
