@@ -241,11 +241,22 @@ public:
 			string index = ChorizoConfig.frameCount % 2 ? "0" : "1";
 			string indexBack = ChorizoConfig.frameCount % 2 ? "1" : "0";
 			textureManager.BindImageForShader( "Blue Noise", "blueNoiseTexture", shader, 0 );
-			textureManager.BindImageForShader( "Framebuffer Normal " + index, "normals", shader, 1 );
-			textureManager.BindImageForShader( "Framebuffer Normal " + indexBack, "normalsBack", shader, 2 );
-			textureManager.BindImageForShader( "Framebuffer Primitive ID " + index, "primitiveID", shader, 3 );
-			textureManager.BindImageForShader( "Framebuffer Primitive ID " + indexBack, "primitiveIDBack", shader, 4 );
-			textureManager.BindImageForShader( "Accumulator", "accumulatorTexture", shader, 5 );
+			textureManager.BindImageForShader( "Accumulator", "accumulatorTexture", shader, 1 );
+			textureManager.BindTexForShader( "Framebuffer Depth " + index, "depthTex", shader, 2 );
+			textureManager.BindTexForShader( "Framebuffer Depth " + indexBack, "depthTexBack", shader, 3 );
+			textureManager.BindTexForShader( "Framebuffer Normal " + index, "normals", shader, 4 );
+			textureManager.BindTexForShader( "Framebuffer Normal " + indexBack, "normalsBack", shader, 5 );
+			textureManager.BindTexForShader( "Framebuffer Primitive ID " + index, "primitiveID", shader, 6 );
+			textureManager.BindTexForShader( "Framebuffer Primitive ID " + indexBack, "primitiveIDBack", shader, 7 );
+
+			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransform ) );
+			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransformInverse ) );
+
+			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransform ) );
+			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransformInverse ) );
+
+			// glUniformMatrix4fv( glGetUniformLocation( shader, "projTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.projTransform ) );
+			// glUniformMatrix4fv( glGetUniformLocation( shader, "projTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.projTransformInverse ) );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
