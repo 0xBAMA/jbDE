@@ -64,7 +64,7 @@ void main() {
 	} else {
 
 		// rasterizer outputs
-		primitiveID = uvec4( vofiIndex, 0, 0, 0 );
+		primitiveID = uvec4( vofiIndex + 1, 0, 0, 0 );
 		normalResult = vec4( normalize( normal ), 1.0f );
 
 		// writing correct depths

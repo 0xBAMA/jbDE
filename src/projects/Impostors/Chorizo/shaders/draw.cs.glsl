@@ -94,7 +94,7 @@ void main () {
 	// solved position
 	const vec3 worldPos = posFromTexcoord( screenPos );
 
-	if ( idSample != UINT_MAX ) { // these are texels which wrote out a fragment during the raster geo pass
+	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
 
 		float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
 
