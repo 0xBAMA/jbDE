@@ -65,7 +65,7 @@ void main() {
 
 		// rasterizer outputs
 		primitiveID = uvec4( vofiIndex, 0, 0, 0 );
-		normalResult = vec4( normal, 1.0f );
+		normalResult = vec4( normalize( normal ), 1.0f );
 
 		// writing correct depths
 		const vec4 projectedPosition = viewTransform * vec4( rayOrigin + result * rayDirection, 1.0f );
