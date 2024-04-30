@@ -7,10 +7,17 @@ struct ChorizoConfig_t {
 	GLuint boundsTransformBuffer;
 	GLuint primaryFramebuffer[ 2 ];
 
-	int numPrimitives = 64;
-	uint32_t frameCount = 0;
+	vec3 eyePosition;
+	mat4 viewTransform;
+	mat4 viewTransformInverse;
+	mat4 projTransform;
+	mat4 projTransformInverse;
+	mat4 combinedTransform;
+	mat4 combinedTransformInverse;
 
 	geometryManager_t geometryManager;
+	int numPrimitives = 0;
+	uint32_t frameCount = 0;
 };
 
 class Chorizo : public engineBase {
@@ -135,6 +142,32 @@ public:
 
 	}
 
+	void PrepSceneParameters () {
+		const float time = SDL_GetTicks() / 3000.0f;
+
+		// setting up the orbiting camera
+		static rng ampGen = rng( 2.0f, 4.0f );
+		static rng orbitGen = rng( 0.5f, 1.6f );
+		static const vec3 amplitudes = vec3( ampGen(), ampGen(), ampGen() );
+		static const vec3 orbitRatios = vec3( orbitGen(), orbitGen(), orbitGen() );
+		ChorizoConfig.eyePosition = vec3(
+			amplitudes.x * sin( time * orbitRatios.x ),
+			amplitudes.y * cos( time * orbitRatios.y ),
+			amplitudes.z * sin( time * orbitRatios.z ) );
+
+		const float aspectRatio = float( config.width ) / float( config.height );
+
+		ChorizoConfig.projTransform = glm::perspective( 45.0f, aspectRatio, 0.1f, 100.0f );
+		ChorizoConfig.projTransformInverse = glm::inverse( ChorizoConfig.projTransform );
+
+		ChorizoConfig.viewTransform = glm::lookAt( ChorizoConfig.eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+		ChorizoConfig.viewTransformInverse = glm::inverse( ChorizoConfig.viewTransform );
+
+		ChorizoConfig.combinedTransform = ChorizoConfig.projTransform * ChorizoConfig.viewTransform;
+		ChorizoConfig.combinedTransformInverse = glm::inverse( ChorizoConfig.combinedTransform );
+
+	}
+
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
@@ -191,26 +224,10 @@ public:
 		const GLuint shader = shaders[ "BBox" ];
 		glUseProgram( shader );
 		glBindVertexArray( ChorizoConfig.vao );
-		const float time = SDL_GetTicks() / 3000.0f;
-
-		// setting up the orbiting camera
-		rng ampGen = rng( 2.0f, 4.0f );
-		rng orbitGen = rng( 0.5f, 1.6f );
-		static const vec3 amplitudes = vec3( ampGen(), ampGen(), ampGen() );
-		static const vec3 orbitRatios = vec3( orbitGen(), orbitGen(), orbitGen() );
-		const vec3 eyePosition = vec3(
-			amplitudes.x * sin( time * orbitRatios.x ),
-			amplitudes.y * cos( time * orbitRatios.y ),
-			amplitudes.z * sin( time * orbitRatios.z ) );
-
-		const float aspectRatio = float( config.width ) / float( config.height );
-		const mat4 viewTransform =
-			glm::perspective( 45.0f, aspectRatio, 0.1f, 100.0f ) *
-			glm::lookAt( eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
 
 		glUniform1f( glGetUniformLocation( shader, "numPrimitives" ), ChorizoConfig.numPrimitives );
-		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( viewTransform ) );
-		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( eyePosition ) );
+		glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransform ) );
+		glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( ChorizoConfig.eyePosition ) );
 	}
 
 	void ComputePasses () {
@@ -262,6 +279,7 @@ public:
 
 	void OnRender () {
 		ZoneScoped;
+		PrepSceneParameters();
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
 		DrawAPIGeometry();			// draw the cubes on top, into the ping-ponging framebuffer
 		ComputePasses();			// multistage update of displayTexture
