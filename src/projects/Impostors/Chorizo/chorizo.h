@@ -106,11 +106,12 @@ public:
 	void PrepSSBOs () {
 
 		// add some number of primitives to the buffer
-		// rng pick = rng( 0.0f, 1.0f );
+		rng pickKER = rng( -2.0f, 2.0f );
 		const float xSpan = 1.6f;
 		const float xSpacing = 0.2f;
 		const float ySpan = 0.8f;
 		const float ySpacing = 0.2f;
+
 		// for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
 		// 	ChorizoConfig.geometryManager.AddCapsule( vec3( x, -ySpan, 0.0f ), vec3( x, ySpan, 0.0f ), 0.03f );
 		// }
@@ -118,11 +119,15 @@ public:
 		// 	ChorizoConfig.geometryManager.AddCapsule( vec3( -xSpan, y, 0.0f ), vec3( xSpan, y, 0.0f ), 0.03f );
 		// }
 
-		for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
-			for ( float y = -ySpan; y <= ySpan; y += ySpacing ) {
-				ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, 0.0f ), vec3( x + xSpacing, y, 0.0f ), 0.03f );
-				ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, 0.0f ), vec3( x, y + ySpacing, 0.0f ), 0.03f );
-			}
+		// for ( float x = -xSpan; x <= xSpan; x += xSpacing ) {
+		// 	for ( float y = -ySpan; y <= ySpan; y += ySpacing ) {
+		// 		ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, 0.0f ), vec3( x + xSpacing, y, 0.0f ), 0.03f );
+		// 		ChorizoConfig.geometryManager.AddCapsule( vec3( x, y, 0.0f ), vec3( x, y + ySpacing, 0.0f ), 0.03f );
+		// 	}
+		// }
+
+		for ( int i = 0; i < 10000; i++ ) {
+			ChorizoConfig.geometryManager.AddCapsule( vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), 0.003f );
 		}
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
@@ -143,7 +148,7 @@ public:
 	}
 
 	void PrepSceneParameters () {
-		const float time = SDL_GetTicks() / 3000.0f;
+		const float time = SDL_GetTicks() / 7000.0f;
 
 		// setting up the orbiting camera
 		static rng ampGen = rng( 2.0f, 4.0f );
