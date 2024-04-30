@@ -25,7 +25,7 @@ uniform int inSeed;
 // uniform float AOBias;
 // uniform float AOSampleRadius;
 // uniform float AOMaxDistance;
-const int AONumSamples = 16;
+const int AONumSamples = 64;
 const float AOIntensity = 3.0f;
 const float AOScale = 1.0f;
 const float AOBias = 0.05f;
@@ -81,6 +81,8 @@ float SpiralAO ( vec2 uv, vec3 p, vec3 n, float rad ) {
 	return ao;
 }
 
+// this shader also needs access to the SSBO with parameters, in this case mostly for material properties, I think
+
 void main () {
 	// pixel location + rng seeding
 	const ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
@@ -96,11 +98,17 @@ void main () {
 
 	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
 
-		float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
+	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
+		float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
+		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
+		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / ( texture( depthTex, screenPos ).r * 2.0f - 1.0f ) ) * AOIntensity;
+
+		seed = idSample;
+		vec3 color = AOFactor * vec3( 0.6f, 0.4f, 0.3f ); // * NormalizedRandomFloat();
 
 		// write the data to the image
 		// imageStore( accumulatorTexture, writeLoc, vec4( normalSample, 1.0f ) );
-		imageStore( accumulatorTexture, writeLoc, vec4( vec3( AOFactor ), 1.0f ) );
+		imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
 
 	} else {
 		// else this is a background colored pixel
