@@ -15,6 +15,11 @@ struct ChorizoConfig_t {
 	mat4 combinedTransform;
 	mat4 combinedTransformInverse;
 
+	float nearZ = 0.1f;
+	float farZ = 100.0f;
+
+	rngi wangSeeder = rngi( 0, 10042069 );
+
 	geometryManager_t geometryManager;
 	int numPrimitives = 0;
 	uint32_t frameCount = 0;
@@ -210,7 +215,7 @@ public:
 
 		const float aspectRatio = float( config.width ) / float( config.height );
 
-		ChorizoConfig.projTransform = glm::perspective( 45.0f, aspectRatio, 0.1f, 100.0f );
+		ChorizoConfig.projTransform = glm::perspective( 45.0f, aspectRatio, ChorizoConfig.nearZ, ChorizoConfig.farZ );
 		ChorizoConfig.projTransformInverse = glm::inverse( ChorizoConfig.projTransform );
 
 		ChorizoConfig.viewTransform = glm::lookAt( ChorizoConfig.eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
@@ -304,6 +309,8 @@ public:
 
 			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransform ) );
 			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransformInverse ) );
+			glUniform1f( glGetUniformLocation( shader, "nearZ" ), ChorizoConfig.nearZ );
+			glUniform1f( glGetUniformLocation( shader, "farZ" ), ChorizoConfig.farZ );
 
 			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransform ) );
 			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransformInverse ) );
