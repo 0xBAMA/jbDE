@@ -25,8 +25,8 @@ uniform int inSeed;
 // uniform float AOBias;
 // uniform float AOSampleRadius;
 // uniform float AOMaxDistance;
-const int AONumSamples = 64;
-const float AOIntensity = 3.0f;
+const int AONumSamples = 16;
+const float AOIntensity = 2.4f;
 const float AOScale = 1.0f;
 const float AOBias = 0.05f;
 const float AOSampleRadius = 0.02f;
@@ -102,26 +102,32 @@ void main () {
 	// data from the framebuffer
 	const uint idSample = texelFetch( primitiveID, writeLoc, 0 ).r;
 	const vec3 normalSample = texelFetch( normals, writeLoc, 0 ).rgb;
+	const float linearZ = GetLinearZ( texture( depthTex, screenPos ).r );
 
 	// solved position
 	const vec3 worldPos = posFromTexcoord( screenPos );
+	vec3 color = vec3( 0.0f );
 
 	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
-
 	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
-		float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
+		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
+		float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / linearZ ) * AOIntensity;
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / ( texture( depthTex, screenPos ).r * 2.0f - 1.0f ) ) * AOIntensity;
 
-		seed = idSample;
-		vec3 color = AOFactor * vec3( 0.6f, 0.4f, 0.3f ); // * NormalizedRandomFloat();
+		// seed = idSample;
+		// color = pow( AOFactor, 2.0f ) * vec3( 1.0f, 0.6f, 0.3f ) * NormalizedRandomFloat();
+		// color = vec3( 1.0f, 0.3f, 0.1f ) * NormalizedRandomFloat();
+		// color = vec3( 0.618f ) * pow( AOFactor, 2.0f );
+		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
+		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
+		color = vec3( 0.618f ) * AOFactor;
 
-		// write the data to the image
-		// imageStore( accumulatorTexture, writeLoc, vec4( normalSample, 1.0f ) );
-		imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
+	} // else this is a background pixel
 
-	} else {
-		// else this is a background colored pixel
-		imageStore( accumulatorTexture, writeLoc, vec4( 0.0f ) );
-	}
+	// volumetric term...
+	color += ( 1.0 - exp( -linearZ ) ) * vec3( 0.1f, 0.2f, 0.3f );
+
+	// write out the result
+	imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
 }
