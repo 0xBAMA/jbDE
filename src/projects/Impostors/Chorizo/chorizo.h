@@ -109,15 +109,16 @@ public:
 	}
 
 	struct recursiveTreeConfig {
-		int numBranches = 5;
-		float branchTilt = 0.1f;
-		float branchLength = 0.3f;
-		float branchRadius = 0.01f;
-		float lengthShrink = 0.7f;
-		float radiusShrink = 0.75f;
+		int numBranches = 3;
+		// float branchTilt = 0.1f;
+		float branchTilt = 0.4f;
+		float branchLength = 0.5f;
+		float branchRadius = 0.03f;
+		float lengthShrink = 0.8f;
+		float radiusShrink = 0.79f;
 		int levelsDeep = 0;
-		int maxLevels = 6;
-		vec3 basePoint = vec3( 0.0f, 0.8f, 0.0f );
+		int maxLevels = 10;
+		vec3 basePoint = vec3( 0.0f, 0.5f, 0.0f );
 		mat3 basis = mat3( 1.0f );
 	};
 
@@ -172,16 +173,14 @@ public:
 		// }
 
 		recursiveTreeConfig config;
-		config.basis = mat3( glm::rotate( 3.14f, vec3( 1.0f, 0.0f, 0.0f ) ) ) * config.basis;
-		for ( float x = -3.0f; x < 3.0; x += 0.75f ) {
-			config.basePoint.x = x;
-			for ( float y = -1.0f; y < 1.0f; y += 1.0f ) {
-				config.basePoint.y = y;
-				TreeRecurse( config );
-			}
-		}
+		TreeRecurse( config );
 
-		
+		// tree-n-a
+		// for ( float y = -2.0f; y < 2.0f; y += 0.125f ) {
+		// 	config.basis = mat3( glm::rotate( 0.5f, vec3( 0.0f, 1.0f, 0.0f ) ) ) * config.basis;
+		// 	config.basePoint.y = y;
+		// 	TreeRecurse( config );
+		// }
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
@@ -201,11 +200,11 @@ public:
 	}
 
 	void PrepSceneParameters () {
-		const float time = SDL_GetTicks() / 7000.0f;
+		const float time = SDL_GetTicks() / 10000.0f;
 
-		// setting up the orbiting camera
+		// setting up the orbiting camera - this is getting very old, needs work
 		static rng ampGen = rng( 2.0f, 4.0f );
-		static rng orbitGen = rng( 0.5f, 1.6f );
+		static rng orbitGen = rng( -0.5f, 1.6f );
 		static const vec3 amplitudes = vec3( ampGen(), ampGen(), ampGen() );
 		static const vec3 orbitRatios = vec3( orbitGen(), orbitGen(), orbitGen() );
 		ChorizoConfig.eyePosition = vec3(
@@ -309,6 +308,8 @@ public:
 
 			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransform ) );
 			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransformInverse ) );
+
+			glUniform1i( glGetUniformLocation( shader, "inSeed" ), ChorizoConfig.wangSeeder() );
 			glUniform1f( glGetUniformLocation( shader, "nearZ" ), ChorizoConfig.nearZ );
 			glUniform1f( glGetUniformLocation( shader, "farZ" ), ChorizoConfig.farZ );
 
