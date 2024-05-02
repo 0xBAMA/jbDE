@@ -37,7 +37,7 @@ struct physarumConfig_t {
 	float zOffset = 0.0f;
 };
 
-class Physarum : public engineBase {
+class Physarum final : public engineBase {
 public:
 	Physarum () { Init(); OnInit(); PostInit(); }
 	~Physarum () { Quit(); }

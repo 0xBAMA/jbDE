@@ -25,7 +25,7 @@ struct ChorizoConfig_t {
 	uint32_t frameCount = 0;
 };
 
-class Chorizo : public engineBase {
+class Chorizo final : public engineBase {
 public:
 	Chorizo () { Init(); OnInit(); PostInit(); }
 	~Chorizo () { Quit(); }

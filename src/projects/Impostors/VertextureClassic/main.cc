@@ -1,7 +1,7 @@
 #include "../../../engine/engine.h"
 #include "vertexture.h"
 
-class Vertexture2 : public engineBase {
+class Vertexture2 final : public engineBase {
 public:
 	Vertexture2 () { Init(); OnInit(); PostInit(); }
 	~Vertexture2 () { Quit(); }

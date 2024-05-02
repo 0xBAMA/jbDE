@@ -1,7 +1,7 @@
 #include "../../../engine/engine.h"
 #include "daedalusConfig.h"
 
-class Daedalus : public engineBase {	// example derived class
+class Daedalus final : public engineBase {
 public:
 	Daedalus () { Init(); OnInit(); PostInit(); }
 	~Daedalus () { Quit(); }

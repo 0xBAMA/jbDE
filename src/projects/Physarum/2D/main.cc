@@ -35,7 +35,7 @@ struct physarumConfig_t {
 	float brightness;
 };
 
-class Physarum : public engineBase {
+class Physarum final : public engineBase {
 public:
 	Physarum () { Init(); OnInit(); PostInit(); }
 	~Physarum () { Quit(); }

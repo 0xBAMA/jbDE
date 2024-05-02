@@ -1,6 +1,6 @@
 #include "../../engine/engine.h"
 
-class engineDemo : public engineBase {	// example derived class
+class engineDemo final : public engineBase { // sample derived from base engine class
 public:
 	engineDemo () { Init(); OnInit(); PostInit(); }
 	~engineDemo () { Quit(); }

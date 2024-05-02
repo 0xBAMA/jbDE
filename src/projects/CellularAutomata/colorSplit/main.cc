@@ -12,7 +12,7 @@ struct CAConfig_t {
 	bool oddFrame = false;
 };
 
-class CAHistory : public engineBase {	// example derived class
+class CAHistory final : public engineBase {
 public:
 	CAHistory () { Init(); OnInit(); PostInit(); }
 	~CAHistory () { Quit(); }

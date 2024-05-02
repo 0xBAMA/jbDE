@@ -136,7 +136,7 @@ struct aquariaConfig_t {
 // the volume. The shadows and lighting are computed as a separate pass, destructivelsy baked into the albedo,
 // informed by Beer's law and traversals towards a given light direction.
 // ================================================================================================================
-class Aquaria : public engineBase {
+class Aquaria final : public engineBase {
 public:
 	Aquaria () { Init(); OnInit(); PostInit(); }
 	~Aquaria () { Quit(); }

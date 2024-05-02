@@ -38,7 +38,7 @@ struct physarumConfig_t {
 	float scale = 1.0f;
 };
 
-class Physarum : public engineBase {
+class Physarum final : public engineBase {
 public:
 	Physarum () { Init(); OnInit(); PostInit(); }
 	~Physarum () { Quit(); }

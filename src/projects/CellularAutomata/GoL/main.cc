@@ -12,7 +12,7 @@ struct CAConfig_t {
 	bool oddFrame = false;
 };
 
-class GoL : public engineBase {	// example derived class
+class GoL final : public engineBase {
 public:
 	GoL () { Init(); OnInit(); PostInit(); }
 	~GoL () { Quit(); }

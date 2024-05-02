@@ -1,7 +1,7 @@
 #include "../../../engine/engine.h"
 #include "model.h"
 
-class engineChild : public engineBase {	// example derived class
+class engineChild final : public engineBase {
 public:
 	engineChild () { Init(); OnInit(); PostInit(); }
 	~engineChild () { Quit(); }

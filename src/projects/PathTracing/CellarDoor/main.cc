@@ -136,7 +136,7 @@ struct cellarDoorConfig_t {
 // the volume. The shadows and lighting are computed as a separate pass, destructivelsy baked into the albedo,
 // informed by Beer's law and traversals towards a given light direction.
 // ================================================================================================================
-class cellarDoor : public engineBase {
+class cellarDoor final : public engineBase {
 public:
 	cellarDoor () { Init(); OnInit(); PostInit(); }
 	~cellarDoor () { Quit(); }

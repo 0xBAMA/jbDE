@@ -10,7 +10,7 @@ struct node_t {
 
 };
 
-class SoftBodiesGPU : public engineBase {	// example derived class
+class SoftBodiesGPU final : public engineBase {
 public:
 	SoftBodiesGPU () { Init(); OnInit(); PostInit(); }
 	~SoftBodiesGPU () { Quit(); }

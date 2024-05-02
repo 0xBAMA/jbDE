@@ -45,7 +45,7 @@ struct physarumConfig_t {
 
 };
 
-class VoxelSpace : public engineBase {	// example derived class
+class VoxelSpace final : public engineBase {
 public:
 	VoxelSpace () { Init(); OnInit(); PostInit(); }
 	~VoxelSpace () { Quit(); }

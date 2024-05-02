@@ -1,7 +1,7 @@
 #include "../../../engine/engine.h"
 #include "projectedFramebuffers.h"
 
-class ProjectedFramebuffer : public engineBase {
+class ProjectedFramebuffer final : public engineBase {
 public:
 	ProjectedFramebuffer () { Init(); OnInit(); PostInit(); }
 	~ProjectedFramebuffer () { Quit(); }

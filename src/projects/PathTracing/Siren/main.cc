@@ -106,7 +106,7 @@ struct sirenConfig_t {
 	const uint32_t maxSpheres = 256;
 };
 
-class Siren : public engineBase {	// example derived class
+class Siren final : public engineBase {
 public:
 	Siren () { Init(); OnInit(); PostInit(); }
 	~Siren () { Quit(); }
