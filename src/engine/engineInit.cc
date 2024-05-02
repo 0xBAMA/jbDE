@@ -279,7 +279,8 @@ void engineBase::SetupTextureData () {
 
 		bindSets[ "Postprocessing" ] = bindSet( {
 			binding( 0, textureManager.Get( "Accumulator" ), GL_RGBA16F ),
-			binding( 1, textureManager.Get( "Display Texture" ), GL_RGBA8UI )
+			binding( 1, textureManager.Get( "Display Texture" ), GL_RGBA8UI ),
+			binding( 2, textureManager.Get( "Blue Noise" ), GL_RGBA8UI )
 		} );
 
 		bindSets[ "Display" ] = bindSet( {
