@@ -49,6 +49,16 @@ vec3 posFromTexcoord ( vec2 uv ) { // get worldspace position, by way of the dep
 	return viewPos.xyz / viewPos.w;
 }
 
+// Linearizes a Z buffer value
+uniform float farZ;
+uniform float nearZ;
+// https://stackoverflow.com/questions/32227283/getting-world-position-from-depth-buffer-value
+float GetLinearZ ( float depth ) {
+	// bias it from 0..1 to -1..1
+	float linear = nearZ / ( farZ - depth * ( farZ - nearZ ) ) * farZ;
+	return ( linear * 2.0f ) - 1.0f;
+}
+
 float DoAO ( const vec2 texCoord, const vec2 uv, const vec3 p, const vec3 cNormal ) {
 	vec3 diff = posFromTexcoord( texCoord + uv ) - p;
 	const float l = length( diff );
