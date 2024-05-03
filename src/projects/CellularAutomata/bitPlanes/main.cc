@@ -13,7 +13,7 @@ struct CAConfig_t {
 	bool oddFrame = false;
 };
 
-class bitPlaneCA final : public engineBase {	// example derived class
+class bitPlaneCA final : public engineBase {
 public:
 	bitPlaneCA () { Init(); OnInit(); PostInit(); }
 	~bitPlaneCA () { Quit(); }

@@ -1,18 +1,22 @@
 #include "../../../engine/includes.h"
 
 struct geometryManager_t {
+	// 0..1 within the palette, with an integer palette select
 	rng paletteValue = rng( 0.0f, 1.0f );
+	int paletteSelect = 0;
+	float GetPaletteValue() { return paletteValue() + paletteSelect; }
+
 	std::vector< float > parametersList;
 	int count = 0;
 
 	void AddPrimitive( const float parameters[ 16 ] );
-	// void AddSphere( const vec3 center, const float radius ) = {}
 	void AddCapsule( const vec3 pointA, const vec3 pointB, const float radius );
+	void AddRoundedBox( const vec3 centerPoint, const vec3 scaleFactors, const vec2 eulerAngles, const float roundingFactor );
 };
 
-#define SPHERE 0
-#define CAPSULE 1
-#define ROUNDEDBOX 2
+#define SPHERE		0 // plan is to redo point sprites for this - they are much faster
+#define CAPSULE		1
+#define ROUNDEDBOX	2
 
 void geometryManager_t::AddPrimitive( const float parameters[ 16 ] ) {
 	// adding one shape to the buffer
