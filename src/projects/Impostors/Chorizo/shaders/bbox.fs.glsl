@@ -9,6 +9,9 @@ uniform float numPrimitives;
 
 #include "colorRamps.glsl.h"
 #include "consistentPrimitives.glsl.h"
+#include "mathUtils.h"
+
+const float pi = 3.141592f;
 
 // ===================================================================================================
 uniform mat4 viewTransform;
@@ -63,8 +66,14 @@ void main() {
 			const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 			const float roundingFactor = parameters.data[ 8 ];
 
+			const float eulerPhi = ( pi / 2.0f ) * floor( packedEuler ) / 255.0f;
+			const float eulerTheta = fract( packedEuler ) * pi * 2.0f;
+
+			const vec3 rayDirectionAdjusted = ;
+			const vec3 rayOriginAdjusted = ;
+
 			// going to have to figure out what the transforms need to be, in order to intersect with the transformed primitve
-			result = iRoundedBox( rayOrigin, rayDirection, normal, scaleFactors, roundingFactor );
+			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normal, scaleFactors, roundingFactor );
 			break;
 
 		default:
