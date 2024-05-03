@@ -25,9 +25,6 @@ layout( binding = 1, std430 ) buffer parametersBuffer {
 // capsule bounds - primary axis is between endpoints, then some cross products to get the others
 // ===================================================================================================
 mat4 CapsuleBounds( parameters_t parameters ) {
-	mat4 result;
-	result = mat4( 1.0f );
-
 	const vec3 pointA = vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] );
 	const vec3 pointB = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 	const vec3 midPoint = ( pointA + pointB ) / 2.0f;
@@ -52,14 +49,24 @@ mat4 CapsuleBounds( parameters_t parameters ) {
 			// third axis is that second orthogonal vector, of length radius
 	const vec3 secondOrthoVec = radius * normalize( cross( displacementVector, firstOrthoVec ) );
 
-	result = mat4(
+	return mat4(
 		refVector, 0.0f,
 		secondOrthoVec, 0.0f,
 		firstOrthoVec, 0.0f,
 		midPoint, 1.0f
 	);
+}
 
-	return result;
+// ===================================================================================================
+// rounded box bounds - what does this need to look like?
+// ===================================================================================================
+mat4 RoundedBoxBounds ( parameters_t parameters ) {
+	const vec3 centerPoint = vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] );
+	const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
+	const float packedEuler = parameters.data[ 4 ];
+
+	// todo
+	return mat4( 1.0f );
 }
 
 // ===================================================================================================
@@ -76,6 +83,11 @@ void main () {
 		case CAPSULE:
 			// compute the capsule bounding box
 			result = CapsuleBounds( parameters );
+			break;
+
+		case ROUNDEDBOX:
+			// bounding box for the rounded cube
+			result = RoundedBoxBounds( parameters );
 			break;
 
 		default:

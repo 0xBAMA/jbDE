@@ -110,10 +110,9 @@ public:
 
 	struct recursiveTreeConfig {
 		int numBranches = 3;
-		// float branchTilt = 0.1f;
-		float branchTilt = 0.4f;
-		float branchLength = 0.5f;
-		float branchRadius = 0.03f;
+		float branchTilt = 0.1f;
+		float branchLength = 0.6f;
+		float branchRadius = 0.04f;
 		float lengthShrink = 0.8f;
 		float radiusShrink = 0.79f;
 		int levelsDeep = 0;
@@ -172,8 +171,12 @@ public:
 			// ChorizoConfig.geometryManager.AddCapsule( vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), vec3( pickKER() * 0.3f, pickKER() * 0.3f, pickKER() ), 0.003f );
 		// }
 
+
+
 		recursiveTreeConfig config;
 		TreeRecurse( config );
+
+
 
 		// tree-n-a
 		// for ( float y = -2.0f; y < 2.0f; y += 0.125f ) {
@@ -181,6 +184,10 @@ public:
 		// 	config.basePoint.y = y;
 		// 	TreeRecurse( config );
 		// }
+
+		// single, untranslated cube
+		ChorizoConfig.geometryManager.AddRoundedBox( vec3( 0.0f ), vec3( 0.5f ), vec2( 0.0f ), 0.1f );
+
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;

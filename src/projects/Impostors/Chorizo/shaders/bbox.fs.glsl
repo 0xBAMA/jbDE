@@ -37,17 +37,39 @@ void main() {
 	const vec3 rayOrigin = eyePosition;
 	const vec3 rayDirection = normalize( eyeVectorToFragment );
 
-	// float result = iSphere( rayOrigin - centerPoint, rayDirection, normal, 1.0f );
 	// float result = iRoundedCone( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.9f ), vec3( 0.7f ), 0.1f, 0.3f );
 	// float result = iRoundedBox( rayOrigin - centerPoint, rayDirection, normal, vec3( 0.9f ), 0.1f );
 
-	// intersecting with the contained primitive
-	parameters_t parameters = parametersList[ vofiIndex ];
+	float result = MAX_DIST;
 	vec3 normal = vec3( 0.0f );
-	float result = iCapsule( rayOrigin, rayDirection, normal,
-		vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] ), // point A
-		vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] ), // point B
-		parameters.data[ 4 ] ); // radius
+	parameters_t parameters = parametersList[ vofiIndex ];
+	const int primitiveType = int( parameters.data[ 0 ] );
+
+	#define SPHERE 0
+	#define CAPSULE 1
+	#define ROUNDEDBOX 2
+
+	// intersecting with the contained primitive
+	switch ( primitiveType ) {
+		case CAPSULE:
+			result = iCapsule( rayOrigin, rayDirection, normal,
+				vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] ), // point A
+				vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] ), // point B
+				parameters.data[ 4 ] ); // radius
+			break;
+
+		case ROUNDEDBOX:
+			const float packedEuler = parameters.data[ 4 ];
+			const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
+			const float roundingFactor = parameters.data[ 8 ];
+
+			// going to have to figure out what the transforms need to be, in order to intersect with the transformed primitve
+			result = iRoundedBox( rayOrigin, rayDirection, normal, scaleFactors, roundingFactor );
+			break;
+
+		default:
+			break;
+	}
 
 
 	if ( result == MAX_DIST ) { // miss condition
