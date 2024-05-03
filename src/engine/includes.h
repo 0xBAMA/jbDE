@@ -40,6 +40,7 @@ constexpr char newline = '\n';
 
 // pi definition - definitely sufficient precision
 constexpr double pi = 3.14159265358979323846;
+constexpr double tau = 2.0 * pi;
 
 //====== OpenGL / SDL =========================================================
 // GLM - vector math library GLM
