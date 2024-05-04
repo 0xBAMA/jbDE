@@ -1,6 +1,8 @@
 #version 430
 layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
+#include "mathUtils.h"
+
 #define SPHERE 0
 #define CAPSULE 1
 #define ROUNDEDBOX 2
@@ -66,8 +68,12 @@ mat4 RoundedBoxBounds ( parameters_t parameters ) {
 	const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 	const float packedEuler = parameters.data[ 4 ];
 
-	// todo
-	return mat4( 1.0f );
+	mat4 current = mat4( 1.0f );
+	current[ 0 ][ 0 ] = scaleFactors.x;
+	current[ 1 ][ 1 ] = scaleFactors.y;
+	current[ 2 ][ 2 ] = scaleFactors.z;
+
+	return current;
 }
 
 // ===================================================================================================
