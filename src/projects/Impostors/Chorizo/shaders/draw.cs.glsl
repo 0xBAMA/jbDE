@@ -120,7 +120,7 @@ void main () {
 
 	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
 
-		const parameters_t parameters = parametersList[ idSample ];
+		const parameters_t parameters = parametersList[ idSample - 1 ];
 		// const vec3 baseColor = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		const vec3 baseColor = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
 
