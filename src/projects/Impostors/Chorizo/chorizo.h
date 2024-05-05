@@ -25,6 +25,9 @@ struct ChorizoConfig_t {
 	float railAdjust = -0.3f;
 	float apertureAdjust = 0.01f;
 
+	float paletteRefMin = 0.0f;
+	float paletteRefMax = 1.0f;
+
 	rngi wangSeeder = rngi( 0, 10042069 );
 
 	geometryManager_t geometryManager;
@@ -112,6 +115,8 @@ public:
 
 			// bind default framebuffer
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+			palette::PickRandomPalette( true );
 		}
 	}
 
@@ -133,7 +138,7 @@ public:
 
 	void TreeRecurse ( recursiveTreeConfig config ) {
 		vec3 basePointNext = config.basePoint + config.branchLength * config.basis * vec3( 0.0f, 0.0f, 1.0f );
-		vec3 color = palette::paletteRef( float( config.levelsDeep ) / float( config.maxLevels ) + paletteJitter() * config.paletteJitter );
+		vec3 color = palette::paletteRef( RemapRange( float( config.levelsDeep ) / float( config.maxLevels ) + paletteJitter() * config.paletteJitter, 0.0f, 1.0f, ChorizoConfig.paletteRefMin, ChorizoConfig.paletteRefMax ) );
 		ChorizoConfig.geometryManager.AddCapsule( config.basePoint, basePointNext, config.branchRadius, color );
 		config.basePoint = basePointNext;
 		if ( config.levelsDeep == config.maxLevels ) {
@@ -161,7 +166,6 @@ public:
 
 
 		// for ( float x = -0.5f; x < 1.0f; x += 0.45f ) {
-			palette::PickRandomPalette( true );
 			config.basePoint = vec3( 0.0, 0.0f, -0.9f );
 			TreeRecurse( config );
 		// }
@@ -360,6 +364,60 @@ public:
 		ImGui::Text( "" );
 
 		ImGui::SeparatorText( "= Generator =" );
+
+		ImGui::SeparatorText( "Palette Browser" );
+		std::vector< const char * > paletteLabels;
+		if ( paletteLabels.size() == 0 ) {
+			for ( auto& entry : palette::paletteListLocal ) {
+				// copy to a cstr for use by imgui
+				char * d = new char[ entry.label.length() + 1 ];
+				std::copy( entry.label.begin(), entry.label.end(), d );
+				d[ entry.label.length() ] = '\0';
+				paletteLabels.push_back( d );
+			}
+		}
+
+		ImGui::Combo( "Palette", &palette::PaletteIndex, paletteLabels.data(), paletteLabels.size() );
+		ImGui::SameLine();
+		if ( ImGui::Button( "Random" ) ) {
+			palette::PickRandomPalette( false );
+		}
+		const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
+		ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
+		// handle max < min
+		float minVal = ChorizoConfig.paletteRefMin;
+		float maxVal = ChorizoConfig.paletteRefMax;
+		float realSelectedMin = std::min( minVal, maxVal );
+		float realSelectedMax = std::max( minVal, maxVal );
+		size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
+		size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
+
+		bool finished = false;
+		for ( int y = 0; y < 8; y++ ) {
+			ImGui::Text( " " );
+			for ( int x = 0; x < 32; x++ ) {
+
+				// terminate when you run out of colors
+				const uint index = x + 32 * y;
+				if ( index >= paletteSize ) {
+					finished = true;
+				}
+
+				// show color, or black if past the end of the list
+				ivec4 color = ivec4( 0 );
+				if ( !finished ) {
+					color = ivec4( palette::paletteListLocal[ palette::PaletteIndex ].colors[ index ], 255 );
+					// determine if it is in the active range
+					if ( index < minShownIdx || index > maxShownIdx ) {
+						color.a = 64; // dim inactive entries
+					}
+				} 
+				ImGui::SameLine();
+				ImGui::TextColored( ImVec4( color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f ), "@" );
+			}
+		}
+		ImGui::SliderFloat( "Palette Min", &ChorizoConfig.paletteRefMin, 0.0f, 1.0f );
+		ImGui::SliderFloat( "Palette Max", &ChorizoConfig.paletteRefMax, 0.0f, 1.0f );
 
 		ImGui::End();
 
