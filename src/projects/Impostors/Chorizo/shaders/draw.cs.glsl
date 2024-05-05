@@ -137,12 +137,12 @@ void main () {
 		// color = vec3( 0.618f ) * pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
-		color = vec3( 0.618f ) * AOFactor;
+		color = baseColor * AOFactor;
 
 	} // else this is a background pixel
 
 	// volumetric term...
-	color += ( 1.0 - exp( -linearZ ) ) * vec3( 0.1f, 0.2f, 0.3f );
+	color += ( 1.0 - exp( -linearZ * 0.2f ) ) * vec3( 0.1f, 0.2f, 0.3f );
 
 	// write out the result
 	imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
