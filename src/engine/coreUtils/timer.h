@@ -172,20 +172,23 @@ public:
 class Block {
 const int reportWidth = 40;
 public:
+	std::string myName;
 	std::chrono::time_point<std::chrono::steady_clock> tStart;
-	Block( string sectionName ) {
+	Block( string blockName ) {
+		myName = blockName;
 		tStart = std::chrono::steady_clock::now();
-		cout << T_BLUE << "    " << sectionName << " " << RESET;
-		for ( unsigned int i = 0; i < reportWidth - sectionName.size(); i++ ) {
-			cout << ".";
-		}
-		cout << " ";
+		cout << T_BLUE << "    " << blockName << RESET << "... " << endl;
 	}
 
 	~Block() {
 		const float timeInMS = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::steady_clock::now() - tStart ).count() / 1000.0f;
 		const float wholeMS = int( std::floor( timeInMS ) );
 		const float partialMS = int( ( timeInMS - wholeMS ) * 1000.0f );
+		cout << "        ";
+		// for ( unsigned int i = 0; i < reportWidth - myName.size(); i++ ) {
+		for ( int i = 0; i < reportWidth; i++ ) {
+			cout << ".";
+		}
 		cout << T_GREEN << "done." << T_RED << " ( " << std::setfill( ' ' ) << std::setw( 6 ) << wholeMS << "."
 			<< std::setw( 3 ) << std::setfill( '0' ) << partialMS << " ms )" << RESET << newline;
 	}
