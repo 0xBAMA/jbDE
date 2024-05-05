@@ -124,7 +124,6 @@ void main () {
 		// const vec3 baseColor = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		const vec3 baseColor = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
 
-
 	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
@@ -142,7 +141,7 @@ void main () {
 	} // else this is a background pixel
 
 	// volumetric term...
-	color += ( 1.0 - exp( -linearZ * 0.2f ) ) * vec3( 0.1f, 0.2f, 0.3f );
+	color += ( 1.0 - exp( -linearZ * 0.03f ) ) * vec3( 0.1f, 0.2f, 0.3f );
 
 	// write out the result
 	imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );

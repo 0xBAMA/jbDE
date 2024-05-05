@@ -187,14 +187,18 @@ public:
 
 
 
-		rng pos = rng( -1.3f, 1.3f );
-		rng scale = rng( 0.01f, 0.1f );
-		for ( int i = 0; i < 1000; i++ ) {
-			// single, untranslated cube
-			// ChorizoConfig.geometryManager.AddRoundedBox( vec3( 0.0f, 0.02f * i, 0.0f ), vec3( 0.5f, 0.01f, 0.2f ), vec2( 0.0f ), 0.003f );
-			ChorizoConfig.geometryManager.AddRoundedBox( vec3( pos(), pos(), pos() ), vec3( scale() * 10.0f, scale() * 0.3f, scale() * 0.1f ), vec2( 0.0f ), 0.003f );
+		// rng pos = rng( -0.5f, 0.5f );
+		// rng scale = rng( 0.1f, 0.3f );
+		rng theta = rng( 0.0f, 6.28f );
+		rng phi = rng( -3.1415f, 3.1415f );
+		for ( float x = -3.0f; x < 3.0f; x += 0.3f ) {
+			for ( float y = -1.0f; y < 1.0f; y += 0.05 ) {
+				for ( float z = -1.0f; z < 1.0f; z += 0.05 ) {
+					float scaleFactor = pow( ( 3.0f - abs( x ) ) / 3.0f, 2.0f );
+					ChorizoConfig.geometryManager.AddRoundedBox( vec3( x, y, z ), vec3( 0.1f, 0.02f, 0.04f ), vec2( scaleFactor * theta(), scaleFactor * phi() ), 0.01f );
+				}
+			}
 		}
-
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
