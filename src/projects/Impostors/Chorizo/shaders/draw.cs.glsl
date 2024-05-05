@@ -91,7 +91,17 @@ float SpiralAO ( vec2 uv, vec3 p, vec3 n, float rad ) {
 	return ao;
 }
 
+// ===================================================================================================
+struct parameters_t {
+	float data[ 16 ];
+};
+layout( binding = 1, std430 ) buffer parametersBuffer {
+	parameters_t parametersList[];
+};
+
 // this shader also needs access to the SSBO with parameters, in this case mostly for material properties, I think
+
+
 
 void main () {
 	// pixel location + rng seeding
@@ -109,6 +119,12 @@ void main () {
 	vec3 color = vec3( 0.0f );
 
 	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
+
+		const parameters_t parameters = parametersList[ idSample ];
+		// const vec3 baseColor = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
+		const vec3 baseColor = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
+
+
 	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
