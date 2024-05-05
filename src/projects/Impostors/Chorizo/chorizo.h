@@ -18,6 +18,13 @@ struct ChorizoConfig_t {
 	float nearZ = 0.1f;
 	float farZ = 100.0f;
 
+	float FoV = 45.0f;
+
+	float ringPosition = 0.0f;
+	float blendAmount = 0.1f;
+	float railAdjust = -0.3f;
+	float apertureAdjust = 0.01f;
+
 	rngi wangSeeder = rngi( 0, 10042069 );
 
 	geometryManager_t geometryManager;
@@ -272,6 +279,24 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
+		TonemapControlsWindow();
+
+		ImGui::Begin( "Chorizo", NULL, ImGuiWindowFlags_NoScrollWithMouse );
+
+		ImGui::SeparatorText( "= Controls =" );
+		ImGui::SliderFloat( "FoV", &ChorizoConfig.FoV, 30.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Blend Amount", &ChorizoConfig.blendAmount, 0.001f, 0.5f, "%.7f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Focus Adjust", &ChorizoConfig.railAdjust, -1.0f, 1.0f );
+		ImGui::SliderFloat( "Aperture Adjust", &ChorizoConfig.apertureAdjust, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+
+		ImGui::Text( "" );
+
+		ImGui::SeparatorText( "= Generator =" );
+
+		ImGui::End();
+
+
+
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -330,6 +355,7 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "inSeed" ), ChorizoConfig.wangSeeder() );
 			glUniform1f( glGetUniformLocation( shader, "nearZ" ), ChorizoConfig.nearZ );
 			glUniform1f( glGetUniformLocation( shader, "farZ" ), ChorizoConfig.farZ );
+			glUniform1f( glGetUniformLocation( shader, "blendAmount" ), ChorizoConfig.blendAmount );
 
 			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransform ) );
 			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransformInverse ) );
