@@ -68,10 +68,18 @@ mat4 RoundedBoxBounds ( parameters_t parameters ) {
 	const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 	const float packedEuler = parameters.data[ 4 ];
 
-	mat4 current = mat4( 1.0f );
-	current[ 0 ][ 0 ] = scaleFactors.x;
-	current[ 1 ][ 1 ] = scaleFactors.y;
-	current[ 2 ][ 2 ] = scaleFactors.z;
+	// need to apply euler angles
+	const mat3 base = mat3(
+		scaleFactors.x, 0.0f, 0.0f,
+		0.0f, scaleFactors.y, 0.0f,
+		0.0f, 0.0f, scaleFactors.z );
+
+	mat4 current = mat4(
+		base[ 0 ][ 0 ], base[ 0 ][ 1 ], base[ 0 ][ 2 ], 0.0f,
+		base[ 1 ][ 0 ], base[ 1 ][ 1 ], base[ 1 ][ 2 ], 0.0f,
+		base[ 2 ][ 0 ], base[ 2 ][ 1 ], base[ 2 ][ 2 ], 0.0f,
+		centerPoint, 1.0f
+	);
 
 	return current;
 }

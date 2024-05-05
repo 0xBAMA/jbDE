@@ -62,6 +62,7 @@ void main() {
 			break;
 
 		case ROUNDEDBOX:
+			const vec3 centerPoint = vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] );
 			const float packedEuler = parameters.data[ 4 ];
 			const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 			const float roundingFactor = parameters.data[ 8 ];
@@ -69,11 +70,11 @@ void main() {
 			const float eulerPhi = ( pi / 2.0f ) * floor( packedEuler ) / 255.0f;
 			const float eulerTheta = fract( packedEuler ) * pi * 2.0f;
 
-			const vec3 rayDirectionAdjusted = ;
-			const vec3 rayOriginAdjusted = ;
+			const vec3 rayDirectionAdjusted = rayDirection;
+			const vec3 rayOriginAdjusted = rayOrigin - centerPoint;
 
 			// going to have to figure out what the transforms need to be, in order to intersect with the transformed primitve
-			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normal, scaleFactors, roundingFactor );
+			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normal, scaleFactors / 2.0f, roundingFactor );
 			break;
 
 		default:
