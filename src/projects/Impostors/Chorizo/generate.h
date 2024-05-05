@@ -9,6 +9,8 @@ struct geometryManager_t {
 	std::vector< float > parametersList;
 	int count = 0;
 
+	void ClearList() { count = 0; parametersList.clear(); }
+
 	void AddPrimitive( const float parameters[ 16 ] );
 	void AddCapsule( const vec3 pointA, const vec3 pointB, const float radius, const vec3 color );
 	void AddRoundedBox( const vec3 centerPoint, const vec3 scaleFactors, const vec2 eulerAngles, const float roundingFactor, const vec3 color );
