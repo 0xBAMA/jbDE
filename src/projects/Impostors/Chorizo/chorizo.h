@@ -122,15 +122,19 @@ public:
 		float branchRadius = 0.04f;
 		float lengthShrink = 0.8f;
 		float radiusShrink = 0.79f;
+		float paletteJitter = 0.03f;
 		int levelsDeep = 0;
-		int maxLevels = 10;
-		vec3 basePoint = vec3( 0.0f, 0.5f, 0.0f );
+		int maxLevels = 11;
+		vec3 basePoint = vec3( 0.0f, 0.0f, -0.5f );
 		mat3 basis = mat3( 1.0f );
 	};
 
+	rng paletteJitter = rng( -1.0f, 1.0f );
+
 	void TreeRecurse ( recursiveTreeConfig config ) {
 		vec3 basePointNext = config.basePoint + config.branchLength * config.basis * vec3( 0.0f, 0.0f, 1.0f );
-		ChorizoConfig.geometryManager.AddCapsule( config.basePoint, basePointNext, config.branchRadius );
+		vec3 color = palette::paletteRef( float( config.levelsDeep ) / float( config.maxLevels ) + paletteJitter() * config.paletteJitter );
+		ChorizoConfig.geometryManager.AddCapsule( config.basePoint, basePointNext, config.branchRadius, color );
 		config.basePoint = basePointNext;
 		if ( config.levelsDeep == config.maxLevels ) {
 			return;
@@ -149,6 +153,39 @@ public:
 				config.basis = mat3( glm::rotate( rotateIncrement + jitter(), zBasis ) ) * config.basis;
 			}
 		}
+	}
+
+	void regenTree () {
+		ChorizoConfig.geometryManager.ClearList();
+		recursiveTreeConfig config;
+
+
+		// for ( float x = -0.5f; x < 1.0f; x += 0.45f ) {
+			palette::PickRandomPalette( true );
+			config.basePoint = vec3( 0.0, 0.0f, -0.9f );
+			TreeRecurse( config );
+		// }
+
+
+
+		// rngi numBranches = rngi( 2, 5 );
+		// rng branchTilt = rng( 0.05f, 0.5f );
+		// rng branchLength = rng( 0.2f, 0.7f );
+		// rng branchRadius = rng( 0.01f, 0.1f );
+		// rng lengthShrink = rng( 0.65f, 1.0f );
+		// rng radiusShrink = rng( 0.65f, 1.0f );
+		// rng paletteJitter = rng( 0.0f, 0.05f );
+		// rngi maxLevels = rngi( 5, 12 );
+
+		// config.numBranches = numBranches();
+		// config.branchTilt = branchTilt();
+		// config.branchLength = branchLength();
+		// config.branchRadius = branchRadius();
+		// config.lengthShrink = lengthShrink();
+		// config.radiusShrink = radiusShrink();
+		// config.paletteJitter = paletteJitter();
+		// config.maxLevels = maxLevels();
+
 	}
 
 	void PrepSSBOs () {
@@ -180,8 +217,7 @@ public:
 
 
 
-		// recursiveTreeConfig config;
-		// TreeRecurse( config );
+
 
 
 
@@ -194,18 +230,38 @@ public:
 
 
 
-		// rng pos = rng( -0.5f, 0.5f );
+		// // rng pos = rng( -0.5f, 0.5f );
+		// // rng scale = rng( 0.1f, 0.3f );
+		// rng theta = rng( 0.0f, 6.28f );
+		// rng phi = rng( -3.1415f, 3.1415f );
+		// for ( float x = -3.0f; x < 3.0f; x += 0.3f ) {
+		// 	for ( float y = -1.0f; y < 1.0f; y += 0.05 ) {
+		// 		for ( float z = -1.0f; z < 1.0f; z += 0.05 ) {
+		// 			float scaleFactor = pow( ( 3.0f - abs( x ) ) / 3.0f, 2.0f );
+		// 			ChorizoConfig.geometryManager.AddRoundedBox( vec3( x, y, z ), vec3( 0.2f, 0.01f, 0.01f ), vec2( scaleFactor * theta(), scaleFactor * phi() ), 0.01f );
+		// 		}
+		// 	}
+		// }
+
+
+		regenTree();
+
+		// rng pos = rng( -1.5f, 1.5f );
+		// rng pos2 = rng( -0.2f, 0.2f );
 		// rng scale = rng( 0.1f, 0.3f );
-		rng theta = rng( 0.0f, 6.28f );
-		rng phi = rng( -3.1415f, 3.1415f );
-		for ( float x = -3.0f; x < 3.0f; x += 0.3f ) {
-			for ( float y = -1.0f; y < 1.0f; y += 0.05 ) {
-				for ( float z = -1.0f; z < 1.0f; z += 0.05 ) {
-					float scaleFactor = pow( ( 3.0f - abs( x ) ) / 3.0f, 2.0f );
-					ChorizoConfig.geometryManager.AddRoundedBox( vec3( x, y, z ), vec3( 0.1f, 0.02f, 0.04f ), vec2( scaleFactor * theta(), scaleFactor * phi() ), 0.01f );
-				}
-			}
-		}
+		// rng theta = rng( 0.0f, 6.28f );
+		// rng phi = rng( -3.1415f, 3.1415f );
+		// rng c = rng( 0.0f, 1.0f );
+
+		// const int perBlock = 2000;
+
+		// for ( int j = -3; j < 3; j++ ) {
+		// 	palette::PickRandomPalette( true );
+		// 	for ( int i = 0; i < perBlock; i++ ) {
+		// 		vec3 color = palette::paletteRef( c() );
+		// 		ChorizoConfig.geometryManager.AddRoundedBox( vec3( pos(), pos2(), pos2() ) + vec3( 0.0f, 0.0f, 1.0f * j ), vec3( 0.01f, scale(), 0.01f ), vec2( theta(), phi() ), 0.005f, color );
+		// 	}
+		// }
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
@@ -228,21 +284,25 @@ public:
 		const float time = SDL_GetTicks() / 10000.0f;
 
 		// setting up the orbiting camera - this is getting very old, needs work
-		static rng ampGen = rng( 2.0f, 4.0f );
-		static rng orbitGen = rng( -0.5f, 1.6f );
-		static const vec3 amplitudes = vec3( ampGen(), ampGen(), ampGen() );
-		static const vec3 orbitRatios = vec3( orbitGen(), orbitGen(), orbitGen() );
 		ChorizoConfig.eyePosition = vec3(
-			amplitudes.x * sin( time * orbitRatios.x ),
-			amplitudes.y * cos( time * orbitRatios.y ),
-			amplitudes.z * sin( time * orbitRatios.z ) );
+			3.0f * sin( ChorizoConfig.ringPosition ),
+			3.0f * cos( ChorizoConfig.ringPosition ),
+			0.5f );
+
+		const vec3 center = vec3( 0.0f, 0.0f, 1.5f );
+		const vec3 up = vec3( 0.0f, 0.0f, -1.0f );
+		vec3 perfectVec = ChorizoConfig.eyePosition - center;
+		vec3 left = glm::cross( up, perfectVec );
+
+		rng jitterAmount = rng( -ChorizoConfig.apertureAdjust, ChorizoConfig.apertureAdjust );
+		ChorizoConfig.eyePosition += jitterAmount() * up + jitterAmount() * left;
 
 		const float aspectRatio = float( config.width ) / float( config.height );
 
-		ChorizoConfig.projTransform = glm::perspective( 45.0f, aspectRatio, ChorizoConfig.nearZ, ChorizoConfig.farZ );
+		ChorizoConfig.projTransform = glm::perspective( ChorizoConfig.FoV, aspectRatio, ChorizoConfig.nearZ, ChorizoConfig.farZ );
 		ChorizoConfig.projTransformInverse = glm::inverse( ChorizoConfig.projTransform );
 
-		ChorizoConfig.viewTransform = glm::lookAt( ChorizoConfig.eyePosition, vec3( 0.0f ), vec3( 0.0f, 1.0f, 0.0f ) );
+		ChorizoConfig.viewTransform = glm::lookAt( ChorizoConfig.eyePosition, vec3( 0.0f, 0.0f, 1.0f ) - perfectVec * ChorizoConfig.railAdjust, vec3( 0.0f, 0.0f, -1.0f ) );
 		ChorizoConfig.viewTransformInverse = glm::inverse( ChorizoConfig.viewTransform );
 
 		ChorizoConfig.combinedTransform = ChorizoConfig.projTransform * ChorizoConfig.viewTransform;
@@ -255,7 +315,7 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
 		// // current state of the whole keyboard
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// // current state of the modifier keys
 		// const SDL_Keymod k	= SDL_GetModState();
@@ -264,6 +324,14 @@ public:
 		// const bool control	= ( k & KMOD_CTRL );
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
+
+		if ( state[ SDL_SCANCODE_R ] ) {
+			regenTree();
+			ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
+		}
 
 	}
 
