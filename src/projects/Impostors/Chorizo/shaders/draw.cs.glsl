@@ -118,11 +118,18 @@ void main () {
 	const vec3 worldPos = posFromTexcoord( screenPos );
 	vec3 color = vec3( 0.0f );
 
+
+
 	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
 
 		const parameters_t parameters = parametersList[ idSample - 1 ];
-		// const vec3 baseColor = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
-		const vec3 baseColor = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
+
+		vec3 baseColor;
+		if ( parameters.data[ 15 ] == -1.0f ) {
+			baseColor = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
+		} else {
+			baseColor = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
+		}
 
 	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
