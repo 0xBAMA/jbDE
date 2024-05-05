@@ -173,8 +173,8 @@ public:
 
 
 
-		recursiveTreeConfig config;
-		TreeRecurse( config );
+		// recursiveTreeConfig config;
+		// TreeRecurse( config );
 
 
 
@@ -185,8 +185,15 @@ public:
 		// 	TreeRecurse( config );
 		// }
 
-		// single, untranslated cube
-		ChorizoConfig.geometryManager.AddRoundedBox( vec3( 0.0f ), vec3( 0.5f ), vec2( 0.0f ), 0.1f );
+
+
+		rng pos = rng( -1.3f, 1.3f );
+		rng scale = rng( 0.01f, 0.1f );
+		for ( int i = 0; i < 1000; i++ ) {
+			// single, untranslated cube
+			// ChorizoConfig.geometryManager.AddRoundedBox( vec3( 0.0f, 0.02f * i, 0.0f ), vec3( 0.5f, 0.01f, 0.2f ), vec2( 0.0f ), 0.003f );
+			ChorizoConfig.geometryManager.AddRoundedBox( vec3( pos(), pos(), pos() ), vec3( scale() * 10.0f, scale() * 0.3f, scale() * 0.1f ), vec2( 0.0f ), 0.003f );
+		}
 
 
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
