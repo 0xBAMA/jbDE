@@ -67,12 +67,17 @@ mat4 RoundedBoxBounds ( parameters_t parameters ) {
 	const vec3 centerPoint = vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] );
 	const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 	const float packedEuler = parameters.data[ 4 ];
+	const float roundingFactor = parameters.data[ 8 ];
 
-	// need to apply euler angles
-	const mat3 base = mat3(
-		scaleFactors.x, 0.0f, 0.0f,
-		0.0f, scaleFactors.y, 0.0f,
-		0.0f, 0.0f, scaleFactors.z );
+	const float theta = fract( packedEuler ) * 2.0f * pi;
+	const float phi = ( floor( packedEuler ) / 255.0f ) * ( pi / 2.0f );
+
+	// need to apply euler angles, angle axis
+	const mat3 base = Rotate3D( theta, vec3( 0.0f, 1.0f, 0.0f ) )
+		* Rotate3D( phi, vec3( 1.0f, 0.0f, 0.0f ) )
+		* mat3( scaleFactors.x + roundingFactor, 0.0f, 0.0f,
+				0.0f, scaleFactors.y + roundingFactor, 0.0f,
+				0.0f, 0.0f, scaleFactors.z + roundingFactor );
 
 	mat4 current = mat4(
 		base[ 0 ][ 0 ], base[ 0 ][ 1 ], base[ 0 ][ 2 ], 0.0f,

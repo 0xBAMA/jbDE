@@ -65,14 +65,20 @@ void main() {
 			const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
 			const float roundingFactor = parameters.data[ 8 ];
 
-			const float eulerPhi = ( pi / 2.0f ) * floor( packedEuler ) / 255.0f;
-			const float eulerTheta = fract( packedEuler ) * pi * 2.0f;
+			const float theta = fract( packedEuler ) * 2.0f * pi;
+			const float phi = ( floor( packedEuler ) / 255.0f ) * ( pi / 2.0f );
 
-			const vec3 rayDirectionAdjusted = rayDirection;
-			const vec3 rayOriginAdjusted = rayOrigin - centerPoint;
+			const mat3 transform = ( Rotate3D( -phi, vec3( 1.0f, 0.0f, 0.0f ) ) * Rotate3D( -theta, vec3( 0.0f, 1.0f, 0.0f ) ) );
+			const vec3 rayDirectionAdjusted = ( transform * rayDirection );
+			const vec3 rayOriginAdjusted = transform * ( rayOrigin - centerPoint );
 
 			// going to have to figure out what the transforms need to be, in order to intersect with the transformed primitve
-			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normal, scaleFactors / 2.0f, roundingFactor );
+			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normal, scaleFactors, roundingFactor );
+			
+			// is it faster to do this, or to do the euler stuff, in inverse
+			// const mat3 inverseTransform = ( Rotate3D( theta, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( phi, vec3( 1.0f, 0.0f, 0.0f ) ) );
+			const mat3 inverseTransform = inverse( transform );
+			normal = inverseTransform * normal;
 			break;
 
 		default:
