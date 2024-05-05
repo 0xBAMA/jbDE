@@ -99,9 +99,7 @@ layout( binding = 1, std430 ) buffer parametersBuffer {
 	parameters_t parametersList[];
 };
 
-// this shader also needs access to the SSBO with parameters, in this case mostly for material properties, I think
-
-
+uniform float blendAmount;
 
 void main () {
 	// pixel location + rng seeding
@@ -147,8 +145,11 @@ void main () {
 
 	} // else this is a background pixel
 
-	// volumetric term...
-	color += ( 1.0 - exp( -linearZ * 0.03f ) ) * vec3( 0.1f, 0.2f, 0.3f );
+	// atmospheric/volumetric term...
+	color += ( 1.0f - exp( -linearZ * 0.03f ) ) * vec3( 0.1f, 0.2f, 0.3f );
+
+	vec3 existingColor = imageLoad( accumulatorTexture, writeLoc ).rgb;
+	color = mix( existingColor, color, blendAmount );
 
 	// write out the result
 	imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
