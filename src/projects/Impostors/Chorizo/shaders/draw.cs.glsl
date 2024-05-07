@@ -99,7 +99,17 @@ layout( binding = 1, std430 ) buffer parametersBuffer {
 	parameters_t parametersList[];
 };
 
+struct pointSpriteParameters_t {
+	float data[ 16 ];
+};
+layout( binding = 2, std430 ) buffer pointSpriteParametersBuffer {
+	pointSpriteParameters_t pointSpriteParameters[];
+};
+
+
 uniform float blendAmount;
+uniform float volumetricStrength;
+uniform vec3 volumetricColor;
 
 void main () {
 	// pixel location + rng seeding
@@ -108,7 +118,7 @@ void main () {
 	seed = inSeed + 10612 * writeLoc.x + 385609 * writeLoc.y;
 
 	// data from the framebuffer
-	const uint idSample = texelFetch( primitiveID, writeLoc, 0 ).r;
+	const uvec2 idSample = texelFetch( primitiveID, writeLoc, 0 ).rg;
 	const vec3 normalSample = texelFetch( normals, writeLoc, 0 ).rgb;
 	const float linearZ = GetLinearZ( texture( depthTex, screenPos ).r );
 
@@ -116,19 +126,33 @@ void main () {
 	const vec3 worldPos = posFromTexcoord( screenPos );
 	vec3 color = vec3( 0.0f );
 
+	bool drawing = false;
 
+	if ( idSample.x != 0 ) { // these are texels which wrote out a fragment during the raster geo pass, bounding box impostors
 
-	if ( idSample != 0 ) { // these are texels which wrote out a fragment during the raster geo pass
+		drawing = true;
+		const parameters_t parameters = parametersList[ idSample.x - 1 ];
 
-		const parameters_t parameters = parametersList[ idSample - 1 ];
-
-		vec3 baseColor;
-		if ( parameters.data[ 15 ] == -1.0f ) {
-			baseColor = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
-		} else {
-			baseColor = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
+		if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
+			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
+		} else { // todo: should interpret the alpha channel as a palette key
+			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
 		}
 
+	} else if ( idSample.y != 0 ) { // using the second channel to signal
+
+		drawing = true;
+		pointSpriteParameters_t parameters = pointSpriteParameters[ idSample.y - 1 ];
+
+		if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
+			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
+		} else { // todo: should interpret the alpha channel as a palette key
+			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
+		}
+
+	} // else this is a background pixel
+
+	if ( drawing ) {
 	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
@@ -141,12 +165,11 @@ void main () {
 		// color = vec3( 0.618f ) * pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
-		color = baseColor * AOFactor;
+		color = color * AOFactor;
 
-	} // else this is a background pixel
-
-	// atmospheric/volumetric term...
-	color += ( 1.0f - exp( -linearZ * 0.03f ) ) * vec3( 0.1f, 0.2f, 0.3f );
+		// atmospheric/volumetric term...
+		color += ( 1.0f - exp( -linearZ * volumetricStrength ) ) * volumetricColor;
+	}
 
 	vec3 existingColor = imageLoad( accumulatorTexture, writeLoc ).rgb;
 	color = mix( existingColor, color, blendAmount );

@@ -9,8 +9,14 @@ struct geometryManager_t {
 	std::vector< float > parametersList;
 	int count = 0;
 
-	void ClearList() { count = 0; parametersList.clear(); }
+	std::vector< float > pointSpriteParametersList;
+	int countPointSprite = 0;
 
+	void ClearLists() { count = 0; parametersList.clear(); countPointSprite = 0; pointSpriteParametersList.clear(); }
+
+	void AddPointSprite( const float parameters[ 16 ] );
+	void AddSphere( const vec3 location, const float radius, const vec3 color );
+	
 	void AddPrimitive( const float parameters[ 16 ] );
 	void AddCapsule( const vec3 pointA, const vec3 pointB, const float radius, const vec3 color );
 	void AddRoundedBox( const vec3 centerPoint, const vec3 scaleFactors, const vec2 eulerAngles, const float roundingFactor, const vec3 color );
@@ -19,6 +25,25 @@ struct geometryManager_t {
 #define SPHERE		0 // plan is to redo point sprites for this - they are much faster
 #define CAPSULE		1
 #define ROUNDEDBOX	2
+
+void geometryManager_t::AddPointSprite( const float parameters[ 16 ] ) {
+	// adding one shape to the buffer
+	countPointSprite++;
+	for ( int i = 0; i < 16; i++ ) {
+		pointSpriteParametersList.push_back( parameters[ i ] );
+	}
+}
+
+void geometryManager_t::AddSphere( const vec3 location, const float radius, const vec3 color = vec3( -1.0f ) ) {
+	vec4 c = ( color == vec3( -1.0f ) ) ? vec4( 0.0f, 0.0f, 0.0f, GetPaletteValue() ) : vec4( color.xyz(), -1.0f );
+	const float parameters[] = {
+		SPHERE, location.x, location.y, location.z,
+		radius, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		c.x, c.y, c.z, c.w
+	};
+	AddPointSprite( parameters );
+}
 
 void geometryManager_t::AddPrimitive( const float parameters[ 16 ] ) {
 	// adding one shape to the buffer
