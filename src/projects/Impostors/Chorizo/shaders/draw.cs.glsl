@@ -98,13 +98,23 @@ struct parameters_t {
 layout( binding = 1, std430 ) buffer parametersBuffer {
 	parameters_t parametersList[];
 };
-
+// ===================================================================================================
 struct pointSpriteParameters_t {
 	float data[ 16 ];
 };
 layout( binding = 2, std430 ) buffer pointSpriteParametersBuffer {
 	pointSpriteParameters_t pointSpriteParameters[];
 };
+// ===================================================================================================
+const int numLights = 64;
+struct lightParameters_t {
+	vec4 position;
+	vec4 color;
+};
+layout( binding = 3, std430 ) buffer lightParametersBuffer {
+	lightParameters_t lightParameters[];
+};
+// ===================================================================================================
 
 uniform float blendAmount;
 uniform float volumetricStrength;
@@ -165,6 +175,18 @@ void main () {
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
 		color = color * AOFactor;
+
+		// lighting calculations
+		bool closeEnough = false;
+		for ( int i = 0; i < numLights; i++ ) {
+			lightParameters_t light = lightParameters[ i ];
+			if ( distance( light.position.xyz, worldPos ) < 0.5f ) {
+				closeEnough = true;
+			}
+		}
+		if ( !closeEnough ) {
+			color = vec3( 0.0f );
+		}
 	}
 
 	// atmospheric/volumetric term...
