@@ -463,6 +463,36 @@ public:
 		ImGui::SliderFloat( "Base Point X", &myConfig.basePoint.x, -1.0f, 1.0f );
 		ImGui::SliderFloat( "Base Point Y", &myConfig.basePoint.y, -1.0f, 1.0f );
 		ImGui::SliderFloat( "Base Point Z", &myConfig.basePoint.z, -1.0f, 1.0f );
+		if ( ImGui::Button( "Randomize Parameters" ) ) {
+
+			do {
+				rngi branches = rngi( 1, 6 );
+				myConfig.numBranches = branches();
+
+				rng rotateJitter = rng( 0.0f, 0.75f );
+				myConfig.rotateJitterMin = rotateJitter();
+				myConfig.rotateJitterMax = rotateJitter();
+				myConfig.branchJitterMin = rotateJitter();
+				myConfig.branchJitterMax = rotateJitter();
+
+				rng tilt = rng( 0.03f, 0.75f );
+				myConfig.branchTilt = tilt();
+
+				rng length = rng( 0.2f, 1.3f );
+				myConfig.branchLength = length();
+
+				rng radius = rng( 0.01f, 0.2f );
+				myConfig.branchRadius = radius();
+
+				rng shrink = rng( 0.5f, 1.0f );
+				myConfig.lengthShrink = shrink();
+				myConfig.radiusShrink = shrink();
+
+				rng offset = rng( 0.75f, 1.25f );
+				myConfig.shrinkJitterMin = offset();
+				myConfig.shrinkJitterMax = offset();
+			} while( ( myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels ) ) > 10000000 );
+		}
 
 		ImGui::SeparatorText( "Palette Browser" );
 		std::vector< const char * > paletteLabels;
