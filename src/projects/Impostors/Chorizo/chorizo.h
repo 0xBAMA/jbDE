@@ -108,14 +108,16 @@ public:
 			glGenFramebuffers( 2, &ChorizoConfig.primaryFramebuffer[ 0 ] );
 			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 }; // both framebuffers have implicit depth + 2 color attachments
 
-			// creating the actual framebuffers with their attachments
-			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 0 ] );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth 0" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal 0" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Primitive ID 0" ), 0 );
-			glDrawBuffers( 2, bufs ); // how many active attachments, and their attachment locations
-			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
-				cout << newline << "front framebuffer creation successful" << newline;
+			for ( int i = 0; i < 2; i++ ) {
+				// creating the actual framebuffers with their attachments
+				glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ i ] );
+				glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth " + std::to_string( i ) ), 0 );
+				glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal " + std::to_string( i ) ), 0 );
+				glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Primitive ID " + std::to_string( i ) ), 0 );
+				glDrawBuffers( 2, bufs ); // how many active attachments, and their attachment locations
+				if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
+					cout << newline << "framebuffer " << i << " creation successful" << newline;
+				}
 			}
 
 			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 1 ] );
