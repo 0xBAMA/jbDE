@@ -38,9 +38,11 @@ void geometryManager_t::AddPointSprite( const float parameters[ 16 ] ) {
 
 void geometryManager_t::AddPointSpriteSphere( const vec3 location, const float radius, const vec3 color = vec3( -1.0f ) ) {
 	vec4 c = ( color == vec3( -1.0f ) ) ? vec4( 0.0f, 0.0f, 0.0f, GetPaletteValue() ) : vec4( color.xyz(), -1.0f );
+	float r = radius;
+	if ( r < 0.0f ) { r = abs( r ); c.w = -2.0f; }
 	const float parameters[] = {
 		SPHERE, location.x, location.y, location.z,
-		radius, 0.0f, 0.0f, 0.0f,
+		r, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f,
 		c.x, c.y, c.z, c.w
 	};

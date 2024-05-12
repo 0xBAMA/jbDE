@@ -18,6 +18,8 @@ uniform usampler2D primitiveIDBack;
 #include "random.h"
 uniform int inSeed;
 
+uniform vec3 eyePosition;	// location of the viewer
+
 // SSAO Constants / Support Functions
 // uniform int AONumSamples;
 // uniform float AOIntensity;
@@ -106,7 +108,8 @@ layout( binding = 2, std430 ) buffer pointSpriteParametersBuffer {
 	pointSpriteParameters_t pointSpriteParameters[];
 };
 // ===================================================================================================
-const int numLights = 64;
+uniform int numLights;
+uniform vec3 ambientLighting;
 struct lightParameters_t {
 	vec4 position;
 	vec4 color;
@@ -136,6 +139,7 @@ void main () {
 	vec3 color = vec3( 0.0f );
 
 	bool drawing = false;
+	bool emissive = false;
 
 	if ( idSample.x != 0 ) { // these are texels which wrote out a fragment during the raster geo pass, bounding box impostors
 
@@ -153,7 +157,10 @@ void main () {
 		drawing = true;
 		pointSpriteParameters_t parameters = pointSpriteParameters[ idSample.y - 1 ];
 
-		if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
+		if ( parameters.data[ 15 ] == -2.0f ) {
+			emissive = true;
+			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
+		} else if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
 			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		} else { // todo: should interpret the alpha channel as a palette key
 			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
@@ -161,7 +168,32 @@ void main () {
 
 	} // else this is a background pixel
 
-	if ( drawing ) {
+	if ( drawing && !emissive ) {
+
+		// lighting calculations
+		vec3 lightContribution = ambientLighting;
+
+		// pack into one of the remaining fields ( or add additional rendered target with material properties )
+		const float roughness = 10.0f;
+
+		for ( int i = 0; i < numLights; i++ ) {
+
+			// phong setup
+			const vec3 lightLocation = lightParameters[ i ].position.xyz;
+			const vec3 lightVector = normalize( lightLocation - worldPos.xyz );
+			const vec3 reflectedVector = normalize( reflect( lightVector, normalSample ) );
+
+			// lighting calculation
+			const float lightDot = dot( normalSample, lightVector );
+			const float dLight = distance( worldPos.xyz, lightLocation );
+
+			const float distanceFactor = 1.0f / pow( dLight, 2.0f );
+			const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
+			const float specularContribution = distanceFactor * pow( max( dot( -reflectedVector, normalize( worldPos - eyePosition ) ), 0.0f ), roughness );
+
+			lightContribution += lightParameters[ i ].color.rgb * ( diffuseContribution + ( ( lightDot > 0.0f ) ? specularContribution : 0.0f ) );
+		}
+
 	// need to evaluate which of these looks the best, eventually - also figure out what settings I was using because this is looking a bit rough
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius ) * AOIntensity;
 		// float AOFactor = 1.0f - SpiralAO( screenPos, worldPos, normalSample, AOSampleRadius / texture( depthTex, screenPos ).r ) * AOIntensity;
