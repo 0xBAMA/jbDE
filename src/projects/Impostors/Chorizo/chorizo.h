@@ -303,11 +303,18 @@ public:
 
 	}
 
-	void PrepSceneParameters () {
-		const float time = SDL_GetTicks() / 10000.0f;
+	vec2 UniformSampleHexagon ( vec2 u ) {
+		u = 2.0f * u - vec2( 1.0f );
+		float a = sqrt( 3.0f ) - sqrt( 3.0f - 2.25f * abs( u.x ) );
+		return vec2( glm::sign( u.x ) * a, u.y * ( 1.0f - a / sqrt( 3.0f ) ) );
+	}
 
-		rng jitterAmount = rng( -ChorizoConfig.apertureAdjust, ChorizoConfig.apertureAdjust );
-		const vec3 localEyePos = ChorizoConfig.eyePosition + jitterAmount() * ChorizoConfig.basisX + jitterAmount() * ChorizoConfig.basisY;
+	void PrepSceneParameters () {
+		// const float time = SDL_GetTicks() / 10000.0f;
+
+		rng jitterAmount = rng( 0.0f, 1.0f );
+		const vec2 hexJitter = UniformSampleHexagon( vec2( jitterAmount(), jitterAmount() ) ) * ChorizoConfig.apertureAdjust;
+		const vec3 localEyePos = ChorizoConfig.eyePosition + hexJitter.x * ChorizoConfig.basisX + hexJitter.y * ChorizoConfig.basisY;
 		const float aspectRatio = float( config.width ) / float( config.height );
 
 		ChorizoConfig.projTransform = glm::perspective( glm::radians( ChorizoConfig.FoV ), aspectRatio, ChorizoConfig.nearZ, ChorizoConfig.farZ );
@@ -344,8 +351,8 @@ public:
 			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
 
-			ChorizoConfig.numPointSprites = ChorizoConfig.geometryManager.countPointSprite;
 			// point sprite spheres, separate from the bounding box impostors
+			ChorizoConfig.numPointSprites = ChorizoConfig.geometryManager.countPointSprite;
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.pointSpriteParametersBuffer );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPointSprites * 4, ( GLvoid * ) ChorizoConfig.geometryManager.pointSpriteParametersList.data(), GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, ChorizoConfig.pointSpriteParametersBuffer );
