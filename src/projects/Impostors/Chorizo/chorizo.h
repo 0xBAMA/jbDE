@@ -208,14 +208,13 @@ public:
 		p.model.RangeRemap( &remap );
 
 		int numSteps = 10;
-		for ( int i = 0; i < numSteps; i++ ) {
+		for ( int i = 0; i <= numSteps; i++ ) {
 			cout << "\rRunning eroder: " << i << " / " << numSteps << std::flush;
 			p.Erode( 1000 );
 		}
 
 		cout << endl;
 		// p.Save( "test.png" );
-
 
 		// place some grass, brush
 		const float heightScale = 0.5f;
@@ -227,9 +226,9 @@ public:
 		rngi y = rngi( 5, h - 5 );
 		rng xyDistrib = rng( -0.2f, 0.2f );
 		rng zDistrib = rng( 0.01f, 0.25f );
-		radius = rng( 0.002f, 0.01f );
 		rng pDistrib = rng( ChorizoConfig.paletteRefMin, ChorizoConfig.paletteRefMax );
 		rng reject = rng( 0.0f, 1.0f );
+		rng jitter = rng( 0.2f, 1.1f );
 		PerlinNoise pNoise;
 
 		for ( int i = 0; i < 2000000; i++ ) {
@@ -246,7 +245,7 @@ public:
 				const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
 				const vec3 basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
 				// const vec3 top = basePoint + vec3( xyDistrib(), xyDistrib(), zDistrib() );
-				const vec3 top = basePoint + normal * 0.1f;
+				const vec3 top = basePoint + normal * 0.1f * jitter();
 				// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( noiseValue ) );
 				// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( pDistrib() ) );
 				ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( abs( dUp ) ) );
