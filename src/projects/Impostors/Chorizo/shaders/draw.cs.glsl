@@ -206,19 +206,8 @@ void main () {
 		// color = vec3( 0.618f ) * pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
-		color = color * AOFactor;
+		color = lightContribution * color * AOFactor;
 
-		// lighting calculations
-		bool closeEnough = false;
-		for ( int i = 0; i < numLights; i++ ) {
-			lightParameters_t light = lightParameters[ i ];
-			if ( distance( light.position.xyz, worldPos ) < 0.5f ) {
-				closeEnough = true;
-			}
-		}
-		if ( !closeEnough ) {
-			color = vec3( 0.0f );
-		}
 	}
 
 	// atmospheric/volumetric term...
