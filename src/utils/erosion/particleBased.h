@@ -16,8 +16,10 @@ public:
 		std::uniform_real_distribution< float > distribution{ 0.0f, 1.0f };
 
 		// todo: make this variable ( data array cannot be variable size in c++ )
-		const uint32_t dim = 1024;
+		// const uint32_t dim = 1024;
+		const uint32_t dim = 4096;
 
+	#define TILE
 	#ifdef TILE
 		const auto size = dim;
 	#else
@@ -25,7 +27,13 @@ public:
 	#endif
 
 		const auto edge = size - 1;
-		float data[ size ][ size ] = { { 0.0f } };
+		// float data[ size ][ size ] = { { 0.0f } };
+		std::vector< std::vector< float > > data;
+		data.resize( size );
+		for ( uint i = 0; i < size; i++ ) {
+			data[ i ].resize( size );
+		}
+
 		data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.25f;
 
 	#ifdef TILE
@@ -46,11 +54,17 @@ public:
 			},
 			// at
 			[ &data ]( int x, int y ) -> float& {
-				return data[ y ][ x ];
+				return data[ x ][ y ];
 			}
 		);
 
-		model = Image_1F( size, size, &data[ 0 ][ 0 ] );
+		model = Image_1F( size, size );
+		for ( uint y = 0; y < size; y++ ) {
+			for ( uint x = 0; x < size; x++ ) {
+				model.SetAtXY( x, y, color_1F( { data[ x ][ y ] } ) );
+			}
+		}
+
 		// model.Save( "test.exr", Image_1F::backend::TINYEXR );
 	}
 
