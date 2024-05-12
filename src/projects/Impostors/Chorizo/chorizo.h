@@ -28,8 +28,10 @@ struct ChorizoConfig_t {
 
 	float volumetricStrength = 0.03f;
 	vec3 volumetricColor = vec3( 0.1f, 0.2f, 0.3f );
+	vec3 ambientColor = vec3( 0.0 );
 
 	int numLights = 64;
+	std::vector< vec4 > lights;
 
 	float blendAmount = 0.1f;
 	float focusDistance = 3.5f;
@@ -86,7 +88,6 @@ public:
 
 			// get some initial data for the impostor shapes
 			palette::PickRandomPalette( true );
-			PrepLights();
 			PrepSSBOs();
 
 			// == Render Framebuffer(s) ===========
@@ -274,6 +275,23 @@ public:
 			TreeRecurse( localCopy );
 		}
 
+		// add some point sprite spheres to indicate light positions
+		palette::PickRandomPalette( true );
+		rng dist = rng( 0.0f, 0.1f );
+		for ( int x = 1; x <= w; x += w / 8 ) {
+			for ( int y = 1; y <= h; y += h / 8 ) {
+
+				const float heightValue = -p.model.GetAtXY( x - 1, y - 1 )[ 0 ];
+
+				vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f + 0.2f );
+				vec3 color = palette::paletteRef( dist() );
+
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, -0.1f, color * 3.0f );
+
+				ChorizoConfig.lights.push_back( vec4( position, 0.0f ) );
+				ChorizoConfig.lights.push_back( vec4( color, 0.0f ) );
+			}
+		}
 	}
 
 	void PrepSSBOs () {
@@ -304,29 +322,11 @@ public:
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPointSprites * 4, ( GLvoid * ) ChorizoConfig.geometryManager.pointSpriteParametersList.data(), GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, ChorizoConfig.pointSpriteParametersBuffer );
 
-	}
-
-	void PrepLights () {
-		// generate some lights
-		std::vector< vec4 > lights;
-
-		// add some point sprite spheres to indicate light positions
-		for ( int x = -4; x <= 3; x++ ) {
-			for ( int y = -4; y <= 3; y++ ) {
-				// vec3 position = vec3( float( x ) + 0.5f, float( y ) + 0.5f, -3.5f );
-				vec3 position = vec3( float( x ) + 0.5f, float( y ) + 0.5f, -7.5f );
-				vec3 color = vec3( 1.0f );
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, 0.25f, color );
-
-				lights.push_back( vec4( position, 0.0f ) );
-				lights.push_back( vec4( color, 0.0f ) );
-			}
-		}
-
 		// setup the SSBO, with the initial data
+		ChorizoConfig.numLights = ChorizoConfig.lights.size() / 2;
 		glGenBuffers( 1, &ChorizoConfig.lightsBuffer );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.lightsBuffer );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) lights.data(), GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) ChorizoConfig.lights.data(), GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ChorizoConfig.lightsBuffer );
 	}
 
@@ -372,6 +372,7 @@ public:
 
 		if ( state[ SDL_SCANCODE_R ] ) {
 			ChorizoConfig.geometryManager.ClearLists();
+			ChorizoConfig.lights.clear();
 			regenTree();
 
 			ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
@@ -673,6 +674,9 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "blendAmount" ), ChorizoConfig.blendAmount );
 			glUniform1f( glGetUniformLocation( shader, "volumetricStrength" ), ChorizoConfig.volumetricStrength );
 			glUniform3fv( glGetUniformLocation( shader, "volumetricColor" ), 1, glm::value_ptr( ChorizoConfig.volumetricColor ) );
+			glUniform1i( glGetUniformLocation( shader, "numLights" ), ChorizoConfig.numLights );
+			glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( ChorizoConfig.eyePosition ) );
+			glUniform3fv( glGetUniformLocation( shader, "ambientColor" ), 1, glm::value_ptr( ChorizoConfig.ambientColor ) );
 
 			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransform ) );
 			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransformInverse ) );
