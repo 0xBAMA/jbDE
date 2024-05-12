@@ -6,6 +6,7 @@ struct ChorizoConfig_t {
 	GLuint shapeParametersBuffer;
 	GLuint boundsTransformBuffer;
 	GLuint pointSpriteParametersBuffer;
+	GLuint lightsBuffer;
 	GLuint primaryFramebuffer[ 2 ];
 
 	vec3 eyePosition = vec3( -1.0f, 0.0f, -3.0f );
@@ -27,6 +28,8 @@ struct ChorizoConfig_t {
 
 	float volumetricStrength = 0.03f;
 	vec3 volumetricColor = vec3( 0.1f, 0.2f, 0.3f );
+
+	int numLights = 64;
 
 	float blendAmount = 0.1f;
 	float focusDistance = 3.5f;
@@ -83,6 +86,7 @@ public:
 
 			// get some initial data for the impostor shapes
 			palette::PickRandomPalette( true );
+			PrepLights();
 			PrepSSBOs();
 
 			// == Render Framebuffer(s) ===========
@@ -188,7 +192,6 @@ public:
 	}
 
 	void regenTree () {
-		ChorizoConfig.geometryManager.ClearLists();
 
 		recursiveTreeConfig localCopy = myConfig;
 
@@ -303,6 +306,30 @@ public:
 
 	}
 
+	void PrepLights () {
+		// generate some lights
+		std::vector< vec4 > lights;
+
+		// add some point sprite spheres to indicate light positions
+		for ( int x = -4; x <= 3; x++ ) {
+			for ( int y = -4; y <= 3; y++ ) {
+				// vec3 position = vec3( float( x ) + 0.5f, float( y ) + 0.5f, -3.5f );
+				vec3 position = vec3( float( x ) + 0.5f, float( y ) + 0.5f, -7.5f );
+				vec3 color = vec3( 1.0f );
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, 0.25f, color );
+
+				lights.push_back( vec4( position, 0.0f ) );
+				lights.push_back( vec4( color, 0.0f ) );
+			}
+		}
+
+		// setup the SSBO, with the initial data
+		glGenBuffers( 1, &ChorizoConfig.lightsBuffer );
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.lightsBuffer );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) lights.data(), GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ChorizoConfig.lightsBuffer );
+	}
+
 	vec2 UniformSampleHexagon ( vec2 u ) {
 		u = 2.0f * u - vec2( 1.0f );
 		float a = sqrt( 3.0f ) - sqrt( 3.0f - 2.25f * abs( u.x ) );
@@ -344,6 +371,7 @@ public:
 		// const bool super		= ( k & KMOD_GUI );
 
 		if ( state[ SDL_SCANCODE_R ] ) {
+			ChorizoConfig.geometryManager.ClearLists();
 			regenTree();
 
 			ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
