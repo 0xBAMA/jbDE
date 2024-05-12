@@ -423,15 +423,21 @@ public:
 
 		ImGui::Begin( "Chorizo", NULL, ImGuiWindowFlags_NoScrollWithMouse );
 
+		ImGui::SeparatorText( "Current Totals" );
+		ImGui::Indent();
+		ImGui::Text( "Bounding Box Impostors: %d", ChorizoConfig.geometryManager.count );
+		ImGui::Text( "Point Sprite Impostors: %d", ChorizoConfig.geometryManager.countPointSprite );
+		ImGui::Unindent();
+
 		ImGui::SeparatorText( "Controls" );
 		ImGui::SliderFloat( "FoV", &ChorizoConfig.FoV, 3.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Blend Amount", &ChorizoConfig.blendAmount, 0.001f, 0.5f, "%.7f", ImGuiSliderFlags_Logarithmic );
-		ImGui::SliderFloat( "Focus Adjust", &ChorizoConfig.focusDistance, 0.01f, 10.0f );
+		ImGui::SliderFloat( "Focus Adjust", &ChorizoConfig.focusDistance, 0.01f, 50.0f );
 		ImGui::SliderFloat( "Aperture Adjust", &ChorizoConfig.apertureAdjust, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Volumetric Strength", &ChorizoConfig.volumetricStrength, 0.0f, 0.1f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::ColorEdit3( "Volumetric Color", ( float * ) &ChorizoConfig.volumetricColor, ImGuiColorEditFlags_PickerHueWheel );
 
-		ImGui::Text( "" );
+		ImGui::Text( " " );
 
 		ImGui::SeparatorText( "Generator" );
 
