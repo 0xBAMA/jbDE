@@ -482,7 +482,7 @@ public:
 
 	// data for one channel's remapping operation
 	struct rangeRemapInputs_t {
-		remapOperation_t rangeType = HARDCLIP;
+		remapOperation_t rangeType = AUTONORMALIZE;
 		float	rangeStartLow	= 0.0f, rangeStartHigh	= 0.0f;
 		float	rangeEndLow		= 0.0f, rangeEndHigh	= 0.0f;
 	};
@@ -503,6 +503,7 @@ public:
 				in[ c ].rangeStartHigh = GetPixelMax( ( channel ) c );
 				in[ c ].rangeEndLow = 0.0f;
 				in[ c ].rangeEndHigh = 1.0f;
+				cout << "remapping from " << in[ c ].rangeStartLow << " : " << in[ c ].rangeStartHigh << " to 0.0 : 1.0" << endl;
 			}
 		}
 		if ( recursive ) { RangeRemap( in ); }
@@ -519,7 +520,9 @@ public:
 						case NOOP:
 							break;
 
-						case HARDCLIP:
+						case HARDCLIP: {
+
+							// imageType temp = colorRead[ c ];
 							colorRead[ c ] = std::clamp(
 								RangeRemapValue(
 									colorRead[ c ],
@@ -529,9 +532,15 @@ public:
 									in[ c ].rangeEndHigh
 								),
 								in[ c ].rangeEndLow,
-								in[ c ].rangeEndHigh
-							);
+								in[ c ].rangeEndHigh );
+							// if ( temp != colorRead[ c ] ) {
+								// cout << "Remapping " << temp << " from " << in[ c ].rangeStartLow << " : " << in[ c ].rangeStartHigh << " to 0.0 : 1.0f gives " << colorRead[ c ] << endl;
+							// }
+							// if ( colorRead[ c ] == in[ c ].rangeEndLow ) {
+								// cout << "Remapping " << temp << " from " << in[ c ].rangeStartLow << " : " << in[ c ].rangeStartHigh << " to 0.0 : 1.0f gives " << colorRead[ c ] << endl;
+							// }
 							break;
+						}
 
 						case SOFTCLIP:
 							// todo
