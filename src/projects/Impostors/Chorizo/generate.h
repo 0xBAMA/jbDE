@@ -15,14 +15,16 @@ struct geometryManager_t {
 	void ClearLists() { count = 0; parametersList.clear(); countPointSprite = 0; pointSpriteParametersList.clear(); }
 
 	void AddPointSprite( const float parameters[ 16 ] );
-	void AddSphere( const vec3 location, const float radius, const vec3 color );
+	void AddPointSpriteSphere( const vec3 location, const float radius, const vec3 color );
+		// are there other things that are compelling to do as point sprites?
 	
 	void AddPrimitive( const float parameters[ 16 ] );
 	void AddCapsule( const vec3 pointA, const vec3 pointB, const float radius, const vec3 color );
 	void AddRoundedBox( const vec3 centerPoint, const vec3 scaleFactors, const vec2 eulerAngles, const float roundingFactor, const vec3 color );
 };
 
-#define SPHERE		0 // plan is to redo point sprites for this - they are much faster
+// Point sprites are faster - but distort, under perspective projection - use bounding box spheres, when correctness counts. Point sprites as filler...
+#define SPHERE		0
 #define CAPSULE		1
 #define ROUNDEDBOX	2
 
@@ -34,7 +36,7 @@ void geometryManager_t::AddPointSprite( const float parameters[ 16 ] ) {
 	}
 }
 
-void geometryManager_t::AddSphere( const vec3 location, const float radius, const vec3 color = vec3( -1.0f ) ) {
+void geometryManager_t::AddPointSpriteSphere( const vec3 location, const float radius, const vec3 color = vec3( -1.0f ) ) {
 	vec4 c = ( color == vec3( -1.0f ) ) ? vec4( 0.0f, 0.0f, 0.0f, GetPaletteValue() ) : vec4( color.xyz(), -1.0f );
 	const float parameters[] = {
 		SPHERE, location.x, location.y, location.z,

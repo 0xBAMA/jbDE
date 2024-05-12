@@ -106,7 +106,6 @@ layout( binding = 2, std430 ) buffer pointSpriteParametersBuffer {
 	pointSpriteParameters_t pointSpriteParameters[];
 };
 
-
 uniform float blendAmount;
 uniform float volumetricStrength;
 uniform vec3 volumetricColor;
@@ -166,10 +165,10 @@ void main () {
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
 		color = color * AOFactor;
-
-		// atmospheric/volumetric term...
-		color += ( 1.0f - exp( -linearZ * volumetricStrength ) ) * volumetricColor;
 	}
+
+	// atmospheric/volumetric term...
+	color += ( 1.0f - exp( -linearZ * volumetricStrength ) ) * volumetricColor;
 
 	vec3 existingColor = imageLoad( accumulatorTexture, writeLoc ).rgb;
 	color = mix( existingColor, color, blendAmount );
