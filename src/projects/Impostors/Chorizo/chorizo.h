@@ -565,26 +565,33 @@ public:
 	}
 
 	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
+		// ZoneScoped; scopedTimer Start( "API Geometry" );
 
-		// prepare the bounding boxes
-		GLuint shader = shaders[ "Bounds" ];
-		glUseProgram( shader );
-		glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
-		// then draw, using the prepared data
-		RasterGeoDataSetup();
-		glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( ChorizoConfig.frameCount++ % 2 ) ] );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		glViewport( 0, 0, config.width, config.height );
-		glDrawArrays( GL_TRIANGLES, 0, 36 * ChorizoConfig.numPrimitives );
+		{	ZoneScoped; scopedTimer Start( "Bounding Box Compute" );
+			// prepare the bounding boxes
+			GLuint shader = shaders[ "Bounds" ];
+			glUseProgram( shader );
+			glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
+		{	ZoneScoped; scopedTimer Start( "Bounding Box Impostors" );
+			// then draw, using the prepared data
+			RasterGeoDataSetup();
+			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ ( ChorizoConfig.frameCount++ % 2 ) ] );
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+			glViewport( 0, 0, config.width, config.height );
+			glDrawArrays( GL_TRIANGLES, 0, 36 * ChorizoConfig.numPrimitives );
+		}
 
 		// draw the point sprites, as well
-		RasterGeoDataSetupPointSprite();
-		glDrawArrays( GL_POINTS, 0, ChorizoConfig.numPointSprites );
+		{	ZoneScoped; scopedTimer Start( "Point Sprite Impostors" );
+			RasterGeoDataSetupPointSprite();
+			glDrawArrays( GL_POINTS, 0, ChorizoConfig.numPointSprites );
+		}
 
-		// revert to default framebuffer 
+		// revert to default framebuffer
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
