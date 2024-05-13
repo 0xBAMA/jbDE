@@ -368,9 +368,12 @@ public:
 	void PrepSceneParameters () {
 		// const float time = SDL_GetTicks() / 10000.0f;
 
-		rng jitterAmount = rng( 0.0f, 1.0f );
+		static rng jitterAmount = rng( 0.0f, 1.0f );
+		const vec2 pixelJitter = vec2( jitterAmount() - 0.5f, jitterAmount() - 0.5f ) * 0.001f;
 		const vec2 hexJitter = UniformSampleHexagon( vec2( jitterAmount(), jitterAmount() ) ) * ChorizoConfig.apertureAdjust;
-		const vec3 localEyePos = ChorizoConfig.eyePosition + hexJitter.x * ChorizoConfig.basisX + hexJitter.y * ChorizoConfig.basisY;
+		const vec3 localEyePos = ChorizoConfig.eyePosition +
+			( hexJitter.x + pixelJitter.x ) * ChorizoConfig.basisX +
+			( hexJitter.y + pixelJitter.y ) * ChorizoConfig.basisY;
 		const float aspectRatio = float( config.width ) / float( config.height );
 
 		ChorizoConfig.projTransform = glm::perspective( glm::radians( ChorizoConfig.FoV ), aspectRatio, ChorizoConfig.nearZ, ChorizoConfig.farZ );
