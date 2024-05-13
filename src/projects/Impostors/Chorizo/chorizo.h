@@ -555,125 +555,149 @@ public:
 
 		ImGui::SeparatorText( "Generator" );
 
-		const int64_t count = myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels );
-		ImGui::Text( "Estimated Number of Primitives: %ld", count );
+		if ( ImGui::CollapsingHeader( "Trees" ) ) {
 
-		ImGui::SliderInt( "Num Copies", &myConfig.numCopies, 1, 10 );
-		ImGui::SliderInt( "Max Levels Deep", &myConfig.maxLevels, 1, 15 );
-		ImGui::SliderInt( "Num Branches", &myConfig.numBranches, 1, 6 );
-		ImGui::SliderFloat( "Terminate Chance", &myConfig.terminateChance, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
-		ImGui::SliderFloat( "Rotate Jitter Min", &myConfig.rotateJitterMin, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Rotate Jitter Max", &myConfig.rotateJitterMax, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Branch Tilt", &myConfig.branchTilt, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Branch Jitter Min", &myConfig.branchJitterMin, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Branch Jitter Max", &myConfig.branchJitterMax, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Branch Length", &myConfig.branchLength, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Length Shrink", &myConfig.lengthShrink, 0.5f, 1.0f );
-		ImGui::SliderFloat( "Branch Radius", &myConfig.branchRadius, 0.0f, 0.1f );
-		ImGui::SliderFloat( "Radius Shrink", &myConfig.radiusShrink, 0.5f, 1.0f );
-		ImGui::SliderFloat( "Shrink Jitter Min", &myConfig.shrinkJitterMin, 0.0f, 2.0f );
-		ImGui::SliderFloat( "Shrink Jitter Max", &myConfig.shrinkJitterMax, 0.0f, 2.0f );
-		ImGui::SliderFloat( "Palette Jitter", &myConfig.paletteJitter, 0.0f, 0.1f );
-		ImGui::SliderFloat( "Base Point X", &myConfig.basePoint.x, -1.0f, 1.0f );
-		ImGui::SliderFloat( "Base Point Y", &myConfig.basePoint.y, -1.0f, 1.0f );
-		ImGui::SliderFloat( "Base Point Z", &myConfig.basePoint.z, -1.0f, 1.0f );
-		if ( ImGui::Button( "Randomize Parameters" ) ) {
+			const int64_t count = myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels );
+			ImGui::Text( "Estimated Number of Primitives: %ld", count );
 
-			do {
-				rngi branches = rngi( 1, 6 );
-				myConfig.numBranches = branches();
+			ImGui::SliderInt( "Num Copies", &myConfig.numCopies, 1, 10 );
+			ImGui::SliderInt( "Max Levels Deep", &myConfig.maxLevels, 1, 15 );
+			ImGui::SliderInt( "Num Branches", &myConfig.numBranches, 1, 6 );
+			ImGui::SliderFloat( "Terminate Chance", &myConfig.terminateChance, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+			ImGui::SliderFloat( "Rotate Jitter Min", &myConfig.rotateJitterMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Rotate Jitter Max", &myConfig.rotateJitterMax, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Branch Tilt", &myConfig.branchTilt, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Branch Jitter Min", &myConfig.branchJitterMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Branch Jitter Max", &myConfig.branchJitterMax, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Branch Length", &myConfig.branchLength, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Length Shrink", &myConfig.lengthShrink, 0.5f, 1.0f );
+			ImGui::SliderFloat( "Branch Radius", &myConfig.branchRadius, 0.0f, 0.1f );
+			ImGui::SliderFloat( "Radius Shrink", &myConfig.radiusShrink, 0.5f, 1.0f );
+			ImGui::SliderFloat( "Shrink Jitter Min", &myConfig.shrinkJitterMin, 0.0f, 2.0f );
+			ImGui::SliderFloat( "Shrink Jitter Max", &myConfig.shrinkJitterMax, 0.0f, 2.0f );
+			ImGui::SliderFloat( "Palette Jitter", &myConfig.paletteJitter, 0.0f, 0.1f );
+			ImGui::SliderFloat( "Base Point X", &myConfig.basePoint.x, -1.0f, 1.0f );
+			ImGui::SliderFloat( "Base Point Y", &myConfig.basePoint.y, -1.0f, 1.0f );
+			ImGui::SliderFloat( "Base Point Z", &myConfig.basePoint.z, -1.0f, 1.0f );
+			if ( ImGui::Button( "Randomize Parameters" ) ) {
 
-				rng rotateJitter = rng( 0.0f, 0.75f );
-				myConfig.rotateJitterMin = rotateJitter();
-				myConfig.rotateJitterMax = rotateJitter();
-				myConfig.branchJitterMin = rotateJitter();
-				myConfig.branchJitterMax = rotateJitter();
+				do {
+					rngi branches = rngi( 1, 6 );
+					myConfig.numBranches = branches();
 
-				rng tilt = rng( 0.03f, 0.75f );
-				myConfig.branchTilt = tilt();
+					rng rotateJitter = rng( 0.0f, 0.75f );
+					myConfig.rotateJitterMin = rotateJitter();
+					myConfig.rotateJitterMax = rotateJitter();
+					myConfig.branchJitterMin = rotateJitter();
+					myConfig.branchJitterMax = rotateJitter();
 
-				rng length = rng( 0.2f, 1.3f );
-				myConfig.branchLength = length();
+					rng tilt = rng( 0.03f, 0.75f );
+					myConfig.branchTilt = tilt();
 
-				rng radius = rng( 0.01f, 0.2f );
-				myConfig.branchRadius = radius();
+					rng length = rng( 0.2f, 1.3f );
+					myConfig.branchLength = length();
 
-				rng shrink = rng( 0.5f, 1.0f );
-				myConfig.lengthShrink = shrink();
-				myConfig.radiusShrink = shrink();
+					rng radius = rng( 0.01f, 0.2f );
+					myConfig.branchRadius = radius();
 
-				rng offset = rng( 0.75f, 1.25f );
-				myConfig.shrinkJitterMin = offset();
-				myConfig.shrinkJitterMax = offset();
-			} while( ( myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels ) ) > 10000000 );
-		}
+					rng shrink = rng( 0.5f, 1.0f );
+					myConfig.lengthShrink = shrink();
+					myConfig.radiusShrink = shrink();
 
-		ImGui::SeparatorText( "Palette Browser" );
-		std::vector< const char * > paletteLabels;
-		if ( paletteLabels.size() == 0 ) {
-			for ( auto& entry : palette::paletteListLocal ) {
-				// copy to a cstr for use by imgui
-				char * d = new char[ entry.label.length() + 1 ];
-				std::copy( entry.label.begin(), entry.label.end(), d );
-				d[ entry.label.length() ] = '\0';
-				paletteLabels.push_back( d );
+					rng offset = rng( 0.75f, 1.25f );
+					myConfig.shrinkJitterMin = offset();
+					myConfig.shrinkJitterMax = offset();
+				} while( ( myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels ) ) > 10000000 );
 			}
 		}
 
-		static uint colorCap = 256;
-		ImGui::SliderInt( "Random Select Color Count Cap", ( int* ) &colorCap, 2, 256 );
-		ImGui::Combo( "Palette", &palette::PaletteIndex, paletteLabels.data(), paletteLabels.size() );
-		ImGui::SameLine();
-		if ( ImGui::Button( "Random" ) ) {
-			do {
-				palette::PickRandomPalette( false );
-			} while ( palette::paletteListLocal[ palette::PaletteIndex ].colors.size() > colorCap );
-		}
-		const size_t paletteSize = palette::paletteListLocal[ palette::PaletteIndex ].colors.size();
-		ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
-		// handle max < min
-		float minVal = ChorizoConfig.paletteRefMin;
-		float maxVal = ChorizoConfig.paletteRefMax;
-		float realSelectedMin = std::min( minVal, maxVal );
-		float realSelectedMax = std::max( minVal, maxVal );
-		size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
-		size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
-
-		bool finished = false;
-		for ( int y = 0; y < 8; y++ ) {
+		if ( ImGui::CollapsingHeader( "Colors" ) ) {
+			static uint colorCap = 256;
+			ImGui::SliderInt( "Random Select Color Count Cap", ( int* ) &colorCap, 2, 256 );
 			ImGui::Text( " " );
-			for ( int x = 0; x < 32; x++ ) {
+			ImGui::Text( " " );
 
-				// terminate when you run out of colors
-				const uint index = x + 32 * y;
-				if ( index >= paletteSize ) {
-					finished = true;
-				}
-
-				// show color, or black if past the end of the list
-				ivec4 color = ivec4( 0 );
-				if ( !finished ) {
-					color = ivec4( palette::paletteListLocal[ palette::PaletteIndex ].colors[ index ], 255 );
-					// determine if it is in the active range
-					if ( index < minShownIdx || index > maxShownIdx ) {
-						color.a = 64; // dim inactive entries
-					}
-				} 
-				if ( color.a != 0 ) {
-					ImGui::SameLine();
-					ImGui::TextColored( ImVec4( color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f ), "@" );
-				}
+			ImGui::SeparatorText( "Trees" );
+			ImGui::Text( " " );
+			ImGui::Indent();
+			ImGuiDrawPalette( ChorizoConfig.treePaletteID, "trees", ChorizoConfig.treePaletteMin, ChorizoConfig.treePaletteMax );
+			if ( ImGui::Button( "Random##trees" ) ) {
+				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
+				do {
+					ChorizoConfig.treePaletteID = pick();
+				} while ( palette::paletteListLocal[ ChorizoConfig.treePaletteID ].colors.size() > colorCap );
 			}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reverse##trees" ) ) {
+				std::swap( ChorizoConfig.treePaletteMin, ChorizoConfig.treePaletteMax );
+			}
+			ImGui::SliderFloat( "Palette Min##trees", &ChorizoConfig.treePaletteMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Palette Max##trees", &ChorizoConfig.treePaletteMax, 0.0f, 1.0f );
+			ImGui::Unindent();
+
+
+
+			ImGui::SeparatorText( "Grass" );
+			ImGui::Text( " " );
+			ImGui::Indent();
+			ImGuiDrawPalette( ChorizoConfig.grassPaletteID, "grass", ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax );
+			if ( ImGui::Button( "Random##grass" ) ) {
+				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
+				do {
+					ChorizoConfig.grassPaletteID = pick();
+				} while ( palette::paletteListLocal[ ChorizoConfig.grassPaletteID ].colors.size() > colorCap );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reverse##grass" ) ) {
+				std::swap( ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax );
+			}
+			ImGui::SliderFloat( "Palette Min##grass", &ChorizoConfig.grassPaletteMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Palette Max##grass", &ChorizoConfig.grassPaletteMax, 0.0f, 1.0f );
+			ImGui::Unindent();
+
+
+
+			ImGui::SeparatorText( "Ground" );
+			ImGui::Text( " " );
+			ImGui::Indent();
+			ImGuiDrawPalette( ChorizoConfig.groundPaletteID, "ground", ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax );
+			if ( ImGui::Button( "Random##ground" ) ) {
+				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
+				do {
+					ChorizoConfig.groundPaletteID = pick();
+				} while ( palette::paletteListLocal[ ChorizoConfig.groundPaletteID ].colors.size() > colorCap );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reverse##ground" ) ) {
+				std::swap( ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax );
+			}
+			ImGui::SliderFloat( "Palette Min##ground", &ChorizoConfig.groundPaletteMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Palette Max##ground", &ChorizoConfig.groundPaletteMax, 0.0f, 1.0f );
+			ImGui::Unindent();
+
+
+
+			ImGui::SeparatorText( "Lights" );
+			ImGui::Text( " " );
+			ImGui::Indent();
+			ImGuiDrawPalette( ChorizoConfig.lightPaletteID, "lights", ChorizoConfig.lightPaletteMin, ChorizoConfig.lightPaletteMax );
+			if ( ImGui::Button( "Random##lights" ) ) {
+				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
+				do {
+					ChorizoConfig.lightPaletteID = pick();
+				} while ( palette::paletteListLocal[ ChorizoConfig.lightPaletteID ].colors.size() > colorCap );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reverse##lights" ) ) {
+				std::swap( ChorizoConfig.lightPaletteMin, ChorizoConfig.lightPaletteMax );
+			}
+			ImGui::SliderFloat( "Palette Min##lights", &ChorizoConfig.lightPaletteMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Palette Max##lights", &ChorizoConfig.lightPaletteMax, 0.0f, 1.0f );
+			ImGui::Unindent();
+
 		}
-		if ( ImGui::Button( "Reverse" ) ) {
-			std::swap( ChorizoConfig.paletteRefMin, ChorizoConfig.paletteRefMax );
-		}
-		ImGui::SliderFloat( "Palette Min", &ChorizoConfig.paletteRefMin, 0.0f, 1.0f );
-		ImGui::SliderFloat( "Palette Max", &ChorizoConfig.paletteRefMax, 0.0f, 1.0f );
 
 		ImGui::End();
-
-
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
