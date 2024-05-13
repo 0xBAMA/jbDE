@@ -19,7 +19,7 @@ public:
 		// const uint32_t dim = 1024;
 		const uint32_t dim = 4096;
 
-	#define TILE
+	// #define TILE
 	#ifdef TILE
 		const auto size = dim;
 	#else
@@ -34,7 +34,13 @@ public:
 			data[ i ].resize( size );
 		}
 
-		data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.25f;
+		// data[ 0 ][ 0 ] = data[ edge ][ 0 ] = data[ 0 ][ edge ] = data[ edge ][ edge ] = 0.25f;
+
+		rng pos = rng( 0.0f, 1.5f );
+		data[ 0 ][ 0 ] = pos();
+		data[ edge ][ 0 ] = pos();
+		data[ 0 ][ edge ] = pos();
+		data[ edge ][ edge ] = pos();
 
 	#ifdef TILE
 		heightfield::diamond_square_wrap
