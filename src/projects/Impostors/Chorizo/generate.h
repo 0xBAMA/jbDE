@@ -13,6 +13,7 @@ struct geometryManager_t {
 	int countPointSprite = 0;
 
 	void ClearLists() { count = 0; parametersList.clear(); countPointSprite = 0; pointSpriteParametersList.clear(); }
+	void PreallocateLists( size_t count ) { parametersList.reserve( count ); pointSpriteParametersList.reserve( count ); }
 
 	void AddPointSprite( const float parameters[ 16 ] );
 	void AddPointSpriteSphere( const vec3 location, const float radius, const vec3 color );
