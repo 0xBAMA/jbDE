@@ -465,6 +465,62 @@ public:
 
 	}
 
+	void ImGuiDrawPalette ( int &palette, string sublabel, float min = 0.0f, float max = 1.0f ) {
+		static std::vector< const char * > paletteLabels;
+		if ( paletteLabels.size() == 0 ) {
+			for ( auto& entry : palette::paletteListLocal ) {
+				// copy to a cstr for use by imgui
+				char * d = new char[ entry.label.length() + 1 ];
+				std::copy( entry.label.begin(), entry.label.end(), d );
+				d[ entry.label.length() ] = '\0';
+				paletteLabels.push_back( d );
+			}
+		}
+
+		ImGui::Combo( ( string( "Palette##" ) + sublabel ).c_str(), &palette, paletteLabels.data(), paletteLabels.size() );
+		const size_t paletteSize = palette::paletteListLocal[ palette ].colors.size();
+		ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
+		// handle max < min
+		float minVal = min;
+		float maxVal = max;
+		float realSelectedMin = std::min( minVal, maxVal );
+		float realSelectedMax = std::max( minVal, maxVal );
+		size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
+		size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
+
+		bool finished = false;
+		for ( int y = 0; y < 8; y++ ) {
+			if ( !finished ) {
+				ImGui::Text( " " );
+			}
+
+			for ( int x = 0; x < 32; x++ ) {
+
+				// terminate when you run out of colors
+				const uint index = x + 32 * y;
+				if ( index >= paletteSize ) {
+					finished = true;
+					// goto terminate;
+				}
+
+				// show color, or black if past the end of the list
+				ivec4 color = ivec4( 0 );
+				if ( !finished ) {
+					color = ivec4( palette::paletteListLocal[ palette ].colors[ index ], 255 );
+					// determine if it is in the active range
+					if ( index < minShownIdx || index > maxShownIdx ) {
+						color.a = 64; // dim inactive entries
+					}
+				} 
+				if ( color.a != 0 ) {
+					ImGui::SameLine();
+					ImGui::TextColored( ImVec4( color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f ), "@" );
+				}
+			}
+		}
+		// terminate:
+	}
+
 	void ImguiPass () {
 		ZoneScoped;
 
