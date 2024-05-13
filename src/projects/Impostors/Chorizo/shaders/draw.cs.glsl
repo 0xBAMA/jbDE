@@ -110,6 +110,7 @@ layout( binding = 2, std430 ) buffer pointSpriteParametersBuffer {
 // ===================================================================================================
 uniform int numLights;
 uniform vec3 ambientLighting;
+
 struct lightParameters_t {
 	vec4 position;
 	vec4 color;
@@ -140,13 +141,17 @@ void main () {
 
 	bool drawing = false;
 	bool emissive = false;
+	float knownRadius = -1.0f;
+
+	float roughness = 5.0f;
 
 	if ( idSample.x != 0 ) { // these are texels which wrote out a fragment during the raster geo pass, bounding box impostors
 
 		drawing = true;
 		const parameters_t parameters = parametersList[ idSample.x - 1 ];
+		// roughness = abs( parameters.data[ 15 ] );
 
-		if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
+		if ( parameters.data[ 15 ] < 0.0f ) { // using the color out of the buffer
 			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		} else { // todo: should interpret the alpha channel as a palette key
 			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
@@ -157,10 +162,10 @@ void main () {
 		drawing = true;
 		pointSpriteParameters_t parameters = pointSpriteParameters[ idSample.y - 1 ];
 
-		if ( parameters.data[ 15 ] == -2.0f ) {
-			emissive = true;
-			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
-		} else if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
+		emissive = ( parameters.data[ 4 ] != parameters.data[ 5 ] );
+		knownRadius = parameters.data[ 4 ];
+
+		if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
 			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		} else { // todo: should interpret the alpha channel as a palette key
 			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
@@ -168,14 +173,10 @@ void main () {
 
 	} // else this is a background pixel
 
-	if ( drawing && !emissive ) {
+	if ( drawing ) {
 
 		// lighting calculations
 		vec3 lightContribution = ambientLighting;
-
-		// pack into one of the remaining fields ( or add additional rendered target with material properties )
-		const float roughness = 10.0f;
-
 		for ( int i = 0; i < numLights; i++ ) {
 
 			// phong setup
@@ -186,7 +187,6 @@ void main () {
 			// lighting calculation
 			const float lightDot = dot( normalSample, lightVector );
 			const float dLight = distance( worldPos.xyz, lightLocation );
-
 			const float distanceFactor = 1.0f / pow( dLight, 2.0f );
 			const float diffuseContribution = distanceFactor * max( lightDot, 0.0f );
 			const float specularContribution = distanceFactor * pow( max( dot( -reflectedVector, normalize( worldPos - eyePosition ) ), 0.0f ), roughness );
@@ -206,7 +206,12 @@ void main () {
 		// color = vec3( 0.618f ) * pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) *  pow( AOFactor, 2.0f );
 		// color = vec3( GetLinearZ( texture( depthTex, screenPos ).r ) / 100.0f ) * AOFactor;
-		color = lightContribution * color * AOFactor;
+
+		if ( emissive ) {
+			color *= 1.0f / pow( knownRadius, 2.0f );
+		} else {
+			color = lightContribution * color * AOFactor;
+		}
 
 	}
 
