@@ -37,8 +37,22 @@ struct ChorizoConfig_t {
 	float focusDistance = 3.5f;
 	float apertureAdjust = 0.01f;
 
-	float paletteRefMin = 0.0f;
-	float paletteRefMax = 1.0f;
+	// separate palettes for each generator
+	int lightPaletteID = 0;
+	float lightPaletteMin = 0.0f;
+	float lightPaletteMax = 1.0f;
+
+	int grassPaletteID = 0;
+	float grassPaletteMin = 0.0f;
+	float grassPaletteMax = 1.0f;
+
+	int treePaletteID = 0;
+	float treePaletteMin = 0.0f;
+	float treePaletteMax = 1.0f;
+
+	int groundPaletteID = 0;
+	float groundPaletteMin = 0.0f;
+	float groundPaletteMax = 1.0f;
 
 	rngi wangSeeder = rngi( 0, 10042069 );
 
@@ -87,7 +101,13 @@ public:
 			glEnable( GL_PROGRAM_POINT_SIZE );
 
 			// get some initial data for the impostor shapes
-			palette::PickRandomPalette( true );
+			rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
+			uint colorCap = 14;
+			do { ChorizoConfig.treePaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.treePaletteID ].colors.size() > colorCap );
+			do { ChorizoConfig.grassPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.grassPaletteID ].colors.size() > colorCap );
+			do { ChorizoConfig.groundPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.groundPaletteID ].colors.size() > colorCap );
+			do { ChorizoConfig.lightPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.lightPaletteID ].colors.size() > colorCap );
+
 			PrepSSBOs();
 
 			// == Render Framebuffer(s) ===========
@@ -171,7 +191,7 @@ public:
 
 	void TreeRecurse ( recursiveTreeConfig config ) {
 		vec3 basePointNext = config.basePoint + config.branchLength * config.basis * vec3( 0.0f, 0.0f, 1.0f );
-		vec3 color = palette::paletteRef( RemapRange( float( config.levelsDeep ) / float( config.maxLevels ) + paletteJitter(), 0.0f, 1.0f, ChorizoConfig.paletteRefMin, ChorizoConfig.paletteRefMax ) );
+		vec3 color = palette::paletteRef( RemapRange( float( config.levelsDeep ) / float( config.maxLevels ) + paletteJitter(), 0.0f, 1.0f, ChorizoConfig.treePaletteMin, ChorizoConfig.treePaletteMax ) );
 		ChorizoConfig.geometryManager.AddCapsule( config.basePoint, basePointNext, config.branchRadius, color );
 		ChorizoConfig.geometryManager.AddPointSpriteSphere( basePointNext, config.branchRadius * 1.5f, color );
 		config.basePoint = basePointNext;
@@ -199,13 +219,13 @@ public:
 		rotateJitter = rng( localCopy.rotateJitterMin, localCopy.rotateJitterMax );
 		shrinkJitter = rng( localCopy.shrinkJitterMin, localCopy.shrinkJitterMax );
 		branchJitter = rng( localCopy.branchJitterMin, localCopy.branchJitterMax );
-		paletteJitter = rng( -localCopy.paletteJitter, localCopy.paletteJitter );
-		// localCopy.basis = mat3( glm::rotate( -1.5f, vec3( 0.0f, 1.0f, 0.0f ) ) ) * localCopy.basis;
+
+		ChorizoConfig.geometryManager.PreallocateLists( 100000000 );
 
 		particleEroder p;
 		p.InitWithDiamondSquare();
 		Image_1F::rangeRemapInputs_t remap;
-		p.model.RangeRemap( &remap );
+		// p.model.RangeRemap( &remap );
 
 		int numSteps = 10;
 		for ( int i = 0; i <= numSteps; i++ ) {
@@ -264,8 +284,12 @@ public:
 			}
 		}
 
+		cout << endl;
+
 		// do trees, positioned by their location on the map
+		palette::PaletteIndex = ChorizoConfig.treePaletteID;
 		for ( int i = 0; i < localCopy.numCopies; i++ ) {
+			cout << "\radding trees " << i + 1 << " / " << localCopy.numCopies;
 			// place the base point, consider also the z axis on the map
 
 			const vec2 pick = vec2( x(), y() );
@@ -274,9 +298,15 @@ public:
 			TreeRecurse( localCopy );
 		}
 
+		cout << endl;
+
 		// add some point sprite spheres to indicate light positions
-		palette::PickRandomPalette( true );
-		rng dist = rng( 0.0f, 0.1f );
+		palette::PaletteIndex = ChorizoConfig.lightPaletteID;
+		rng dist = rng( ChorizoConfig.lightPaletteMin, ChorizoConfig.lightPaletteMax );
+		radius = rng( 0.01f, 0.1f );
+
+		// todo: how are we distributing points, if not on a grid?
+
 		for ( int x = 1; x <= w; x += w / 8 ) {
 			for ( int y = 1; y <= h; y += h / 8 ) {
 
