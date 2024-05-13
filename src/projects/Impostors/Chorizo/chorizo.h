@@ -240,26 +240,32 @@ public:
 		const float heightScale = 0.5f;
 		const int w = p.model.Width();
 		const int h = p.model.Height();
-		const vec2 scale = vec2( 10.0f );
-		rng radius = rng( 0.005f, 0.01f );
+		const vec2 scale = vec2( 20.0f );
+		rng radius = rng( 0.013f, 0.006f );
 		rngi x = rngi( 5, w - 5 );
 		rngi y = rngi( 5, h - 5 );
-		rng xyDistrib = rng( -0.2f, 0.2f );
-		rng zDistrib = rng( 0.01f, 0.25f );
-		rng pDistrib = rng( ChorizoConfig.paletteRefMin, ChorizoConfig.paletteRefMax );
 		rng reject = rng( 0.0f, 1.0f );
 		rng jitter = rng( 0.2f, 1.1f );
+		rng di = rng( -0.3f, 0.3f );
 		PerlinNoise pNoise;
 
-		for ( int i = 0; i < 2000000; i++ ) {
+		palette::PaletteIndex = ChorizoConfig.grassPaletteID;
+		for ( int i = 0; i < 5000000; i++ ) {
+			if ( i % 143 == 0 ) {
+				cout << "\radding grass " << i + 1 << " / 2000000";
+			}
 			const vec2 pick = vec2( x(), y() );
 			const float noiseValue = pNoise.noise( pick.x / 2000.0f, pick.y / 2000.0f, 0.0f );
-			if ( ( reject() ) > noiseValue ) {
+			// if ( ( reject() ) > noiseValue ) {
+			if ( 0.5f > noiseValue ) {
 				vec3 normal = p.GetSurfaceNormal( uint( pick.x ), uint( pick.y ) );
 				normal.y *= 0.01f;
 				normal = glm::normalize( normal ).xzy();
+				normal = glm::normalize( normal + vec3( di(), di(), di() ) );
+				normal = glm::normalize( normal + vec3( di(), di(), di() ) );
+				normal = glm::normalize( normal + vec3( di(), di(), di() ) );
 				const float dUp = dot( normal, vec3( 0.0f, 0.0f, 1.0f ) );
-				if ( dUp > 0.9f ) continue;
+				// if ( dUp > 0.9f ) continue;
 				normal *= RemapRange( pow( RemapRange( dUp, -1.0f, 1.0f, 0.0f, 1.0f ), 10.0f ), 0.0f, 1.0f, 0.1f, 6.18f );
 
 				const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
@@ -267,20 +273,24 @@ public:
 				// const vec3 top = basePoint + vec3( xyDistrib(), xyDistrib(), zDistrib() );
 				const vec3 top = basePoint + normal * 0.1f * jitter();
 				// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( noiseValue ) );
-				// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( pDistrib() ) );
-				ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( abs( dUp ) ) );
+				ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( RemapRange( dUp, 0.75, 1.0f, ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax ) ) );
 			}
 		}
 
-		// // this may effect the normals
-		// Image_1F::rangeRemapInputs_t remap;
-		// p.model.RangeRemap( &remap );
+		cout << endl;
 
 		// do points, based on the heightmap
+		int i = 0;
+		palette::PaletteIndex = ChorizoConfig.groundPaletteID;
 		for ( int y = 0; y < h; y++ ) {
 			for ( int x = 0; x < w; x++ ) {
+				
+				if ( ++i % 143 == 0 ) {
+					cout << "\radding ground " << ++i << " / " << w * h;
+				}
+
 				const float heightValue = -p.model.GetAtXY( x, y )[ 0 ];
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius(), palette::paletteRef( -heightValue ) );
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius(), palette::paletteRef( RemapRange( -heightValue, 0.0f, 1.0f, ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax ) ) );
 			}
 		}
 
@@ -315,10 +325,15 @@ public:
 				vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f + 0.2f );
 				vec3 color = palette::paletteRef( dist() );
 
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, -0.1f, color * 3.0f );
+				// const float r = -radius();
+				const float r = -0.033f;
+				const vec3 grey = vec3( 0.618f );
+				const vec3 offset = vec3( 0.0f, 0.0f, 0.8f * r );
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, r, color );
+				ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
 
 				ChorizoConfig.lights.push_back( vec4( position, 0.0f ) );
-				ChorizoConfig.lights.push_back( vec4( color, 0.0f ) );
+				ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
 			}
 		}
 	}
