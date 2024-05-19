@@ -33,6 +33,9 @@ struct ChorizoConfig_t {
 	int numLights = 64;
 	std::vector< vec4 > lights;
 
+	bool progressiveBlend = false;
+	int progressiveFrameCount = 0;
+
 	float blendAmount = 0.1f;
 	float focusDistance = 3.5f;
 	float apertureAdjust = 0.01f;
@@ -568,7 +571,15 @@ public:
 
 		ImGui::SeparatorText( "Controls" );
 		ImGui::SliderFloat( "FoV", &ChorizoConfig.FoV, 3.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
-		ImGui::SliderFloat( "Blend Amount", &ChorizoConfig.blendAmount, 0.001f, 0.5f, "%.7f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Blend Amount", &ChorizoConfig.blendAmount, 0.0001f, 0.5f, "%.7f", ImGuiSliderFlags_Logarithmic );
+		ImGui::Checkbox( "Progressive Blend", &ChorizoConfig.progressiveBlend );
+		if ( ChorizoConfig.progressiveBlend == true ) {
+			ChorizoConfig.progressiveFrameCount++;
+			ImGui::SameLine();
+			if ( ImGui::Button( "Reset" ) ) {
+				ChorizoConfig.progressiveFrameCount = 0;
+			}
+		}
 		ImGui::SliderFloat( "Focus Adjust", &ChorizoConfig.focusDistance, 0.01f, 50.0f );
 		ImGui::SliderFloat( "Aperture Adjust", &ChorizoConfig.apertureAdjust, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Volumetric Strength", &ChorizoConfig.volumetricStrength, 0.0f, 0.1f, "%.5f", ImGuiSliderFlags_Logarithmic );
@@ -803,7 +814,13 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "inSeed" ), ChorizoConfig.wangSeeder() );
 			glUniform1f( glGetUniformLocation( shader, "nearZ" ), ChorizoConfig.nearZ );
 			glUniform1f( glGetUniformLocation( shader, "farZ" ), ChorizoConfig.farZ );
-			glUniform1f( glGetUniformLocation( shader, "blendAmount" ), ChorizoConfig.blendAmount );
+
+			if ( ChorizoConfig.progressiveBlend == true ) {
+				glUniform1f( glGetUniformLocation( shader, "blendAmount" ), 1.0f / ( ChorizoConfig.progressiveFrameCount + 1.0f ) );
+			} else {
+				glUniform1f( glGetUniformLocation( shader, "blendAmount" ), ChorizoConfig.blendAmount );
+			}
+			
 			glUniform1f( glGetUniformLocation( shader, "volumetricStrength" ), ChorizoConfig.volumetricStrength );
 			glUniform3fv( glGetUniformLocation( shader, "volumetricColor" ), 1, glm::value_ptr( ChorizoConfig.volumetricColor ) );
 			glUniform1i( glGetUniformLocation( shader, "numLights" ), ChorizoConfig.numLights );
