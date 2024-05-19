@@ -45,6 +45,22 @@ struct ChorizoConfig_t {
 	float lightPaletteMin = 0.0f;
 	float lightPaletteMax = 1.0f;
 
+	// I think a generecized generator needs:
+		// some kind of type identifier... probably a string, not sure
+		// palette ID
+		// palette min, max
+		// draw toggle
+			// toggling individual trees... separate generator, per tree? maybe makes sense, actually
+		// info to draw - this is also used if you need to clear out the data associated with these primitives
+			// index of first bounding box impostor
+			// count of bounding box impostors ( can be zero, e.g. lights )
+			// index of first point sprite impostor
+			// count of point sprite impostors ( debug geo for lights )
+
+		// among other things, this lets us:
+			// clear those ranges, say you wanted to regenerate e.g. only the trees, only the grass, etc
+			// batching the drawing, I think it should Just Work with gl_VertexID
+
 	int grassPaletteID = 0;
 	float grassPaletteMin = 0.0f;
 	float grassPaletteMax = 1.0f;
