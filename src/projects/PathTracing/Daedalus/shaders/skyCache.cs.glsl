@@ -41,7 +41,7 @@ void main () {
 		case 1: col = oklab_mix( color1, color2, ( float( gl_GlobalInvocationID.y ) + 0.5f ) / float( imageSize( skyCache ).y ) );
 		break;
 
-		case 2: col = skyColor();
+		case 2: col = skyColor(); // thinking about adding stars...
 		break;
 
 		case 3: col = ( gl_GlobalInvocationID.y > ( imageSize( skyCache ).y - sunThresh ) ) ? color1 : color2;
@@ -58,5 +58,5 @@ void main () {
 	}
 
 	// write the data to the image
-	imageStore( skyCache, ivec2( gl_GlobalInvocationID.xy ), vec4( col, 1.0f ) );
+	imageStore( skyCache, ivec2( gl_GlobalInvocationID.xy ), vec4( clamp( col, vec3( 0.0f ), vec3( 10.0f ) ), 1.0f ) );
 }
