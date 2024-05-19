@@ -677,6 +677,76 @@ float deRope( vec3 p ) {
 	return d;
 }
 
+vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
+        float sPFXY = sin(radians(AngPFXY)); float cPFXY = cos(radians(AngPFXY));
+        float sPFYZ = sin(radians(AngPFYZ)); float cPFYZ = cos(radians(AngPFYZ));
+        float sPFXZ = sin(radians(AngPFXZ)); float cPFXZ = cos(radians(AngPFXZ));
+
+        float zx = z.x; float zy = z.y; float zz = z.z; float t;
+
+        // rotate BACK
+        t = zx; // XY
+        zx = cPFXY * t - sPFXY * zy; zy = sPFXY * t + cPFXY * zy;
+        t = zx; // XZ
+        zx = cPFXZ * t + sPFXZ * zz; zz = -sPFXZ * t + cPFXZ * zz;
+        t = zy; // YZ
+        zy = cPFYZ * t - sPFYZ * zz; zz = sPFYZ * t + cPFYZ * zz;
+        return vec3(zx,zy,zz);
+}
+
+float deBB( vec3 p ) {
+    float Scale = 1.34f;
+    float FoldY = 1.025709f;
+    float FoldX = 1.025709f;
+    float FoldZ = 0.035271f;
+    float JuliaX = -1.763517f;
+    float JuliaY = 0.392486f;
+    float JuliaZ = -1.734913f;
+    float AngX = -80.00209f;
+    float AngY = 0.0f;
+    float AngZ = -28.096322f;
+    float Offset = -3.036726f;
+    int EnableOffset = 1;
+    int Iterations = 80;
+    float Precision = 1.0f;
+    // output _sdf c = _SDFDEF)
+
+    vec4 OrbitTrap = vec4(1,1,1,1);
+    float u2 = 1;
+    float v2 = 1;
+    if(EnableOffset != 0)p = Offset+abs(vec3(p.x,p.y,p.z));
+
+    vec3 p0 = vec3(JuliaX,JuliaY,JuliaZ);
+    float l = 0.0;
+    int i=0;
+    for (i=0; i<Iterations; i++) {
+        p = Rotate(p,AngX,AngY,AngZ);
+        p.x=abs(p.x+FoldX)-FoldX;
+        p.y=abs(p.y+FoldY)-FoldY;
+        p.z=abs(p.z+FoldZ)-FoldZ;
+        p=p*Scale+p0;
+        l=length(p);
+
+        float rr = dot(p,p) + 1.5f;
+		// OrbitTrap.r = max( OrbitTrap.r, rr );
+		hitColor = vec3( abs( p / 10.0f ) );
+    }
+	// hitColor = vec3( OrbitTrap.r, abs( 10.0f * p.xy ) );
+    return Precision*(l)*pow(Scale, -float(i));
+}
+
+
+
+ float deTower( vec3 p ){
+    p.z-=2.5;
+    float s = 3.;
+    float e = 0.;
+    for(int j=0;j++<8;)
+      s*=e=3.8/clamp(dot(p,p),0.,2.),
+      p=abs(p)*e-vec3(1,15,1);
+    return length(cross(p,vec3(1,1,-1)*.577))/s;
+  }
+
 mat2 rot(float a) {
 	return mat2(cos(a),sin(a),-sin(a),cos(a));
 }
@@ -806,18 +876,40 @@ float de( in vec3 p ) {
 
 	// sceneDist = deOldTestChamber( p );
 
-	vec3 pBars = p;
 
-	pModInterval1( pBars.x, 0.2f, -15.0f, 15.0f );
-	pModInterval1( pBars.y, 0.2f, -15.0f, 15.0f );
 
-	// const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
-	const float dRails = fOpUnionRound( fCylinder( pBars, 0.03f, 2.0f ), fCylinder( pBars.yxz, 0.03f, 2.0f ), 0.05f );
-	sceneDist = min( sceneDist, dRails );
-	if ( sceneDist == dRails && dRails < epsilon ) {
-		hitColor = vec3( 0.618f );
-		hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
+
+
+
+	// vec3 pBars = p;
+
+	// pModInterval1( pBars.x, 0.2f, -15.0f, 15.0f );
+	// pModInterval1( pBars.y, 0.2f, -15.0f, 15.0f );
+
+	// // const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
+	// const float dRails = fOpUnionRound( fCylinder( pBars, 0.03f, 2.0f ), fCylinder( pBars.yxz, 0.03f, 2.0f ), 0.05f );
+	// sceneDist = min( sceneDist, dRails );
+	// if ( sceneDist == dRails && dRails < epsilon ) {
+	// 	hitColor = vec3( 0.618f );
+	// 	hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
+	// }
+
+
+	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
+	// const float dFractal = deTower( p );
+	const float dFractal = deBB( p );
+	sceneDist = min( sceneDist, dFractal );
+	if ( sceneDist == dFractal && dFractal < epsilon ) {
+		// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
+		hitColor = vec3( 0.793f, 0.793f, 0.664f );
+		hitSurfaceType = DIFFUSE;
+		// if ( abs( mod( p.x, 2.0f ) ) < 0.05f ) {
+			// hitColor = vec3( 2.0f );
+			// hitSurfaceType = EMISSIVE;
+		// }
 	}
+
+
 
 	// const float dHall = max(
 	// 	fOpUnionRound(
@@ -934,10 +1026,10 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
-	// bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
+	bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
 	// bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
 
-	bool mask = ( imageLoad( DDATex, idx ).a != 0 );
+	// bool mask = ( imageLoad( DDATex, idx ).a != 0 );
 
 	bool blackOrWhite = ( step( -0.0f,
 		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
@@ -973,12 +1065,13 @@ uint GetAlphaValueForIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
-	// return vec3( 0.23f, 0.618f, 0.123f );
+	// return vec3( 0.23f, 0.618f, 0.123f ).ggg;
+	return vec3( 0.99f );
 	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f );
 	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) + vec3( 0.8f );
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
-	return imageLoad( DDATex, idx ).rgb / 255.0f;
+	// return imageLoad( DDATex, idx ).rgb / 255.0f;
 }
 //=============================================================================================================================
 int GetMaterialIDForIdx( ivec3 idx ) {
@@ -1056,21 +1149,38 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
 					intersection.roughness = 0.04f;
-					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					// intersection.materialID = NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
-					intersection.albedo = GetColorForIdx( mapPos0 );
-					if ( GetAlphaValueForIdx( mapPos0 ) < 35 ) {
-						// intersection.albedo *= 3.0f;
-						// intersection.materialID = EMISSIVE;
+
+					vec3 testVal = ( pcg3d( uvec3( mapPos0 ) ) / 4294967296.0f );
+					if ( testVal.x < 0.002f ) {
+						intersection.materialID = EMISSIVE;
+						// intersection.albedo = vec3( 5.0f, 0.0f, 0.0f );
+						ray_t r;
+						r.origin = vec3( 0.0f );
+						r.direction = normalize( testVal - vec3( 0.5f ) );
+						intersection.albedo = SkyColor( r ) * 10.0f;
+					} else if ( mapPos0.x % 25 == 0 ) {
 						intersection.materialID = DIFFUSE;
-					} else if ( GetAlphaValueForIdx( mapPos0 ) < 130 ) {
-						intersection.materialID = MIRROR;
-						// intersection.materialID = NormalizedRandomFloat() > 0.9f ? MIRROR : DIFFUSE;
-						// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+						intersection.albedo = vec3( 0.618f );
 					} else {
-						// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-						intersection.materialID = DIFFUSE;
+						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+						intersection.albedo = GetColorForIdx( mapPos0 );
 					}
+
+
+
+					// intersection.materialID = NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
+					// if ( GetAlphaValueForIdx( mapPos0 ) < 35 ) {
+					// 	// intersection.albedo *= 3.0f;
+					// 	// intersection.materialID = EMISSIVE;
+					// 	// intersection.materialID = DIFFUSE;
+					// 	intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// } else if ( GetAlphaValueForIdx( mapPos0 ) < 130 ) {
+					// 	intersection.materialID = MIRROR;
+					// 	// intersection.materialID = NormalizedRandomFloat() > 0.9f ? MIRROR : DIFFUSE;
+					// 	// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// } else {
+					// 	intersection.materialID = DIFFUSE;
+					// }
 					break;
 				}
 			#endif
