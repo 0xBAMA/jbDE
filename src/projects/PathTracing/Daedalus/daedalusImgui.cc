@@ -56,7 +56,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		ImGui::SeparatorText( "DDA Spheres" );
 		ImGui::Checkbox( "Enable##ddaspheres", &daedalusConfig.render.scene.ddaSpheresEnable );
-		ImGui::SliderFloat( "Bounds Size", &daedalusConfig.render.scene.ddaSpheresBoundSize, 0.1f, 10.0f );
+		ImGui::SliderFloat( "Bounds Size", &daedalusConfig.render.scene.ddaSpheresBoundSize, 0.1f, 20.0f );
 		ImGui::SliderInt( "Resolution", &daedalusConfig.render.scene.ddaSpheresResolution, 5, 1000 );
 		if ( ImGui::Button( "Regen" ) ) {
 			DDAVATTex();
@@ -72,6 +72,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SeparatorText( "Explicit Primitives" );
 		ImGui::Checkbox( "Enable##explicit", &daedalusConfig.render.scene.explicitListEnable );
 		ImGui::SliderInt( "Count##explicit", &daedalusConfig.render.scene.numExplicitPrimitives, 0, 1000 );
+		ImGui::SliderFloat( "Marble Radius", &daedalusConfig.render.scene.marbleRadius, 0.0f, 20.0f );
 		// more involved parameterization
 		if ( ImGui::Button( "Regen List" ) ) {
 			PrepSphereBufferRandom();

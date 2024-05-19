@@ -29,6 +29,7 @@ struct sceneConfig_t {
 	float raymarchMaxDistance;
 	float raymarchUnderstep;
 	int raymarchMaxSteps;
+	float marbleRadius;
 
 	// Hybrid DDA traversal
 	bool ddaSpheresEnable;
@@ -155,6 +156,7 @@ struct daedalusConfig_t {
 		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
+		render.scene.marbleRadius = 8.0f;
 
 		render.scene.ddaSpheresEnable = true;
 		render.scene.ddaSpheresBoundSize = 1.6f;

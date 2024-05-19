@@ -119,6 +119,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1i( glGetUniformLocation( shader, "raymarchMaxSteps" ), daedalusConfig.render.scene.raymarchMaxSteps );
 	glUniform1f( glGetUniformLocation( shader, "raymarchUnderstep" ), daedalusConfig.render.scene.raymarchUnderstep );
 	glUniform1f( glGetUniformLocation( shader, "raymarchMaxDistance" ), daedalusConfig.render.scene.raymarchMaxDistance );
+	glUniform1f( glGetUniformLocation( shader, "marbleRadius" ), daedalusConfig.render.scene.marbleRadius );
 
 	glUniform1i( glGetUniformLocation( shader, "ddaSpheresEnable" ), daedalusConfig.render.scene.ddaSpheresEnable );
 	glUniform1f( glGetUniformLocation( shader, "ddaSpheresBoundSize" ), daedalusConfig.render.scene.ddaSpheresBoundSize );
@@ -239,7 +240,7 @@ void Daedalus::PrepSphereBufferRandom() {
 	rng IoR = rng( 1.0f / 1.1f, 1.0f / 1.5f );
 	rng Roughness = rng( 0.0f, 0.5f );
 
-	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 0.0f, 0.0f, 0.0f, 1.0f ) );	// position
+	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 0.0f, 0.0f, 0.0f, daedalusConfig.render.scene.marbleRadius + 0.01f ) );	// position
 	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 1.0f, 1.0f, 1.0f, 14.0f ) );	// color
 	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), 0.0f, 0.0f, 0.0f ) );	// material properties
 	for ( int idx = 0; idx < daedalusConfig.render.scene.numExplicitPrimitives; idx++ ) {
@@ -326,7 +327,7 @@ void Daedalus::RelaxSphereList() {
 				}
 			}
 		}
-		daedalusConfig.render.scene.explicitPrimitiveData[ 0 ] = vec4( 0.0f, 0.0f, 0.0f, 1.0f ); // hack for the middle sphere, setting location each iteration
+		daedalusConfig.render.scene.explicitPrimitiveData[ 0 ] = vec4( 0.0f, 0.0f, 0.0f, daedalusConfig.render.scene.marbleRadius + 0.01f ); // hack for the middle sphere, setting location each iteration
 		// break out when there are no intersections
 		bool existsIntersections = false;
 		for ( int i = 1; i < daedalusConfig.render.scene.numExplicitPrimitives; i++ ) { // hack for the middle sphere 0->1
