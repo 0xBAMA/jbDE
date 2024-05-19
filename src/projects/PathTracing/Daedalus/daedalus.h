@@ -69,7 +69,9 @@ public:
 		}
 
 		if ( state[ SDL_SCANCODE_Y ] && shift ) {
+			cout << "Compiling shaders...";
 			CompileShaders();
+			cout << " done."
 		}
 
 		// quaternion based rotation via retained state in the basis vectors
