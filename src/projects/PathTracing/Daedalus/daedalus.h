@@ -304,13 +304,17 @@ public:
 			scopedTimer Start( "Text Rendering" );
 
 			// toggle-able controls list, sounds like a nice to have
-			textRenderer.DrawBlackBackedColorString( 2, string( " Daedalus  (?) show controls" ), vec3( 1.0f, 0.5f, 0.3f ) );
+			// textRenderer.DrawBlackBackedColorString( 2, string( " Daedalus  (?) show controls" ), vec3( 1.0f, 0.5f, 0.3f ) );
 
 			float seconds = daedalusConfig.tiles.SecondsSinceLastReset();
 			float wholeSeconds = std::floor( seconds );
 			stringstream ss;
+			// ss << fixedWidthNumberString( wholeSeconds, 5, ' ' ) << "." << fixedWidthNumberString( ( seconds - wholeSeconds ) * 1000, 3, '0' ) << "s";
 			ss << fixedWidthNumberString( daedalusConfig.tiles.SampleCount(), 6, ' ' ) << " samples in ";
-			ss << fixedWidthNumberString( wholeSeconds, 5, ' ' ) << "." << fixedWidthNumberString( ( seconds - wholeSeconds ) * 1000, 3, '0' ) << "s";
+			ss << fixedWidthNumberString( int( wholeSeconds ) / 3600, 2, ' ' ) << "h " <<
+				fixedWidthNumberString( int( wholeSeconds ) / 60, 2, ' ' ) << "m " <<
+				fixedWidthNumberString( int( wholeSeconds ) % 60, 2, '0' ) << "s";
+
 			textRenderer.DrawBlackBackedColorString( 1, ss.str(), vec3( 1.0f ) );
 			ss.str( "" );
 			float tDelta = ImGui::GetIO().DeltaTime * 1000.0f;
