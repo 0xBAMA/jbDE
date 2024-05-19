@@ -76,6 +76,7 @@ struct renderConfig_t {
 	float thinLensJitterRadiusOuter;
 	int bokehMode;
 	int cameraType;
+	float voraldoCameraScalar;
 	bool cameraOriginJitter;
 	int maxBounces;
 
@@ -145,6 +146,7 @@ struct daedalusConfig_t {
 		render.thinLensJitterRadiusOuter = 1.0f;
 		render.bokehMode = 4;
 		render.cameraType = 0;
+		render.voraldoCameraScalar = 1.0f;
 		render.cameraOriginJitter = true;
 		render.maxBounces = 10;
 

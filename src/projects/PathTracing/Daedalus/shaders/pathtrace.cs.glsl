@@ -78,12 +78,15 @@ uniform vec3 basisZ;
 uniform float uvScalar;
 uniform int cameraType;
 uniform bool cameraOriginJitter;
+uniform float voraldoCameraScalar;
 uniform int maxBounces;
 uniform int bokehMode;
 uniform float FoV;
 uniform float maxDistance;
 uniform float epsilon;
 uniform float exposure;
+
+uniform float marbleRadius;
 
 uniform bool thinLensEnable;
 uniform float thinLensFocusDistance;
@@ -142,6 +145,7 @@ struct result_t {
 #define SIMPLEORTHO	4
 #define ORTHO		5
 #define COMPOUND	6
+#define VORALDO		7
 //=============================================================================================================================
 ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) - Assumes -1..1 range on x and y
 	const float aspectRatio = float( imageSize( accumulatorColor ).x ) / float( imageSize( accumulatorColor ).y );
@@ -266,6 +270,16 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 		// and now get the parameters from the remapped uv
 		r.direction = normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
 		r.origin = viewerPosition;
+		break;
+	}
+
+	case VORALDO:
+	{
+		uv.y /= aspectRatio;
+		vec3 viewerOffset = basisX * FoV * uv.x + basisY * FoV * uv.y;
+		r.origin = viewerPosition + viewerOffset;
+		r.direction = normalize( 2.0f * basisZ + viewerOffset * voraldoCameraScalar );
+
 		break;
 	}
 

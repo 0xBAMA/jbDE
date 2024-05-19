@@ -127,13 +127,20 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::RadioButton( "Spherical2", &daedalusConfig.render.cameraType, 2 );
 		ImGui::SameLine();
 		ImGui::RadioButton( "SphereBug", &daedalusConfig.render.cameraType, 3 );
-		ImGui::SameLine();
+		// ImGui::SameLine();
 		ImGui::RadioButton( "FakeOrtho", &daedalusConfig.render.cameraType, 4 );
 		ImGui::SameLine();
 		ImGui::RadioButton( "Ortho", &daedalusConfig.render.cameraType, 5 );
 		ImGui::SameLine();
 		ImGui::RadioButton( "Compound", &daedalusConfig.render.cameraType, 6 );
+		ImGui::SameLine();
+		ImGui::RadioButton( "Voraldo", &daedalusConfig.render.cameraType, 7 );
 		ImGui::Separator();
+		if ( daedalusConfig.render.cameraType == 7 ) {
+			ImGui::SliderFloat( "Perspective Factor", &daedalusConfig.render.voraldoCameraScalar, -2.0f, 2.0f );
+			ImGui::Separator();
+		}
+
 		ImGui::SliderFloat( "Camera FoV", &daedalusConfig.render.FoV, 0.0f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 		ImGui::Checkbox( "Jitter Origin", &daedalusConfig.render.cameraOriginJitter );
 
