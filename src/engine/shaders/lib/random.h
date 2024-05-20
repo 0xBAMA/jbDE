@@ -13,7 +13,11 @@ float NormalizedRandomFloat () {
 	return float( wangHash() ) / 4294967296.0f;
 }
 
+#ifndef PI_DEFINED
+#define PI_DEFINED
 const float pi = 3.14159265358979323846f;
+#endif
+
 vec3 RandomUnitVector () {
 	float z = NormalizedRandomFloat() * 2.0f - 1.0f;
 	float a = NormalizedRandomFloat() * 2.0f * pi;

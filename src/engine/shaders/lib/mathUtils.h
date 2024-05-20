@@ -14,7 +14,10 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
 }
 
+#ifndef PI_DEFINED
+#define PI_DEFINED
 const float pi = 3.141592f;
+#endif
 
 mat3 Rotate3D ( const float angle, const vec3 axis ) {
 	const vec3 a = normalize( axis );
