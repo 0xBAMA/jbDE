@@ -71,7 +71,7 @@ public:
 		if ( state[ SDL_SCANCODE_Y ] && shift ) {
 			cout << "Compiling shaders...";
 			CompileShaders();
-			cout << " done."
+			cout << " done.";
 		}
 
 		// quaternion based rotation via retained state in the basis vectors
@@ -322,7 +322,7 @@ public:
 			textRenderer.DrawBlackBackedColorString( 0, ss.str(), vec3( 1.0f ) );
 
 			// kill if the shaders fail - this is a temporary measure, eventually I'd like to incorporate this into the shader wrapper
-			if ( tDelta > 1000.0f ) pQuit = true;
+			// if ( tDelta > 1000.0f ) pQuit = true;
 			
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
