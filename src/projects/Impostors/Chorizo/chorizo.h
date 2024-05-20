@@ -554,6 +554,9 @@ public:
 			ChorizoConfig.lights.clear();
 			regenTree();
 
+	// I want to try this - clear out old buffer data, needs to be done before the counts are updated to avoid leftover stuff
+		// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClearBufferData.xhtml
+
 			ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
