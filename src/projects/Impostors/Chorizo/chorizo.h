@@ -1,6 +1,18 @@
 #include "../../../engine/engine.h"
 #include "generate.h"
 
+namespace std {
+	template<> struct hash< glm::ivec3 > {
+		// custom specialization of std::hash can be injected in namespace std
+		std::size_t operator()( glm::ivec3 const& s ) const noexcept {
+			std::size_t h1 = std::hash< int >{}( s.x );
+			std::size_t h2 = std::hash< int >{}( s.y );
+			std::size_t h3 = std::hash< int >{}( s.z );
+			return h1 ^ ( h2 << 4 ) ^ ( h3 << 8 );
+		}
+	};
+} // needed for std::unordered_map
+
 struct ChorizoConfig_t {
 	GLuint vao;
 	GLuint shapeParametersBuffer;
@@ -239,122 +251,223 @@ public:
 		shrinkJitter = rng( localCopy.shrinkJitterMin, localCopy.shrinkJitterMax );
 		branchJitter = rng( localCopy.branchJitterMin, localCopy.branchJitterMax );
 
-		ChorizoConfig.geometryManager.PreallocateLists( 100000000 );
+		// ChorizoConfig.geometryManager.PreallocateLists( 100000000 );
 
-		particleEroder p;
-		p.InitWithDiamondSquare();
-		Image_1F::rangeRemapInputs_t remap;
-		// p.model.RangeRemap( &remap );
+		// particleEroder p;
+		// p.InitWithDiamondSquare();
+		// Image_1F::rangeRemapInputs_t remap;
+		// // p.model.RangeRemap( &remap );
 
-		int numSteps = 10;
-		for ( int i = 0; i <= numSteps; i++ ) {
-			cout << "\rRunning eroder: " << i << " / " << numSteps << std::flush;
-			p.Erode( 1000 );
-		}
+		// int numSteps = 10;
+		// for ( int i = 0; i <= numSteps; i++ ) {
+		// 	cout << "\rRunning eroder: " << i << " / " << numSteps << std::flush;
+		// 	p.Erode( 1000 );
+		// }
 
-		cout << endl;
+		// cout << endl;
 		// p.Save( "test.png" );
 
-		// place some grass, brush
-		const float heightScale = 0.5f;
-		const int w = p.model.Width();
-		const int h = p.model.Height();
-		const vec2 scale = vec2( 20.0f );
-		rng radius = rng( 0.013f, 0.006f );
-		rngi x = rngi( 5, w - 5 );
-		rngi y = rngi( 5, h - 5 );
-		rng reject = rng( 0.0f, 1.0f );
-		rng jitter = rng( 0.2f, 1.1f );
-		rng di = rng( -0.3f, 0.3f );
-		PerlinNoise pNoise;
+		// // place some grass, brush
+		// const float heightScale = 0.5f;
+		// const int w = p.model.Width();
+		// const int h = p.model.Height();
+		// const vec2 scale = vec2( 20.0f );
+		// rng radius = rng( 0.013f, 0.006f );
+		// rngi x = rngi( 5, w - 5 );
+		// rngi y = rngi( 5, h - 5 );
+		// rng reject = rng( 0.0f, 1.0f );
+		// rng jitter = rng( 0.2f, 1.1f );
+		// rng di = rng( -0.3f, 0.3f );
+		// PerlinNoise pNoise;
 
-		palette::PaletteIndex = ChorizoConfig.grassPaletteID;
-		for ( int i = 0; i < 5000000; i++ ) {
-			if ( i % 143 == 0 ) {
-				cout << "\radding grass " << i + 1 << " / 2000000";
-			}
-			const vec2 pick = vec2( x(), y() );
-			const float noiseValue = pNoise.noise( pick.x / 2000.0f, pick.y / 2000.0f, 0.0f );
-			// if ( ( reject() ) > noiseValue ) {
-			if ( 0.5f > noiseValue ) {
-				vec3 normal = p.GetSurfaceNormal( uint( pick.x ), uint( pick.y ) );
-				normal.y *= 0.01f;
-				normal = glm::normalize( normal ).xzy();
-				normal = glm::normalize( normal + vec3( di(), di(), di() ) );
-				normal = glm::normalize( normal + vec3( di(), di(), di() ) );
-				normal = glm::normalize( normal + vec3( di(), di(), di() ) );
-				const float dUp = dot( normal, vec3( 0.0f, 0.0f, 1.0f ) );
-				// if ( dUp > 0.9f ) continue;
-				normal *= RemapRange( pow( RemapRange( dUp, -1.0f, 1.0f, 0.0f, 1.0f ), 10.0f ), 0.0f, 1.0f, 0.1f, 6.18f );
+		// palette::PaletteIndex = ChorizoConfig.grassPaletteID;
+		// for ( int i = 0; i < 5000000; i++ ) {
+		// 	if ( i % 143 == 0 ) {
+		// 		cout << "\radding grass " << i + 1 << " / 2000000";
+		// 	}
+		// 	const vec2 pick = vec2( x(), y() );
+		// 	const float noiseValue = pNoise.noise( pick.x / 2000.0f, pick.y / 2000.0f, 0.0f );
+		// 	// if ( ( reject() ) > noiseValue ) {
+		// 	if ( 0.5f > noiseValue ) {
 
-				const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
-				const vec3 basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
-				// const vec3 top = basePoint + vec3( xyDistrib(), xyDistrib(), zDistrib() );
-				const vec3 top = basePoint + normal * 0.1f * jitter();
-				// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( noiseValue ) );
-				ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( RemapRange( dUp, 0.75, 1.0f, ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax ) ) );
-			}
-		}
+		// 		// this is bullshit, all this is bullshit, needs work
+		// 		vec3 normal = p.GetSurfaceNormal( uint( pick.x ), uint( pick.y ) );
+		// 		normal.y *= 0.01f;
+		// 		normal = glm::normalize( normal ).xzy();
+		// 		normal = glm::normalize( normal + vec3( di(), di(), di() ) );
+		// 		normal = glm::normalize( normal + vec3( di(), di(), di() ) );
+		// 		normal = glm::normalize( normal + vec3( di(), di(), di() ) );
+		// 		const float dUp = dot( normal, vec3( 0.0f, 0.0f, 1.0f ) );
+		// 		// if ( dUp > 0.9f ) continue;
+		// 		normal *= RemapRange( pow( RemapRange( dUp, -1.0f, 1.0f, 0.0f, 1.0f ), 10.0f ), 0.0f, 1.0f, 0.1f, 6.18f );
 
-		cout << endl;
+		// 		const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
+		// 		const vec3 basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
+		// 		// const vec3 top = basePoint + vec3( xyDistrib(), xyDistrib(), zDistrib() );
+		// 		const vec3 top = basePoint + normal * 0.1f * jitter();
+		// 		// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( noiseValue ) );
+		// 		ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( RemapRange( dUp, 0.75f, 1.0f, ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax ) ) );
+		// 	}
+		// }
 
-		// do points, based on the heightmap
-		int i = 0;
-		palette::PaletteIndex = ChorizoConfig.groundPaletteID;
-		for ( int y = 0; y < h; y++ ) {
-			for ( int x = 0; x < w; x++ ) {
+		// cout << endl;
+
+		// // do points, based on the heightmap
+		// int i = 0;
+		// palette::PaletteIndex = ChorizoConfig.groundPaletteID;
+
+		// radius = rng( 0.01f, 0.005f );
+		// for ( int y = 0; y < h; y++ ) {
+		// 	for ( int x = 0; x < w; x++ ) {
 				
-				if ( ++i % 143 == 0 ) {
-					cout << "\radding ground " << ++i << " / " << w * h;
+		// 		if ( ++i % 143 == 0 ) {
+		// 			cout << "\radding ground " << ++i << " / " << w * h;
+		// 		}
+
+		// 		const float heightValue = -p.model.GetAtXY( x, y )[ 0 ];
+		// 		ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius(), palette::paletteRef( RemapRange( -heightValue, 0.0f, 1.0f, ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax ) ) );
+		// 	}
+		// }
+
+		// cout << endl;
+
+		// // do trees, positioned by their location on the map
+		// palette::PaletteIndex = ChorizoConfig.treePaletteID;
+		// for ( int i = 0; i < localCopy.numCopies; i++ ) {
+		// 	cout << "\radding trees " << i + 1 << " / " << localCopy.numCopies;
+		// 	// place the base point, consider also the z axis on the map
+
+		// 	const vec2 pick = vec2( x(), y() );
+		// 	const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
+		// 	localCopy.basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
+		// 	TreeRecurse( localCopy );
+		// }
+
+		// cout << endl;
+
+
+
+		// roving pipes
+		std::unordered_map< glm::ivec3, int > occupancyMap;
+
+		rng paletteJitter = rng( 0.0f, 0.1f );
+		rng palette = rng( 0.0f, 1.0f );
+		rngi place = rngi( -100, 100 );
+
+		palette::PaletteIndex = ChorizoConfig.treePaletteID;
+
+		struct rover {
+			ivec3 position = ivec3( 0 );
+			bool dead = false;
+			ivec3 pickNeighbor( std::unordered_map< glm::ivec3, int > &map ) {
+				rngi pick = rngi( 0, 2 );
+				rngi offset = rngi( -1, 1 );
+				ivec3 point = ivec3( 0 );
+				int tries = 0;
+				const int maxTries = 10;
+
+				for ( tries = 0; tries < maxTries; tries++ ) {
+					point = position + ivec3( offset(), offset(), offset() );
+					if ( map[ point ] == 1 ) {
+						// this is an already-occupied space
+					} else {
+						break;
+					}
 				}
 
-				const float heightValue = -p.model.GetAtXY( x, y )[ 0 ];
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius(), palette::paletteRef( RemapRange( -heightValue, 0.0f, 1.0f, ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax ) ) );
+				// do {
+				// 	point = ivec3( offset(), offset(), offset() );
+				// } while (
+				// 	point == ivec3( 0 ) ? true :		// don't pick self
+				// 	( tries++ < maxTries ||				// don't get stuck in infinite loop
+				// 	map[ point ] == 1 )					// don't go to an occupied space
+				// );
+
+				if ( tries == maxTries ) {
+					// im ded
+					dead = true;
+					return ivec3( 0 );
+				} else {
+					// this point is now occupied, mark it
+					map[ point ] = 1;
+					return point;
+				}
+			}
+		};
+
+		for ( int i = 0; i < 100; i++ ) {
+			// place the rover, at some initial point
+			rover r;
+			r.position = ivec3( place(), place(), place() );
+			occupancyMap[ r.position ] = 1;
+			const float basePaletteVal = palette();
+
+			int numSteps = 0;
+			while ( numSteps++ < 1000 ) {
+			// look at immediate neighbors
+				ivec3 newPosition = r.pickNeighbor( occupancyMap );
+				if ( !r.dead ) {
+
+					ivec3 offset = newPosition - r.position;
+					for ( int steps = 2; steps < 15; steps++ ) {
+						if ( occupancyMap[ r.position + steps * offset ] == 1 ) {
+							newPosition = r.position + steps * offset;
+							break;
+						} else {
+							occupancyMap[ r.position + steps * offset ] = 1;
+						}
+					}
+
+					// if I'm alive, move to the new location, and draw a capsule betwee the two points
+					// cout << "adding from " << r.position.x << " " << r.position.y << " " << r.position.z <<
+					// " to " << newPosition.x << " " << newPosition.y << " " << newPosition.z;
+					ChorizoConfig.geometryManager.AddCapsule( vec3( r.position ) / 100.0f, vec3( newPosition ) / 100.0f, 0.005f, palette::paletteRef( basePaletteVal + paletteJitter() ) );
+					r.position = newPosition;
+				}
 			}
 		}
 
-		cout << endl;
 
-		// do trees, positioned by their location on the map
-		palette::PaletteIndex = ChorizoConfig.treePaletteID;
-		for ( int i = 0; i < localCopy.numCopies; i++ ) {
-			cout << "\radding trees " << i + 1 << " / " << localCopy.numCopies;
-			// place the base point, consider also the z axis on the map
 
-			const vec2 pick = vec2( x(), y() );
-			const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
-			localCopy.basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
-			TreeRecurse( localCopy );
-		}
 
-		cout << endl;
+
 
 		// add some point sprite spheres to indicate light positions
 		palette::PaletteIndex = ChorizoConfig.lightPaletteID;
 		rng dist = rng( ChorizoConfig.lightPaletteMin, ChorizoConfig.lightPaletteMax );
-		radius = rng( 0.01f, 0.1f );
+		rng radius = rng( 0.01f, 0.1f );
 
 		// todo: how are we distributing points, if not on a grid?
 
-		for ( int x = 1; x <= w; x += w / 8 ) {
-			for ( int y = 1; y <= h; y += h / 8 ) {
+		const int numLightsPerSide = 16;
+		const int w = 512;
+		const int h = 512;
+		const vec2 scale = vec2( 2.0f );
 
-				const float heightValue = -p.model.GetAtXY( x - 1, y - 1 )[ 0 ];
+		for ( int x = 1; x <= w; x += w / numLightsPerSide ) {
+			for ( int y = 1; y <= h; y += h / numLightsPerSide ) {
 
-				vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f + 0.2f );
+				// const float heightValue = -p.model.GetAtXY( x - 1, y - 1 )[ 0 ];
+
+				vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, 0.0f );
+				// vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f + 0.2f );
 				vec3 color = palette::paletteRef( dist() );
 
 				// const float r = -radius();
-				const float r = -0.033f;
+				const float r = -0.013f;
 				const vec3 grey = vec3( 0.618f );
 				const vec3 offset = vec3( 0.0f, 0.0f, 0.8f * r );
 				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, r, color );
-				ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
+				// ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
 
 				ChorizoConfig.lights.push_back( vec4( position, 0.0f ) );
-				ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
+				// ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
+				ChorizoConfig.lights.push_back( vec4( color / 10.0f, 0.0f ) );
 			}
 		}
+
+
+
 	}
 
 	void PrepSSBOs () {
