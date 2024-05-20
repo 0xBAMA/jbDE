@@ -352,78 +352,147 @@ public:
 
 		rng paletteJitter = rng( 0.0f, 0.1f );
 		rng palette = rng( 0.0f, 1.0f );
-		rngi place = rngi( -100, 100 );
+		rngi place = rngi( -75, 75 );
+		rngi directionPick = rngi( -1, 1 );
 
 		palette::PaletteIndex = ChorizoConfig.treePaletteID;
 
 		struct rover {
 			ivec3 position = ivec3( 0 );
+			ivec3 direction = ivec3( 1, 0, 0 );
 			bool dead = false;
-			ivec3 pickNeighbor( std::unordered_map< glm::ivec3, int > &map ) {
-				rngi pick = rngi( 0, 2 );
-				rngi offset = rngi( -1, 1 );
-				ivec3 point = ivec3( 0 );
-				int tries = 0;
-				const int maxTries = 10;
+			float paletteValue;
 
-				for ( tries = 0; tries < maxTries; tries++ ) {
-					point = position + ivec3( offset(), offset(), offset() );
-					if ( map[ point ] == 1 ) {
+			geometryManager_t* localGeometryManager;
+
+			// ivec3 pickNeighbor( std::unordered_map< glm::ivec3, int > &map ) {
+			// 	rngi pick = rngi( 0, 2 );
+			// 	rngi offset = rngi( -1, 1 );
+			// 	ivec3 point = ivec3( 0 );aaaA
+
+
+			// 	// do {
+			// 	// 	point = ivec3( offset(), offset(), offset() );
+			// 	// } while (
+			// 	// 	point == ivec3( 0 ) ? true :		// don't pick self
+			// 	// 	( tries++ < maxTries ||				// don't get stuck in infinite loop
+			// 	// 	map[ point ] == 1 )					// don't go to an occupied space
+			// 	// );
+
+			// 	if ( tries == maxTries ) {
+			// 		// im ded
+			// 		dead = true;
+			// 		return ivec3( 0 );
+			// 	} else {
+			// 		// this point is now occupied, mark it
+			// 		map[ point ] = 1;
+			// 		return point;
+			// 	}
+
+			bool update ( std::unordered_map< glm::ivec3, int > &map ) {
+				rngi pick = rngi( -1, 1 );
+				// rngi steppy = rngi( 1, 2 );
+				// rng thresh = rng( 0.0f, 1.0f );
+				const ivec3 initialPosition = position;
+				// if ( thresh() < 0.2f ) {
+				// 	// change direction
+				// 	int tries = 0;
+				// 	const int maxTries = 10;
+				// 	for ( tries = 0; tries <= maxTries; tries++ ) {
+				// 		direction = ivec3( pick(), pick(), pick() );
+				// 		if ( map[ position + direction ] == 1 ) {
+				// 			// this is an already-occupied space
+				// 		} else {
+				// 			break;
+				// 		}
+				// 	}
+				// 	if ( tries >= maxTries ) {
+				// 		dead = true;
+				// 	}
+				// }
+				// // continue some number of steps in the same direction
+				// const int steps = steppy() + ( abs( direction.z ) != 0 ) ? 3 : 0;
+				// for ( int step = 1; step < steps; step++ ) {
+				// 	// if you hit an occupied cell, you die
+				// 	position = position + step * direction;
+				// 	if ( map[ position ] == 1 ) {
+				// 		dead = true;
+				// 	} else { // mark it as visited
+				// 		map[ position ] = 1;
+				// 	}
+				// }
+				// localGeometryManager->AddCapsule( vec3( initialPosition ) / 100.0f, vec3( position ) / 100.0f, 0.005f, palette::paletteRef( paletteValue ) );
+				// if ( abs( position ).x > 50 || abs( position ).y > 50 || abs( position ).z > 150 ) {
+				// 	dead = true; // kill out of bounds
+				// }
+
+				int tries = 0;
+				const int maxTries = 30;
+				for ( tries = 0; tries <= maxTries; tries++ ) {
+					direction = ivec3( pick(), pick(), pick() );
+
+					// switch ( pick() ) {
+					// 	case -1:
+					// 	direction = ivec3( pick(), 0, 0 );
+					// 	break;
+
+					// 	case 0:
+					// 	direction = ivec3( 0, pick(), 0 );
+					// 	break;
+
+					// 	case 1:
+					// 	direction = ivec3( 0, 0, pick() );
+					// 	break;
+					// }
+
+					if ( map[ position + direction ] == 1 ) {
 						// this is an already-occupied space
 					} else {
 						break;
 					}
 				}
-
-				// do {
-				// 	point = ivec3( offset(), offset(), offset() );
-				// } while (
-				// 	point == ivec3( 0 ) ? true :		// don't pick self
-				// 	( tries++ < maxTries ||				// don't get stuck in infinite loop
-				// 	map[ point ] == 1 )					// don't go to an occupied space
-				// );
-
-				if ( tries == maxTries ) {
-					// im ded
+				if ( tries >= maxTries || abs( position ).x > 100 || abs( position ).y > 100 || abs( position ).z > 250 ) {
 					dead = true;
-					return ivec3( 0 );
 				} else {
-					// this point is now occupied, mark it
-					map[ point ] = 1;
-					return point;
+					position = position + direction;
+					localGeometryManager->AddCapsule( vec3( initialPosition ) / 100.0f, vec3( position ) / 100.0f, 0.005f, palette::paletteRef( paletteValue ) );
 				}
+				return dead;
 			}
 		};
 
-		for ( int i = 0; i < 100; i++ ) {
+
+
+		rngi xyPick = rngi( -100, 100 );
+		rngi zPick = rngi( -200, 200 );
+		for ( int i = 0; i < 150; i++ ) {
+			ivec3 basePos = ivec3( xyPick(), xyPick(), zPick() );
+			for ( int x = -5; x < 5; x++ )
+			for ( int y = -5; y < 5; y++ )
+			for ( int z = -100; z < 100; z++ ) {
+				ivec3 location = basePos + ivec3( x, y, z );
+				if ( occupancyMap[ location ] != 1 ) {
+					occupancyMap[ location ] = 1;
+					ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( location ) / 100.0f, 0.005f, palette::paletteRef( 0.1f ) );
+				}
+			}
+		}
+
+
+		for ( int i = 0; i < 200; i++ ) {
 			// place the rover, at some initial point
 			rover r;
-			r.position = ivec3( place(), place(), place() );
+			do {
+				r.position = ivec3( place(), place(), RemapRange( i, 0.0f, 200.0f, -200.0f, 200.0f ) );
+			} while ( occupancyMap[ r.position ] == 1 );
+			r.direction = ivec3( directionPick(), directionPick(), directionPick() );
 			occupancyMap[ r.position ] = 1;
-			const float basePaletteVal = palette();
+			// r.paletteValue = i / 400.0f;
+			r.paletteValue = palette();
+			r.localGeometryManager = &ChorizoConfig.geometryManager;
+			cout << "\r" << i << " finished" << std::flush;
+			while ( !r.update( occupancyMap ) ) {
 
-			int numSteps = 0;
-			while ( numSteps++ < 1000 ) {
-			// look at immediate neighbors
-				ivec3 newPosition = r.pickNeighbor( occupancyMap );
-				if ( !r.dead ) {
-
-					ivec3 offset = newPosition - r.position;
-					for ( int steps = 2; steps < 15; steps++ ) {
-						if ( occupancyMap[ r.position + steps * offset ] == 1 ) {
-							newPosition = r.position + steps * offset;
-							break;
-						} else {
-							occupancyMap[ r.position + steps * offset ] = 1;
-						}
-					}
-
-					// if I'm alive, move to the new location, and draw a capsule betwee the two points
-					// cout << "adding from " << r.position.x << " " << r.position.y << " " << r.position.z <<
-					// " to " << newPosition.x << " " << newPosition.y << " " << newPosition.z;
-					ChorizoConfig.geometryManager.AddCapsule( vec3( r.position ) / 100.0f, vec3( newPosition ) / 100.0f, 0.005f, palette::paletteRef( basePaletteVal + paletteJitter() ) );
-					r.position = newPosition;
-				}
 			}
 		}
 
