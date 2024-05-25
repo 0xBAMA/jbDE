@@ -694,6 +694,7 @@ vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
         return vec3(zx,zy,zz);
 }
 
+float escape = 0.0f;
 float deBB( vec3 p ) {
     float Scale = 1.34f;
     float FoldY = 1.025709f;
@@ -719,6 +720,7 @@ float deBB( vec3 p ) {
     vec3 p0 = vec3(JuliaX,JuliaY,JuliaZ);
     float l = 0.0;
     int i=0;
+	escape = 0.0f;
     for (i=0; i<Iterations; i++) {
         p = Rotate(p,AngX,AngY,AngZ);
         p.x=abs(p.x+FoldX)-FoldX;
@@ -726,10 +728,11 @@ float deBB( vec3 p ) {
         p.z=abs(p.z+FoldZ)-FoldZ;
         p=p*Scale+p0;
         l=length(p);
+		escape += exp( -0.2f * dot( p, p ) );
 
-        float rr = dot(p,p) + 1.5f;
+        // float rr = dot( p, p );
 		// OrbitTrap.r = max( OrbitTrap.r, rr );
-		hitColor = vec3( abs( p / 10.0f ) );
+		// hitColor = inferno( clamp( abs( rr / 100.0f ), 0.0f, 1.0f ) );
     }
 	// hitColor = vec3( OrbitTrap.r, abs( 10.0f * p.xy ) );
     return Precision*(l)*pow(Scale, -float(i));
@@ -896,38 +899,46 @@ float de( in vec3 p ) {
 
 
 	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
-	// const float dFractal = deTower( p );
-	const float dFractal = deBB( p );
-	sceneDist = min( sceneDist, dFractal );
-	if ( sceneDist == dFractal && dFractal < epsilon ) {
-		// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
-		hitColor = vec3( 0.793f, 0.793f, 0.664f );
-		hitSurfaceType = DIFFUSE;
-		// if ( abs( mod( p.x, 2.0f ) ) < 0.05f ) {
-			// hitColor = vec3( 2.0f );
-			// hitSurfaceType = EMISSIVE;
-		// }
-	}
+	// // const float dFractal = deTower( p );
+	// // const float dFractal = deBB( p );
+	// sceneDist = min( sceneDist, dFractal );
+	// if ( sceneDist == dFractal && dFractal < epsilon ) {
+	// 	if ( escape > 0.58f ) {
+	// 		hitColor = saturate( inferno( escape ) );
+	// 		hitSurfaceType = EMISSIVE;
+	// 	} else {
+	// 		// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
+	// 		hitSurfaceType = DIFFUSE;
+	// 		hitColor = vec3( 0.793f, 0.793f, 0.664f );
+	// 		// hitColor = vec3( 0.618f );
+	// 		// hitColor = saturate( viridis( 1.0f - escape ) );
+	// 	}
 
-
-
-	// const float dHall = max(
-	// 	fOpUnionRound(
-	// 		fOpUnionRound( fPlane( pOriginal, vec3( 0.0f, -1.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3(  0.0f, 0.0f, 1.0f ), 2.0f ), 0.5f ),
-	// 		fOpUnionRound( fPlane( pOriginal, vec3( 1.0f,  0.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3( -1.0f, 0.0f, 0.0f ), 2.0f ), 0.5f ),
-	// 	0.5f ), fBox( pOriginal, vec3( 3.0f ) ) );
-
-	// // const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
-	// // const float dHall = deFractal2( p * 1.0f ) / 1.0f;
-	// sceneDist = min( sceneDist, dHall );
-	// if ( sceneDist == dHall && dHall < epsilon ) {
-	// 	// hitColor = vec3( 0.7f, 0.5f, 0.3f );
-	// 	hitColor = vec3( 0.618f );
-	// 	// hitSurfaceType = POLISHEDWOOD;
-	// 	// hitSurfaceType = DIFFUSE;
-	// 	hitSurfaceType = METALLIC;
-	// 	hitRoughness = 0.8f;
+	// 	// if ( abs( mod( p.x, 2.0f ) ) < 0.05f ) {
+	// 		// hitColor = vec3( 2.0f );
+	// 		// hitSurfaceType = EMISSIVE;
+	// 	// }
 	// }
+
+
+
+	const float dHall = max(
+		fOpUnionRound(
+			fOpUnionRound( fPlane( pOriginal, vec3( 0.0f, -1.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3(  0.0f, 0.0f, 1.0f ), 2.0f ), 0.5f ),
+			fOpUnionRound( fPlane( pOriginal, vec3( 1.0f,  0.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3( -1.0f, 0.0f, 0.0f ), 2.0f ), 0.5f ),
+		0.5f ), fBox( pOriginal, vec3( 3.0f ) ) );
+
+	// const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
+	// const float dHall = deFractal2( p * 1.0f ) / 1.0f;
+	sceneDist = min( sceneDist, dHall );
+	if ( sceneDist == dHall && dHall < epsilon ) {
+		// hitColor = vec3( 0.7f, 0.5f, 0.3f );
+		hitColor = vec3( 0.618f );
+		// hitSurfaceType = POLISHEDWOOD;
+		// hitSurfaceType = DIFFUSE;
+		hitSurfaceType = METALLIC;
+		hitRoughness = 0.8f;
+	}
 
 	// pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
 	// const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
