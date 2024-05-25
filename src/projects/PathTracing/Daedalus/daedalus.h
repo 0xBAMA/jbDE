@@ -312,7 +312,7 @@ public:
 			// ss << fixedWidthNumberString( wholeSeconds, 5, ' ' ) << "." << fixedWidthNumberString( ( seconds - wholeSeconds ) * 1000, 3, '0' ) << "s";
 			ss << fixedWidthNumberString( daedalusConfig.tiles.SampleCount(), 6, ' ' ) << " samples in ";
 			ss << fixedWidthNumberString( int( wholeSeconds ) / 3600, 2, ' ' ) << "h " <<
-				fixedWidthNumberString( int( wholeSeconds ) / 60, 2, ' ' ) << "m " <<
+				fixedWidthNumberString( ( int( wholeSeconds ) / 60 ) % 60, 2, ' ' ) << "m " <<
 				fixedWidthNumberString( int( wholeSeconds ) % 60, 2, '0' ) << "s";
 
 			textRenderer.DrawBlackBackedColorString( 1, ss.str(), vec3( 1.0f ) );
