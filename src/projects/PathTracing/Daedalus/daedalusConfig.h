@@ -121,6 +121,7 @@ struct daedalusConfig_t {
 		showConfigWindow = true;
 		view.outputZoom = 1.0f;
 		view.outputOffset = ( vec2( targetWidth, targetHeight ) - vec2( outputWidth, outputHeight ) ) / 2.0f;
+		filterBlendAmount = 0.5f;
 		filterEveryFrame = false;
 		filterSelector = 0;
 
@@ -201,6 +202,7 @@ struct daedalusConfig_t {
 	std::deque< float > timeHistory;	// ms per frame
 
 	// filter operation config
+	float filterBlendAmount;
 	bool filterEveryFrame;
 	int filterSelector;
 

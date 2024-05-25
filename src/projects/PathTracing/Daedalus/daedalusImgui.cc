@@ -266,7 +266,8 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		if ( ImGui::Button( " 100x " ) ) {
 			ApplyFilter( daedalusConfig.filterSelector, 100 );
 		}
-		ImGui::Checkbox( "Random Every Frame", &daedalusConfig.filterEveryFrame );
+		ImGui::SliderFloat( "Blend Amount", &daedalusConfig.filterBlendAmount, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::Checkbox( "Apply Every Frame", &daedalusConfig.filterEveryFrame );
 	}
 
 	if ( ImGui::CollapsingHeader( "Postprocess" ) ) {

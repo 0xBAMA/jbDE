@@ -69,6 +69,7 @@ void Daedalus::ApplyFilter( int mode, int count ) {
 
 		shader = shaders[ "Copy Back" ];
 		glUseProgram( shader );
+		glUniform1f( glGetUniformLocation( shader, "blendAmount" ), daedalusConfig.filterBlendAmount );
 		textureManager.BindImageForShader( "Color Accumulator Scratch", "sourceData", shader, 0 );
 		textureManager.BindImageForShader( "Color Accumulator", "destData", shader, 1 );
 		glDispatchCompute( ( dims.x + 15 ) / 16, ( dims.y + 15 ) / 16, 1 );
