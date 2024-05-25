@@ -5,6 +5,7 @@ layout( rgba32f ) uniform image2D skyCache;
 layout( rgba8 ) uniform image2D blueNoise; // todo: dithering
 
 uniform float skyTime;
+#include "mathUtils.h"
 #include "sky.h"
 
 uniform int mode;
@@ -55,6 +56,18 @@ void main () {
 			}
 		}
 		break;
+
+		case 5:
+		{
+			vec2 uv = vec2( gl_GlobalInvocationID.xy ) / imageSize( skyCache ).xy;
+			uv.y = 1.0f - uv.y;
+			vec3 sphericalDirection = s2c( vec3( 1.0f, ( uv.x * 2.0f - 1.0f ) * pi, uv.y * pi ) ).xzy;
+
+			vec3 lightDirection = Rotate3D( skyTime, vec3( 0.0f, 1.0f, 0.0f ) ) * vec3( 1.0f );
+
+			col = namelessSky( vec3( 0.0f ), normalize( sphericalDirection ), normalize( lightDirection ) );
+			break;
+		}
 	}
 
 	// write the data to the image

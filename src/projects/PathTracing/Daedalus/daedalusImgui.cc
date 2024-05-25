@@ -82,7 +82,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		// constant color, ollj model, ...
 		ImGui::SeparatorText( "Sky" );
-		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model", "Hard Cut North Pole Sun", "Two Suns" };
+		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model", "Hard Cut North Pole Sun", "Two Suns", "Nameless" };
 		ImGui::Combo( "Sky Mode", &daedalusConfig.render.scene.skyMode, skyModes, IM_ARRAYSIZE( skyModes ) );
 		daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		if ( daedalusConfig.render.scene.skyMode == 0 ) { // constant color
@@ -95,9 +95,9 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 			ImGui::SliderInt( "Sun Threshold", &daedalusConfig.render.scene.sunThresh, 0, 500 );
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
-		} else if ( daedalusConfig.render.scene.skyMode == 2 ) {
+		} else if ( daedalusConfig.render.scene.skyMode == 2 || daedalusConfig.render.scene.skyMode == 5 ) {
 			// ollj model needs float slider for time of day
-			ImGui::SliderFloat( "Time Of Day", &daedalusConfig.render.scene.skyTime, 2.0f, 7.0f );
+			ImGui::SliderFloat( "Time Of Day", &daedalusConfig.render.scene.skyTime, -2.0f, 7.0f );
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		}
 		ImGui::SliderFloat( "Sky Brightness Scalar", &daedalusConfig.render.scene.skyBrightnessScalar, 0.0f, 5.0f );
