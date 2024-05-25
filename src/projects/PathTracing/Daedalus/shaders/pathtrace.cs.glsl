@@ -171,8 +171,7 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 		uv.x -= 0.05f;
 		uv = vec2( atan( uv.y, uv.x ) + 0.5f, ( length( uv ) + 0.5f ) * acos( -1.0f ) );
 		vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
-		// derived via experimentation, pretty close to matching the orientation of the normal camera
-		baseVec = Rotate3D( PI / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec;
+		baseVec = Rotate3D( PI / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec; // this is to match the other camera
 		r.origin = viewerPosition;
 		r.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
 		break;
@@ -1030,6 +1029,7 @@ uniform bool ddaSpheresEnable;
 uniform vec3 ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
 layout( rgba8ui ) uniform uimage3D DDATex;
+layout( r32f ) uniform image2D HeightmapTex;
 //=============================================================================================================================
 bool CheckValidityOfIdx( ivec3 idx ) {
 	// return true;
@@ -1042,10 +1042,14 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 
 	bool mask = ( imageLoad( DDATex, idx ).a != 0 );
 
-	bool blackOrWhite = ( step( -0.0f,
-		cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
-		cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
-		cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
+	// const float heightSample = imageLoad( HeightmapTex, idx.xy ).r * 512;
+	// const float scaledZAxis = float( idx.z );
+	// bool mask = heightSample < scaledZAxis;
+
+	// bool blackOrWhite = ( step( -0.0f,
+	// 	cos( PI * 0.01f * float( idx.x ) + PI / 2.0f ) *
+	// 	cos( PI * 0.01f * float( idx.y ) + PI / 2.0f ) *
+	// 	cos( PI * 0.01f * float( idx.z ) + PI / 2.0f ) ) == 0 );
 
 	// return true;
 	return mask;
@@ -1062,7 +1066,9 @@ vec3 GetOffsetForIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 float GetRadiusForIdx( ivec3 idx ) {
-	return 0.47f;
+	// return 0.47f;
+	return 0.37f;
+	// return 0.2f;
 
 	// return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
 	// return NormalizedRandomFloat() / 2.0f;
@@ -1083,14 +1089,15 @@ vec3 GetColorForIdx( ivec3 idx ) {
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
 	return imageLoad( DDATex, idx ).rgb / 255.0f;
+	// return magma( imageLoad( HeightmapTex, idx.xy ).r );
 }
 //=============================================================================================================================
 int GetMaterialIDForIdx( ivec3 idx ) {
 	// return DIFFUSE;
 	// return MIRROR;
 	// return REFRACTIVE;
-	return NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
-	// return imageLoad( DDATex, idx ).a / 255.0f;
+	// return NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
+	return int( imageLoad( DDATex, idx ).a );
 }
 //=============================================================================================================================
 intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
@@ -1165,20 +1172,20 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.roughness = 0.14f;
 
 					vec3 testVal = ( pcg3d( uvec3( mapPos0 ) ) / 4294967296.0f );
-					if ( testVal.x < 0.002f ) {
-						intersection.materialID = EMISSIVE;
-						// intersection.albedo = vec3( 5.0f, 0.0f, 0.0f );
-						ray_t r;
-						r.origin = vec3( 0.0f );
-						r.direction = normalize( testVal - vec3( 0.5f ) );
-						// intersection.albedo = SkyColor( r ) * 10.0f;
-					// } else if ( mapPos0.x % 25 == 0 ) {
-						// intersection.materialID = DIFFUSE;
-						// intersection.albedo = vec3( 0.618f );
-					} else {
+					// vec3 testVal = vec3( 1.0f );
+					// if ( testVal.x < 0.0004f ) {
+					// 	intersection.materialID = EMISSIVE;
+					// 	intersection.albedo = 3.0f * ( vec3( 0.618f ) + inferno( testVal.g ) );
+					// } else if ( testVal.x < 0.1f ) {
+					// 	intersection.materialID = DIFFUSE;
+					// 	intersection.albedo = vec3( 0.618f );
+					// } else {
 						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-					}
-					intersection.albedo = GetColorForIdx( mapPos0 );
+						// intersection.albedo = GetColorForIdx( mapPos0 );
+						intersection.albedo = vec3( 0.99f );
+						intersection.roughness = 0.5f;
+						// intersection.materialID = DIFFUSE;
+					// }
 
 
 

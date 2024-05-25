@@ -145,6 +145,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	textureManager.BindTexForShader( "Sky Cache", "skyCache", shader, 3 );
 	textureManager.BindImageForShader( "TextBuffer", "textBuffer", shader, 4 );
 	textureManager.BindImageForShader( "DDATex", "DDATex", shader, 5 );
+	// textureManager.BindImageForShader( "HeightmapTex", "HeightmapTex", shader, 5 );
 }
 
 void Daedalus::SendInnerLoopPathtraceUniforms() {
@@ -604,4 +605,51 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 		textureManager.Add( "DDATex", opts );
 
 	}
+}
+
+void Daedalus::HeightmapTex() {
+	particleEroder p;
+	p.InitWithDiamondSquare();
+	// Image_1F::rangeRemapInputs_t remap;
+	// p.model.RangeRemap( &remap );
+
+	int numSteps = 100;
+	for ( int i = 0; i <= numSteps; i++ ) {
+		cout << "\rRunning eroder: " << i << " / " << numSteps << std::flush;
+		p.Erode( 1000 );
+	}
+
+	cout << endl;
+	// p.Save( "test.png" );
+
+	static bool firstRun = true;
+	if ( firstRun ) {
+		firstRun = false;
+		textureOptions_t opts;
+		opts.width			= p.model.Width();
+		opts.height			= p.model.Height();
+		opts.dataType		= GL_R32F;
+		opts.minFilter		= GL_NEAREST;
+		opts.magFilter		= GL_NEAREST;
+		opts.textureType	= GL_TEXTURE_2D;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
+		opts.pixelDataType	= GL_FLOAT;
+		opts.initialData	= ( void * ) &p.model.GetImageDataBasePtr()[ 0 ];
+		textureManager.Add( "HeightmapTex", opts );
+	} else {
+		textureManager.Remove( "HeightmapTex" );
+		// pass the new generated texture data to the existing texture
+		textureOptions_t opts;
+		opts.width			= p.model.Width();
+		opts.height			= p.model.Height();
+		opts.dataType		= GL_R32F;
+		opts.minFilter		= GL_NEAREST;
+		opts.magFilter		= GL_NEAREST;
+		opts.textureType	= GL_TEXTURE_2D;
+		opts.wrap			= GL_CLAMP_TO_BORDER;
+		opts.pixelDataType	= GL_FLOAT;
+		opts.initialData	= ( void * ) &p.model.GetImageDataBasePtr()[ 0 ];
+		textureManager.Add( "HeightmapTex", opts );
+	}
+
 }

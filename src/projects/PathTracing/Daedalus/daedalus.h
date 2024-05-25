@@ -46,6 +46,7 @@ public:
 			// prepare the glyph and DDA VAT buffers
 			PrepGlyphBuffer();
 			DDAVATTex();
+			// HeightmapTex();
 		}
 	}
 
@@ -210,6 +211,7 @@ public:
 	void SendExplicitPrimitiveSSBO();
 	void PrepGlyphBuffer();
 	void DDAVATTex();
+	void HeightmapTex();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
