@@ -1442,6 +1442,7 @@ intersection_t GetNearestSceneIntersection( in ray_t ray ) {
 		result = MaskedPlane;
 	} else if ( minDistance == ExplicitList.dTravel ) {
 		result = ExplicitList;
+		// result.IoR = 1.0f / 1.7f; // hack to make marble IoR constant
 	}
 	return result;
 }

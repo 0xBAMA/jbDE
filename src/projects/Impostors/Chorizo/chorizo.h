@@ -463,14 +463,27 @@ public:
 
 
 
-		rngi xyPick = rngi( -100, 100 );
-		rngi zPick = rngi( -200, 200 );
-		for ( int i = 0; i < 150; i++ ) {
-			ivec3 basePos = ivec3( xyPick(), xyPick(), zPick() );
-			for ( int x = -5; x < 5; x++ )
-			for ( int y = -5; y < 5; y++ )
-			for ( int z = -100; z < 100; z++ ) {
-				ivec3 location = basePos + ivec3( x, y, z );
+		// rngi xyPick = rngi( -100, 100 );
+		// rngi zPick = rngi( -200, 200 );
+		// for ( int i = 0; i < 150; i++ ) {
+			// ivec3 basePos = ivec3( xyPick(), xyPick(), zPick() );
+			for ( int x = -25; x < 25; x++ )
+			for ( int y = -25; y < 25; y++ )
+			for ( int z = -200; z < 200; z++ ) {
+				// ivec3 location = basePos + ivec3( x, y, z );
+				ivec3 location = ivec3( x, y, z );
+				if ( occupancyMap[ location ] != 1 ) {
+					occupancyMap[ location ] = 1;
+					ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( location ) / 100.0f, 0.005f, palette::paletteRef( 0.1f ) );
+				}
+			}
+		// }
+
+		for ( int i = -200; i < 200; i += 35 ) {
+			for ( int x = -100; x < 100; x++ )
+			for ( int y = -8; y < 8; y++ )
+			for ( int z = -8; z < 8; z++ ) {
+				ivec3 location = ivec3( x, y, z + i );
 				if ( occupancyMap[ location ] != 1 ) {
 					occupancyMap[ location ] = 1;
 					ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( location ) / 100.0f, 0.005f, palette::paletteRef( 0.1f ) );
