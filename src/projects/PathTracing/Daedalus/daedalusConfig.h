@@ -89,7 +89,7 @@ struct postConfig_t {
 	bool lensDistortNormalize = true;
 	int lensDistortNumSamples = 100;
 	vec3 lensDistortParametersStart = vec3( 0.0f, 0.02f, 0.0f );
-	vec3 lensDistortParametersEnd = vec3( 0.02f, 0.0f, 0.0f );
+	vec3 lensDistortParametersEnd = vec3( 0.00618f, 0.0f, 0.0f );
 	bool lensDistortChromab = true;
 };
 
