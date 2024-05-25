@@ -56,7 +56,9 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		ImGui::SeparatorText( "DDA Spheres" );
 		ImGui::Checkbox( "Enable##ddaspheres", &daedalusConfig.render.scene.ddaSpheresEnable );
-		ImGui::SliderFloat( "Bounds Size", &daedalusConfig.render.scene.ddaSpheresBoundSize, 0.1f, 20.0f );
+		ImGui::SliderFloat( "Bounds Size X", &daedalusConfig.render.scene.ddaSpheresBoundSize.x, 0.1f, 20.0f );
+		ImGui::SliderFloat( "Bounds Size Y", &daedalusConfig.render.scene.ddaSpheresBoundSize.y, 0.1f, 20.0f );
+		ImGui::SliderFloat( "Bounds Size Z", &daedalusConfig.render.scene.ddaSpheresBoundSize.z, 0.1f, 20.0f );
 		ImGui::SliderInt( "Resolution", &daedalusConfig.render.scene.ddaSpheresResolution, 5, 1000 );
 		if ( ImGui::Button( "Regen" ) ) {
 			DDAVATTex();

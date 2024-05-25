@@ -1027,7 +1027,7 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 
 //=============================================================================================================================
 uniform bool ddaSpheresEnable;
-uniform float ddaSpheresBoundSize;
+uniform vec3 ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
 layout( rgba8ui ) uniform uimage3D DDATex;
 //=============================================================================================================================
@@ -1102,12 +1102,14 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 	}
 
 	// map the ray into the integer grid space
-	const float res = float( ddaSpheresResolution );
+	vec3 scales = ddaSpheresBoundSize / max( ddaSpheresBoundSize.x, max( ddaSpheresBoundSize.y, ddaSpheresBoundSize.z ) );
+	const vec3 res = scales * vec3( ddaSpheresResolution );
+
 	const float epsilon = 0.001f;
 	ray.origin = vec3(
-		RangeRemapValue( ray.origin.x, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f, epsilon, res - epsilon ),
-		RangeRemapValue( ray.origin.y, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f, epsilon, res - epsilon ),
-		RangeRemapValue( ray.origin.z, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f, epsilon, res - epsilon )
+		RangeRemapValue( ray.origin.x, -ddaSpheresBoundSize.x / 2.0f, ddaSpheresBoundSize.x / 2.0f, epsilon, res.x - epsilon ),
+		RangeRemapValue( ray.origin.y, -ddaSpheresBoundSize.y / 2.0f, ddaSpheresBoundSize.y / 2.0f, epsilon, res.y - epsilon ),
+		RangeRemapValue( ray.origin.z, -ddaSpheresBoundSize.z / 2.0f, ddaSpheresBoundSize.z / 2.0f, epsilon, res.z - epsilon )
 	);
 
 	// prep for traversal
@@ -1123,7 +1125,7 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 	vec3 sideDist0 = ( sign( ray.direction ) * ( vec3( mapPos0 ) - ray.origin ) + ( sign( ray.direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
 	#define MAX_RAY_STEPS 2000
-	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, ivec3( ddaSpheresResolution ) ) ) ); i++ ) {
+	for ( int i = 0; i < MAX_RAY_STEPS && ( all( greaterThanEqual( mapPos0, ivec3( 0 ) ) ) && all( lessThan( mapPos0, ivec3( res ) ) ) ); i++ ) {
 	// for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
 
 		// Core of https://www.shadertoy.com/view/4dX3zl Branchless Voxel Raycasting
@@ -1152,9 +1154,9 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					ray.origin = ray.origin + ray.direction * ( intersection.frontfaceHit ? test.a.x : test.b.x );
 
 					ray.origin = vec3( // map the ray back into the world space
-						RangeRemapValue( ray.origin.x, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
-						RangeRemapValue( ray.origin.y, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
-						RangeRemapValue( ray.origin.z, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f )
+						RangeRemapValue( ray.origin.x, epsilon, res.x - epsilon, -ddaSpheresBoundSize.x / 2.0f, ddaSpheresBoundSize.x / 2.0f ),
+						RangeRemapValue( ray.origin.y, epsilon, res.y - epsilon, -ddaSpheresBoundSize.y / 2.0f, ddaSpheresBoundSize.y / 2.0f ),
+						RangeRemapValue( ray.origin.z, epsilon, res.z - epsilon, -ddaSpheresBoundSize.z / 2.0f, ddaSpheresBoundSize.z / 2.0f )
 					);
 
 					intersection.dTravel = distance( ray.origin, rayCache.origin );

@@ -33,7 +33,7 @@ struct sceneConfig_t {
 
 	// Hybrid DDA traversal
 	bool ddaSpheresEnable;
-	float ddaSpheresBoundSize;
+	vec3 ddaSpheresBoundSize;
 	int ddaSpheresResolution;
 	// mode config? may require a lot of parameterization...
 
@@ -159,7 +159,7 @@ struct daedalusConfig_t {
 		render.scene.marbleRadius = 8.0f;
 
 		render.scene.ddaSpheresEnable = true;
-		render.scene.ddaSpheresBoundSize = 1.6f;
+		render.scene.ddaSpheresBoundSize = vec3( 1.6f );
 		render.scene.ddaSpheresResolution = 513;
 
 		// masked planes
