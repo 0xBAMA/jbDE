@@ -230,6 +230,7 @@ public:
 		shaders[ "Present" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
 		shaders[ "Filter" ]		= computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
 		shaders[ "Copy Back" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
+		daedalusConfig.render.scene.skyNeedsUpdate = true;
 	}
 
 	void ComputePasses () {
