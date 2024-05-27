@@ -12,7 +12,7 @@ namespace std {
 			return h1 ^ ( h2 << 4 ) ^ ( h3 << 8 );
 		}
 	};
-} // needed for std::unordered_map
+} // key hash needed for std::unordered_map
 
 struct ChorizoConfig_t {
 	GLuint vao;
@@ -29,6 +29,7 @@ struct ChorizoConfig_t {
 	mat4 projTransformInverse;
 	mat4 combinedTransform;
 	mat4 combinedTransformInverse;
+	bool enableThinLens = false;
 
 	vec3 basisX = vec3( 1.0f, 0.0f, 0.0f );
 	vec3 basisY = vec3( 0.0f, 1.0f, 0.0f );
@@ -673,9 +674,9 @@ public:
 		static rng jitterAmount = rng( 0.0f, 1.0f );
 		const vec2 pixelJitter = vec2( jitterAmount() - 0.5f, jitterAmount() - 0.5f ) * 0.001f;
 		const vec2 hexJitter = UniformSampleHexagon( vec2( jitterAmount(), jitterAmount() ) ) * ChorizoConfig.apertureAdjust;
-		const vec3 localEyePos = ChorizoConfig.eyePosition +
+		const vec3 localEyePos = ChorizoConfig.enableThinLens ? ChorizoConfig.eyePosition +
 			( hexJitter.x + pixelJitter.x ) * ChorizoConfig.basisX +
-			( hexJitter.y + pixelJitter.y ) * ChorizoConfig.basisY;
+			( hexJitter.y + pixelJitter.y ) * ChorizoConfig.basisY : ChorizoConfig.eyePosition;
 		const float aspectRatio = float( config.width ) / float( config.height );
 
 		ChorizoConfig.projTransform = glm::perspective( glm::radians( ChorizoConfig.FoV ), aspectRatio, ChorizoConfig.nearZ, ChorizoConfig.farZ );
@@ -858,6 +859,7 @@ public:
 
 		ImGui::SeparatorText( "Controls" );
 		ImGui::SliderFloat( "FoV", &ChorizoConfig.FoV, 3.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::Checkbox( "Enable DoF Jitter", &ChorizoConfig.enableThinLens );
 		ImGui::SliderFloat( "Blend Amount", &ChorizoConfig.blendAmount, 0.0001f, 0.5f, "%.7f", ImGuiSliderFlags_Logarithmic );
 		ImGui::Checkbox( "Progressive Blend", &ChorizoConfig.progressiveBlend );
 		if ( ChorizoConfig.progressiveBlend == true ) {
