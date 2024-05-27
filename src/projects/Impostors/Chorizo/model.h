@@ -71,86 +71,23 @@ struct simParameterPack {
 };
 
 // consolidate display parameters
-struct displayParameterPack {
-	bool tensionColorOnly     = false;    // outlines are colored red in compression, blue in tension ( default )
-	bool showChassisNodes     = true;     // show points associated with the chassis nodes
-	bool showChassisEdges     = true;     // show lines associated with the chassis edges
-	bool showSuspensionEdges  = true;     // show the lines associated with suspension edges
-	bool showChassisFaces     = true;     // add this to the model, triangles using the same nodes as the edges
-
-	float depthColorScale     = 1.0f;     // adjust the weight of the depth coloring
-	float chassisRescaleAmnt  = 0.995f;   // scales the polygons, to interfere with the lines less
-
-	float wheelDiameter       = 0.2f;    // offset from the noise read, per wheel
-
-	glm::vec4 outlineColor    = softbodyColors::black;    // the highlight color if tensionColor is off
-	glm::vec4 compColor       = softbodyColors::red;      // the highlight color of the edges in compression ( tensionColor mode )
-	glm::vec4 tensColor       = softbodyColors::blue;     // the highlight color of the edges in tension ( tensionColor mode )
-
-	glm::vec4 faceColor       = softbodyColors::green;    // color of the chassis faces
-	glm::vec4 chassisColor    = softbodyColors::steel;    // color of the chassis members
-	glm::vec4 suspColor       = softbodyColors::yellow;   // color of the suspension members
-	glm::vec4 susp1Color      = softbodyColors::brown;    // color of the inboard suspension members
-
-	glm::vec4 groundLow       = softbodyColors::G0;       // color of the ground at lowest point
-	glm::vec4 groundHigh      = softbodyColors::G1;       // color of the ground at highest point
-	glm::vec4 background      = softbodyColors::BG;       // OpenGL clear color
-
-	float scale               = 0.4f;     // scales the frame points, about zero
-};
-
-struct drawParameterPack {
-// VBO indexing
-	// nodes
-	GLuint nodesBase;
-	GLuint nodesNum;
-	// edges
-	GLuint edgesBase;
-	GLuint edgesNum;
-	// faces
-	GLuint facesBase;
-	GLuint facesNum;
-	// ground
-	GLuint groundBase;
-	GLuint groundNum;
-
-	// lines scaling
-	float lineScale           = 6.0f;
-	float outlineRatio        = 1.3f;
-
-	// point scaling
-	float pointScale          = 16.0f;
-};
-
 class model {
 public:
 	model();
 	~model();
 
 	int nodeSelect = 0;
+	float scale = 0.4f;
+	float wheelDiameter = 0.2f;
 
 	// graph init
 	void loadFramePoints();               // populate graph with nodes and edges
-	void GPUSetup();                      // set up VAO, VBO, shaders
-
-	// pass new GPU data
-	void passNewGPUData();                // update vertex data
-	void updateUniforms();                // update uniform variables
 
 	// update functions for model
-	void Update( /* threadID */ );        // single threaded update - add threadID for threaded update
-
-	// show the model
-	void Display();                       // render the latest vertex data with the simGeometryShader
-
-	// to query sim completion
-
-	void colorModeSelect( int mode );     // the set of drawing colors to use
+	void Update( const int numUpdates );  // single threaded update
 
 	// simulation and display parameter structs
 	simParameterPack simParameters;
-	displayParameterPack displayParameters;
-	drawParameterPack drawParameters;
 
 	// OpenGL Data Handles
 	GLuint simGeometryVAO;
@@ -173,30 +110,6 @@ public:
 
 	// back up current values to previous values
 	void CachePreviousValues();
-
-	// keeping the state of each thread
-	threadState workerState[ numThreads ];
-	std::thread workerThreads[ numThreads ];
-	void EnableAllWorkers();
-	void MultiThreadUpdateFunc( int index );
-	// std::function< void( int ) > MultiThreadUpdateFunc = []() ;
-
-
-	// std::atomic<unsigned int> indexcrement{ 0 }; // used to get new thread ids
-	// std::thread updateThreads[ numThreads ] {[=](){
-	// 	// while ( workerState[ myThreadIndex ] != QUIT ) {
-	// 	// 	if ( workerState[ myThreadIndex ] == WAITING )
-	// 	// 		std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
-	// 	// 	else {
-	// 	// 		// run the update for all the relevant nodes
-	// 	// 	}
-	// 	// }
-	// 	int index = indexcrement.fetch_add( 1 );
-	// 	cout << "myindex is " << index << endl;
-	// }};
-
-
-	bool AllThreadComplete();
 
 	// update all nodes with a single thread
 	void SingleThreadSoftbodyUpdate();

@@ -261,10 +261,10 @@ public:
 			float radius = 0.0f;
 			switch ( e.type ) {
 				case SUSPENSION_INBOARD:
-					radius = 0.01f;
+					radius = 0.015f;
 				break;
 				case SUSPENSION:
-					radius = 0.01f;
+					radius = 0.015f;
 				break;
 				case CHASSIS:
 					radius = 0.015f;
@@ -288,8 +288,8 @@ public:
 					// red if they're shorter ( 0.5x )
 					color = glm::mix( white, red, glm::clamp( RemapRange( ratio, 1.0f, 0.95f, 0.0f, 1.0f ), 0.0f, 1.0f ) );
 				}
-			} else {
-				color = palette::paletteRef( e.type / 5.0f + 0.1f );
+			// } else {
+				color = color * palette::paletteRef( e.type / 5.0f + 0.1f );
 			}
 			ChorizoConfig.geometryManager.AddCapsule( point1, point2, radius, color );
 		}
@@ -297,7 +297,7 @@ public:
 		for ( auto& n : simulationModel.nodes ) {
 			if ( n.anchored ) {
 				ChorizoConfig.geometryManager.AddPointSpriteSphere( n.position * scale,
-					0.1f, palette::paletteRef( 0.1f ) );
+					0.1f, palette::paletteRef( 0.5f ) );
 			// } else { // chassis nodes
 			// 	ChorizoConfig.geometryManager.AddPointSpriteSphere( n.position * scale,
 			// 		0.02f, palette::paletteRef( 0.5f ) );
@@ -307,8 +307,9 @@ public:
 		// the ground nodes - this could be done more efficiently, but whatever
 		for ( float x = -1.0; x < 1.0f; x += 0.01f ) {
 			for ( float y = -1.5f; y < 1.5f; y += 0.01f ) {
-				const float scaledX = x / simulationModel.displayParameters.scale;
-				const float scaledY = y / simulationModel.displayParameters.scale;
+				const float scaledX = x / simulationModel.scale;
+				const float scaledY = y / simulationModel.scale;
+				// const float groundHeight = -simulationModel.getGroundPoint( scaledX, scaledY ) * simulationModel.scale;
 				const float groundHeight = -simulationModel.getGroundPoint( scaledX, scaledY ) + 0.5f;
 				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( scaledX, groundHeight, scaledY ), 0.04f, palette::paletteRef( 0.5f ) );
 			}
@@ -1022,6 +1023,37 @@ public:
 
 		ImGui::End();
 
+		// controls for the physics sim
+		ImGui::Begin( "Model Config", NULL, 0 );
+		if ( ImGui::BeginTabBar( "Config Sections", ImGuiTabBarFlags_None ) ) {
+			ImGui::SameLine();
+			if ( ImGui::BeginTabItem( "Simulation" ) ) {
+				ImGui::SliderFloat( "Time Scale", &simulationModel.simParameters.timeScale, 0.0f, 0.01f );
+				ImGui::SliderFloat( "Gravity", &simulationModel.simParameters.gravity, -10.0f, 10.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Noise Amplitude", &simulationModel.simParameters.noiseAmplitudeScale, 0.0f, 0.45f );
+				ImGui::SliderFloat( "Noise Speed", &simulationModel.simParameters.noiseSpeed, 0.0f, 10.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Chassis Node Mass", &simulationModel.simParameters.chassisNodeMass, 0.1f, 10.0f );
+				ImGui::SliderFloat( "Chassis K", &simulationModel.simParameters.chassisKConstant, 0.0f, 15000.0f );
+				ImGui::SliderFloat( "Chassis Damping", &simulationModel.simParameters.chassisDamping, 0.0f, 100.0f );
+				ImGui::Text(" ");
+				ImGui::SliderFloat( "Suspension K", &simulationModel.simParameters.suspensionKConstant, 0.0f, 15000.0f );
+				ImGui::SliderFloat( "Suspension Damping", &simulationModel.simParameters.suspensionDamping, 0.0f, 100.0f );
+				ImGui::EndTabItem();
+			}
+			if ( ImGui::BeginTabItem( "Render" ) ) {
+				ImGui::Text("Geometry Toggles");
+				ImGui::Separator();
+				// ImGui::Checkbox( "Draw Chassis Edges", &simulationModel.displayParameters.showChassisEdges );
+				// ImGui::Checkbox( "Draw Chassis Nodes", &simulationModel.displayParameters.showChassisNodes );
+				// ImGui::Checkbox( "Draw Suspension Edges", &simulationModel.displayParameters.showSuspensionEdges );
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+		ImGui::End();
+
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -1151,8 +1183,7 @@ public:
 		// glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
 		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
-		simulationModel.Update();
-		simulationModel.Update();
+		simulationModel.Update( 3 );
 		ChorizoConfig.geometryManager.ClearLists();
 		AddCurrentSoftbodyPoints();
 		PrepSSBOs();
