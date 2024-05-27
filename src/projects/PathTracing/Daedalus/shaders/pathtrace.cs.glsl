@@ -921,31 +921,31 @@ float de( in vec3 p ) {
 
 
 
-	const float dHall = max(
-		fOpUnionRound(
-			fOpUnionRound( fPlane( pOriginal, vec3( 0.0f, -1.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3(  0.0f, 0.0f, 1.0f ), 2.0f ), 0.5f ),
-			fOpUnionRound( fPlane( pOriginal, vec3( 1.0f,  0.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3( -1.0f, 0.0f, 0.0f ), 2.0f ), 0.5f ),
-		0.5f ), fBox( pOriginal, vec3( 3.0f ) ) );
+	// const float dHall = max(
+	// 	fOpUnionRound(
+	// 		fOpUnionRound( fPlane( pOriginal, vec3( 0.0f, -1.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3(  0.0f, 0.0f, 1.0f ), 2.0f ), 0.5f ),
+	// 		fOpUnionRound( fPlane( pOriginal, vec3( 1.0f,  0.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3( -1.0f, 0.0f, 0.0f ), 2.0f ), 0.5f ),
+	// 	0.5f ), fBox( pOriginal, vec3( 3.0f ) ) );
 
-	// const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
-	// const float dHall = deFractal2( p * 1.0f ) / 1.0f;
-	sceneDist = min( sceneDist, dHall );
-	if ( sceneDist == dHall && dHall < epsilon ) {
-		// hitColor = vec3( 0.7f, 0.5f, 0.3f );
-		hitColor = vec3( 0.618f );
-		// hitSurfaceType = POLISHEDWOOD;
-		// hitSurfaceType = DIFFUSE;
-		hitSurfaceType = METALLIC;
-		hitRoughness = 0.8f;
-	}
-
-	// pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
-	// const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
-	// sceneDist = min( sceneDist, dLight );
-	// if ( sceneDist == dLight && dLight < epsilon ) {
-	// 	hitColor = refPalette( RangeRemapValue( pOriginal.x, -2.0f, 2.0f, 0.0f, 1.0f ), PURDR ).rgb;
-	// 	hitSurfaceType = EMISSIVE;
+	// // const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
+	// // const float dHall = deFractal2( p * 1.0f ) / 1.0f;
+	// sceneDist = min( sceneDist, dHall );
+	// if ( sceneDist == dHall && dHall < epsilon ) {
+	// 	// hitColor = vec3( 0.7f, 0.5f, 0.3f );
+	// 	hitColor = vec3( 0.618f );
+	// 	// hitSurfaceType = POLISHEDWOOD;
+	// 	// hitSurfaceType = DIFFUSE;
+	// 	hitSurfaceType = METALLIC;
+	// 	hitRoughness = 0.8f;
 	// }
+
+	pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
+	const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
+	sceneDist = min( sceneDist, dLight );
+	if ( sceneDist == dLight && dLight < epsilon ) {
+		hitColor = CMRmap( RangeRemapValue( pOriginal.x, -2.0f, 2.0f, 0.0f, 1.0f ) ).rgb;
+		hitSurfaceType = EMISSIVE;
+	}
 
 	return sceneDist;
 }
@@ -1068,6 +1068,7 @@ vec3 GetOffsetForIdx( ivec3 idx ) {
 float GetRadiusForIdx( ivec3 idx ) {
 	// return 0.47f;
 	return 0.37f;
+	// return 0.4f;
 	// return 0.2f;
 
 	// return 0.45f * ( pcg3d( uvec3( idx ) ) / 4294967296.0f ).x;
@@ -1169,7 +1170,6 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
-					intersection.roughness = 0.14f;
 
 					vec3 testVal = ( pcg3d( uvec3( mapPos0 ) ) / 4294967296.0f );
 					// vec3 testVal = vec3( 1.0f );
@@ -1183,11 +1183,11 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
 						// intersection.albedo = GetColorForIdx( mapPos0 );
 						intersection.albedo = vec3( 0.99f );
-						intersection.roughness = 0.5f;
+						// intersection.roughness = 0.5f;
+						// intersection.roughness = 0.0f;
+						intersection.roughness = 0.3f;
 						// intersection.materialID = DIFFUSE;
 					// }
-
-
 
 					// intersection.materialID = NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 					// if ( GetAlphaValueForIdx( mapPos0 ) < 35 ) {
