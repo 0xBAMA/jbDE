@@ -1,5 +1,6 @@
 #include "../../../engine/engine.h"
 #include "generate.h"
+#include "model.h"
 
 namespace std {
 	template<> struct hash< glm::ivec3 > {
@@ -100,6 +101,9 @@ public:
 
 	ChorizoConfig_t ChorizoConfig;
 
+	// SoftBody Simulation Model
+	model simulationModel;
+
 	void OnInit () {
 		ZoneScoped;
 		{
@@ -139,6 +143,11 @@ public:
 			do { ChorizoConfig.groundPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.groundPaletteID ].colors.size() > colorCap );
 			do { ChorizoConfig.lightPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.lightPaletteID ].colors.size() > colorCap );
 
+			// regenTree();
+			simulationModel.loadFramePoints();
+
+			AddCurrentSoftbodyPoints();
+			AddLights();
 			PrepSSBOs();
 
 			// == Render Framebuffer(s) ===========
@@ -239,6 +248,68 @@ public:
 			for ( int i = 0; i < config.numBranches; i++ ) {
 				TreeRecurse( config );
 				config.basis = mat3( glm::rotate( rotateIncrement + rotateJitter(), zBasis ) ) * config.basis;
+			}
+		}
+	}
+
+	void AddCurrentSoftbodyPoints() {
+		const vec3 scale = vec3( 1.0f, -1.0f, 1.0f );
+		// rng colorGenerator = rng( 0.0f, 1.0f );
+		const bool tensionColor = true;
+		for ( auto& e : simulationModel.edges ) {
+			float radius = 0.0f;
+			switch ( e.type ) {
+				case SUSPENSION_INBOARD:
+					radius = 0.01f;
+				break;
+				case SUSPENSION:
+					radius = 0.01f;
+				break;
+				case CHASSIS:
+					radius = 0.015f;
+				break;
+				default: break;
+			}
+			vec3 color = vec3( 0.0f );
+			const vec3 point1 = simulationModel.nodes[ e.node1 ].position * scale;
+			const vec3 point2 = simulationModel.nodes[ e.node2 ].position * scale;
+			if ( tensionColor == true ) {
+				const vec3 blue = vec3( 0.0f, 0.0f, 1.0f );
+				const vec3 red = vec3( 1.0f, 0.0f, 0.0f );
+				const vec3 white = vec3( 1.0f );
+				const float currentLength = glm::distance( point1, point2 );
+				const float ratio = glm::clamp( RemapRange( currentLength, 0.0f, e.baseLength, 0.0f, 1.0f ), 0.0f, 2.0f );
+				// lerp to white at base length
+				if ( ratio > 1.0f ) {
+					// blue if they're longer ( 1.5x )
+					color = glm::mix( white, blue, glm::clamp( RemapRange( ratio, 1.0f, 1.05f, 0.0f, 1.0f ), 0.0f, 1.0f ) );
+				} else {
+					// red if they're shorter ( 0.5x )
+					color = glm::mix( white, red, glm::clamp( RemapRange( ratio, 1.0f, 0.95f, 0.0f, 1.0f ), 0.0f, 1.0f ) );
+				}
+			} else {
+				color = palette::paletteRef( e.type / 5.0f + 0.1f );
+			}
+			ChorizoConfig.geometryManager.AddCapsule( point1, point2, radius, color );
+		}
+
+		for ( auto& n : simulationModel.nodes ) {
+			if ( n.anchored ) {
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( n.position * scale,
+					0.1f, palette::paletteRef( 0.1f ) );
+			// } else { // chassis nodes
+			// 	ChorizoConfig.geometryManager.AddPointSpriteSphere( n.position * scale,
+			// 		0.02f, palette::paletteRef( 0.5f ) );
+			}
+		}
+
+		// the ground nodes - this could be done more efficiently, but whatever
+		for ( float x = -1.0; x < 1.0f; x += 0.01f ) {
+			for ( float y = -1.5f; y < 1.5f; y += 0.01f ) {
+				const float scaledX = x / simulationModel.displayParameters.scale;
+				const float scaledY = y / simulationModel.displayParameters.scale;
+				const float groundHeight = -simulationModel.getGroundPoint( scaledX, scaledY ) + 0.5f;
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( scaledX, groundHeight, scaledY ), 0.04f, palette::paletteRef( 0.5f ) );
 			}
 		}
 	}
@@ -508,30 +579,27 @@ public:
 
 			}
 		}
+	}
 
-
-
-
-
-
+	void AddLights() {
 		// add some point sprite spheres to indicate light positions
 		palette::PaletteIndex = ChorizoConfig.lightPaletteID;
 		rng dist = rng( ChorizoConfig.lightPaletteMin, ChorizoConfig.lightPaletteMax );
 		rng radius = rng( 0.01f, 0.1f );
 
-		// todo: how are we distributing points, if not on a grid?
-
-		const int numLightsPerSide = 16;
+		const int numLightsPerSide = 4;
 		const int w = 512;
 		const int h = 512;
-		const vec2 scale = vec2( 2.0f );
+		const vec2 scale = vec2( 4.0f );
 
-		for ( int x = 1; x <= w; x += w / numLightsPerSide ) {
+		for ( int x = 1; x <= w; x += w / ( numLightsPerSide ) ) {
 			for ( int y = 1; y <= h; y += h / numLightsPerSide ) {
 
 				// const float heightValue = -p.model.GetAtXY( x - 1, y - 1 )[ 0 ];
 
-				vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, 0.0f );
+				vec3 position = vec3(
+					( float( x - 1 ) / float( w ) - 0.5f ) * scale.x,
+					( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, -1.0f ).yzx();
 				// vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f + 0.2f );
 				vec3 color = palette::paletteRef( dist() );
 
@@ -543,30 +611,29 @@ public:
 				// ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
 
 				ChorizoConfig.lights.push_back( vec4( position, 0.0f ) );
-				// ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
-				ChorizoConfig.lights.push_back( vec4( color / 10.0f, 0.0f ) );
+				ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
 			}
 		}
-
-
-
 	}
 
 	void PrepSSBOs () {
-
-		regenTree();
-
+		static bool firstTime = true;
+		
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
 		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
 
 		// create the transforms buffer
-		glGenBuffers( 1, &ChorizoConfig.boundsTransformBuffer );
+		if ( firstTime ) {
+			glGenBuffers( 1, &ChorizoConfig.boundsTransformBuffer );
+		}
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.boundsTransformBuffer );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( mat4 ) * ChorizoConfig.numPrimitives, NULL, GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, ChorizoConfig.boundsTransformBuffer );
 
 		// shape parameterization buffer
-		glGenBuffers( 1, &ChorizoConfig.shapeParametersBuffer );
+		if ( firstTime ) {
+			glGenBuffers( 1, &ChorizoConfig.shapeParametersBuffer );
+		}
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
@@ -575,17 +642,23 @@ public:
 		cout << newline << "Created " << ChorizoConfig.numPointSprites << " point sprites" << newline;
 
 		// point sprite spheres, separate from the bounding box impostors
-		glGenBuffers( 1, &ChorizoConfig.pointSpriteParametersBuffer );
+		if ( firstTime ) {
+			glGenBuffers( 1, &ChorizoConfig.pointSpriteParametersBuffer );
+		}
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.pointSpriteParametersBuffer );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPointSprites * 4, ( GLvoid * ) ChorizoConfig.geometryManager.pointSpriteParametersList.data(), GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, ChorizoConfig.pointSpriteParametersBuffer );
 
 		// setup the SSBO, with the initial data
 		ChorizoConfig.numLights = ChorizoConfig.lights.size() / 2;
-		glGenBuffers( 1, &ChorizoConfig.lightsBuffer );
+		if ( firstTime ) {
+			glGenBuffers( 1, &ChorizoConfig.lightsBuffer );
+		}
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.lightsBuffer );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) ChorizoConfig.lights.data(), GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ChorizoConfig.lightsBuffer );
+
+		firstTime = false;
 	}
 
 	vec2 UniformSampleHexagon ( vec2 u ) {
@@ -1070,11 +1143,17 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-		const GLuint shader = shaders[ "Animate" ];
-		glUseProgram( shader );
-		glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 3000.0f );
-		glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
-		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// const GLuint shader = shaders[ "Animate" ];
+		// glUseProgram( shader );
+		// glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 3000.0f );
+		// glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+		simulationModel.Update();
+		simulationModel.Update();
+		ChorizoConfig.geometryManager.ClearLists();
+		AddCurrentSoftbodyPoints();
+		PrepSSBOs();
 	}
 
 	void OnRender () {

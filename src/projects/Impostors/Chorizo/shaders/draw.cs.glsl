@@ -165,7 +165,7 @@ void main () {
 		emissive = ( parameters.data[ 4 ] != parameters.data[ 5 ] );
 		knownRadius = parameters.data[ 4 ];
 
-		if ( parameters.data[ 15 ] == -1.0f ) { // using the color out of the buffer
+		if ( parameters.data[ 15 ] < 0.0f ) { // using the color out of the buffer
 			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		} else { // todo: should interpret the alpha channel as a palette key
 			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
