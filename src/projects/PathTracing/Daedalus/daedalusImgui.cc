@@ -200,11 +200,20 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		ImGui::SliderInt( "Accumulator X", &x, 0, 5000 );
 		ImGui::SliderInt( "Accumulator Y", &y, 0, 5000 );
 		ImGui::Text( "Presets:" );
-		ImGui::SameLine(); if ( ImGui::SmallButton( " Preview " ) )	ResizeAccumulators( x = 160, y = 90 );
+		ImGui::Indent();
+		ImGui::Text( "Standard" );
+		if ( ImGui::SmallButton( " Preview " ) )	ResizeAccumulators( x = 160, y = 90 );
 		ImGui::SameLine(); if ( ImGui::SmallButton( " 360p " ) )		ResizeAccumulators( x = 640, y = 360 );
 		ImGui::SameLine(); if ( ImGui::SmallButton( " 720p " ) )		ResizeAccumulators( x = 1280, y = 720 );
 		ImGui::SameLine(); if ( ImGui::SmallButton( " 1080p " ) )	ResizeAccumulators( x = 1920, y = 1080 );
 		ImGui::SameLine(); if ( ImGui::SmallButton( " 4K " ) )		ResizeAccumulators( x = 3840, y = 2160 );
+		ImGui::Unindent();
+		ImGui::Indent();
+		ImGui::Text( "Ultrawide" );
+		if ( ImGui::SmallButton( " Preview ##ultrawide" ) )	ResizeAccumulators( x = 768, y = 144 );
+		ImGui::SameLine(); if ( ImGui::SmallButton( " Wallpaper ##ultrawide" ) )	ResizeAccumulators( x = 7680, y = 1440 );
+		ImGui::Unindent();
+
 
 		float availableWidth = ImGui::GetContentRegionAvail().x - 20;
 		float proportionalHeight = availableWidth * ( float ) config.height / ( float ) config.width;
