@@ -705,30 +705,30 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
-		if ( state[ SDL_SCANCODE_R ] ) {
-			ChorizoConfig.geometryManager.ClearLists();
-			ChorizoConfig.lights.clear();
-			regenTree();
+	// 	if ( state[ SDL_SCANCODE_R ] ) {
+	// 		ChorizoConfig.geometryManager.ClearLists();
+	// 		ChorizoConfig.lights.clear();
+	// 		regenTree();
 
-	// I want to try this - clear out old buffer data, needs to be done before the counts are updated to avoid leftover stuff
-		// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClearBufferData.xhtml
+	// // I want to try this - clear out old buffer data, needs to be done before the counts are updated to avoid leftover stuff
+	// 	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClearBufferData.xhtml
 
-			ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
+	// 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
+	// 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
+	// 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
+	// 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
 
-			// point sprite spheres, separate from the bounding box impostors
-			ChorizoConfig.numPointSprites = ChorizoConfig.geometryManager.countPointSprite;
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.pointSpriteParametersBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPointSprites * 4, ( GLvoid * ) ChorizoConfig.geometryManager.pointSpriteParametersList.data(), GL_DYNAMIC_COPY );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, ChorizoConfig.pointSpriteParametersBuffer );
+	// 		// point sprite spheres, separate from the bounding box impostors
+	// 		ChorizoConfig.numPointSprites = ChorizoConfig.geometryManager.countPointSprite;
+	// 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.pointSpriteParametersBuffer );
+	// 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPointSprites * 4, ( GLvoid * ) ChorizoConfig.geometryManager.pointSpriteParametersList.data(), GL_DYNAMIC_COPY );
+	// 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, ChorizoConfig.pointSpriteParametersBuffer );
 
-			ChorizoConfig.numLights = ChorizoConfig.lights.size() / 2;
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.lightsBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) ChorizoConfig.lights.data(), GL_DYNAMIC_COPY );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ChorizoConfig.lightsBuffer );
-		}
+	// 		ChorizoConfig.numLights = ChorizoConfig.lights.size() / 2;
+	// 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.lightsBuffer );
+	// 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) ChorizoConfig.lights.data(), GL_DYNAMIC_COPY );
+	// 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ChorizoConfig.lightsBuffer );
+	// 	}
 
 		// quaternion based rotation via retained state in the basis vectors
 		const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
