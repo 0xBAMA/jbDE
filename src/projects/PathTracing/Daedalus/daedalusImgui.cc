@@ -280,7 +280,12 @@ void Daedalus::ShowDaedalusConfigWindow() {
 	}
 
 	if ( ImGui::CollapsingHeader( "Postprocess" ) ) {
+		float availableWidth = ImGui::GetContentRegionAvail().x - 20;
+		float proportionalHeight = availableWidth * 0.25f;
+
+		ImGui::SeparatorText( "Exposure Histogram" );
 		ImGui::Indent();
+		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Histogram" ), ImVec2( availableWidth, proportionalHeight ) );
 
 		// this needs significant work
 		if ( ImGui::CollapsingHeader( "Color Management" ) ) {
