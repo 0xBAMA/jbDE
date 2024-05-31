@@ -32,6 +32,24 @@ vec2 RandomInUnitDisk () {
 	return RandomUnitVector().xy;
 }
 
+
+vec3 cosWeightedRandomHemisphereDirection( const vec3 n ) {
+	vec2 rv2 = vec2( NormalizedRandomFloat(), NormalizedRandomFloat() );
+
+	vec3  uu = normalize( cross( n, vec3( 0.0f, 1.0f, 1.0f ) ) );
+	vec3  vv = normalize( cross( uu, n ) );
+
+	float ra = sqrt( rv2.y );
+	float rx = ra * cos( 6.2831f * rv2.x );
+	float ry = ra * sin( 6.2831f * rv2.x );
+	float rz = sqrt( 1.0f - rv2.y );
+	vec3  rr = vec3( rx * uu + ry * vv + rz * n );
+
+	//return normalize(n + (hash3()*vec3(2.0) - vec3(1.0)));
+	return normalize( rr );
+}
+
+
 // unit circle, no edge bias
 vec2 randCircle ( float rand1, float rand2 ) {
 	float u = 2.0 * pi * rand1;  // θ

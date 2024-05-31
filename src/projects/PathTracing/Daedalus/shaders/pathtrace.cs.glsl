@@ -358,6 +358,7 @@ float Reflectance ( const float cosTheta, const float IoR ) {
 bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
 	// precalculate reflected vector, random diffuse vector, random specular vector
 	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
+	const vec3 randomVectorCosineWeighted = cosWeightedRandomHemisphereDirection( intersection.normal );
 	const vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * intersection.normal + RandomUnitVector() );
 	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), intersection.roughness ) );
 
@@ -385,7 +386,8 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 
 		case DIFFUSE: {
 			throughput *= intersection.albedo;
-			ray.direction = randomVectorDiffuse;
+			// ray.direction = randomVectorDiffuse;
+			ray.direction = randomVectorCosineWeighted;
 			break;
 		}
 
