@@ -45,8 +45,16 @@ public:
 
 			// prepare the glyph and DDA VAT buffers
 			PrepGlyphBuffer();
-			DDAVATTex();
+			// DDAVATTex();
 			// HeightmapTex();
+
+			// color grading tools
+			glGenBuffers( 4, &daedalusConfig.render.grading.colorHistograms[ 0 ] );
+			opts.magFilter		= GL_NEAREST;
+			opts.minFilter		= GL_NEAREST;
+			opts.width			= 256;
+			opts.height			= 64;	// 16 per, not needing a lot of resolution
+			textureManager.Add( "Histogram", opts );
 		}
 	}
 
@@ -212,6 +220,7 @@ public:
 	void PrepGlyphBuffer();
 	void DDAVATTex();
 	void HeightmapTex();
+	void ClearColorGradingBuffers();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
@@ -230,6 +239,7 @@ public:
 		shaders[ "Present" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
 		shaders[ "Filter" ]		= computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
 		shaders[ "Copy Back" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
+		shaders[ "Histogram" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/histogram.cs.glsl" ).shaderHandle;
 		daedalusConfig.render.scene.skyNeedsUpdate = true;
 	}
 
@@ -289,8 +299,18 @@ public:
 			const GLuint shader = shaders[ "Prepare" ];
 			glUseProgram( shader );
 			SendPrepareUniforms();
+			ClearColorGradingBuffers();
 
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
+		{	// prepping the image of the color/luminance histogram
+			scopedTimer Start( "Histogram Prep" );
+			const GLuint shader = shaders[ "Histogram" ];
+			glUseProgram( shader );
+			textureManager.BindImageForShader( "Histogram", "histogram", shader, 0 );
+			glDispatchCompute( 256 / 16, 64 / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 

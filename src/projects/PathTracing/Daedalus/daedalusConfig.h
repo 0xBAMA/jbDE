@@ -58,6 +58,10 @@ struct sceneConfig_t {
 	float skyBrightnessScalar;
 };
 
+struct colorGradingConfig_t {
+	GLuint colorHistograms[ 4 ];
+};
+
 struct renderConfig_t {
 	int subpixelJitterMethod;
 	float uvScalar;
@@ -82,6 +86,7 @@ struct renderConfig_t {
 	int maxBounces;
 
 	sceneConfig_t scene;
+	colorGradingConfig_t grading;
 };
 
 struct postConfig_t {

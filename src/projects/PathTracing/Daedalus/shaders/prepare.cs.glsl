@@ -33,6 +33,36 @@ uniform float hueShift;
 #include "mathUtils.h"
 #include "oklabConversions.h.glsl"
 
+// buffers for the color histograms
+layout( binding = 1, std430 ) buffer colorHistogramR {
+	uint valuesR[ 256 ];
+	uint maxValueR;
+};
+layout( binding = 2, std430 ) buffer colorHistogramG {
+	uint valuesG[ 256 ];
+	uint maxValueG;
+};
+layout( binding = 3, std430 ) buffer colorHistogramB {
+	uint valuesB[ 256 ];
+	uint maxValueB;
+};
+layout( binding = 4, std430 ) buffer colorHistogramL {
+	uint valuesL[ 256 ];
+	uint maxValueL;
+};
+void UpdateHistograms( vec4 color ) {
+	uvec4 binCrements = uvec4(
+		uint( saturate( color.r ) * 255.0f ),
+		uint( saturate( color.g ) * 255.0f ),
+		uint( saturate( color.b ) * 255.0f ),
+		uint( saturate( dot( color.rgb, vec3( 0.299f, 0.587f, 0.114f ) ) ) * 255.0f )
+	);
+	atomicMax( maxValueR, atomicAdd( valuesR[ binCrements.r ], 1 ) + 1 );
+	atomicMax( maxValueG, atomicAdd( valuesG[ binCrements.g ], 1 ) + 1 );
+	atomicMax( maxValueB, atomicAdd( valuesB[ binCrements.b ], 1 ) + 1 );
+	atomicMax( maxValueL, atomicAdd( valuesL[ binCrements.a ], 1 ) + 1 );
+}
+
 void main() { // This is where tonemapping etc will be happening on the accumulated image
 	const ivec2 location = ivec2( gl_GlobalInvocationID.xy );
 	vec4 color = vec4( 0.0f );
@@ -103,6 +133,9 @@ void main() { // This is where tonemapping etc will be happening on the accumula
 	color.rgb = GammaCorrect( gamma, color.rgb );
 
 	// dithering
+
+	// update the histograms, with this value
+	UpdateHistograms( color );
 
 	imageStore( tonemappedResult, location, color );
 }
