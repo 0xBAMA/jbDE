@@ -14,6 +14,10 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
 }
 
+#ifndef saturate
+#define saturate(x) clamp(x, 0, 1)
+#endif
+
 #ifndef PI_DEFINED
 #define PI_DEFINED
 const float pi = 3.141592f;
