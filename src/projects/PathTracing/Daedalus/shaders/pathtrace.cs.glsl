@@ -845,6 +845,14 @@ float deTMT( vec3 p ) {
   return ( min( max( d.x, max( d.y, d.z ) ), 0.0 ) + length( max( d, 0.0 ) ) ) / s;
 }
 
+
+  float deGround(vec3 p){
+    vec3 Q;
+    Q=p;
+    Q.xy=vec2(atan(Q.x,Q.y)/.157,length(Q.xy)-3.);
+    Q.zx=fract(Q.zx)-.5;
+    return min(min(length(Q.xy),length(Q.yz))-.2,p.y+.5);
+  }
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
 //=============================================================================================================================
@@ -885,13 +893,13 @@ float de( in vec3 p ) {
 
 
 
-	// vec3 pBars = p;
+	// vec3 pBars = ( p - vec3( 0.0f, 0.0f, 1.0f ) ).zyx;
 
-	// pModInterval1( pBars.x, 0.2f, -15.0f, 15.0f );
-	// pModInterval1( pBars.y, 0.2f, -15.0f, 15.0f );
+	// pModInterval1( pBars.x, 0.01f, -250.0f, 250.0f );
+	// pModInterval1( pBars.y, 0.01f, -250.0f, 250.0f );
 
 	// // const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
-	// const float dRails = fOpUnionRound( fCylinder( pBars, 0.03f, 2.0f ), fCylinder( pBars.yxz, 0.03f, 2.0f ), 0.05f );
+	// const float dRails = fOpUnionRound( fCylinder( pBars, 0.001f, 2.0f ), fCylinder( pBars.yxz, 0.001f, 2.0f ), 0.001f );
 	// sceneDist = min( sceneDist, dRails );
 	// if ( sceneDist == dRails && dRails < epsilon ) {
 	// 	hitColor = vec3( 0.618f );
@@ -900,26 +908,26 @@ float de( in vec3 p ) {
 
 
 	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
-	// // const float dFractal = deTower( p );
-	// // const float dFractal = deBB( p );
-	// sceneDist = min( sceneDist, dFractal );
-	// if ( sceneDist == dFractal && dFractal < epsilon ) {
-	// 	if ( escape > 0.58f ) {
-	// 		hitColor = saturate( inferno( escape ) );
-	// 		hitSurfaceType = EMISSIVE;
-	// 	} else {
-	// 		// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
-	// 		hitSurfaceType = DIFFUSE;
-	// 		hitColor = vec3( 0.793f, 0.793f, 0.664f );
-	// 		// hitColor = vec3( 0.618f );
-	// 		// hitColor = saturate( viridis( 1.0f - escape ) );
-	// 	}
+	// const float dFractal = deTower( p );
+	const float dFractal = deGround( p * 5.0f ) / 5.0f;
+	sceneDist = min( sceneDist, dFractal );
+	if ( sceneDist == dFractal && dFractal < epsilon ) {
+		// if ( escape > 0.58f ) {
+			// hitColor = saturate( inferno( escape ) );
+			// hitSurfaceType = EMISSIVE;
+		// } else {
+			// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
+			hitSurfaceType = MIRROR;
+			hitColor = vec3( 0.793f, 0.793f, 0.664f );
+			// hitColor = vec3( 0.618f );
+			// hitColor = saturate( viridis( 1.0f - escape ) );
+		// }
 
-	// 	// if ( abs( mod( p.x, 2.0f ) ) < 0.05f ) {
-	// 		// hitColor = vec3( 2.0f );
-	// 		// hitSurfaceType = EMISSIVE;
-	// 	// }
-	// }
+		// if ( abs( mod( p.x, 2.0f ) ) < 0.05f ) {
+			// hitColor = vec3( 2.0f );
+			// hitSurfaceType = EMISSIVE;
+		// }
+	}
 
 
 
