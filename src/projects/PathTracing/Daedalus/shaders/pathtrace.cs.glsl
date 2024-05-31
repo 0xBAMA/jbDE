@@ -1033,16 +1033,27 @@ uniform int ddaSpheresResolution;
 layout( rgba8ui ) uniform uimage3D DDATex;
 layout( r32f ) uniform image2D HeightmapTex;
 //=============================================================================================================================
+vec3 GetPositionForIdx( ivec3 idx ) {
+	return ( vec3( idx ) - vec3( ddaSpheresResolution / 2.0f ) ) * 0.009f + vec3( 6.5f );
+}
+
+float ddaDiskSDF( vec3 p ) {
+	// return deBB( p );
+	return deLeaf( p );
+	// return deGG( p );
+	// return max( deFractal2( p ), ( distance( p, vec3( 0.0f ) ) - ( ddaSpheresResolution / 200.0f ) ) );
+}
+
 bool CheckValidityOfIdx( ivec3 idx ) {
 	// return true;
 
 	// return snoise3D( idx * 0.01f ) < 0.0f;
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
-	// bool mask = deLeaf( idx * 0.1f - vec3( 0.5f ) ) < 0.01f;
 	// bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
+	bool mask = ddaDiskSDF( GetPositionForIdx( idx ) ) < 0.01f;
 
-	bool mask = ( imageLoad( DDATex, idx ).a != 0 );
+	// bool mask = ( imageLoad( DDATex, idx ).a != 0 );
 
 	// const float heightSample = imageLoad( HeightmapTex, idx.xy ).r * 512;
 	// const float scaledZAxis = float( idx.z );
@@ -1086,12 +1097,12 @@ uint GetAlphaValueForIdx( ivec3 idx ) {
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
 	// return vec3( 0.23f, 0.618f, 0.123f ).ggg;
-	// return vec3( 0.99f );
-	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f );
+	return vec3( 0.99f );
+	// return viridis( ( pcg3d( uvec3( idx ) ).x / 4294967296.0f ) / 5.0f + 0.6f );
 	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) + vec3( 0.8f );
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
-	return imageLoad( DDATex, idx ).rgb / 255.0f;
+	// return imageLoad( DDATex, idx ).rgb / 255.0f;
 	// return magma( imageLoad( HeightmapTex, idx.xy ).r );
 }
 //=============================================================================================================================
@@ -1147,8 +1158,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
 // changing behavior of the traversal - the disks are not super compatible with the sphere/box intersection code
-#define SPHEREORBOX
-// #define DISKS
+// #define SPHEREORBOX
+#define DISKS
 
 			#ifdef SPHEREORBOX
 				// see if we found an intersection - ball will almost fill the grid cell
@@ -1212,9 +1223,10 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 				// disk test
 				const vec3 planePt = vec3( mapPos0 ) + vec3( 0.5f );
 				vec2 e = vec2( epsilon, 0.0f );
+				vec3 p = GetPositionForIdx( mapPos0 );
 				const vec3 normal = normalize(
-					vec3( deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) ) ) - vec3(
-						vec3( deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) - e.xyy ), deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) - e.yxy ), deLeaf( mapPos0 * 0.1f - vec3( 0.5f ) - e.yyx ) )
+					vec3( ddaDiskSDF( p ) ) - vec3(
+						vec3( ddaDiskSDF( p - e.xyy ), ddaDiskSDF( p - e.yxy ), ddaDiskSDF( p - e.yyx ) )
 					)
 				);
 
@@ -1228,9 +1240,9 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					ray.origin = hitPointInPlane;
 
 					ray.origin = vec3( // map the ray back into the world space
-						RangeRemapValue( ray.origin.x, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
-						RangeRemapValue( ray.origin.y, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f ),
-						RangeRemapValue( ray.origin.z, epsilon, res - epsilon, -ddaSpheresBoundSize / 2.0f, ddaSpheresBoundSize / 2.0f )
+						RangeRemapValue( ray.origin.x, epsilon, res.x - epsilon, -ddaSpheresBoundSize.x / 2.0f, ddaSpheresBoundSize.x / 2.0f ),
+						RangeRemapValue( ray.origin.y, epsilon, res.y - epsilon, -ddaSpheresBoundSize.y / 2.0f, ddaSpheresBoundSize.y / 2.0f ),
+						RangeRemapValue( ray.origin.z, epsilon, res.z - epsilon, -ddaSpheresBoundSize.z / 2.0f, ddaSpheresBoundSize.z / 2.0f )
 					);
 
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
@@ -1241,7 +1253,9 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					intersection.IoR = 1.0f / 1.5f;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
 					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+					// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : MIRROR;
 					intersection.materialID = DIFFUSE;
+					// intersection.materialID = NormalizedRandomFloat() > 0.9f ? MIRROR : DIFFUSE;
 					intersection.albedo = GetColorForIdx( mapPos0 );
 					break;
 				}
