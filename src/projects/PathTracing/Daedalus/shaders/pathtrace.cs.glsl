@@ -1538,7 +1538,7 @@ void ProcessTileInvocation( in ivec2 pixel ) {
 	);
 
 	// store the values back
-	imageStore( accumulatorColor, pixel, mixedColor );
+	imageStore( accumulatorColor, pixel, clamp( mixedColor, 0.0f, 10000.0f ) );
 	imageStore( accumulatorNormalsAndDepth, pixel, mixedNormalD );
 }
 
