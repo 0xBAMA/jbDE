@@ -134,8 +134,10 @@ void main() { // This is where tonemapping etc will be happening on the accumula
 
 	// dithering
 
-	// update the histograms, with this value
-	UpdateHistograms( color );
+	// update the histograms, with this value - but only if this invocation is on the image
+	if ( all( lessThan( gl_GlobalInvocationID.xy, imageSize( tonemappedResult ) ) ) ) {
+		UpdateHistograms( color );
+	}
 
 	imageStore( tonemappedResult, location, color );
 }
