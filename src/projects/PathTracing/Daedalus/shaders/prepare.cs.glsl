@@ -34,7 +34,7 @@ uniform float hueShift;
 #include "oklabConversions.h.glsl"
 
 // buffer for the color histograms
-layout( binding = 1, std430 ) writeonly buffer colorHistograms {
+layout( binding = 1, std430 ) buffer colorHistograms {
 	uint valuesR[ 256 ];
 	uint maxValueR;
 	uint valuesG[ 256 ];

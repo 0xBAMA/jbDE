@@ -1,9 +1,9 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( location = 0, rgba8ui ) uniform uimage2D blueNoise;
+layout( location = 0, rgba8ui ) readonly uniform uimage2D blueNoise;
 layout( location = 1 ) uniform sampler2D preppedImage;
-layout( location = 2, rgba8 ) uniform image2D outputImage;
+layout( location = 2, rgba8 ) writeonly uniform image2D outputImage;
 
 uniform float scale;
 uniform vec2 offset;

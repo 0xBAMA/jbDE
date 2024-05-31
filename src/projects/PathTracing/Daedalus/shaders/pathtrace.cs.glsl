@@ -1,7 +1,7 @@
 #version 430 core
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 //=============================================================================================================================
-layout( location = 0, rgba8ui ) uniform uimage2D blueNoise;
+layout( location = 0, rgba8ui ) readonly uniform uimage2D blueNoise;
 layout( location = 1, rgba32f ) uniform image2D accumulatorColor;
 layout( location = 2, rgba32f ) uniform image2D accumulatorNormalsAndDepth;
 //=============================================================================================================================
@@ -1030,8 +1030,8 @@ iqIntersect IntersectBox( in ray_t ray, in vec3 center, in vec3 size ) {
 uniform bool ddaSpheresEnable;
 uniform vec3 ddaSpheresBoundSize;
 uniform int ddaSpheresResolution;
-layout( rgba8ui ) uniform uimage3D DDATex;
-layout( r32f ) uniform image2D HeightmapTex;
+layout( rgba8ui ) readonly uniform uimage3D DDATex;
+layout( r32f ) readonly uniform image2D HeightmapTex;
 //=============================================================================================================================
 vec3 GetPositionForIdx( ivec3 idx ) {
 	return ( vec3( idx ) - vec3( ddaSpheresResolution / 2.0f ) ) * 0.009f + vec3( 6.5f );
@@ -1285,7 +1285,7 @@ intersection_t VoxelIntersection( in ray_t ray ) {
 }
 //=============================================================================================================================
 uniform bool maskedPlaneEnable;
-layout( rgba8ui ) uniform uimage3D textBuffer;
+layout( rgba8ui ) readonly uniform uimage3D textBuffer;
 //=============================================================================================================================
 bool maskedPlaneMaskEval( in vec3 location, out vec3 color ) {
 	// bool mask = ( step( -0.0f, // placeholder, glyph mapping + texture stuff next
@@ -1407,7 +1407,7 @@ struct sphere_t {
 	vec4 colorMaterial;
 	vec4 materialProps;
 };
-layout( binding = 0, std430 ) buffer sphereData {
+layout( binding = 0, std430 ) readonly buffer sphereData {
 	sphere_t spheres[];
 };
 //=============================================================================================================================

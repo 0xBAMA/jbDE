@@ -1,8 +1,8 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( rgba32f ) uniform image2D sourceData;
-layout( rgba32f ) uniform image2D destData;
+layout( rgba32f ) readonly uniform image2D sourceData;
+layout( rgba32f ) writeonly uniform image2D destData;
 
 // median filter code from Nameless
 float luma( vec3 c ) {
