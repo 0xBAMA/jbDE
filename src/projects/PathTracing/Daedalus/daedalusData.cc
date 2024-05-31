@@ -355,15 +355,12 @@ void Daedalus::SendExplicitPrimitiveSSBO() {
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, daedalusConfig.render.scene.explicitPrimitiveSSBO );
 }
 
-void Daedalus::ClearColorGradingBuffers() {
+void Daedalus::ClearColorGradingBuffer() {
 	// data is 255 histogram bins, plus a maximum across the field
-	constexpr uint32_t bufferContents[ 257 ] = { 0 };
-	// this is going to be buffers 1, 2, 3, 4
-	for ( int i = 1; i <= 4; i++ ) {
-		glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.colorHistograms[ i - 1 ] );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLuint ) * 257, ( GLvoid * ) &bufferContents, GL_DYNAMIC_COPY );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, i, daedalusConfig.render.grading.colorHistograms[ i - 1 ] );
-	}
+	constexpr uint32_t bufferContents[ ( 1024 + 4 ) ] = { 0 };
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.colorHistograms );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLuint ) * ( 1024 + 4 ), ( GLvoid * ) &bufferContents, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, daedalusConfig.render.grading.colorHistograms );
 }
 
 void Daedalus::PrepGlyphBuffer() {

@@ -49,7 +49,7 @@ public:
 			// HeightmapTex();
 
 			// color grading tools
-			glGenBuffers( 4, &daedalusConfig.render.grading.colorHistograms[ 0 ] );
+			glGenBuffers( 1, &daedalusConfig.render.grading.colorHistograms );
 			opts.magFilter		= GL_NEAREST;
 			opts.minFilter		= GL_NEAREST;
 			opts.width			= 256;
@@ -220,7 +220,7 @@ public:
 	void PrepGlyphBuffer();
 	void DDAVATTex();
 	void HeightmapTex();
-	void ClearColorGradingBuffers();
+	void ClearColorGradingBuffer();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
@@ -299,7 +299,7 @@ public:
 			const GLuint shader = shaders[ "Prepare" ];
 			glUseProgram( shader );
 			SendPrepareUniforms();
-			ClearColorGradingBuffers();
+			ClearColorGradingBuffer();
 
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

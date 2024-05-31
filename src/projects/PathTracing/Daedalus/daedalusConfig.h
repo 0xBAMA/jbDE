@@ -59,7 +59,7 @@ struct sceneConfig_t {
 };
 
 struct colorGradingConfig_t {
-	GLuint colorHistograms[ 4 ];
+	GLuint colorHistograms;
 };
 
 struct renderConfig_t {
