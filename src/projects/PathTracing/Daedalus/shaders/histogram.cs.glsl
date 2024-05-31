@@ -1,7 +1,6 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
-// layout( location = 0, rgba32f ) writeonly uniform image2D histogram;
-layout( location = 0, rgba32f ) uniform image2D histogram;
+layout( location = 0, rgba8 ) writeonly uniform image2D histogram;
 layout( binding = 1, std430 ) readonly buffer colorHistograms {
 	uint valuesR[ 256 ];
 	uint maxValueR;

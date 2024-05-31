@@ -50,6 +50,7 @@ public:
 
 			// color grading tools
 			glGenBuffers( 1, &daedalusConfig.render.grading.colorHistograms );
+			opts.dataType		= GL_RGBA8;
 			opts.magFilter		= GL_NEAREST;
 			opts.minFilter		= GL_NEAREST;
 			opts.width			= 256;
