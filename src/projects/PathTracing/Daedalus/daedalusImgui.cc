@@ -5,6 +5,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 	ImGui::Begin( "Daedalus", NULL, ImGuiWindowFlags_NoScrollWithMouse );
 
 	ImGui::Text( "Daedalus" );
+	ImGui::Checkbox( "Run Renderer", &daedalusConfig.render.render );
 	ImGui::SeparatorText( " Performance " );
 	float ts = daedalusConfig.tiles.SecondsSinceLastReset();
 	ImGui::Text( "Fullscreen Passes: %d in %.3f seconds ( %.3f samples/sec )", daedalusConfig.tiles.SampleCount(), ts, ( float ) daedalusConfig.tiles.SampleCount() / ts );

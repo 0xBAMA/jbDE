@@ -153,6 +153,9 @@ public:
 		if ( state[ SDL_SCANCODE_PAGEDOWN ] )	daedalusConfig.render.viewerPosition += scalar * daedalusConfig.render.basisY;
 		if ( state[ SDL_SCANCODE_PAGEUP ] )		daedalusConfig.render.viewerPosition -= scalar * daedalusConfig.render.basisY;
 
+		// watch for space being held, when things become unresponsive ( not a toggle, only kill )
+		if ( state[ SDL_SCANCODE_SPACE ] ) daedalusConfig.render.render = false;
+
 		ivec2 mouse;
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
 		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
@@ -307,7 +310,7 @@ public:
 			uint32_t tilesThisFrame = 0;
 			SendBasePathtraceUniforms();
 			const uint32_t tileSize = daedalusConfig.tiles.tileSize;
-			while ( 1 && !quitConfirm ) {
+			while ( daedalusConfig.render.render && !quitConfirm ) {
 				for ( uint32_t tile = 0; tile < daedalusConfig.tiles.tilesBetweenQueries; tile++ ) {
 					SendInnerLoopPathtraceUniforms();
 					glDispatchCompute( tileSize / 16, tileSize / 16, 1 );

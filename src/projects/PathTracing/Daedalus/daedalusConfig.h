@@ -96,6 +96,8 @@ struct renderConfig_t {
 	bool cameraOriginJitter;
 	int maxBounces;
 
+	bool render = true;
+
 	sceneConfig_t scene;
 	colorGradingConfig_t grading;
 };
