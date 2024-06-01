@@ -598,11 +598,11 @@ void Daedalus::PrepGlyphBuffer() {
 	}
 }
 
-void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen is crashing... why?
+void Daedalus::DDAVATTex() {
 	palette::PickRandomPalette( true );
-	static glm::vec4 color0 = glm::vec4( palette::paletteRef( 0.2f ), 0.0f );
-	static glm::vec4 color1 = glm::vec4( palette::paletteRef( 0.5f ), 1.0f );
-	static glm::vec4 color2 = glm::vec4( palette::paletteRef( 0.8f ), 1.0f );
+	// static glm::vec4 color0 = glm::vec4( palette::paletteRef( 0.2f ), 0.0f );
+	// static glm::vec4 color1 = glm::vec4( palette::paletteRef( 0.5f ), 1.0f );
+	// static glm::vec4 color2 = glm::vec4( palette::paletteRef( 0.8f ), 1.0f );
 
 	rng jitter = rng( -0.1f, 0.1f );
 	rng alphaOffset = rng( 0.0f, 0.5f );
@@ -634,7 +634,7 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 					case 0: color = glm::vec4( palette::paletteRef( 0.2f + jitter() ), 0.0f ); break;
 					case 1: color = glm::vec4( palette::paletteRef( 0.5f + jitter() ), 0.1f ); break;
 					case 2: color = glm::vec4( palette::paletteRef( 0.8f + jitter() ), 0.2f + alphaOffset() ); break;
-					default: color = color0; break;
+					// default: color = color0; break;
 				}
 				loaded.push_back( static_cast<uint8_t>( color.x * 255.0 ) );
 				loaded.push_back( static_cast<uint8_t>( color.y * 255.0 ) );
@@ -658,7 +658,6 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 		opts.initialData	= ( void * ) &loaded[ 0 ];
 		textureManager.Add( "DDATex", opts );
 	} else {
-
 		textureManager.Remove( "DDATex" );
 		// pass the new generated texture data to the existing texture
 		textureOptions_t opts;
@@ -672,7 +671,6 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 		opts.wrap			= GL_CLAMP_TO_BORDER;
 		opts.initialData	= ( void * ) &loaded[ 0 ];
 		textureManager.Add( "DDATex", opts );
-
 	}
 }
 
