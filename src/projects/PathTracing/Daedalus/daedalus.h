@@ -59,10 +59,11 @@ public:
 			opts.height			= 64;	// 16 per, not needing a lot of resolution
 			textureManager.Add( "Histogram Composite", opts );
 
-			// waveform setup - all need to be re-created on target resize
-			// minmax buffers
+			// waveform setup - images all need to be re-created on target resize
+			// min/max + global max buffers
 			glGenBuffers( 1, &daedalusConfig.render.grading.waveformMaxs );
 			glGenBuffers( 1, &daedalusConfig.render.grading.waveformMins );
+			glGenBuffers( 1, &daedalusConfig.render.grading.waveformGlobalMax );
 
 			opts.dataType		= GL_R32UI;
 			opts.width			= daedalusConfig.targetWidth;
@@ -77,7 +78,6 @@ public:
 			opts.magFilter		= GL_LINEAR;
 			opts.height			= 1024;
 			textureManager.Add( "Waveform Composite", opts );
-
 		}
 	}
 
@@ -235,6 +235,8 @@ public:
 	void SendInnerLoopPathtraceUniforms();
 	void SendPrepareUniforms();
 	void SendPresentUniforms();
+	void SendWaveformPrepareUniforms();
+	void SendWaveformCompositeUniforms();
 
 	void PrepSphereBufferRandom();
 	void PrepSphereBufferPacking();
@@ -257,13 +259,15 @@ public:
 	}
 
 	void CompileShaders() {
-		shaders[ "Sky Cache" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/skyCache.cs.glsl" ).shaderHandle;
-		shaders[ "Pathtrace" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
-		shaders[ "Prepare" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
-		shaders[ "Present" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
-		shaders[ "Filter" ]		= computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
-		shaders[ "Copy Back" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
-		shaders[ "Histogram" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/histogram.cs.glsl" ).shaderHandle;
+		shaders[ "Sky Cache" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/skyCache.cs.glsl" ).shaderHandle;
+		shaders[ "Pathtrace" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Prepare" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
+		shaders[ "Present" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
+		shaders[ "Filter" ]				= computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
+		shaders[ "Copy Back" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
+		shaders[ "Histogram" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/histogram.cs.glsl" ).shaderHandle;
+		shaders[ "Waveform Prepare" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformPrepare.cs.glsl" ).shaderHandle;
+		shaders[ "Waveform Composite" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformComposite.cs.glsl" ).shaderHandle;
 		daedalusConfig.render.scene.skyNeedsUpdate = true;
 	}
 
@@ -323,6 +327,7 @@ public:
 			const GLuint shader = shaders[ "Prepare" ];
 			glUseProgram( shader );
 			SendPrepareUniforms();
+
 			if ( daedalusConfig.render.grading.updateHistogram == true ) {
 				ClearColorGradingHistogramBuffer();
 			}
@@ -338,6 +343,29 @@ public:
 			textureManager.BindImageForShader( "Histogram Composite", "histogram", shader, 0 );
 			glDispatchCompute( 256 / 16, 64 / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
+		if ( daedalusConfig.render.grading.updateWaveform == true ) {	// prepping the waveform display
+			scopedTimer Start( "Waveform Prep/Composite" );
+
+			// initialize the min/max buffers
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+			ClearColorGradingWaveformBuffer();
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+
+			// prepare the data
+			const GLuint prepareShader = shaders[ "Waveform Prepare" ];
+			glUseProgram( prepareShader );
+			SendWaveformPrepareUniforms();
+			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+
+			// create the waveform image
+			const GLuint compositeShader = shaders[ "Waveform Composite" ];
+			glUseProgram( compositeShader );
+			SendWaveformCompositeUniforms();
+			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, 64, 1 ); // height of 1024
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
 
 		{	// this is the matting, with guides

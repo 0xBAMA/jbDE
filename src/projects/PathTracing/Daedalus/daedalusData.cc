@@ -365,9 +365,61 @@ void Daedalus::ClearColorGradingHistogramBuffer() {
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, daedalusConfig.render.grading.colorHistograms );
 }
 
+void Daedalus::SendWaveformPrepareUniforms() {
+	const GLuint shader = shaders[ "Waveform Prepare" ];
+
+	textureManager.BindImageForShader( "Tonemapped", "tonemappedSourceData", shader, 0 );
+	textureManager.BindImageForShader( "Waveform Red", "redImage", shader, 1 );
+	textureManager.BindImageForShader( "Waveform Green", "greenImage", shader, 2 );
+	textureManager.BindImageForShader( "Waveform Blue", "blueImage", shader, 3 );
+	textureManager.BindImageForShader( "Waveform Luma", "lumaImage", shader, 4 );
+}
+
+void Daedalus::SendWaveformCompositeUniforms() {
+	const GLuint shader = shaders[ "Waveform Composite" ];
+
+	textureManager.BindImageForShader( "Waveform Red", "redImage", shader, 1 );
+	textureManager.BindImageForShader( "Waveform Green", "greenImage", shader, 2 );
+	textureManager.BindImageForShader( "Waveform Blue", "blueImage", shader, 3 );
+	textureManager.BindImageForShader( "Waveform Luma", "lumaImage", shader, 4 );
+	textureManager.BindImageForShader( "Waveform Composite", "compositedResult", shader, 5 );
+}
+
 void Daedalus::ClearColorGradingWaveformBuffer() {
 	// clear out the buffers, images
+	const uint32_t numColumns = daedalusConfig.targetWidth;
 
+	static std::vector< uint32_t > minData;
+	static std::vector< uint32_t > maxData;
+	static std::vector< uint32_t > waveformClear;
+
+	if ( minData.size() != ( numColumns * 4u ) ) {
+		minData.resize( numColumns * 4, 255 );
+		maxData.resize( numColumns * 4, 0 );
+		waveformClear.resize( numColumns * 256, 0 );
+	}
+
+	glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Waveform Red" ) );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, numColumns, 256, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, waveformClear.data() );
+	glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Waveform Green" ) );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, numColumns, 256, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, waveformClear.data() );
+	glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Waveform Blue" ) );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, numColumns, 256, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, waveformClear.data() );
+	glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Waveform Luma" ) );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, numColumns, 256, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, waveformClear.data() );
+
+	const int numBytes = sizeof( GLuint ) * 4 * numColumns;
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.waveformMins );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, numBytes, ( GLvoid * ) minData.data(), GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, daedalusConfig.render.grading.waveformMins );
+
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.waveformMaxs );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, numBytes, ( GLvoid * ) maxData.data(), GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, daedalusConfig.render.grading.waveformMaxs );
+
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.waveformGlobalMax );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 16, ( GLvoid * ) maxData.data(), GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, daedalusConfig.render.grading.waveformGlobalMax );
 }
 
 void Daedalus::PrepGlyphBuffer() {

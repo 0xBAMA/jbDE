@@ -280,15 +280,28 @@ void Daedalus::ShowDaedalusConfigWindow() {
 	}
 
 	if ( ImGui::CollapsingHeader( "Postprocess" ) ) {
-		float availableWidth = ImGui::GetContentRegionAvail().x - 20;
-		float proportionalHeight = availableWidth * 0.25f;
 
+		// histogram display
 		ImGui::SeparatorText( "Exposure Histogram" );
 		ImGui::SameLine();
 		ImGui::Checkbox( "Update##exposure", &daedalusConfig.render.grading.updateHistogram );
 		ImGui::Indent();
 		if ( daedalusConfig.render.grading.updateHistogram == true ) {
+			const float availableWidth = ImGui::GetContentRegionAvail().x - 20;
+			const float proportionalHeight = availableWidth * 0.25f;
 			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Histogram Composite" ), ImVec2( availableWidth, proportionalHeight ) );
+		}
+
+		// waveform display
+		ImGui::Unindent();
+		ImGui::SeparatorText( "Waveform Display" );
+		ImGui::SameLine();
+		ImGui::Checkbox( "Update##waveform", &daedalusConfig.render.grading.updateWaveform );
+		ImGui::Indent();
+		if ( daedalusConfig.render.grading.updateWaveform == true ) {
+			const float availableWidth = ImGui::GetContentRegionAvail().x - 20;
+			const float proportionalHeight = ( 1024.0f / daedalusConfig.targetWidth ) * availableWidth;
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Waveform Composite" ), ImVec2( availableWidth, proportionalHeight ) );
 		}
 
 		// this needs significant work
