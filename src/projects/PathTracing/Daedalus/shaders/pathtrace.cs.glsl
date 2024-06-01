@@ -846,13 +846,76 @@ float deTMT( vec3 p ) {
 }
 
 
-  float deGround(vec3 p){
-    vec3 Q;
-    Q=p;
-    Q.xy=vec2(atan(Q.x,Q.y)/.157,length(Q.xy)-3.);
-    Q.zx=fract(Q.zx)-.5;
-    return min(min(length(Q.xy),length(Q.yz))-.2,p.y+.5);
-  }
+float deGround(vec3 p){
+	vec3 Q;
+	Q=p;
+	Q.xy=vec2(atan(Q.x,Q.y)/.157,length(Q.xy)-3.);
+	Q.zx=fract(Q.zx)-.5;
+	return min(min(length(Q.xy),length(Q.yz))-.2,p.y+.5);
+}
+
+
+
+// from tehsauce - https://www.shadertoy.com/view/MdtBD8
+#define MOD3 vec3(.1031,.11369,.13787)
+vec3 hash_33 ( vec3 p3 ) {
+	p3 = fract(p3 * MOD3);
+    p3 += dot(p3, p3.yxz+19.19);
+    return -1.0 + 2.0 * 
+        fract(vec3((p3.x + p3.y)*p3.z, 
+                   (p3.x+p3.z)*p3.y, 
+                   (p3.y+p3.z)*p3.x));
+}
+
+float simplex_noise(vec3 p) {
+	const float K1 = 0.333333333;
+	const float K2 = 0.166666667;
+	vec3 i = floor(p + (p.x + p.y + p.z) * K1);
+	vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
+	// thx nikita: https://www.shadertoy.com/view/XsX3zB
+	vec3 e = step(vec3(0.0), d0 - d0.yzx);
+	vec3 i1 = e * (1.0 - e.zxy);
+	vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+	vec3 d1 = d0 - (i1 - 1.0 * K2);
+	vec3 d2 = d0 - (i2 - 2.0 * K2);
+	vec3 d3 = d0 - (1.0 - 3.0 * K2);
+	vec4 h = max(0.6 - vec4(dot(d0, d0), dot(d1, d1), 
+							dot(d2, d2), dot(d3, d3)), 0.0);
+	vec4 n = h * h * h * h * vec4(dot(d0, hash_33(i)), 
+									dot(d1, hash_33(i + i1)), 
+									dot(d2, hash_33(i + i2)), 
+									dot(d3, hash_33(i + 1.0)));
+	return dot(vec4(31.316), n);
+}
+
+float noise_sum_abs(vec3 p){
+	float f = 0.0;
+	p = p * 3.0;
+	f += 1.0000 * abs(simplex_noise(p)); p = 2.0 * p;
+	f += 0.5000 * abs(simplex_noise(p)); p = 2.0 * p;
+	f += 0.2500 * abs(simplex_noise(p)); p = 2.0 * p;
+	f += 0.1250 * abs(simplex_noise(p)); p = 2.0 * p;
+	f += 0.0625 * abs(simplex_noise(p)); p = 2.0 * p;
+	return f;
+}
+
+float noise_sum_abs_sin(vec3 p){
+	float f = noise_sum_abs(p);
+	f = sin(f * 2.5 + p.x * 5.0 - 1.5);
+
+	return f;
+}
+
+float sdBoxRipple ( vec3 p ) {
+	const vec3 b = vec3( 3.0f, 1.0f, 3.0f );
+	if ( p.z > 1.45 && abs( p.x ) < 2.7f ) {
+		p.z += 0.25f * ( smoothstep( 2.7f, 1.5f, abs( p.x ) ) ) * noise_sum_abs_sin( 0.3f * p );
+	}
+	vec3 d = abs( p ) - b;
+	return min( max( d.x, max( d.y, d.z ) ), 0.0f )
+		+ length( max( d, 0.0f ) );
+}
+
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
 //=============================================================================================================================
@@ -891,8 +954,6 @@ float de( in vec3 p ) {
 
 
 
-
-
 	// vec3 pBars = ( p - vec3( 0.0f, 0.0f, 1.0f ) ).zyx;
 
 	// pModInterval1( pBars.x, 0.01f, -250.0f, 250.0f );
@@ -909,15 +970,16 @@ float de( in vec3 p ) {
 
 	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
 	// const float dFractal = deTower( p );
-	const float dFractal = deGround( p * 5.0f ) / 5.0f;
+	// const float dFractal = deGround( p * 5.0f ) / 5.0f;
+	const float dFractal = sdBoxRipple( p ) * 0.8f;
 	sceneDist = min( sceneDist, dFractal );
 	if ( sceneDist == dFractal && dFractal < epsilon ) {
 		// if ( escape > 0.58f ) {
 			// hitColor = saturate( inferno( escape ) );
 			// hitSurfaceType = EMISSIVE;
 		// } else {
-			// hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
-			hitSurfaceType = MIRROR;
+			// hitSurfaceType = NormalizedRandomFloat() < 0.5f ? DIFFUSE : MIRROR;
+			hitSurfaceType = DIFFUSE;
 			hitColor = vec3( 0.793f, 0.793f, 0.664f );
 			// hitColor = vec3( 0.618f );
 			// hitColor = saturate( viridis( 1.0f - escape ) );
@@ -949,6 +1011,7 @@ float de( in vec3 p ) {
 	// 	hitRoughness = 0.8f;
 	// }
 
+	p += vec3( 0.0f, 0.0f, -3.0f );
 	pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
 	const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
 	sceneDist = min( sceneDist, dLight );
