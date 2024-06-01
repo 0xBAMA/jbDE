@@ -340,19 +340,22 @@ public:
 	}
 
 	void ZeroTexture2D ( string label ) {
-		GLuint handle;
+		GLuint handle, dataType, format;
 		uint32_t w, h;
 		for ( auto& tex : textures ) {
 			if ( tex.label == label ) {
 				w = tex.creationOptions.width;
 				h = tex.creationOptions.height;
 				handle = tex.textureHandle;
+				dataType = tex.creationOptions.dataType;
+				format = getFormat( dataType );
 			}
 		}
+		// this is going to be too slow for per-frame usage, allocating a big buffer like this over and over
 		Image_4U zeroes( w, h );
 		void * data = ( void * ) zeroes.GetImageDataBasePtr();
 		glBindTexture( GL_TEXTURE_2D, handle );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		glTexImage2D( GL_TEXTURE_2D, 0, dataType, w, h, 0, format, GL_UNSIGNED_BYTE, data );
 	}
 
 	void Update ( string label /*, ... */ ) {
