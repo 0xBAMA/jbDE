@@ -48,14 +48,36 @@ public:
 			// DDAVATTex();
 			// HeightmapTex();
 
-			// color grading tools
+		// color grading tools
+			// exposure/brightness/color histogram setup
 			glGenBuffers( 1, &daedalusConfig.render.grading.colorHistograms );
+
 			opts.dataType		= GL_RGBA8;
 			opts.magFilter		= GL_NEAREST;
 			opts.minFilter		= GL_NEAREST;
 			opts.width			= 256;
 			opts.height			= 64;	// 16 per, not needing a lot of resolution
-			textureManager.Add( "Histogram", opts );
+			textureManager.Add( "Histogram Composite", opts );
+
+			// waveform setup - all need to be re-created on target resize
+			// minmax buffers
+			glGenBuffers( 1, &daedalusConfig.render.grading.waveformMaxs );
+			glGenBuffers( 1, &daedalusConfig.render.grading.waveformMins );
+
+			opts.dataType		= GL_R32UI;
+			opts.width			= daedalusConfig.targetWidth;
+			opts.height			= 256;
+			textureManager.Add( "Waveform Red", opts );
+			textureManager.Add( "Waveform Green", opts );
+			textureManager.Add( "Waveform Blue", opts );
+			textureManager.Add( "Waveform Luma", opts );
+
+			opts.dataType		= GL_RGBA8;
+			opts.minFilter		= GL_LINEAR;
+			opts.magFilter		= GL_LINEAR;
+			opts.height			= 1024;
+			textureManager.Add( "Waveform Composite", opts );
+
 		}
 	}
 
