@@ -284,8 +284,12 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		float proportionalHeight = availableWidth * 0.25f;
 
 		ImGui::SeparatorText( "Exposure Histogram" );
+		ImGui::SameLine();
+		ImGui::Checkbox( "Update##exposure", &daedalusConfig.render.grading.updateHistogram );
 		ImGui::Indent();
-		ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Histogram" ), ImVec2( availableWidth, proportionalHeight ) );
+		if ( daedalusConfig.render.grading.updateHistogram == true ) {
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Histogram Composite" ), ImVec2( availableWidth, proportionalHeight ) );
+		}
 
 		// this needs significant work
 		if ( ImGui::CollapsingHeader( "Color Management" ) ) {

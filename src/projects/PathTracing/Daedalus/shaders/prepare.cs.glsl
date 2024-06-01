@@ -44,17 +44,21 @@ layout( binding = 1, std430 ) buffer colorHistograms {
 	uint valuesL[ 256 ];
 	uint maxValueL;
 };
+// updating the histogram buffer
+uniform bool updateHistogram;
 void UpdateHistograms( vec4 color ) {
-	uvec4 binCrements = uvec4(
-		uint( saturate( color.r ) * 255.0f ),
-		uint( saturate( color.g ) * 255.0f ),
-		uint( saturate( color.b ) * 255.0f ),
-		uint( saturate( dot( color.rgb, vec3( 0.299f, 0.587f, 0.114f ) ) ) * 255.0f )
-	);
-	atomicMax( maxValueR, atomicAdd( valuesR[ binCrements.r ], 1 ) + 1 );
-	atomicMax( maxValueG, atomicAdd( valuesG[ binCrements.g ], 1 ) + 1 );
-	atomicMax( maxValueB, atomicAdd( valuesB[ binCrements.b ], 1 ) + 1 );
-	atomicMax( maxValueL, atomicAdd( valuesL[ binCrements.a ], 1 ) + 1 );
+	if ( updateHistogram ) {
+		uvec4 binCrements = uvec4(
+			uint( saturate( color.r ) * 255.0f ),
+			uint( saturate( color.g ) * 255.0f ),
+			uint( saturate( color.b ) * 255.0f ),
+			uint( saturate( dot( color.rgb, vec3( 0.299f, 0.587f, 0.114f ) ) ) * 255.0f )
+		);
+		atomicMax( maxValueR, atomicAdd( valuesR[ binCrements.r ], 1 ) + 1 );
+		atomicMax( maxValueG, atomicAdd( valuesG[ binCrements.g ], 1 ) + 1 );
+		atomicMax( maxValueB, atomicAdd( valuesB[ binCrements.b ], 1 ) + 1 );
+		atomicMax( maxValueL, atomicAdd( valuesL[ binCrements.a ], 1 ) + 1 );
+	}
 }
 
 void main() { // This is where tonemapping etc will be happening on the accumulated image

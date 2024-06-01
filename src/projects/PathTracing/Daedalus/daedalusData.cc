@@ -194,6 +194,7 @@ void Daedalus::SendPrepareUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "postExposure" ),				tonemap.postExposure );
 	glUniform1i( glGetUniformLocation( shader, "enableVignette" ),				tonemap.enableVignette );
 	glUniform1f( glGetUniformLocation( shader, "vignettePower" ),				tonemap.vignettePower );
+	glUniform1i( glGetUniformLocation( shader, "updateHistogram" ),				daedalusConfig.render.grading.updateHistogram );
 	glUniform1f( glGetUniformLocation( shader, "hueShift" ),					tonemap.hueShift );
 	glUniform1i( glGetUniformLocation( shader, "enableLensDistort" ),			daedalusConfig.post.enableLensDistort );
 	glUniform1i( glGetUniformLocation( shader, "lensDistortNormalize" ),		daedalusConfig.post.lensDistortNormalize );
