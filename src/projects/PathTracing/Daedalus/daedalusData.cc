@@ -352,16 +352,22 @@ void Daedalus::RelaxSphereList() {
 void Daedalus::SendExplicitPrimitiveSSBO() {
 	// send the data from the vector to the GPU
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.scene.explicitPrimitiveSSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 4 * 3 * daedalusConfig.render.scene.numExplicitPrimitives, ( GLvoid * ) &daedalusConfig.render.scene.explicitPrimitiveData[ 0 ], GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * 4 * 3 * daedalusConfig.render.scene.numExplicitPrimitives,
+		( GLvoid * ) &daedalusConfig.render.scene.explicitPrimitiveData[ 0 ], GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, daedalusConfig.render.scene.explicitPrimitiveSSBO );
 }
 
-void Daedalus::ClearColorGradingBuffer() {
+void Daedalus::ClearColorGradingHistogramBuffer() {
 	// data is 255 histogram bins, plus a maximum across the field
 	constexpr uint32_t bufferContents[ ( 1024 + 4 ) ] = { 0 };
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.colorHistograms );
 	glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLuint ) * ( 1024 + 4 ), ( GLvoid * ) &bufferContents, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, daedalusConfig.render.grading.colorHistograms );
+}
+
+void Daedalus::ClearColorGradingWaveformBuffer() {
+	// clear out the buffers, images
+
 }
 
 void Daedalus::PrepGlyphBuffer() {
@@ -549,6 +555,7 @@ void Daedalus::DDAVATTex() { // want to do this as a quick little test - regen i
 	rng jitter = rng( -0.1f, 0.1f );
 	rng alphaOffset = rng( 0.0f, 0.5f );
 
+	// would be nice to provide some of these functions
 	static float lambda = 0.35f;
 	static float beta = 0.5f;
 	static float mag = 0.0f;

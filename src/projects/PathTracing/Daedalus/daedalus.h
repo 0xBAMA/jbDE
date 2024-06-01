@@ -243,7 +243,8 @@ public:
 	void PrepGlyphBuffer();
 	void DDAVATTex();
 	void HeightmapTex();
-	void ClearColorGradingBuffer();
+	void ClearColorGradingHistogramBuffer();
+	void ClearColorGradingWaveformBuffer();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
@@ -322,17 +323,19 @@ public:
 			const GLuint shader = shaders[ "Prepare" ];
 			glUseProgram( shader );
 			SendPrepareUniforms();
-			ClearColorGradingBuffer();
+			if ( daedalusConfig.render.grading.updateHistogram == true ) {
+				ClearColorGradingHistogramBuffer();
+			}
 
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		{	// prepping the image of the color/luminance histogram
+		if ( daedalusConfig.render.grading.updateHistogram == true ) {	// prepping the image of the color/luminance histogram
 			scopedTimer Start( "Histogram Prep" );
 			const GLuint shader = shaders[ "Histogram" ];
 			glUseProgram( shader );
-			textureManager.BindImageForShader( "Histogram", "histogram", shader, 0 );
+			textureManager.BindImageForShader( "Histogram Composite", "histogram", shader, 0 );
 			glDispatchCompute( 256 / 16, 64 / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}

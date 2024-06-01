@@ -59,7 +59,17 @@ struct sceneConfig_t {
 };
 
 struct colorGradingConfig_t {
+	// brightness histograms
+	bool updateHistogram = true;
 	GLuint colorHistograms;
+
+	// waveforms
+	bool updateWaveform = true;
+	GLuint waveformMins;
+	GLuint waveformMaxs;
+
+	// bool updateVectorScope = true;
+		// tbd
 };
 
 struct renderConfig_t {
