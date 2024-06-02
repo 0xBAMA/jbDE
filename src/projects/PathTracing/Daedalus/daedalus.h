@@ -352,23 +352,22 @@ public:
 			scopedTimer Start( "Waveform Prep/Composite" );
 
 			// initialize the min/max buffers
-			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 			ClearColorGradingWaveformBuffer();
-			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+			glMemoryBarrier( GL_BUFFER_UPDATE_BARRIER_BIT );
 
 			// prepare the data
 			const GLuint prepareShader = shaders[ "Waveform Prepare" ];
 			glUseProgram( prepareShader );
 			SendWaveformPrepareUniforms();
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 			// create the waveform image
 			const GLuint compositeShader = shaders[ "Waveform Composite" ];
 			glUseProgram( compositeShader );
 			SendWaveformCompositeUniforms();
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, 64, 1 ); // height of 1024
-			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{	// this is the matting, with guides
