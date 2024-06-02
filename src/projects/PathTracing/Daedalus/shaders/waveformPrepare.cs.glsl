@@ -22,30 +22,29 @@ void main () {
 	const ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	vec4 pixelColor = imageLoad( tonemappedSourceData, loc );
 
-	// uint colors, computed luma
-	uvec4 binCrements = uvec4(
-		uint( saturate( pixelColor.r ) * 255.0f ),
-		uint( saturate( pixelColor.g ) * 255.0f ),
-		uint( saturate( pixelColor.b ) * 255.0f ),
-		uint( saturate( dot( pixelColor.rgb, vec3( 0.299f, 0.587f, 0.114f ) ) ) * 255.0f )
-	);
+	if ( all( lessThan( loc, imageSize( tonemappedSourceData ) ) ) ) {
+		uvec4 binCrements = uvec4( // uint colors, computed luma
+			uint( saturate( pixelColor.r ) * 255.0f ),
+			uint( saturate( pixelColor.g ) * 255.0f ),
+			uint( saturate( pixelColor.b ) * 255.0f ),
+			uint( saturate( dot( pixelColor.rgb, vec3( 0.299f, 0.587f, 0.114f ) ) ) * 255.0f )
+		);
 
-	// we know this pixel's x value
-	const int column = loc.x;
+		// update the buffer data
+		const int column = loc.x;
+		atomicMax( columnMaxs[ 4 * column + 0 ], binCrements.r );
+		atomicMax( columnMaxs[ 4 * column + 1 ], binCrements.g );
+		atomicMax( columnMaxs[ 4 * column + 2 ], binCrements.b );
+		atomicMax( columnMaxs[ 4 * column + 3 ], binCrements.a );
 
-	// update the buffer data
-	atomicMax( columnMaxs[ 4 * column + 0 ], binCrements.r );
-	atomicMax( columnMaxs[ 4 * column + 1 ], binCrements.g );
-	atomicMax( columnMaxs[ 4 * column + 2 ], binCrements.b );
-	atomicMax( columnMaxs[ 4 * column + 3 ], binCrements.a );
+		atomicMin( columnMins[ 4 * column + 0 ], binCrements.r );
+		atomicMin( columnMins[ 4 * column + 1 ], binCrements.g );
+		atomicMin( columnMins[ 4 * column + 2 ], binCrements.b );
+		atomicMin( columnMins[ 4 * column + 3 ], binCrements.a );
 
-	atomicMin( columnMins[ 4 * column + 0 ], binCrements.r );
-	atomicMin( columnMins[ 4 * column + 1 ], binCrements.g );
-	atomicMin( columnMins[ 4 * column + 2 ], binCrements.b );
-	atomicMin( columnMins[ 4 * column + 3 ], binCrements.a );
-
-	atomicMax( globalMax[ 0 ], imageAtomicAdd( redImage, ivec2( column, binCrements.r ), 1 ) + 1 );
-	atomicMax( globalMax[ 1 ], imageAtomicAdd( greenImage, ivec2( column, binCrements.g ), 1 ) + 1 );
-	atomicMax( globalMax[ 2 ], imageAtomicAdd( blueImage, ivec2( column, binCrements.b ), 1 ) + 1 );
-	atomicMax( globalMax[ 3 ], imageAtomicAdd( lumaImage, ivec2( column, binCrements.a ), 1 ) + 1 );
+		atomicMax( globalMax[ 0 ], imageAtomicAdd( redImage, ivec2( column, binCrements.r ), 1 ) + 1 );
+		atomicMax( globalMax[ 1 ], imageAtomicAdd( greenImage, ivec2( column, binCrements.g ), 1 ) + 1 );
+		atomicMax( globalMax[ 2 ], imageAtomicAdd( blueImage, ivec2( column, binCrements.b ), 1 ) + 1 );
+		atomicMax( globalMax[ 3 ], imageAtomicAdd( lumaImage, ivec2( column, binCrements.a ), 1 ) + 1 );
+	}
 }
