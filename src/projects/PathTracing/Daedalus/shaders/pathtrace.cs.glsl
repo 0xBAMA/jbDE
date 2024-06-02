@@ -854,6 +854,24 @@ float deGround(vec3 p){
 	return min(min(length(Q.xy),length(Q.yz))-.2,p.y+.5);
 }
 
+  #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+  float deChapel(vec3 p){
+    p=abs(p)-3.;
+    if(p.x < p.z)p.xz=p.zx;
+    if(p.y < p.z)p.yz=p.zy;
+    if(p.x < p.y)p.xy=p.yx;
+    float s=2.; vec3 off=p*.5;
+    for(int i=0;i<12;i++){
+      p=1.-abs(p-1.);
+      float k=-1.1*max(1.5/dot(p,p),1.5);
+      s*=abs(k); p*=k; p+=off;
+      p.zx*=rot(-1.2);
+    }
+    float a=2.5;
+    p-=clamp(p,-a,a);
+    return length(p)/s;
+  }
+
 
 
 // from tehsauce - https://www.shadertoy.com/view/MdtBD8
@@ -971,16 +989,17 @@ float de( in vec3 p ) {
 	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
 	// const float dFractal = deTower( p );
 	// const float dFractal = deGround( p * 5.0f ) / 5.0f;
-	const float dFractal = sdBoxRipple( p ) * 0.8f;
+	const float dFractal = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
 	sceneDist = min( sceneDist, dFractal );
 	if ( sceneDist == dFractal && dFractal < epsilon ) {
 		// if ( escape > 0.58f ) {
 			// hitColor = saturate( inferno( escape ) );
 			// hitSurfaceType = EMISSIVE;
 		// } else {
-			// hitSurfaceType = NormalizedRandomFloat() < 0.5f ? DIFFUSE : MIRROR;
-			hitSurfaceType = DIFFUSE;
-			hitColor = vec3( 0.793f, 0.793f, 0.664f );
+			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+			hitColor = vec3( 0.9f );
+			// hitSurfaceType = DIFFUSE;
+			// hitColor = vec3( 0.793f, 0.793f, 0.664f );
 			// hitColor = vec3( 0.618f );
 			// hitColor = saturate( viridis( 1.0f - escape ) );
 		// }
@@ -1011,7 +1030,7 @@ float de( in vec3 p ) {
 	// 	hitRoughness = 0.8f;
 	// }
 
-	p += vec3( 0.0f, 0.0f, -3.0f );
+	p += vec3( 0.0f, 0.0f, 6.0f );
 	pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
 	const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
 	sceneDist = min( sceneDist, dLight );
