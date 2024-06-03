@@ -261,6 +261,8 @@ public:
 	void SendPresentUniforms();
 	void SendWaveformPrepareUniforms();
 	void SendWaveformCompositeUniforms();
+	void SendVectorscopePrepareUniforms();
+	void SendVectorscopeCompositeUniforms();
 
 	void PrepSphereBufferRandom();
 	void PrepSphereBufferPacking();
@@ -271,6 +273,7 @@ public:
 	void HeightmapTex();
 	void ClearColorGradingHistogramBuffer();
 	void ClearColorGradingWaveformBuffer();
+	void ClearColorGradingVectorscopeBuffer();
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
@@ -291,7 +294,9 @@ public:
 		shaders[ "Copy Back" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
 		shaders[ "Histogram" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/histogram.cs.glsl" ).shaderHandle;
 		shaders[ "Waveform Prepare" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformPrepare.cs.glsl" ).shaderHandle;
-		shaders[ "Waveform Composite" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformComposite.cs.glsl" ).shaderHandle;
+		shaders[ "Waveform Composite" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformComposite.cs.glsl" ).shaderHandle;
+		shaders[ "Vectorscope Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/vectorscopePrepare.cs.glsl" ).shaderHandle;
+		shaders[ "Vectorscope Composite" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/vectorscopeComposite.cs.glsl" ).shaderHandle;
 		daedalusConfig.render.scene.skyNeedsUpdate = true;
 	}
 
@@ -388,6 +393,28 @@ public:
 			glUseProgram( compositeShader );
 			SendWaveformCompositeUniforms();
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, 64, 1 ); // height of 1024
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
+		if ( daedalusConfig.render.grading.updateVectorscope == true ) {
+			scopedTimer Start( "Vectorscope Prep/Composite" );
+
+			// initialize the max count value
+			ClearColorGradingVectorscopeBuffer();
+			glMemoryBarrier( GL_BUFFER_UPDATE_BARRIER_BIT );
+
+			// prepare the data
+			const GLuint prepareShader = shaders[ "Vectorscope Prepare" ];
+			glUseProgram( prepareShader );
+			SendVectorscopePrepareUniforms();
+			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+			// create the vectorscope image
+			const GLuint compositeShader = shaders[ "Vectorscope Composite" ];
+			glUseProgram( compositeShader );
+			SendVectorscopeCompositeUniforms();
+			glDispatchCompute( 512 / 16, 512 / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
