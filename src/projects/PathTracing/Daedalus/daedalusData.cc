@@ -422,6 +422,32 @@ void Daedalus::ClearColorGradingWaveformBuffer() {
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, daedalusConfig.render.grading.waveformGlobalMax );
 }
 
+void Daedalus::SendVectorscopePrepareUniforms() {
+	const GLuint shader = shaders[ "Vectorscope Prepare" ];
+
+	textureManager.BindImageForShader( "Tonemapped", "tonemappedSourceData", shader, 0 );
+	textureManager.BindImageForShader( "Vectorscope Data", "vectorscopeImage", shader, 1 );
+}
+
+
+void Daedalus::SendVectorscopeCompositeUniforms() {
+	const GLuint shader = shaders[ "Vectorscope Composite" ];
+
+	textureManager.BindImageForShader( "Vectorscope Data", "vectorscopeImage", shader, 1 );
+	textureManager.BindImageForShader( "Vectorscope Composite", "compositedResult", shader, 2 );
+}
+
+void Daedalus::ClearColorGradingVectorscopeBuffer() {
+	constexpr uint32_t vectorscopeData[ 512 * 512 ] = { 0 };
+	glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Vectorscope Data" ) );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, 512, 512, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, vectorscopeData );
+
+	constexpr uint32_t countValue = 0;
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, daedalusConfig.render.grading.vectorscopeMax );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 5, daedalusConfig.render.grading.vectorscopeMax );
+}
+
 void Daedalus::PrepGlyphBuffer() {
 	// block dimensions
 	uint32_t texW = 128;

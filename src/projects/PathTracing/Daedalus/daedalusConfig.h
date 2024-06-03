@@ -69,8 +69,8 @@ struct colorGradingConfig_t {
 	GLuint waveformMaxs;
 	GLuint waveformGlobalMax;
 
-	// bool updateVectorScope = true;
-		// tbd
+	bool updateVectorscope = true;
+	GLuint vectorscopeMax;
 };
 
 struct renderConfig_t {

@@ -48,36 +48,57 @@ public:
 			// DDAVATTex();
 			// HeightmapTex();
 
-		// color grading tools
-			// exposure/brightness/color histogram setup
-			glGenBuffers( 1, &daedalusConfig.render.grading.colorHistograms );
+			{ // color grading tools
+				// exposure/brightness/color histogram setup
+				glGenBuffers( 1, &daedalusConfig.render.grading.colorHistograms );
 
-			opts.dataType		= GL_RGBA8;
-			opts.magFilter		= GL_NEAREST;
-			opts.minFilter		= GL_NEAREST;
-			opts.width			= 256;
-			opts.height			= 64;	// 16 per, not needing a lot of resolution
-			textureManager.Add( "Histogram Composite", opts );
+				// histogram presentation buffer
+				opts.dataType		= GL_RGBA8;
+				opts.magFilter		= GL_NEAREST;
+				opts.minFilter		= GL_NEAREST;
+				opts.width			= 256;
+				opts.height			= 64;	// 16 per, not needing a lot of resolution
+				textureManager.Add( "Histogram Composite", opts );
 
-			// waveform setup - images all need to be re-created on target resize
-			// min/max + global max buffers
-			glGenBuffers( 1, &daedalusConfig.render.grading.waveformMaxs );
-			glGenBuffers( 1, &daedalusConfig.render.grading.waveformMins );
-			glGenBuffers( 1, &daedalusConfig.render.grading.waveformGlobalMax );
+				// waveform setup - images all need to be re-created on target resize
+				// min/max + global max buffers
+				glGenBuffers( 1, &daedalusConfig.render.grading.waveformMaxs );
+				glGenBuffers( 1, &daedalusConfig.render.grading.waveformMins );
+				glGenBuffers( 1, &daedalusConfig.render.grading.waveformGlobalMax );
 
-			opts.dataType		= GL_R32UI;
-			opts.width			= daedalusConfig.targetWidth;
-			opts.height			= 256;
-			textureManager.Add( "Waveform Red", opts );
-			textureManager.Add( "Waveform Green", opts );
-			textureManager.Add( "Waveform Blue", opts );
-			textureManager.Add( "Waveform Luma", opts );
+				// data accumulation buffer
+				opts.dataType		= GL_R32UI;
+				opts.width			= daedalusConfig.targetWidth;
+				opts.height			= 256;
+				textureManager.Add( "Waveform Red", opts );
+				textureManager.Add( "Waveform Green", opts );
+				textureManager.Add( "Waveform Blue", opts );
+				textureManager.Add( "Waveform Luma", opts );
 
-			opts.dataType		= GL_RGBA8;
-			opts.minFilter		= GL_LINEAR;
-			opts.magFilter		= GL_LINEAR;
-			opts.height			= 1024;
-			textureManager.Add( "Waveform Composite", opts );
+				// present buffer
+				opts.dataType		= GL_RGBA8;
+				opts.minFilter		= GL_LINEAR;
+				opts.magFilter		= GL_LINEAR;
+				opts.height			= 1024;
+				textureManager.Add( "Waveform Composite", opts );
+
+				// data for the vectorscope (hue/chroma plot)
+				glGenBuffers( 1, &daedalusConfig.render.grading.vectorscopeMax );
+
+				// data accumulation buffer
+				opts.width			= 512;
+				opts.height			= 512;
+				opts.dataType		= GL_R32UI;
+				opts.minFilter		= GL_NEAREST;
+				opts.magFilter		= GL_NEAREST;
+				textureManager.Add( "Vectorscope Data", opts );
+
+				// vectorscope presentation buffer
+				opts.dataType		= GL_RGBA8;
+				opts.minFilter		= GL_LINEAR;
+				opts.magFilter		= GL_LINEAR;
+				textureManager.Add( "Vectorscope Composite", opts );
+			}
 		}
 	}
 
