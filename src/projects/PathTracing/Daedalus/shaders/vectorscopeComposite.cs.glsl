@@ -10,22 +10,9 @@ layout( rgba8 ) uniform image2D compositedResult;
 // buffer for max pixel count
 layout( binding = 5, std430 ) buffer perColumnMins { uint maxCount; };
 
-vec3 rgb2hsv( vec3 c ) {
-	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-	vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-	vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-
-	float d = q.x - min(q.w, q.y);
-	float e = 1.0e-10;
-	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-}
-
-vec3 hsv2rgb( in vec3 c ) {
-	vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
-	// rgb = rgb*rgb*(3.0-2.0*rgb); // cubic smoothing
-	return c.z * mix( vec3(1.0), rgb, c.y);
-}
-
+// #include "hsvConversions.h"
+#include "yuvConversions.h"
+#include "mathUtils.h"
 
 void main () {
 	const ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
@@ -36,12 +23,24 @@ void main () {
 	if ( radius < 0.5f ) {
 		// todo: gridlines, background
 		// smoothstep for edge falloff
+		color.rgb = vec3( 0.01618f * smoothstep( 0.01f, 0.0f, smoothstep( 0.01f, 0.02f, mod( radius, 0.1f ) ) ) );
 
 		// find the pixel count value, normalize by dividing by maxCount
-		const float value = 2.0f * float( imageLoad( vectorscopeImage, loc ).r ) / float( maxCount );
+		const float value = float( imageLoad( vectorscopeImage, loc ).r ) / float( maxCount );
 
 		// find the color for this pixel, from position -> hsv color, set l=value -> rgb
-		color.rgb = hsv2rgb( vec3( atan( normalizedSpace.x, normalizedSpace.y ) / 6.28f, radius * 2.0f, value ) );
+		// color.rgb = hsv2rgb( vec3( atan( normalizedSpace.x, normalizedSpace.y ) / 6.28f, radius * 2.0f, value ) );
+
+		// from https://www.shadertoy.com/view/4dcSRN
+		// vec3 yuv = vec3( RangeRemapValue( value, 0.0f, 1.0f, 0.5f, 1.0f ), normalizedSpace );
+		vec3 yuv = vec3( 0.5f, normalizedSpace );
+		const float r = ( 1.0f - abs( yuv.x - 0.5f ) * 2.0f ) * 0.7071f;
+		yuv.yz *= -r;
+		yuv = clamp( yuv, vec3( 0.0f, -0.5f, -0.5f ), vec3( 1.0f, 0.5f, 0.5f ) );
+		color.rgb += pow( ycocg_rgb( yuv ) * value, vec3( 0.618f ) ) * 10.0f;
+
+		// oklab is probably another one that will be worth trying
+
 	} else {
 		color.a = smoothstep( 0.5f, 0.4f, radius );
 	}
