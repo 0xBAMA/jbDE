@@ -305,6 +305,16 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Waveform Composite" ), ImVec2( availableWidth, proportionalHeight ) );
 		}
 
+		ImGui::Unindent();
+		ImGui::SeparatorText( "Vectorscope Display" );
+		ImGui::SameLine();
+		ImGui::Checkbox( "Update##vectorscope", &daedalusConfig.render.grading.updateVectorscope );
+		ImGui::Indent();
+		if ( daedalusConfig.render.grading.updateVectorscope == true ) {
+			const float availableWidth = ImGui::GetContentRegionAvail().x - 20;
+			ImGui::Image( ( void* ) ( intptr_t ) textureManager.Get( "Vectorscope Composite" ), ImVec2( availableWidth, availableWidth ) );
+		}
+
 		// this needs significant work
 		if ( ImGui::CollapsingHeader( "Color Management" ) ) {
 			ImGui::SeparatorText( "Basic" );
