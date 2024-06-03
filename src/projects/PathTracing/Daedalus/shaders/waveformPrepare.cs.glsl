@@ -20,9 +20,9 @@ layout( binding = 4, std430 ) buffer binMax { uint globalMax[ 4 ]; };
 void main () {
 	// this pixel has a color, with three channels that we need to look at + calculated luma
 	const ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
-	vec4 pixelColor = imageLoad( tonemappedSourceData, loc );
 
 	if ( all( lessThan( loc, imageSize( tonemappedSourceData ) ) ) ) {
+		vec4 pixelColor = imageLoad( tonemappedSourceData, loc );
 		uvec4 binCrements = uvec4( // uint colors, computed luma
 			uint( saturate( pixelColor.r ) * 255.0f ),
 			uint( saturate( pixelColor.g ) * 255.0f ),
