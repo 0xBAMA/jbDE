@@ -14,6 +14,18 @@ layout( binding = 5, std430 ) buffer perColumnMins { uint maxCount; };
 #include "yuvConversions.h"
 #include "mathUtils.h"
 
+vec3 saturationBoost( vec3 inputColor, float boost ) {
+	const float s = boost;
+	const float oms = 1.0f - s;
+	vec3 weights = vec3( 0.3086f, 0.6094f, 0.0820f );	// "improved" luminance vector
+	mat3 saturationMatrix = mat3(
+		oms * weights.r + s,	oms * weights.r,		oms * weights.r,
+		oms * weights.g,		oms * weights.g + s,	oms * weights.g,
+		oms * weights.b,		oms * weights.b,		oms * weights.b + s
+	);
+	return saturationMatrix * inputColor;
+}
+
 void main () {
 	const ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	const vec2 normalizedSpace = ( vec2( loc ) + vec2( 0.5f ) ) / imageSize( compositedResult ) - vec2( 0.5f );
