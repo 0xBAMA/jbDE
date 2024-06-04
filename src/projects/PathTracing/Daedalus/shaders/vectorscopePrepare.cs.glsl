@@ -27,7 +27,7 @@ void main () {
 		// 	sat * sin( hue )
 		// ) * 0.5f + vec2( 0.5f ) ) * imageSize( vectorscopeImage ) );
 
-		const ivec2 writePoint = ivec2( vec2( rgb_yccbccrc( pixelColor.rgb ).yz + vec2( 0.5f ) ) * imageSize( vectorscopeImage ) );
+		const ivec2 writePoint = ivec2( vec2( -rgb_yccbccrc( pixelColor.rgb ).yz + vec2( 0.5f ) ) * imageSize( vectorscopeImage ) );
 
 		// increment the plot + update maxcount
 		atomicMax( maxCount, imageAtomicAdd( vectorscopeImage, writePoint, 1 ) + 1 );

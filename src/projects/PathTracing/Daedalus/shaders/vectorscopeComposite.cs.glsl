@@ -44,12 +44,12 @@ void main () {
 		// color.rgb = hsv2rgb( vec3( atan( normalizedSpace.x, normalizedSpace.y ) / 6.28f, radius * 2.0f, value ) );
 
 		// from https://www.shadertoy.com/view/4dcSRN
-		// vec3 yuv = vec3( RangeRemapValue( value, 0.0f, 1.0f, 0.5f, 1.0f ), normalizedSpace );
-		vec3 yuv = vec3( 0.5f, normalizedSpace );
+		// vec3 yuv = vec3( RangeRemapValue( value, 0.0f, 1.0f, 0.5f, 1.0f ), -normalizedSpace );
+		vec3 yuv = vec3( 0.5, -normalizedSpace );
 		const float r = ( 1.0f - abs( yuv.x - 0.5f ) * 2.0f ) * 0.7071f;
 		yuv.yz *= -r;
 		yuv = clamp( yuv, vec3( 0.0f, -0.5f, -0.5f ), vec3( 1.0f, 0.5f, 0.5f ) );
-		color.rgb += pow( ycocg_rgb( yuv ) * value, vec3( 0.618f ) ) * 10.0f;
+		color.rgb += pow( saturationBoost( ycocg_rgb( yuv ) * value, 3.5f ), vec3( 0.618f ) ) * 10.0f;
 
 		// oklab is probably another one that will be worth trying
 
