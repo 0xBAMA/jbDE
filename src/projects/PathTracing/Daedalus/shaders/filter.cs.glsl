@@ -156,10 +156,45 @@ vec3 Kuwahara( ivec2 loc ) {
 	return slv4;
 }
 
+// from nameless
+// int midean ( in vec3 a ) {
+// 	int maxx = max( a.x, max( a.y, a.z ) );
+// 	int minx = min( a.x, min( a.y, a.z ) );
+
+// 	return ( maxx == a.x ) ? ( minx == a.z ) ? 1 : 2 : ( maxx == a.y ) ? ( minx == a.x ) ? 2 : 0 : ( minx == a.x ) ? 1 : 0;
+// }
+
+// vec3 medianof9s(vec2 uv, vec2 iResolution, float offsetS, sampler2D tex){
+// 	vec3 colArray[9];
+
+// 	for(int i = 0; i < 9; i++){
+// 		vec2 offset = vec2(float(i%3)-1., float(i/3)-1.)*offsetS;
+// 		vec3 currCol = texelFetch(tex, ivec2((uv*iResolution + offset)*0.5),0).rgb;
+// 		colArray[i] = currCol;
+// 	}
+
+// 	int ms1 = int(midean(vec3(lum(colArray[0]), lum(colArray[1]),lum(colArray[2]))));
+// 	int ms2 = int(midean(vec3(lum(colArray[3]), lum(colArray[4]),lum(colArray[5]))));
+// 	int ms3 = int(midean(vec3(lum(colArray[6]), lum(colArray[7]),lum(colArray[8]))));
+
+
+// 	int id1 = ms1;
+// 	int id2 = 3+ms2;
+// 	int id3 = 6+ms3;
+
+// 	int finid = int(midean(vec3(lum(colArray[id1]),lum(colArray[id2]),lum(colArray[id3]))));
+
+// 	//return (finid == 0)?colArray[id1]:(finid == 1)?colArray[id2]:colArray[id3];
+
+// 	int as = id1 + (id2 - id1)*finid;
+// 	return colArray[as + (id3-as)*max(finid-1,0)];
+// }
+
 #define GAUSSIAN	0
 #define MEDIAN		1
 #define BOTH		2
 #define KUWAHARA	3
+// #define MEDIAN2		4
 uniform int mode;
 
 void main () {
@@ -193,6 +228,8 @@ void main () {
 	case KUWAHARA:
 		result = Kuwahara( writeLoc );
 		break;
+
+	// case MEDIAN2:
 	}
 
 	imageStore( destData, writeLoc, vec4( result, sampleCount ) );
