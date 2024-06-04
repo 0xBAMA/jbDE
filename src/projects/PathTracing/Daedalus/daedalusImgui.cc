@@ -346,7 +346,8 @@ void Daedalus::ShowDaedalusConfigWindow() {
 				"jodieRobo2",
 				"jodieReinhard",
 				"jodieReinhard2",
-				"AgX"
+				"AgX",
+				"LMS"
 			};
 			ImGui::Combo("Tonemapping Mode", &tonemap.tonemapMode, tonemapModesList, IM_ARRAYSIZE( tonemapModesList ) );
 			ImGui::Text( " " );

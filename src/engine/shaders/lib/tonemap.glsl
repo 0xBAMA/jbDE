@@ -336,6 +336,65 @@ vec3 do_agx( vec3 fragColor)
   return col;
 }
 
+// https://www.shadertoy.com/view/X3GGRz justjohn
+vec3 tonemapLMS(vec3 sRGB) {
+	// NOTE: Tune these params based on your use case.
+	// Desmos graph: https://www.desmos.com/calculator/cvt2brlyl3
+	const float EXPOSURE = 1.5;
+	const float CONTRAST = 1.5;
+	const float RANGE = 1.5;
+
+	const mat3 sRGB_to_LMS = transpose(mat3(
+		0.31399022, 0.63951294, 0.04649755,
+		0.15537241, 0.75789446, 0.08670142,
+		0.01775239, 0.10944209, 0.87256922));
+
+	const mat3 LMS_to_sRGB = transpose(mat3(
+		5.47221206, -4.6419601 ,  0.16963708,
+		-1.1252419 ,  2.29317094, -0.1678952 ,
+		0.02980165, -0.19318073,  1.16364789));
+		
+	const vec3 sRGB_to_Y = vec3(0.2126729, 0.7151522, 0.0721750);
+
+	// Apply tonescale in LMS
+
+	vec3 LMS = sRGB_to_LMS * sRGB;
+
+	LMS = pow(EXPOSURE * LMS, vec3(CONTRAST / RANGE));
+	LMS = LMS / (LMS + 1.0);
+	LMS = pow(LMS, vec3(RANGE));
+
+	sRGB = LMS_to_sRGB * LMS;
+
+	// Apply gamut mapping in sRGB
+
+	float Y = dot(sRGB_to_Y, sRGB);
+	if (Y > 1.0)
+		return vec3(1.0);
+		
+	float minimum = min(sRGB.r, min(sRGB.g, sRGB.b));
+	if (minimum < 0.0)
+		sRGB = mix(sRGB, vec3(Y), -minimum / (Y - minimum));
+
+	float maximum = max(sRGB.r, max(sRGB.g, sRGB.b));
+	if (maximum > 1.0)
+		sRGB = mix(sRGB, vec3(Y), (1.0 - maximum) / (Y - maximum));
+
+	return sRGB;
+}
+
+vec3 gamma_correct( vec3 linear ) {
+	bvec3 cutoff = lessThan( linear, vec3( 0.0031308f ) );
+	vec3 higher = 1.055f * pow( linear, vec3( 1.0f / 2.4f ) ) - 0.055f;
+	vec3 lower = linear * 12.92f;
+	return mix( higher, lower, cutoff );
+}
+
+vec3 LMSTonemap( in vec3 c ) {
+	return gamma_correct( tonemapLMS( c ) );
+}
+
+
 vec3 Tonemap( int tonemapMode, vec3 col ) {
 	switch ( tonemapMode ) {
 			case 0: // None (Linear)
@@ -387,6 +446,9 @@ vec3 Tonemap( int tonemapMode, vec3 col ) {
 					break;
 			case 16: // AgX1 from https://www.shadertoy.com/view/ctffRr
 					col.xyz = do_agx( col.xyz );
+					break;
+			case 17: // 
+					col.xyz = LMSTonemap( col.xyz );
 					break;
 
 			// some more agx variants
