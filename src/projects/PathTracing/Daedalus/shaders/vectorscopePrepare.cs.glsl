@@ -12,11 +12,12 @@ layout( binding = 5, std430 ) buffer perColumnMins { uint maxCount; };
 
 // #include "hsvConversions.h"
 #include "yuvConversions.h"
+#include "mathUtils.h"
 
 void main () {
 	const ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 	if ( all( lessThan( loc, imageSize( tonemappedSourceData ) ) ) ) {
-		vec4 pixelColor = imageLoad( tonemappedSourceData, loc );
+		vec4 pixelColor = saturate( imageLoad( tonemappedSourceData, loc ) );
 
 		// // find hue and saturation, by converting rgb to hsv
 		// const vec3 hsvColor = rgb2hsv( pixelColor.rgb );
