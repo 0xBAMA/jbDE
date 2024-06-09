@@ -32,6 +32,13 @@ public:
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 
 			// and the texture for the sky
+			Image_4F exrData;
+			// exrData.Load( "../exrs/forest_cave_4k.exr", Image_4F::backend::TINYEXR );
+			exrData.Load( "../exrs/moulton_station_train_tunnel_west_4k.exr", Image_4F::backend::TINYEXR );
+
+			opts.dataType		= GL_RGBA32F;
+			opts.pixelDataType	= GL_FLOAT;
+			opts.initialData	= exrData.GetImageDataBasePtr();
 			opts.wrap			= GL_CLAMP_TO_EDGE;
 			opts.width			= daedalusConfig.render.scene.skyDims.x;
 			opts.height			= daedalusConfig.render.scene.skyDims.y;
@@ -52,10 +59,14 @@ public:
 				// exposure/brightness/color histogram setup
 				glGenBuffers( 1, &daedalusConfig.render.grading.colorHistograms );
 
+				opts = textureOptions_t();
+
 				// histogram presentation buffer
+				opts.textureType	= GL_TEXTURE_2D;
 				opts.dataType		= GL_RGBA8;
 				opts.magFilter		= GL_NEAREST;
 				opts.minFilter		= GL_NEAREST;
+				opts.wrap			= GL_CLAMP_TO_BORDER;
 				opts.width			= 256;
 				opts.height			= 64;	// 16 per, not needing a lot of resolution
 				textureManager.Add( "Histogram Composite", opts );
@@ -307,16 +318,16 @@ public:
 			ApplyFilter( daedalusConfig.filterSelector, 1 );
 		}
 
-		{
-			scopedTimer Start( "Sky Cache" );
-			if ( daedalusConfig.render.scene.skyNeedsUpdate == true ) {
-				daedalusConfig.render.scene.skyNeedsUpdate = false;
-				// dispatch for every pixel in the sky cache texture
-				SendSkyCacheUniforms();
-				glDispatchCompute( daedalusConfig.render.scene.skyDims.x / 16, daedalusConfig.render.scene.skyDims.y / 16, 1 );
-				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-			}
-		}
+		// {
+		// 	scopedTimer Start( "Sky Cache" );
+		// 	if ( daedalusConfig.render.scene.skyNeedsUpdate == true ) {
+		// 		daedalusConfig.render.scene.skyNeedsUpdate = false;
+		// 		// dispatch for every pixel in the sky cache texture
+		// 		SendSkyCacheUniforms();
+		// 		glDispatchCompute( daedalusConfig.render.scene.skyDims.x / 16, daedalusConfig.render.scene.skyDims.y / 16, 1 );
+		// 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		// 	}
+		// }
 
 		{ // do some tiles, update the buffer
 			scopedTimer Start( "Tiled Update" );
