@@ -56,6 +56,7 @@ struct sceneConfig_t {
 	float skyTime;
 	bool skyInvert;
 	float skyBrightnessScalar;
+	float skyClamp;
 };
 
 struct colorGradingConfig_t {
@@ -189,8 +190,8 @@ struct daedalusConfig_t {
 		render.scene.numExplicitPrimitives = 100;
 
 		// sky config
-		render.scene.skyDims = uvec2( 1024, 512 );
-		render.scene.skyNeedsUpdate = true;
+		render.scene.skyDims = uvec2( 4096, 2048 );
+		render.scene.skyNeedsUpdate = false;
 		render.scene.skyMode = 0;
 		render.scene.skyConstantColor1 = vec3( 1.0f );
 		render.scene.skyConstantColor2 = vec3( 0.0f );
@@ -198,6 +199,7 @@ struct daedalusConfig_t {
 		render.scene.skyInvert = false;
 		render.scene.skyBrightnessScalar = 1.0f;
 		render.scene.skyTime = 5.0f;
+		render.scene.skyClamp = -1.0f;
 
 		// ===============================
 

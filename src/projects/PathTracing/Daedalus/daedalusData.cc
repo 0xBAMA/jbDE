@@ -113,6 +113,7 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1f( glGetUniformLocation( shader, "maxDistance" ), daedalusConfig.render.maxDistance );
 	glUniform1f( glGetUniformLocation( shader, "epsilon" ), daedalusConfig.render.epsilon );
 	glUniform1i( glGetUniformLocation( shader, "maxBounces" ), daedalusConfig.render.maxBounces );
+	glUniform1f( glGetUniformLocation( shader, "skyClamp" ), daedalusConfig.render.scene.skyClamp );
 	glUniform1i( glGetUniformLocation( shader, "skyInvert" ), daedalusConfig.render.scene.skyInvert );
 	glUniform1f( glGetUniformLocation( shader, "skyBrightnessScalar" ), daedalusConfig.render.scene.skyBrightnessScalar );
 
@@ -744,5 +745,4 @@ void Daedalus::HeightmapTex() {
 		opts.initialData	= ( void * ) &p.model.GetImageDataBasePtr()[ 0 ];
 		textureManager.Add( "HeightmapTex", opts );
 	}
-
 }

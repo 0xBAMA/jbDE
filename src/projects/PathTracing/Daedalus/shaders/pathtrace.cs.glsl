@@ -309,6 +309,7 @@ ray_t GetCameraRayForUV( in vec2 uv ) { // switchable cameras ( fisheye, etc ) -
 uniform sampler2D skyCache;
 uniform bool skyInvert;
 uniform float skyBrightnessScalar;
+uniform float skyClamp;
 //=============================================================================================================================
 vec3 SkyColor( ray_t ray ) {
 	// sample the texture
@@ -324,7 +325,11 @@ vec3 SkyColor( ray_t ray ) {
 	}
 	samplePoint.x = RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f, 1.0f );
 	samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
-	return texture( skyCache, samplePoint ).rgb * skyBrightnessScalar;
+	if ( skyClamp > 0.0f ) {
+		return clamp( texture( skyCache, samplePoint ).rgb * skyBrightnessScalar, vec3( 0.0f ), vec3( skyClamp ) );
+	} else {
+		return texture( skyCache, samplePoint ).rgb * skyBrightnessScalar;
+	}
 }
 //=============================================================================================================================
 // evaluate the material's effect on this ray

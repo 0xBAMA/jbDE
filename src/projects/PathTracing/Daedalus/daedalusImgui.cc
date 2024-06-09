@@ -104,6 +104,15 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		}
 		ImGui::SliderFloat( "Sky Brightness Scalar", &daedalusConfig.render.scene.skyBrightnessScalar, 0.0f, 5.0f );
+
+		static bool applyClamp = false;
+		ImGui::Checkbox( "Clamp Sky", &applyClamp );
+		if ( applyClamp ) {
+			ImGui::SliderFloat( "Sky Clamp Value", &daedalusConfig.render.scene.skyClamp, 0.0f, 5.0f );
+		} else {
+			daedalusConfig.render.scene.skyClamp = -1.0f;
+		}
+
 		ImGui::Checkbox( "Invert Sampling Direction", &daedalusConfig.render.scene.skyInvert );
 
 		ImGui::Separator();
