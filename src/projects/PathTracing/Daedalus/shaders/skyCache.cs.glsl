@@ -72,6 +72,10 @@ void main () {
 		}
 	}
 
+	// ones I want to still try:
+	// https://www.shadertoy.com/view/MllBR2
+	// https://www.shadertoy.com/view/wslfD7
+
 	// write the data to the image
 	imageStore( skyCache, ivec2( gl_GlobalInvocationID.xy ), vec4( clamp( col, vec3( 0.0f ), vec3( 10.0f ) ), 1.0f ) );
 }
