@@ -295,7 +295,7 @@ public:
 				return tex.textureHandle;
 			}
 		}
-		cout << "Texture Missing" << endl;
+		cout << "Texture \"" << label << "\" Missing" << endl;
 		return std::numeric_limits< GLuint >::max();
 	}
 
@@ -398,6 +398,9 @@ public:
 	void Remove ( string label ) {
 		// delete texture
 		GLuint tex = Get( label );
+
+		if ( tex == std::numeric_limits< GLuint >::max() ) { return; }
+
 		glDeleteTextures( 1, &tex );
 
 		// do the removal
