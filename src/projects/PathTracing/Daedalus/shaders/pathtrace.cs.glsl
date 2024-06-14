@@ -709,9 +709,9 @@ float deBB( vec3 p ) {
     float JuliaX = -1.763517f;
     float JuliaY = 0.392486f;
     float JuliaZ = -1.734913f;
-    float AngX = -80.00209f;
+    float AngX = -51.080209f;
     float AngY = 0.0f;
-    float AngZ = -28.096322f;
+    float AngZ = -29.096322f;
     float Offset = -3.036726f;
     int EnableOffset = 1;
     int Iterations = 80;
@@ -939,6 +939,104 @@ float sdBoxRipple ( vec3 p ) {
 		+ length( max( d, 0.0f ) );
 }
 
+  float roundbox( vec3 p, vec3 b, float r ){
+    vec3 q = abs(p) - b;
+    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
+  }
+
+  float df(vec3 co) {
+    float rad = clamp(co.z * 0.05 + 0.45, 0.1, 0.3);
+    co = mod(co, vec3(1.0)) - 0.5;
+    return roundbox(co, vec3(rad, rad, 0.3), 0.1);
+  }
+// polynomial smooth min (k = 0.1);
+float smin_op( float a, float b, float k ) {
+    float h = max( k-abs(a-b), 0.0 )/k;
+    return min( a, b ) - h*h*k*(1.0/4.0);
+}
+  float deGGGG(vec3 p){
+    float body = 999.0;
+    float scale = 0.2;
+    vec3 co = p;
+    mat4 m = mat4(
+    vec4(0.6373087, -0.0796581,  0.7664804, 0.0),
+    vec4(0.2670984,  0.9558195, -0.1227499, 0.0),
+    vec4(-0.7228389,  0.2829553,  0.6304286, 0.0),
+    vec4(0.1, 0.6, 0.2, 0.0));
+    for (int i=0; i<3; i++) {
+      co = (m * vec4(co, float(i))).xyz;
+      scale *= (3.0);
+      float field = df(co * scale) / scale;
+      body = smin_op(body, field, 0.05);
+    }
+    return -body;
+  }
+
+float deTTTT( vec3 p ) {
+    float itr=10.,r=0.1;
+    p=mod(p-1.5,3.)-1.5;
+    p=abs(p)-1.3;
+    if(p.x < p.z)p.xz=p.zx;
+    if(p.y < p.z)p.yz=p.zy;
+    if(p.x < p.y)p.xy=p.yx;
+    float s=1.;
+    p-=vec3(.5,-.3,1.5);
+  	for(float i=0.;i++ < itr;) {
+  		float r2=2./clamp(dot(p,p),.1,1.);
+  		p=abs(p)*r2;
+  		p-=vec3(.7,.3,5.5);
+  		s*=r2;
+  	}
+    return length(p.xy)/(s-r);
+  }
+
+  float deSSSS(vec3 p){
+    float i,g,e=1.0f,s;
+    vec3 q=p; s=5.;
+    for(int j=0;j++<6;s*=e)
+      p=sign(p)*(1.7-abs(p-1.7)),
+      p=p*(e=8./clamp(dot(p,p),.3,5.))+q-vec3(.8,12,.8);
+    return length(p.yz)/s;
+  }
+
+  float de2SSS(vec3 p){
+    return (length(vec2((length(vec2(length(p.xy)-1.3,
+      length(p.zy)-1.3))-.5), dot(cos(p*12.),sin(p.zxy*12.))*.1))-.02)*.3;
+  }
+
+
+ float deNNNNN( vec3 p ){
+    float s = 2.;
+    float e = 0.;
+    for(int j=0;++j<7;)
+      p.xz=abs(p.xz)-2.3,
+      p.z>p.x?p=p.zyx:p,
+      p.z=1.5-abs(p.z-1.3+sin(p.z)*.2),
+      p.y>p.x?p=p.yxz:p,
+      p.x=3.-abs(p.x-5.+sin(p.x*3.)*.2),
+      p.y>p.x?p=p.yxz:p,
+      p.y=.9-abs(p.y-.4),
+      e=12.*clamp(.3/min(dot(p,p),1.),.0,1.)+
+      2.*clamp(.1/min(dot(p,p),1.),.0,1.),
+      p=e*p-vec3(7,1,1),
+      s*=e;
+    return length(p)/s;
+  }
+
+ float deWER(vec3 p){
+    float s=2.;
+    float l=dot(p,p);
+    float e=0.;
+    escape=0.;
+    p=abs(abs(p)-.7)-.5;
+    p.x < p.y?p=p.yxz:p;
+    p.y < p.z?p=p.xzy:p;
+    for(int i=0;i++<8;){
+      s*=e=2./clamp(dot(p,p),.004+tan(12.)*.002,1.35);
+      p=abs(p)*e-vec2(.5*l,12.).xxy;
+    }
+    return length(p-clamp(p,-1.,1.))/s;
+  }
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
 //=============================================================================================================================
@@ -974,9 +1072,6 @@ float de( in vec3 p ) {
 
 	// sceneDist = deOldTestChamber( p );
 
-
-
-
 	// vec3 pBars = ( p - vec3( 0.0f, 0.0f, 1.0f ) ).zyx;
 
 	// pModInterval1( pBars.x, 0.01f, -250.0f, 250.0f );
@@ -990,32 +1085,28 @@ float de( in vec3 p ) {
 	// 	hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
 	// }
 
-
 	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
-	// const float dFractal = deTower( p );
+	// const float dFractal = deBB( p );
 	// const float dFractal = deGround( p * 5.0f ) / 5.0f;
-	const float dFractal = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
-	sceneDist = min( sceneDist, dFractal );
-	if ( sceneDist == dFractal && dFractal < epsilon ) {
-		// if ( escape > 0.58f ) {
-			// hitColor = saturate( inferno( escape ) );
-			// hitSurfaceType = EMISSIVE;
-		// } else {
-			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			hitColor = vec3( 0.9f );
-			// hitSurfaceType = DIFFUSE;
-			// hitColor = vec3( 0.793f, 0.793f, 0.664f );
-			// hitColor = vec3( 0.618f );
-			// hitColor = saturate( viridis( 1.0f - escape ) );
-		// }
+	// const float dFractal = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
+	// sceneDist = min( sceneDist, dFractal );
+	// if ( sceneDist == dFractal && dFractal < epsilon ) {
+	// 	hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 	hitColor = vec3( 0.793f, 0.793f, 0.664f );
+	// }
 
-		// if ( abs( mod( p.x, 2.0f ) ) < 0.05f ) {
-			// hitColor = vec3( 2.0f );
-			// hitSurfaceType = EMISSIVE;
-		// }
+	// const float dFractal2 = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+	const float dFractal2 = deWER( p );
+	sceneDist = min( sceneDist, dFractal2 );
+	if ( sceneDist == dFractal2 && dFractal2 < epsilon ) {
+		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+		// hitSurfaceType = METALLIC;
+		// hitRoughness = 0.9f;
+		hitColor = vec3( 0.713f, 0.170f, 0.026f );
+		// hitColor = vec3( 0.887f, 0.789f, 0.434f );
+		// hitColor = vec3( 0.023f, 0.023f, 0.023f );
+		// hitColor = vec3( 0.670f, 0.764f, 0.855f );
 	}
-
-
 
 	// const float dHall = max(
 	// 	fOpUnionRound(
@@ -1034,15 +1125,6 @@ float de( in vec3 p ) {
 	// 	hitSurfaceType = METALLIC;
 	// 	hitRoughness = 0.8f;
 	// }
-
-	p += vec3( 0.0f, 0.0f, 6.0f );
-	pModInterval1( p.x, 0.2f, -6.0f, 6.0f );
-	const float dLight = fBox( p - vec3( 0.0f, 0.0f, 1.5f ), vec3( 0.05f, 0.5f, 0.01f ) );
-	sceneDist = min( sceneDist, dLight );
-	if ( sceneDist == dLight && dLight < epsilon ) {
-		hitColor = CMRmap( RangeRemapValue( pOriginal.x, -2.0f, 2.0f, 0.0f, 1.0f ) ).rgb;
-		hitSurfaceType = EMISSIVE;
-	}
 
 	return sceneDist;
 }
@@ -1135,7 +1217,6 @@ vec3 GetPositionForIdx( ivec3 idx ) {
 float ddaDiskSDF( vec3 p ) {
 	// return deBB( p );
 	return deLeaf( p );
-	// return deGG( p );
 	// return max( deFractal2( p ), ( distance( p, vec3( 0.0f ) ) - ( ddaSpheresResolution / 200.0f ) ) );
 }
 
@@ -1288,7 +1369,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					// 	intersection.materialID = DIFFUSE;
 					// 	intersection.albedo = vec3( 0.618f );
 					// } else {
-						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+						intersection.materialID = MIRROR;
+						// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
 						// intersection.albedo = GetColorForIdx( mapPos0 );
 						intersection.albedo = vec3( 0.99f );
 						// intersection.roughness = 0.5f;

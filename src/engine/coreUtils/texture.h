@@ -399,6 +399,7 @@ public:
 		// delete texture
 		GLuint tex = Get( label );
 
+		// just early out
 		if ( tex == std::numeric_limits< GLuint >::max() ) { return; }
 
 		glDeleteTextures( 1, &tex );
