@@ -21,7 +21,6 @@ public:
 			opts.dataType		= GL_RGBA32F;
 			opts.width			= daedalusConfig.targetWidth;
 			opts.height			= daedalusConfig.targetHeight;
-			// opts.minFilter		= GL_LINEAR_MIPMAP_LINEAR;
 			opts.minFilter		= GL_LINEAR;
 			opts.magFilter		= GL_LINEAR;
 			opts.textureType	= GL_TEXTURE_2D;
@@ -32,13 +31,7 @@ public:
 			textureManager.Add( "Depth/Normals Accumulator", opts );
 
 			// and the texture for the sky
-			Image_4F exrData;
-			// exrData.Load( "../exrs/forest_cave_4k.exr", Image_4F::backend::TINYEXR );
-			exrData.Load( "../exrs/moulton_station_train_tunnel_west_4k.exr", Image_4F::backend::TINYEXR );
-
 			opts.dataType		= GL_RGBA32F;
-			opts.pixelDataType	= GL_FLOAT;
-			opts.initialData	= exrData.GetImageDataBasePtr();
 			opts.wrap			= GL_CLAMP_TO_EDGE;
 			opts.width			= daedalusConfig.render.scene.skyDims.x;
 			opts.height			= daedalusConfig.render.scene.skyDims.y;
@@ -285,6 +278,7 @@ public:
 	void ClearColorGradingHistogramBuffer();
 	void ClearColorGradingWaveformBuffer();
 	void ClearColorGradingVectorscopeBuffer();
+	void LoadSkyBoxEXRFromString( string label );
 
 	GLuint64 SubmitTimerAndWait( GLuint timer ) {
 		ZoneScoped;
