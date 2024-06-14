@@ -312,16 +312,16 @@ public:
 			ApplyFilter( daedalusConfig.filterSelector, 1 );
 		}
 
-		// {
-		// 	scopedTimer Start( "Sky Cache" );
-		// 	if ( daedalusConfig.render.scene.skyNeedsUpdate == true ) {
-		// 		daedalusConfig.render.scene.skyNeedsUpdate = false;
-		// 		// dispatch for every pixel in the sky cache texture
-		// 		SendSkyCacheUniforms();
-		// 		glDispatchCompute( daedalusConfig.render.scene.skyDims.x / 16, daedalusConfig.render.scene.skyDims.y / 16, 1 );
-		// 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		// 	}
-		// }
+		{
+			scopedTimer Start( "Sky Cache" );
+			if ( daedalusConfig.render.scene.skyNeedsUpdate == true && daedalusConfig.render.scene.skyMode != 6 ) {
+				daedalusConfig.render.scene.skyNeedsUpdate = false;
+				// dispatch for every pixel in the sky cache texture
+				SendSkyCacheUniforms();
+				glDispatchCompute( daedalusConfig.render.scene.skyDims.x / 16, daedalusConfig.render.scene.skyDims.y / 16, 1 );
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
+		}
 
 		{ // do some tiles, update the buffer
 			scopedTimer Start( "Tiled Update" );
