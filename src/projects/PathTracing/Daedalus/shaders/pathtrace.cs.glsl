@@ -1037,6 +1037,71 @@ float deTTTT( vec3 p ) {
     }
     return length(p-clamp(p,-1.,1.))/s;
   }
+
+  float deLKSDFGK( vec3 p ){
+    vec3  di = abs(p) - vec3(1.);
+    float mc = max(di.x, max(di.y, di.z));
+    float d =  min(mc,length(max(di,0.0)));
+    vec4 res = vec4( d, 1.0, 0.0, 0.0 );
+
+    const mat3 ma = mat3( 0.60, 0.00,  0.80,
+                          0.00, 1.00,  0.00,
+                          -0.20, 0.00,  0.30 );
+    float off = 0.0005;
+    float s = 1.0;
+    for( int m=0; m<4; m++ ){
+      p = ma*(p+off);
+      vec3 a = mod( p*s, 2.0 )-1.0;
+      s *= 3.0;
+      vec3 r = abs(1.0 - 3.0*abs(a));
+      float da = max(r.x,r.y);
+      float db = max(r.y,r.z);
+      float dc = max(r.z,r.x);
+      float c = (min(da,min(db,dc))-1.0)/s;
+      if( c > d )
+        d = c;
+    }
+    return d;
+  }
+
+  float deTST(vec3 p){
+    const int iterations = 20;
+    float d = -2.; // vary this parameter, range is like -20 to 20
+    p=p.yxz;
+    pR(p.yz, 1.570795);
+    p.x += 6.5;
+    p.yz = mod(abs(p.yz)-.0, 20.) - 10.;
+    float scale = 1.25;
+    p.xy /= (1.+d*d*0.0005);
+
+    float l = 0.;
+    for (int i=0; i < iterations; i++) {
+      p.xy = abs(p.xy);
+      p = p*scale + vec3(-3. + d*0.0095,-1.5,-.5);
+      pR(p.xy,0.35-d*0.015);
+      pR(p.yz,0.5+d*0.02);
+      vec3 p6 = p*p*p; p6=p6*p6;
+      l =pow(p6.x + p6.y + p6.z, 1./6.);
+    }
+    return l*pow(scale, -float(iterations))-.15;
+  }
+
+
+float deLLLL( vec3 p ){
+  vec3 k = vec3( 5.0, 2.0, 1.0 );
+  p.y += 5.5;
+  for( int j = 0; ++j < 8; ) {
+    p.xz = abs( p.xz );
+    p.xz = p.z > p.x ? p.zx : p.xz;
+    p.z = 0.9 - abs( p.z - 0.9 );
+    p.xy = p.y > p.x ? p.yx : p.xy;
+    p.x -= 2.3;
+    p.xy = p.y > p.x ? p.yx : p.xy;
+    p.y += 0.1;
+    p = k + ( p - k ) * 3.2;
+  }
+  return length( p ) / 6e3 - 0.001;
+}
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
 //=============================================================================================================================
@@ -1054,77 +1119,18 @@ float de( in vec3 p ) {
 			// set material specifics - hitColor, hitSurfaceType
 		// }
 
-	// const float scale = 3.0f;
-	// // const float dFractal = max( deChannel( p * 10.0f ) / 10.0f, distance( p, vec3( 0.0f ) ) - 0.99f );
-	// // const float dFractal = deChannel( p * 10.0f ) / 10.0f;
-	// const float dFractal = deFF( p * scale ) / scale;
-	// sceneDist = min( sceneDist, dFractal );
-	// if ( sceneDist == dFractal && dFractal < epsilon ) {
-	// 	// const float noiseSample1 = snoise3D( p * 16.0f );
-	// 	// const bool noiseSample = ( noiseSample1 > 0.5f && noiseSample1 < 0.6f );
-	// 	// const bool noiseSample = false;
-	// 	// const float noiseSample2 = snoise3D( p * 22.0f );
-	// 	// hitColor = noiseSample ? mix( vec3( 0.793f, 0.793f, 0.664f ), vec3( 0.618f ), noiseSample2 * 0.25f ) : vec3( 0.9f, 0.7f, 0.3f );
-	// 	// hitSurfaceType = noiseSample ? DIFFUSE : METALLIC;
-	// 	hitColor = vec3( 0.9f, 0.7f, 0.3f );
-	// 	hitSurfaceType = METALLIC;
-	// }
-
-	// sceneDist = deOldTestChamber( p );
-
-	// vec3 pBars = ( p - vec3( 0.0f, 0.0f, 1.0f ) ).zyx;
-
-	// pModInterval1( pBars.x, 0.01f, -250.0f, 250.0f );
-	// pModInterval1( pBars.y, 0.01f, -250.0f, 250.0f );
-
-	// // const float dRails = fOpUnionRound( fCylinder( pBars - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), fCylinder( pBars.yxz - vec3( 0.0f, 0.0f, -1.0f ), 0.03f, 2.0f ), 0.05f );
-	// const float dRails = fOpUnionRound( fCylinder( pBars, 0.001f, 2.0f ), fCylinder( pBars.yxz, 0.001f, 2.0f ), 0.001f );
-	// sceneDist = min( sceneDist, dRails );
-	// if ( sceneDist == dRails && dRails < epsilon ) {
-	// 	hitColor = vec3( 0.618f );
-	// 	hitSurfaceType = NormalizedRandomFloat() < 0.1f ? DIFFUSE : MIRROR;
-	// }
-
-	// const float dFractal = max( deBB( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
-	// const float dFractal = deBB( p );
-	// const float dFractal = deGround( p * 5.0f ) / 5.0f;
-	// const float dFractal = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius );
-	// sceneDist = min( sceneDist, dFractal );
-	// if ( sceneDist == dFractal && dFractal < epsilon ) {
-	// 	hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-	// 	hitColor = vec3( 0.793f, 0.793f, 0.664f );
-	// }
-
 	// const float dFractal2 = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
-	const float dFractal2 = deWER( p );
+	const float dFractal2 = deLLLL( p );
 	sceneDist = min( sceneDist, dFractal2 );
 	if ( sceneDist == dFractal2 && dFractal2 < epsilon ) {
 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
 		// hitSurfaceType = METALLIC;
 		// hitRoughness = 0.9f;
 		hitColor = vec3( 0.713f, 0.170f, 0.026f );
-		// hitColor = vec3( 0.887f, 0.789f, 0.434f );
-		// hitColor = vec3( 0.023f, 0.023f, 0.023f );
-		// hitColor = vec3( 0.670f, 0.764f, 0.855f );
+		// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
+		// hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+		// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
 	}
-
-	// const float dHall = max(
-	// 	fOpUnionRound(
-	// 		fOpUnionRound( fPlane( pOriginal, vec3( 0.0f, -1.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3(  0.0f, 0.0f, 1.0f ), 2.0f ), 0.5f ),
-	// 		fOpUnionRound( fPlane( pOriginal, vec3( 1.0f,  0.0f, 0.0f ), 2.0f ), fPlane( pOriginal, vec3( -1.0f, 0.0f, 0.0f ), 2.0f ), 0.5f ),
-	// 	0.5f ), fBox( pOriginal, vec3( 3.0f ) ) );
-
-	// // const float dHall = max( deFractal2( p * 1.0f ) / 1.0f, fPlane( p, normalize( vec3( 1.0f, 1.0f, 0.0f ) ), 0.0f ) );
-	// // const float dHall = deFractal2( p * 1.0f ) / 1.0f;
-	// sceneDist = min( sceneDist, dHall );
-	// if ( sceneDist == dHall && dHall < epsilon ) {
-	// 	// hitColor = vec3( 0.7f, 0.5f, 0.3f );
-	// 	hitColor = vec3( 0.618f );
-	// 	// hitSurfaceType = POLISHEDWOOD;
-	// 	// hitSurfaceType = DIFFUSE;
-	// 	hitSurfaceType = METALLIC;
-	// 	hitRoughness = 0.8f;
-	// }
 
 	return sceneDist;
 }
