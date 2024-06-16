@@ -746,3 +746,21 @@ void Daedalus::HeightmapTex() {
 		textureManager.Add( "HeightmapTex", opts );
 	}
 }
+
+void Daedalus::LoadSkyBoxEXRFromString( const string label ) {
+	textureManager.Remove( "Sky Cache" );
+
+	Image_4F loadedImage( label, Image_4F::backend::TINYEXR );
+
+	textureOptions_t opts;
+	opts.width			= loadedImage.Width();
+	opts.height			= loadedImage.Height();
+	opts.dataType		= GL_RGBA32F;
+	opts.minFilter		= GL_LINEAR;
+	opts.magFilter		= GL_LINEAR;
+	opts.textureType	= GL_TEXTURE_2D;
+	opts.wrap			= GL_CLAMP_TO_BORDER;
+	opts.pixelDataType	= GL_FLOAT;
+	opts.initialData	= ( void * ) loadedImage.GetImageDataBasePtr();
+	textureManager.Add( "Sky Cache", opts );
+}
