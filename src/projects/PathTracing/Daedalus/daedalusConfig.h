@@ -104,7 +104,7 @@ struct renderConfig_t {
 };
 
 struct postConfig_t {
-	bool enableLensDistort = true;
+	bool enableLensDistort = false;
 	bool lensDistortNormalize = true;
 	int lensDistortNumSamples = 100;
 	vec3 lensDistortParametersStart = vec3( 0.0f, 0.02f, 0.0f );
@@ -163,8 +163,8 @@ struct daedalusConfig_t {
 		// thin lens config
 		render.thinLensEnable = false;
 		render.thinLensFocusDistance = 10.0f;
-		render.thinLensJitterRadiusInner = 0.2f;
-		render.thinLensJitterRadiusOuter = 1.0f;
+		render.thinLensJitterRadiusInner = 0.001f;
+		render.thinLensJitterRadiusOuter = 0.01f;
 		render.bokehMode = 4;
 		render.cameraType = 0;
 		render.voraldoCameraScalar = 1.0f;
@@ -172,13 +172,13 @@ struct daedalusConfig_t {
 		render.maxBounces = 10;
 
 		// SDF raymarch geo
-		render.scene.raymarchEnable = false;
+		render.scene.raymarchEnable = true;
 		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
 		render.scene.marbleRadius = 8.0f;
 
-		render.scene.ddaSpheresEnable = true;
+		render.scene.ddaSpheresEnable = false;
 		render.scene.ddaSpheresBoundSize = vec3( 1.6f );
 		render.scene.ddaSpheresResolution = 513;
 
@@ -199,7 +199,7 @@ struct daedalusConfig_t {
 		render.scene.skyInvert = false;
 		render.scene.skyBrightnessScalar = 1.0f;
 		render.scene.skyTime = 5.0f;
-		render.scene.skyClamp = -1.0f;
+		render.scene.skyClamp = 5.0f;
 
 		// ===============================
 
