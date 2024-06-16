@@ -85,7 +85,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 
 		// constant color, ollj model, ...
 		ImGui::SeparatorText( "Sky" );
-		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model", "Hard Cut North Pole Sun", "Two Suns", "Nameless" };
+		const char * skyModes[] = { "Constant Color", "Two Color Gradient", "ollj Sky Model", "Hard Cut North Pole Sun", "Two Suns", "Nameless", "EXR" };
 		ImGui::Combo( "Sky Mode", &daedalusConfig.render.scene.skyMode, skyModes, IM_ARRAYSIZE( skyModes ) );
 		daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
 		if ( daedalusConfig.render.scene.skyMode == 0 ) { // constant color
@@ -102,6 +102,42 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			// ollj model needs float slider for time of day
 			ImGui::SliderFloat( "Time Of Day", &daedalusConfig.render.scene.skyTime, -2.0f, 7.0f );
 			daedalusConfig.render.scene.skyNeedsUpdate |= ImGui::IsItemEdited();
+		} else if ( daedalusConfig.render.scene.skyMode == 6 ) {
+			static std::vector< string > savesList;
+			if ( savesList.size() == 0 ) { // get the list
+				struct pathLeafString {
+					std::string operator()( const std::filesystem::directory_entry &entry ) const {
+						return entry.path().string();
+					}
+				};
+			// list of exrs, kept in Documents/EXRs/ (which is ../EXRs/, from the working directory that I use)
+				std::filesystem::path p( "../EXRs" );
+				std::filesystem::directory_iterator start( p );
+				std::filesystem::directory_iterator end;
+				std::transform( start, end, std::back_inserter( savesList ), pathLeafString() );
+				std::sort( savesList.begin(), savesList.end() ); // sort these alphabetically
+			}
+
+			#define LISTBOX_SIZE_MAX 256
+			const char *listboxItems[ LISTBOX_SIZE_MAX ];
+			uint32_t i;
+			for ( i = 0; i < LISTBOX_SIZE_MAX && i < savesList.size(); ++i ) {
+				listboxItems[ i ] = savesList[ i ].c_str();
+			}
+
+			ImGui::Text( "Files In ../EXRs/" );
+			static int listboxSelected = 0;
+			ImGui::ListBox( " ", &listboxSelected, listboxItems, i, 24 );
+
+			if ( ImGui::Button( " Load " ) ) {
+				LoadSkyBoxEXRFromString( savesList[ listboxSelected ] );
+			}
+			ImGui::SameLine();
+			if ( ImGui::Button( " Pick Random " ) ) {
+				rngi pick = rngi( 0, savesList.size() - 1 );
+				listboxSelected = pick();
+				LoadSkyBoxEXRFromString( savesList[ listboxSelected ] );
+			}
 		}
 		ImGui::SliderFloat( "Sky Brightness Scalar", &daedalusConfig.render.scene.skyBrightnessScalar, 0.0f, 5.0f );
 
