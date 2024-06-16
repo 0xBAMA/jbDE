@@ -141,10 +141,10 @@ void Daedalus::ShowDaedalusConfigWindow() {
 		}
 		ImGui::SliderFloat( "Sky Brightness Scalar", &daedalusConfig.render.scene.skyBrightnessScalar, 0.0f, 5.0f );
 
-		static bool applyClamp = false;
+		static bool applyClamp = true;
 		ImGui::Checkbox( "Clamp Sky", &applyClamp );
 		if ( applyClamp ) {
-			ImGui::SliderFloat( "Sky Clamp Value", &daedalusConfig.render.scene.skyClamp, 0.0f, 5.0f );
+			ImGui::SliderFloat( "Sky Clamp Value", &daedalusConfig.render.scene.skyClamp, 0.0f, 10.0f );
 		} else {
 			daedalusConfig.render.scene.skyClamp = -1.0f;
 		}

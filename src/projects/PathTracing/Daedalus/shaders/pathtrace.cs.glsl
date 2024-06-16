@@ -316,15 +316,15 @@ vec3 SkyColor( ray_t ray ) {
 	if ( skyInvert ) {
 		ray.direction.y *= -1.0f;
 	}
-	vec2 samplePoint = vec2( 0.0f );
+
 	float elevationFactor = dot( ray.direction, vec3( 0.0f, 1.0f, 0.0f ) );
-	// this remap stuff is ugly
-	if ( abs( elevationFactor ) > 0.99f ) {
-		// handle vertical samples, straight up or straight down - compress y into valid range
-		elevationFactor = elevationFactor * 0.99f;
-	}
-	samplePoint.x = RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f, 1.0f );
-	samplePoint.y = RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f );
+	const float epsilon = 1.0f / 4096.0f;
+	vec2 samplePoint = vec2(
+		RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f + epsilon / 2.0f, 1.0f - epsilon / 2.0f ),
+		// RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f, 1.0f ),
+		RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f )
+	);
+
 	if ( skyClamp > 0.0f ) {
 		return clamp( texture( skyCache, samplePoint ).rgb * skyBrightnessScalar, vec3( 0.0f ), vec3( skyClamp ) );
 	} else {
