@@ -367,6 +367,9 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	const vec3 randomVectorDiffuse = normalize( ( 1.0f + epsilon ) * intersection.normal + RandomUnitVector() );
 	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), intersection.roughness ) );
 
+	// handle volumetrics, here? something where you attenuate by a term, weighted by exp( -distance )
+		// with a chance to randomly scatter, which will give a random ray, and the position will be the point where it scatters
+
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 
