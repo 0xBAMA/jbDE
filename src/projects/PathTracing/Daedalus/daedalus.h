@@ -450,7 +450,7 @@ public:
 			textRenderer.DrawBlackBackedColorString( 1, ss.str(), vec3( 1.0f ) );
 			ss.str( "" );
 			float tDelta = ImGui::GetIO().DeltaTime * 1000.0f;
-			ss << " frame total:   " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << tDelta << "ms";
+			ss << " frame total:    " << std::setw( 10 ) << std::setfill( ' ' ) << std::setprecision( 4 ) << std::fixed << tDelta << "ms";
 			textRenderer.DrawBlackBackedColorString( 0, ss.str(), vec3( 1.0f ) );
 
 			// kill if the shaders fail - this is a temporary measure, eventually I'd like to incorporate this into the shader wrapper
