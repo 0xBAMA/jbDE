@@ -61,16 +61,16 @@ struct sceneConfig_t {
 
 struct colorGradingConfig_t {
 	// brightness histograms
-	bool updateHistogram = true;
+	bool updateHistogram = false;
 	GLuint colorHistograms;
 
 	// waveforms
-	bool updateWaveform = true;
+	bool updateWaveform = false;
 	GLuint waveformMins;
 	GLuint waveformMaxs;
 	GLuint waveformGlobalMax;
 
-	bool updateVectorscope = true;
+	bool updateVectorscope = false;
 	GLuint vectorscopeMax;
 };
 
