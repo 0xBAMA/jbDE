@@ -609,15 +609,6 @@ float deFractal( vec3 pos ) {
 	return ( length( max( abs( p.xyz ) - vec3( 0.1f, 5.0f, 0.1f ), vec3( 0.0f ) ) ) - 0.05f ) / p.w;
 }
 
-float deApollo( vec3 p0 ) {
-	vec4 p = vec4( p0, 1.0f );
-	for ( int i = 0; i < 8; i++ ) {
-		p.xyz = mod( p.xyz - 1.0f, 2.0f ) - 1.0f;
-		p *= 1.4f / dot( p.xyz, p.xyz );
-	}
-	return ( length( p.xz / p.w ) * 0.25f );
-}
-
 float deLeaf( vec3 p ) {
 	float S = 1.0f;
 	float R, e;
@@ -631,39 +622,43 @@ float deLeaf( vec3 p ) {
 	return e * R * 0.1f;
 }
 
-float deStairs( vec3 P ) {
-	vec3 Q;
-	float a, d = min( ( P.y - abs( fract( P.z ) - 0.5f ) ) * 0.7f, 1.5f - abs( P.x ) );
-	for ( a = 2.0f; a < 6e2f; a += a )
-		Q = P * a,
-		Q.xz *= rotate2D( a ),
-		d += abs( dot( sin( Q ), Q - Q + 1.0f ) ) / a / 7.0f;
-	return d;
+float deGazTemple1( vec3 p ){
+	float s = 2.;
+	float e = 0.;
+	for(int j=0;++j<7;)
+		p.xz=abs(p.xz)-2.3,
+		p.z>p.x?p=p.zyx:p,
+		p.z=1.5-abs(p.z-1.3+sin(p.z)*.2),
+		p.y>p.x?p=p.yxz:p,
+		p.x=3.-abs(p.x-5.+sin(p.x*3.)*.2),
+		p.y>p.x?p=p.yxz:p,
+		p.y=.9-abs(p.y-.4),
+		e=12.*clamp(.3/min(dot(p,p),1.),.0,1.)+
+		2.*clamp(.1/min(dot(p,p),1.),.0,1.),
+		p=e*p-vec3(7,1,1),
+		s*=e;
+	return length(p)/s;
 }
 
-float deAnemone( vec3 p ) {
-	#define V vec2(0.7f,-0.7f)
-	#define G(p)dot(p,V)
-	float i = 0.0f, g = 0.0f, e = 1.0f;
-	float t = 0.34f; // change to see different behavior
-	for ( int j = 0; j++ < 8; ) {
-		p = abs( rotate3D( 0.34f, vec3( 1.0f, -3.0f, 5.0f ) ) * p * 2.0f ) - 1.0f,
-		p.xz -= ( G( p.xz ) - sqrt( G( p.xz ) * G( p.xz ) + 0.05f ) ) * V;
-	}
-	return length( p.xz ) / 3e2f;
+float deGazTemple2(vec3 p){
+	for(int j=0;++j<8;)
+		p.z-=.3,
+		p.xz=abs(p.xz),
+		p.xz=(p.z>p.x)?p.zx:p.xz,
+		p.xy=(p.y>p.x)?p.yx:p.xy,
+		p.z=1.-abs(p.z-1.),
+		p=p*3.-vec3(10,4,2);
+	return length(p)/6e3-.001;
 }
 
-float dePillars( vec3 pos ) {
-	vec3 tpos=pos;
-	tpos.xz=abs(.5-mod(tpos.xz,1.));
-	vec4 p=vec4(tpos,1.);
-	float y=max(0.,.35-abs(pos.y-3.35))/.35;
-	for (int i=0; i<7; i++) {
-		p.xyz = abs(p.xyz)-vec3(-0.02,1.98,-0.02);
-		p=p*(2.0+0.*y)/clamp(dot(p.xyz,p.xyz),.4,1.)-vec4(0.5,1.,0.4,0.);
-		p.xz*=mat2(-0.416,-0.91,0.91,-0.416);
-	}
-	return (length(max(abs(p.xyz)-vec3(0.1,5.0,0.1),vec3(0.0)))-0.05)/p.w;
+float deGazTemple3( vec3 p ){
+	p.z-=2.5;
+	float s = 3.;
+	float e = 0.;
+	for(int j=0;j++<8;)
+		s*=e=3.8/clamp(dot(p,p),0.,2.),
+		p=abs(p)*e-vec3(1,15,1);
+	return length(cross(p,vec3(1,1,-1)*.577))/s;
 }
 
 float deWater( vec3 p ) {
@@ -684,435 +679,12 @@ float deWater( vec3 p ) {
 	return e;
 }
 
-float deRope( vec3 p ) {
-	vec3 q=p;
-	float d, t = 0.0; // t is time adjustment
-	q.xy=fract(q.xy)-.5;
-	for( int j=0; j++<9; q+=q )
-		q.xy=abs(q.xy*rotate2D(q.z + t))-.15;
-		d=(length(q.xy)-.2)/1e3;
-	return d;
+float deSquiggles(vec3 p){
+	float k = pi*2.;
+	vec3 v = vec3(0.,3.,fract(k));
+	return (length(cross(cos(p+v),p.zxy))-0.4)*0.2;
 }
 
-vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
-        float sPFXY = sin(radians(AngPFXY)); float cPFXY = cos(radians(AngPFXY));
-        float sPFYZ = sin(radians(AngPFYZ)); float cPFYZ = cos(radians(AngPFYZ));
-        float sPFXZ = sin(radians(AngPFXZ)); float cPFXZ = cos(radians(AngPFXZ));
-
-        float zx = z.x; float zy = z.y; float zz = z.z; float t;
-
-        // rotate BACK
-        t = zx; // XY
-        zx = cPFXY * t - sPFXY * zy; zy = sPFXY * t + cPFXY * zy;
-        t = zx; // XZ
-        zx = cPFXZ * t + sPFXZ * zz; zz = -sPFXZ * t + cPFXZ * zz;
-        t = zy; // YZ
-        zy = cPFYZ * t - sPFYZ * zz; zz = sPFYZ * t + cPFYZ * zz;
-        return vec3(zx,zy,zz);
-}
-
-float escape = 0.0f;
-float deBB( vec3 p ) {
-    float Scale = 1.34f;
-    float FoldY = 1.025709f;
-    float FoldX = 1.025709f;
-    float FoldZ = 0.035271f;
-    float JuliaX = -1.763517f;
-    float JuliaY = 0.392486f;
-    float JuliaZ = -1.734913f;
-    float AngX = -51.080209f;
-    float AngY = 0.0f;
-    float AngZ = -29.096322f;
-    float Offset = -3.036726f;
-    int EnableOffset = 1;
-    int Iterations = 80;
-    float Precision = 1.0f;
-    // output _sdf c = _SDFDEF)
-
-    vec4 OrbitTrap = vec4(1,1,1,1);
-    float u2 = 1;
-    float v2 = 1;
-    if(EnableOffset != 0)p = Offset+abs(vec3(p.x,p.y,p.z));
-
-    vec3 p0 = vec3(JuliaX,JuliaY,JuliaZ);
-    float l = 0.0;
-    int i=0;
-	escape = 0.0f;
-    for (i=0; i<Iterations; i++) {
-        p = Rotate(p,AngX,AngY,AngZ);
-        p.x=abs(p.x+FoldX)-FoldX;
-        p.y=abs(p.y+FoldY)-FoldY;
-        p.z=abs(p.z+FoldZ)-FoldZ;
-        p=p*Scale+p0;
-        l=length(p);
-		escape += exp( -0.2f * dot( p, p ) );
-
-        // float rr = dot( p, p );
-		// OrbitTrap.r = max( OrbitTrap.r, rr );
-		// hitColor = inferno( clamp( abs( rr / 100.0f ), 0.0f, 1.0f ) );
-    }
-	// hitColor = vec3( OrbitTrap.r, abs( 10.0f * p.xy ) );
-    return Precision*(l)*pow(Scale, -float(i));
-}
-
-
-
- float deTower( vec3 p ){
-    p.z-=2.5;
-    float s = 3.;
-    float e = 0.;
-    for(int j=0;j++<8;)
-      s*=e=3.8/clamp(dot(p,p),0.,2.),
-      p=abs(p)*e-vec3(1,15,1);
-    return length(cross(p,vec3(1,1,-1)*.577))/s;
-  }
-
-mat2 rot(float a) {
-	return mat2(cos(a),sin(a),-sin(a),cos(a));
-}
-vec4 formula(vec4 p) {
-	p.xz = abs(p.xz+1.)-abs(p.xz-1.)-p.xz;
-	p=p*2./clamp(dot(p.xyz,p.xyz),.15,1.)-vec4(0.5,0.5,0.8,0.);
-	p.xy*=rot(.5);
-	return p;
-}
-float screen(vec3 p) {
-	float d1=length(p.yz-vec2(.25,0.))-.5;
-	float d2=length(p.yz-vec2(.25,2.))-.5;
-	return min(max(d1,abs(p.x-.3)-.01),max(d2,abs(p.x+2.3)-.01));
-}
-float deChannel(vec3 pos) {
-	vec3 tpos=pos;
-	tpos.z=abs(2.-mod(tpos.z,4.));
-	vec4 p=vec4(tpos,1.5);
-	float y=max(0.,.35-abs(pos.y-3.35))/.35;
-
-	for (int i=0; i<8; i++) {p=formula(p);}
-	float fr=max(-tpos.x-4.,(length(max(vec2(0.),p.yz-3.)))/p.w);
-
-	float sc=screen(tpos);
-	return min(sc,fr);
-}
-
-#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
-float deFF(vec3 p){
-	for(int j=0;++j<8;)
-	p.z-=.3,
-	p.xz=abs(p.xz),
-	p.xz=(p.z>p.x)?p.zx:p.xz,
-	p.xy=(p.y>p.x)?p.yx:p.xy,
-	p.z=1.-abs(p.z-1.),
-	p=p*3.-vec3(10,4,2);
-	return length(p)/6e3-.001;
-}
-
-float deGG(vec3 p){
-	return min(.65-length(fract(p+.5)-.5),p.y+.2);
-}
-
-float deTMT( vec3 p ) {
-//   //Too many trees
-//   float scale = 1.9073f;
-//   float angle1 = -9.83f;
-//   float angle2 = -1.16f;
-//   vec3 shift = vec3( -3.508f, -3.593f, 3.295f );
-//   vec3 color = vec3( -0.34, 0.12f, -0.08f );
-
-// // Jump the crater
-//   float scale = 1.8f;
-//   float angle1 = -0.12f;
-//   float angle2 = 0.5f;
-//   vec3 shift = vec3( -2.12f, -2.75f, 0.49f );
-//   vec3 color = vec3( 0.42f, 0.38f, 0.19f );
-
-//   //Beware Of Bumps
-//   float scale = 1.66f;
-//   float angle1 = 1.52f;
-//   float angle2 = 0.19f;
-//   vec3 shift = vec3( -3.83f, -1.94f, -1.09f );
-//   vec3 color = vec3( 0.42f, 0.38f, 0.19f );
-
-  //Mega Citadel
-  float scale = 1.4731f;
-  float angle1 = 0.0f;
-  float angle2 = 0.0f;
-  vec3 shift = vec3( -10.27f, 3.28f, -1.90f );
-  vec3 color = vec3( 1.17f, 0.07f, 1.27f );
-
-  vec2 a1 = vec2(sin(angle1), cos(angle1));
-  vec2 a2 = vec2(sin(angle2), cos(angle2));
-  mat2 rmZ = mat2(a1.y, a1.x, -a1.x, a1.y);
-  mat2 rmX = mat2(a2.y, a2.x, -a2.x, a2.y);
-  float s = 1.0;
-  orbitColor = vec3( 0.0f );
-  for (int i = 0; i <11; ++i) {
-    p.xyz = abs(p.xyz);
-    p.xy *= rmZ;
-    p.xy += min( p.x - p.y, 0.0 ) * vec2( -1., 1. );
-    p.xz += min( p.x - p.z, 0.0 ) * vec2( -1., 1. );
-    p.yz += min( p.y - p.z, 0.0 ) * vec2( -1., 1. );
-    p.yz *= rmX;
-    p *= scale;
-    s *= scale;
-    p.xyz += shift;
-    orbitColor = max( orbitColor, p.xyz * color);
-  }
-  vec3 d = abs( p ) - vec3( 6.0f );
-  return ( min( max( d.x, max( d.y, d.z ) ), 0.0 ) + length( max( d, 0.0 ) ) ) / s;
-}
-
-
-float deGround(vec3 p){
-	vec3 Q;
-	Q=p;
-	Q.xy=vec2(atan(Q.x,Q.y)/.157,length(Q.xy)-3.);
-	Q.zx=fract(Q.zx)-.5;
-	return min(min(length(Q.xy),length(Q.yz))-.2,p.y+.5);
-}
-
-  #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
-  float deChapel(vec3 p){
-    p=abs(p)-3.;
-    if(p.x < p.z)p.xz=p.zx;
-    if(p.y < p.z)p.yz=p.zy;
-    if(p.x < p.y)p.xy=p.yx;
-    float s=2.; vec3 off=p*.5;
-    for(int i=0;i<12;i++){
-      p=1.-abs(p-1.);
-      float k=-1.1*max(1.5/dot(p,p),1.5);
-      s*=abs(k); p*=k; p+=off;
-      p.zx*=rot(-1.2);
-    }
-    float a=2.5;
-    p-=clamp(p,-a,a);
-    return length(p)/s;
-  }
-
-
-
-// from tehsauce - https://www.shadertoy.com/view/MdtBD8
-#define MOD3 vec3(.1031,.11369,.13787)
-vec3 hash_33 ( vec3 p3 ) {
-	p3 = fract(p3 * MOD3);
-    p3 += dot(p3, p3.yxz+19.19);
-    return -1.0 + 2.0 * 
-        fract(vec3((p3.x + p3.y)*p3.z, 
-                   (p3.x+p3.z)*p3.y, 
-                   (p3.y+p3.z)*p3.x));
-}
-
-float simplex_noise(vec3 p) {
-	const float K1 = 0.333333333;
-	const float K2 = 0.166666667;
-	vec3 i = floor(p + (p.x + p.y + p.z) * K1);
-	vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
-	// thx nikita: https://www.shadertoy.com/view/XsX3zB
-	vec3 e = step(vec3(0.0), d0 - d0.yzx);
-	vec3 i1 = e * (1.0 - e.zxy);
-	vec3 i2 = 1.0 - e.zxy * (1.0 - e);
-	vec3 d1 = d0 - (i1 - 1.0 * K2);
-	vec3 d2 = d0 - (i2 - 2.0 * K2);
-	vec3 d3 = d0 - (1.0 - 3.0 * K2);
-	vec4 h = max(0.6 - vec4(dot(d0, d0), dot(d1, d1), 
-							dot(d2, d2), dot(d3, d3)), 0.0);
-	vec4 n = h * h * h * h * vec4(dot(d0, hash_33(i)), 
-									dot(d1, hash_33(i + i1)), 
-									dot(d2, hash_33(i + i2)), 
-									dot(d3, hash_33(i + 1.0)));
-	return dot(vec4(31.316), n);
-}
-
-float noise_sum_abs(vec3 p){
-	float f = 0.0;
-	p = p * 3.0;
-	f += 1.0000 * abs(simplex_noise(p)); p = 2.0 * p;
-	f += 0.5000 * abs(simplex_noise(p)); p = 2.0 * p;
-	f += 0.2500 * abs(simplex_noise(p)); p = 2.0 * p;
-	f += 0.1250 * abs(simplex_noise(p)); p = 2.0 * p;
-	f += 0.0625 * abs(simplex_noise(p)); p = 2.0 * p;
-	return f;
-}
-
-float noise_sum_abs_sin(vec3 p){
-	float f = noise_sum_abs(p);
-	f = sin(f * 2.5 + p.x * 5.0 - 1.5);
-
-	return f;
-}
-
-float sdBoxRipple ( vec3 p ) {
-	const vec3 b = vec3( 3.0f, 1.0f, 3.0f );
-	if ( p.z > 1.45 && abs( p.x ) < 2.7f ) {
-		p.z += 0.25f * ( smoothstep( 2.7f, 1.5f, abs( p.x ) ) ) * noise_sum_abs_sin( 0.3f * p );
-	}
-	vec3 d = abs( p ) - b;
-	return min( max( d.x, max( d.y, d.z ) ), 0.0f )
-		+ length( max( d, 0.0f ) );
-}
-
-  float roundbox( vec3 p, vec3 b, float r ){
-    vec3 q = abs(p) - b;
-    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
-  }
-
-  float df(vec3 co) {
-    float rad = clamp(co.z * 0.05 + 0.45, 0.1, 0.3);
-    co = mod(co, vec3(1.0)) - 0.5;
-    return roundbox(co, vec3(rad, rad, 0.3), 0.1);
-  }
-// polynomial smooth min (k = 0.1);
-float smin_op( float a, float b, float k ) {
-    float h = max( k-abs(a-b), 0.0 )/k;
-    return min( a, b ) - h*h*k*(1.0/4.0);
-}
-  float deGGGG(vec3 p){
-    float body = 999.0;
-    float scale = 0.2;
-    vec3 co = p;
-    mat4 m = mat4(
-    vec4(0.6373087, -0.0796581,  0.7664804, 0.0),
-    vec4(0.2670984,  0.9558195, -0.1227499, 0.0),
-    vec4(-0.7228389,  0.2829553,  0.6304286, 0.0),
-    vec4(0.1, 0.6, 0.2, 0.0));
-    for (int i=0; i<3; i++) {
-      co = (m * vec4(co, float(i))).xyz;
-      scale *= (3.0);
-      float field = df(co * scale) / scale;
-      body = smin_op(body, field, 0.05);
-    }
-    return -body;
-  }
-
-float deTTTT( vec3 p ) {
-    float itr=10.,r=0.1;
-    p=mod(p-1.5,3.)-1.5;
-    p=abs(p)-1.3;
-    if(p.x < p.z)p.xz=p.zx;
-    if(p.y < p.z)p.yz=p.zy;
-    if(p.x < p.y)p.xy=p.yx;
-    float s=1.;
-    p-=vec3(.5,-.3,1.5);
-  	for(float i=0.;i++ < itr;) {
-  		float r2=2./clamp(dot(p,p),.1,1.);
-  		p=abs(p)*r2;
-  		p-=vec3(.7,.3,5.5);
-  		s*=r2;
-  	}
-    return length(p.xy)/(s-r);
-  }
-
-  float deSSSS(vec3 p){
-    float i,g,e=1.0f,s;
-    vec3 q=p; s=5.;
-    for(int j=0;j++<6;s*=e)
-      p=sign(p)*(1.7-abs(p-1.7)),
-      p=p*(e=8./clamp(dot(p,p),.3,5.))+q-vec3(.8,12,.8);
-    return length(p.yz)/s;
-  }
-
-  float de2SSS(vec3 p){
-    return (length(vec2((length(vec2(length(p.xy)-1.3,
-      length(p.zy)-1.3))-.5), dot(cos(p*12.),sin(p.zxy*12.))*.1))-.02)*.3;
-  }
-
-
- float deNNNNN( vec3 p ){
-    float s = 2.;
-    float e = 0.;
-    for(int j=0;++j<7;)
-      p.xz=abs(p.xz)-2.3,
-      p.z>p.x?p=p.zyx:p,
-      p.z=1.5-abs(p.z-1.3+sin(p.z)*.2),
-      p.y>p.x?p=p.yxz:p,
-      p.x=3.-abs(p.x-5.+sin(p.x*3.)*.2),
-      p.y>p.x?p=p.yxz:p,
-      p.y=.9-abs(p.y-.4),
-      e=12.*clamp(.3/min(dot(p,p),1.),.0,1.)+
-      2.*clamp(.1/min(dot(p,p),1.),.0,1.),
-      p=e*p-vec3(7,1,1),
-      s*=e;
-    return length(p)/s;
-  }
-
- float deWER(vec3 p){
-    float s=2.;
-    float l=dot(p,p);
-    float e=0.;
-    escape=0.;
-    p=abs(abs(p)-.7)-.5;
-    p.x < p.y?p=p.yxz:p;
-    p.y < p.z?p=p.xzy:p;
-    for(int i=0;i++<8;){
-      s*=e=2./clamp(dot(p,p),.004+tan(12.)*.002,1.35);
-      p=abs(p)*e-vec2(.5*l,12.).xxy;
-    }
-    return length(p-clamp(p,-1.,1.))/s;
-  }
-
-  float deLKSDFGK( vec3 p ){
-    vec3  di = abs(p) - vec3(1.);
-    float mc = max(di.x, max(di.y, di.z));
-    float d =  min(mc,length(max(di,0.0)));
-    vec4 res = vec4( d, 1.0, 0.0, 0.0 );
-
-    const mat3 ma = mat3( 0.60, 0.00,  0.80,
-                          0.00, 1.00,  0.00,
-                          -0.20, 0.00,  0.30 );
-    float off = 0.0005;
-    float s = 1.0;
-    for( int m=0; m<4; m++ ){
-      p = ma*(p+off);
-      vec3 a = mod( p*s, 2.0 )-1.0;
-      s *= 3.0;
-      vec3 r = abs(1.0 - 3.0*abs(a));
-      float da = max(r.x,r.y);
-      float db = max(r.y,r.z);
-      float dc = max(r.z,r.x);
-      float c = (min(da,min(db,dc))-1.0)/s;
-      if( c > d )
-        d = c;
-    }
-    return d;
-  }
-
-  float deTST(vec3 p){
-    const int iterations = 20;
-    float d = -2.; // vary this parameter, range is like -20 to 20
-    p=p.yxz;
-    pR(p.yz, 1.570795);
-    p.x += 6.5;
-    p.yz = mod(abs(p.yz)-.0, 20.) - 10.;
-    float scale = 1.25;
-    p.xy /= (1.+d*d*0.0005);
-
-    float l = 0.;
-    for (int i=0; i < iterations; i++) {
-      p.xy = abs(p.xy);
-      p = p*scale + vec3(-3. + d*0.0095,-1.5,-.5);
-      pR(p.xy,0.35-d*0.015);
-      pR(p.yz,0.5+d*0.02);
-      vec3 p6 = p*p*p; p6=p6*p6;
-      l =pow(p6.x + p6.y + p6.z, 1./6.);
-    }
-    return l*pow(scale, -float(iterations))-.15;
-  }
-
-
-float deLLLL( vec3 p ){
-  vec3 k = vec3( 5.0, 2.0, 1.0 );
-  p.y += 5.5;
-  for( int j = 0; ++j < 8; ) {
-    p.xz = abs( p.xz );
-    p.xz = p.z > p.x ? p.zx : p.xz;
-    p.z = 0.9 - abs( p.z - 0.9 );
-    p.xy = p.y > p.x ? p.yx : p.xy;
-    p.x -= 2.3;
-    p.xy = p.y > p.x ? p.yx : p.xy;
-    p.y += 0.1;
-    p = k + ( p - k ) * 3.2;
-  }
-  return length( p ) / 6e3 - 0.001;
-}
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
 //=============================================================================================================================
@@ -1124,24 +696,58 @@ float de( in vec3 p ) {
 	hitRoughness = 0.0f;
 
 	// form for the following:
+	// {
 		// const d = blah whatever SDF
 		// sceneDist = min( sceneDist, d )
 		// if ( sceneDist == d && d < epsilon ) {
-			// set material specifics - hitColor, hitSurfaceType
+			// set material specifics - hitColor, hitSurfaceType, hitRoughness
 		// }
+	// }
 
-	// const float dFractal2 = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
-	const float dFractal2 = deLLLL( p );
-	sceneDist = min( sceneDist, dFractal2 );
-	if ( sceneDist == dFractal2 && dFractal2 < epsilon ) {
-		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-		// hitSurfaceType = METALLIC;
-		// hitRoughness = 0.9f;
-		hitColor = vec3( 0.713f, 0.170f, 0.026f );
-		// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
-		// hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
-		// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	{
+		// const float d = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+		// const float d = deFractal( p );
+		// const float d = deGazTemple1( p );
+		// const float d = deGazTemple2( p );
+		const float d = deGazTemple3( p );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+			hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
+			// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
+			// hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+			// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+		}
 	}
+
+	{
+		const float d = deGazTemple2( p );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+			hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
+		}
+	}
+
+	{
+		const float d = deGazTemple1( p );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+			hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+		}
+	}
+
+	// {
+	// 	const float d = max( deSquiggles( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = EMISSIVE;
+	// 		hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 	}
+	// }
+
+
 
 	return sceneDist;
 }
