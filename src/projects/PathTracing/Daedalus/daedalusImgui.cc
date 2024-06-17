@@ -2,7 +2,7 @@
 
 void Daedalus::ShowDaedalusConfigWindow() {
 	ZoneScoped;
-	ImGui::Begin( "Daedalus", NULL, ImGuiWindowFlags_NoScrollWithMouse );
+	ImGui::Begin( "Daedalus", NULL );
 
 	ImGui::Text( "Daedalus" );
 	ImGui::Checkbox( "Run Renderer", &daedalusConfig.render.render );
