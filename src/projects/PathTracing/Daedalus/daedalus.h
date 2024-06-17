@@ -299,7 +299,8 @@ public:
 		shaders[ "Copy Back" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
 		shaders[ "Histogram" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/histogram.cs.glsl" ).shaderHandle;
 		shaders[ "Waveform Prepare" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformPrepare.cs.glsl" ).shaderHandle;
-		shaders[ "Waveform Composite" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformComposite.cs.glsl" ).shaderHandle;
+		shaders[ "Waveform Composite" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformComposite.cs.glsl" ).shaderHandle;
+		shaders[ "Parade Composite" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/paradeComposite.cs.glsl" ).shaderHandle;
 		shaders[ "Vectorscope Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/vectorscopePrepare.cs.glsl" ).shaderHandle;
 		shaders[ "Vectorscope Composite" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/vectorscopeComposite.cs.glsl" ).shaderHandle;
 		daedalusConfig.render.scene.skyNeedsUpdate = true;
