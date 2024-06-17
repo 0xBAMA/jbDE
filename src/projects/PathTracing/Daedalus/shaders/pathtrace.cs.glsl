@@ -370,6 +370,14 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 	// handle volumetrics, here? something where you attenuate by a term, weighted by exp( -distance )
 		// with a chance to randomly scatter, which will give a random ray, and the position will be the point where it scatters
 
+// // this sucks
+// 	if ( ( NormalizedRandomFloat() * maxDistance ) < intersection.dTravel ) {
+// 		throughput *= exp( -intersection.dTravel * 0.0003f );
+// 		ray.direction = normalize( rayPrevious.direction + 0.125f * RandomUnitVector() );
+// 		ray.origin = NormalizedRandomFloat() * intersection.dTravel * rayPrevious.direction + rayPrevious.origin;
+// 		return true;
+// 	}
+
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 
