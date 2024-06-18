@@ -177,7 +177,7 @@ public:
 		int levelsDeep = 0;
 		int maxLevels = 10;
 		// int maxLevels = 8;
-		int numCopies = 20;
+		int numCopies = 30;
 		vec3 basePoint = vec3( 0.0f, 0.0f, -1.0f );
 		mat3 basis = mat3( 1.0f );
 	};
@@ -250,9 +250,9 @@ public:
 		PerlinNoise pNoise;
 
 		palette::PaletteIndex = ChorizoConfig.grassPaletteID;
-		for ( int i = 0; i < 2000000; i++ ) {
+		for ( int i = 0; i < 5000000; i++ ) {
 			if ( i % 143 == 0 ) {
-				cout << "\radding grass " << i + 1 << " / 2000000";
+				cout << "\radding grass " << i + 1 << " / 5000000";
 			}
 			const vec2 pick = vec2( x(), y() );
 			const float noiseValue = pNoise.noise( pick.x / 2000.0f, pick.y / 2000.0f, 0.0f );
@@ -290,7 +290,7 @@ public:
 				}
 
 				const float heightValue = -p.model.GetAtXY( x, y )[ 0 ];
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius(), palette::paletteRef( RemapRange( -heightValue, 0.0f, 1.0f, ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax ) ) );
+				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius() * 2.0f, palette::paletteRef( RemapRange( -heightValue, 0.0f, 1.0f, ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax ) ) );
 			}
 		}
 

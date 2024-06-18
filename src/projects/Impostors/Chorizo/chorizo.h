@@ -1060,7 +1060,6 @@ public:
 	void DrawAPIGeometry () {
 		// ZoneScoped; scopedTimer Start( "API Geometry" );
 
-
 		{	ZoneScoped; scopedTimer Start( "Bounding Box Compute" );
 			// prepare the bounding boxes
 			GLuint shader = shaders[ "Bounds" ];
