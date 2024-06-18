@@ -401,3 +401,12 @@ target_link_libraries( Chorizo
 	PUBLIC
 	engineBase
 )
+
+add_executable( ChorizoForest
+	src/projects/Impostors/ChorizoForest/main.cc
+)
+
+target_link_libraries( ChorizoForest
+	PUBLIC
+	engineBase
+)
