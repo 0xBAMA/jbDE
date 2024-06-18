@@ -336,17 +336,17 @@ target_link_libraries( SoftBodies
 )
 
 # =================================================================================================
-# SoftBodies
+# SoftBodies (CPU) using the Chorizo renderer
 # =================================================================================================
-add_executable( SoftBodiesGPU
-	src/projects/SoftBodies/GPU/main.cc
+add_executable( ChorizoSoftbody
+	src/projects/SoftBodies/ChorizoSoftbody/main.cc
+	src/projects/SoftBodies/ChorizoSoftbody/model.cc
 )
 
-target_link_libraries( SoftBodiesGPU
+target_link_libraries( ChorizoSoftbody
 	PUBLIC
 	engineBase
 )
-
 
 # =================================================================================================
 # =================================================================================================
