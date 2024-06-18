@@ -44,6 +44,7 @@ void engineBase::LoadConfig () {
 		config.clearColor.g				= j[ "system" ][ "clearColor" ][ "g" ];
 		config.clearColor.b				= j[ "system" ][ "clearColor" ][ "b" ];
 		config.clearColor.a				= j[ "system" ][ "clearColor" ][ "a" ];
+		config.allowMultipleViewports	= j[ "system" ][ "allowMultipleViewports" ];
 
 		config.oneShot					= j[ "system" ][ "oneShot" ]; // relatively special purpose - run intialization, and one pass through the main loop before quitting
 		showDemoWindow					= j[ "system" ][ "showImGUIDemoWindow" ];
@@ -362,7 +363,9 @@ void engineBase::ImguiSetup () {
 
 		// enable docking
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+		if ( config.allowMultipleViewports )
+			io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplSDL2_InitForOpenGL( window.window, window.GLcontext );

@@ -16,6 +16,7 @@ struct configData {
 	uint8_t OpenGLVersionMinor = 3;
 	bool OpenGLVerboseInit = false;
 	bool SDLDisplayModeDump = false;
+	bool allowMultipleViewports = false;
 
 	bool reportPlatformInfo = true;
 	bool loadDataResources = true;

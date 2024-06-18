@@ -195,7 +195,7 @@ void engineBase::ImguiFrameEnd () {
 
 	// platform windows ( pop out windows )
 	ImGuiIO &io = ImGui::GetIO();
-	if ( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable ) {
+	if ( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable && config.allowMultipleViewports ) {
 		SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
 		SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
 		ImGui::UpdatePlatformWindows();
