@@ -330,7 +330,7 @@ public:
 				const vec3 grey = vec3( 0.618f );
 				const vec3 offset = vec3( 0.0f, 0.0f, 0.8f * r );
 				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, r, color );
-				ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
+				// ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
 
 				ChorizoConfig.lights.push_back( vec4( position, 0.0f ) );
 				ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
@@ -871,7 +871,7 @@ public:
 		HandleQuitEvents();
 
 		// derived-class-specific functionality
-		OnUpdate();
+		// OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
