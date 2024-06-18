@@ -16,7 +16,7 @@ uniform float time;
 void main () {
 
 	// getting this object's parameters
-	uint index = gl_GlobalInvocationID.x;
+	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
 	parameters_t parameters = parametersList[ index ];
 
 	// wiggle it around - this is very half assed, but definite proof of concept here

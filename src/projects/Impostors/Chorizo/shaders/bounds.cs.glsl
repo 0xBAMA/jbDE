@@ -93,7 +93,7 @@ mat4 RoundedBoxBounds ( parameters_t parameters ) {
 void main () {
 
 	// getting this object's parameters
-	uint index = gl_GlobalInvocationID.x;
+	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
 	parameters_t parameters = parametersList[ index ];
 	mat4 result;
 

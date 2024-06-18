@@ -1065,7 +1065,8 @@ public:
 			// prepare the bounding boxes
 			GLuint shader = shaders[ "Bounds" ];
 			glUseProgram( shader );
-			glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+			const uint workgroupsRoundedUp = ( ChorizoConfig.numPrimitives + 63 ) / 64;
+			glDispatchCompute( 64, workgroupsRoundedUp / 64, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
@@ -1180,7 +1181,8 @@ public:
 		// const GLuint shader = shaders[ "Animate" ];
 		// glUseProgram( shader );
 		// glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 3000.0f );
-		// glDispatchCompute( ( ChorizoConfig.numPrimitives + 63 ) / 64, 1, 1 );
+		// const uint workgroupsRoundedUp = ( ChorizoConfig.numPrimitives + 63 ) / 64;
+		// glDispatchCompute( 64, workgroupsRoundedUp / 64, 1 );
 		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 		simulationModel.Update( 3 );
