@@ -64,7 +64,8 @@ struct colorGradingConfig_t {
 	bool updateHistogram = false;
 	GLuint colorHistograms;
 
-	// waveforms
+	// waveform displays
+	bool updateParade = false;
 	bool updateWaveform = false;
 	GLuint waveformMins;
 	GLuint waveformMaxs;

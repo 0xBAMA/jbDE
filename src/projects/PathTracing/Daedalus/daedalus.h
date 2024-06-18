@@ -80,10 +80,15 @@ public:
 				textureManager.Add( "Waveform Luma", opts );
 
 				// present buffer
+				// parade graph, separate R, G, B, Luma
 				opts.dataType		= GL_RGBA8;
 				opts.minFilter		= GL_LINEAR;
 				opts.magFilter		= GL_LINEAR;
 				opts.height			= 1024;
+				textureManager.Add( "Parade Composite", opts );
+
+				// waveform, with RGB stacked
+				opts.height			= 256;
 				textureManager.Add( "Waveform Composite", opts );
 
 				// data for the vectorscope (hue/chroma plot)
@@ -162,6 +167,14 @@ public:
 			glm::quat rot = glm::angleAxis( -scalar, daedalusConfig.render.basisZ );
 			daedalusConfig.render.basisX = ( rot * vec4( daedalusConfig.render.basisX, 0.0f ) ).xyz();
 			daedalusConfig.render.basisY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
+		}
+
+		// zoom in and out with plus/minus
+		if ( state[ SDL_SCANCODE_MINUS ] ) {
+			daedalusConfig.render.FoV += scalar;
+		}
+		if ( state[ SDL_SCANCODE_EQUALS ] ) {
+			daedalusConfig.render.FoV -= scalar;
 		}
 
 		// f to reset basis, shift + f to reset basis and home to origin
@@ -264,7 +277,7 @@ public:
 	void SendPrepareUniforms();
 	void SendPresentUniforms();
 	void SendWaveformPrepareUniforms();
-	void SendWaveformCompositeUniforms();
+	void SendWaveformCompositeUniforms( int mode );
 	void SendVectorscopePrepareUniforms();
 	void SendVectorscopeCompositeUniforms();
 
@@ -380,7 +393,7 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		if ( daedalusConfig.render.grading.updateWaveform == true ) {	// prepping the waveform display
+		if ( daedalusConfig.render.grading.updateWaveform == true || daedalusConfig.render.grading.updateParade == true ) {	// prepping the waveform display
 			scopedTimer Start( "Waveform Prep/Composite" );
 
 			// initialize the min/max buffers
@@ -394,12 +407,23 @@ public:
 			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, ( daedalusConfig.targetHeight + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
-			// create the waveform image
-			const GLuint compositeShader = shaders[ "Waveform Composite" ];
-			glUseProgram( compositeShader );
-			SendWaveformCompositeUniforms();
-			glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, 64, 1 ); // height of 1024
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			if ( daedalusConfig.render.grading.updateWaveform ) {
+				// create the waveform image
+				const GLuint compositeShader = shaders[ "Waveform Composite" ];
+				glUseProgram( compositeShader );
+				SendWaveformCompositeUniforms( 1 );
+				glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, 16, 1 ); // height of 256
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
+
+			if ( daedalusConfig.render.grading.updateParade ) {
+				// create the waveform image
+				const GLuint compositeShader = shaders[ "Parade Composite" ];
+				glUseProgram( compositeShader );
+				SendWaveformCompositeUniforms( 0 );
+				glDispatchCompute( ( daedalusConfig.targetWidth + 15 ) / 16, 64, 1 ); // height of 1024
+				glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			}
 		}
 
 		if ( daedalusConfig.render.grading.updateVectorscope == true ) {

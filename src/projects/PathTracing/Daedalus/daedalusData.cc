@@ -376,14 +376,19 @@ void Daedalus::SendWaveformPrepareUniforms() {
 	textureManager.BindImageForShader( "Waveform Luma", "lumaImage", shader, 4 );
 }
 
-void Daedalus::SendWaveformCompositeUniforms() {
-	const GLuint shader = shaders[ "Waveform Composite" ];
-
+void Daedalus::SendWaveformCompositeUniforms( int mode ) {
+	GLuint shader;
+	if ( mode == 0 ) {
+		shader = shaders[ "Parade Composite" ];
+		textureManager.BindImageForShader( "Parade Composite", "compositedResult", shader, 5 );
+	} else {
+		shader = shaders[ "Waveform Composite" ];
+		textureManager.BindImageForShader( "Waveform Composite", "compositedResult", shader, 5 );
+	}
 	textureManager.BindImageForShader( "Waveform Red", "redImage", shader, 1 );
 	textureManager.BindImageForShader( "Waveform Green", "greenImage", shader, 2 );
 	textureManager.BindImageForShader( "Waveform Blue", "blueImage", shader, 3 );
 	textureManager.BindImageForShader( "Waveform Luma", "lumaImage", shader, 4 );
-	textureManager.BindImageForShader( "Waveform Composite", "compositedResult", shader, 5 );
 }
 
 void Daedalus::ClearColorGradingWaveformBuffer() {
