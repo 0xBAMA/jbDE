@@ -228,7 +228,7 @@ void model::Update ( const int numUpdates ) {
 		CachePreviousValues();
 		SingleThreadSoftbodyUpdate();
 	}
-	cout << "singlethread update " << numUpdates << "x " << std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - tstart ).count() / 1000.0f << "us\n";
+	// cout << "singlethread update " << numUpdates << "x " << std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - tstart ).count() / 1000.0f << "us\n";
 }
 
 void model::addNode( float* mass, glm::vec3 position, bool anchored ) {

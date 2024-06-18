@@ -111,18 +111,18 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Draw" ] = computeShader( "./src/projects/SoftBodies/ChorizoSoftbody/shaders/draw.cs.glsl" ).shaderHandle;
-			shaders[ "Bounds" ] = computeShader( "./src/projects/SoftBodies/ChorizoSoftbody/shaders/bounds.cs.glsl" ).shaderHandle;
-			shaders[ "Animate" ] = computeShader( "./src/projects/SoftBodies/ChorizoSoftbody/shaders/animate.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/Impostors/ChorizoSoftbody/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Bounds" ] = computeShader( "./src/projects/Impostors/ChorizoSoftbody/shaders/bounds.cs.glsl" ).shaderHandle;
+			shaders[ "Animate" ] = computeShader( "./src/projects/Impostors/ChorizoSoftbody/shaders/animate.cs.glsl" ).shaderHandle;
 
 			// setup raster shaders
 			shaders[ "Bounding Box" ] = regularShader(
-				"./src/projects/SoftBodies/ChorizoSoftbody/shaders/bbox.vs.glsl",
-				"./src/projects/SoftBodies/ChorizoSoftbody/shaders/bbox.fs.glsl"
+				"./src/projects/Impostors/ChorizoSoftbody/shaders/bbox.vs.glsl",
+				"./src/projects/Impostors/ChorizoSoftbody/shaders/bbox.fs.glsl"
 			).shaderHandle;
 			shaders[ "Point Sprite" ] = regularShader(
-				"./src/projects/SoftBodies/ChorizoSoftbody/shaders/pointSprite.vs.glsl",
-				"./src/projects/SoftBodies/ChorizoSoftbody/shaders/pointSprite.fs.glsl"
+				"./src/projects/Impostors/ChorizoSoftbody/shaders/pointSprite.vs.glsl",
+				"./src/projects/Impostors/ChorizoSoftbody/shaders/pointSprite.fs.glsl"
 			).shaderHandle;
 
 			// create and bind a basic vertex array
@@ -355,7 +355,7 @@ public:
 		static bool firstTime = true;
 		
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
-		cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
+		// cout << newline << "Created " << ChorizoConfig.numPrimitives << " primitives" << newline;
 
 		// create the transforms buffer
 		if ( firstTime ) {
@@ -374,7 +374,7 @@ public:
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
 
 		ChorizoConfig.numPointSprites = ChorizoConfig.geometryManager.countPointSprite;
-		cout << newline << "Created " << ChorizoConfig.numPointSprites << " point sprites" << newline;
+		// cout << newline << "Created " << ChorizoConfig.numPointSprites << " point sprites" << newline;
 
 		// point sprite spheres, separate from the bounding box impostors
 		if ( firstTime ) {

@@ -336,19 +336,6 @@ target_link_libraries( SoftBodies
 )
 
 # =================================================================================================
-# SoftBodies (CPU) using the Chorizo renderer
-# =================================================================================================
-add_executable( ChorizoSoftbody
-	src/projects/SoftBodies/ChorizoSoftbody/main.cc
-	src/projects/SoftBodies/ChorizoSoftbody/model.cc
-)
-
-target_link_libraries( ChorizoSoftbody
-	PUBLIC
-	engineBase
-)
-
-# =================================================================================================
 # =================================================================================================
 # Point Sprite Experiments
 # =================================================================================================
@@ -402,11 +389,27 @@ target_link_libraries( Chorizo
 	engineBase
 )
 
+# =================================================================================================
+# Random L-system generator
+# =================================================================================================
 add_executable( ChorizoForest
 	src/projects/Impostors/ChorizoForest/main.cc
 )
 
 target_link_libraries( ChorizoForest
+	PUBLIC
+	engineBase
+)
+
+# =================================================================================================
+# SoftBodies (CPU) using the Chorizo renderer
+# =================================================================================================
+add_executable( ChorizoSoftbody
+	src/projects/Impostors/ChorizoSoftbody/main.cc
+	src/projects/Impostors/ChorizoSoftbody/model.cc
+)
+
+target_link_libraries( ChorizoSoftbody
 	PUBLIC
 	engineBase
 )
