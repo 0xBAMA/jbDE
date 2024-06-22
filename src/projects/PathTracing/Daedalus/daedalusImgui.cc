@@ -172,6 +172,7 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			ImGui::Separator();
 			ImGui::SliderInt( "Max Bounces", &daedalusConfig.render.maxBounces, 0, 256 );
 			ImGui::SliderFloat( "Exposure", &daedalusConfig.render.exposure, 0.0f, 10.0f );
+			ImGui::SliderFloat( "Epsilon", &daedalusConfig.render.epsilon, 0.0f, 0.01f, "%.6f", ImGuiSliderFlags_Logarithmic );
 			ImGui::Separator();
 
 			ImGui::Text( "Camera Mode: " );
