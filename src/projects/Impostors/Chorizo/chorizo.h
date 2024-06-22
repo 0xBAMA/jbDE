@@ -144,10 +144,6 @@ public:
 			do { ChorizoConfig.groundPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.groundPaletteID ].colors.size() > colorCap );
 			do { ChorizoConfig.lightPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.lightPaletteID ].colors.size() > colorCap );
 
-			// regenTree();
-			simulationModel.loadFramePoints();
-
-			AddCurrentSoftbodyPoints();
 			AddLights();
 			PrepSSBOs();
 
@@ -253,172 +249,7 @@ public:
 		}
 	}
 
-	void AddCurrentSoftbodyPoints() {
-		const vec3 scale = vec3( 1.0f, -1.0f, 1.0f );
-		// rng colorGenerator = rng( 0.0f, 1.0f );
-		const bool tensionColor = true;
-		for ( auto& e : simulationModel.edges ) {
-			float radius = 0.0f;
-			switch ( e.type ) {
-				case SUSPENSION_INBOARD:
-					radius = 0.015f;
-				break;
-				case SUSPENSION:
-					radius = 0.015f;
-				break;
-				case CHASSIS:
-					radius = 0.015f;
-				break;
-				default: break;
-			}
-			vec3 color = vec3( 0.0f );
-			const vec3 point1 = simulationModel.nodes[ e.node1 ].position * scale;
-			const vec3 point2 = simulationModel.nodes[ e.node2 ].position * scale;
-			if ( tensionColor == true ) {
-				const vec3 blue = vec3( 0.0f, 0.0f, 1.0f );
-				const vec3 red = vec3( 1.0f, 0.0f, 0.0f );
-				const vec3 white = vec3( 1.0f );
-				const float currentLength = glm::distance( point1, point2 );
-				const float ratio = glm::clamp( RemapRange( currentLength, 0.0f, e.baseLength, 0.0f, 1.0f ), 0.0f, 2.0f );
-				// lerp to white at base length
-				if ( ratio > 1.0f ) {
-					// blue if they're longer ( 1.5x )
-					color = glm::mix( white, blue, glm::clamp( RemapRange( ratio, 1.0f, 1.05f, 0.0f, 1.0f ), 0.0f, 1.0f ) );
-				} else {
-					// red if they're shorter ( 0.5x )
-					color = glm::mix( white, red, glm::clamp( RemapRange( ratio, 1.0f, 0.95f, 0.0f, 1.0f ), 0.0f, 1.0f ) );
-				}
-			// } else {
-				color = color * palette::paletteRef( e.type / 5.0f + 0.1f );
-			}
-			ChorizoConfig.geometryManager.AddCapsule( point1, point2, radius, color );
-		}
-
-		for ( auto& n : simulationModel.nodes ) {
-			if ( n.anchored ) {
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( n.position * scale,
-					0.1f, palette::paletteRef( 0.5f ) );
-			// } else { // chassis nodes
-			// 	ChorizoConfig.geometryManager.AddPointSpriteSphere( n.position * scale,
-			// 		0.02f, palette::paletteRef( 0.5f ) );
-			}
-		}
-
-		// the ground nodes - this could be done more efficiently, but whatever
-		for ( float x = -1.0; x < 1.0f; x += 0.01f ) {
-			for ( float y = -1.5f; y < 1.5f; y += 0.01f ) {
-				const float scaledX = x / simulationModel.scale;
-				const float scaledY = y / simulationModel.scale;
-				// const float groundHeight = -simulationModel.getGroundPoint( scaledX, scaledY ) * simulationModel.scale;
-				const float groundHeight = -simulationModel.getGroundPoint( scaledX, scaledY ) + 0.5f;
-				ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( scaledX, groundHeight, scaledY ), 0.04f, palette::paletteRef( 0.5f ) );
-			}
-		}
-	}
-
 	void regenTree () {
-
-		recursiveTreeConfig localCopy = myConfig;
-
-		rotateJitter = rng( localCopy.rotateJitterMin, localCopy.rotateJitterMax );
-		shrinkJitter = rng( localCopy.shrinkJitterMin, localCopy.shrinkJitterMax );
-		branchJitter = rng( localCopy.branchJitterMin, localCopy.branchJitterMax );
-
-		// ChorizoConfig.geometryManager.PreallocateLists( 100000000 );
-
-		// particleEroder p;
-		// p.InitWithDiamondSquare();
-		// Image_1F::rangeRemapInputs_t remap;
-		// // p.model.RangeRemap( &remap );
-
-		// int numSteps = 10;
-		// for ( int i = 0; i <= numSteps; i++ ) {
-		// 	cout << "\rRunning eroder: " << i << " / " << numSteps << std::flush;
-		// 	p.Erode( 1000 );
-		// }
-
-		// cout << endl;
-		// p.Save( "test.png" );
-
-		// // place some grass, brush
-		// const float heightScale = 0.5f;
-		// const int w = p.model.Width();
-		// const int h = p.model.Height();
-		// const vec2 scale = vec2( 20.0f );
-		// rng radius = rng( 0.013f, 0.006f );
-		// rngi x = rngi( 5, w - 5 );
-		// rngi y = rngi( 5, h - 5 );
-		// rng reject = rng( 0.0f, 1.0f );
-		// rng jitter = rng( 0.2f, 1.1f );
-		// rng di = rng( -0.3f, 0.3f );
-		// PerlinNoise pNoise;
-
-		// palette::PaletteIndex = ChorizoConfig.grassPaletteID;
-		// for ( int i = 0; i < 5000000; i++ ) {
-		// 	if ( i % 143 == 0 ) {
-		// 		cout << "\radding grass " << i + 1 << " / 2000000";
-		// 	}
-		// 	const vec2 pick = vec2( x(), y() );
-		// 	const float noiseValue = pNoise.noise( pick.x / 2000.0f, pick.y / 2000.0f, 0.0f );
-		// 	// if ( ( reject() ) > noiseValue ) {
-		// 	if ( 0.5f > noiseValue ) {
-
-		// 		// this is bullshit, all this is bullshit, needs work
-		// 		vec3 normal = p.GetSurfaceNormal( uint( pick.x ), uint( pick.y ) );
-		// 		normal.y *= 0.01f;
-		// 		normal = glm::normalize( normal ).xzy();
-		// 		normal = glm::normalize( normal + vec3( di(), di(), di() ) );
-		// 		normal = glm::normalize( normal + vec3( di(), di(), di() ) );
-		// 		normal = glm::normalize( normal + vec3( di(), di(), di() ) );
-		// 		const float dUp = dot( normal, vec3( 0.0f, 0.0f, 1.0f ) );
-		// 		// if ( dUp > 0.9f ) continue;
-		// 		normal *= RemapRange( pow( RemapRange( dUp, -1.0f, 1.0f, 0.0f, 1.0f ), 10.0f ), 0.0f, 1.0f, 0.1f, 6.18f );
-
-		// 		const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
-		// 		const vec3 basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
-		// 		// const vec3 top = basePoint + vec3( xyDistrib(), xyDistrib(), zDistrib() );
-		// 		const vec3 top = basePoint + normal * 0.1f * jitter();
-		// 		// ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( noiseValue ) );
-		// 		ChorizoConfig.geometryManager.AddCapsule( basePoint, top, radius(), palette::paletteRef( RemapRange( dUp, 0.75f, 1.0f, ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax ) ) );
-		// 	}
-		// }
-
-		// cout << endl;
-
-		// // do points, based on the heightmap
-		// int i = 0;
-		// palette::PaletteIndex = ChorizoConfig.groundPaletteID;
-
-		// radius = rng( 0.01f, 0.005f );
-		// for ( int y = 0; y < h; y++ ) {
-		// 	for ( int x = 0; x < w; x++ ) {
-				
-		// 		if ( ++i % 143 == 0 ) {
-		// 			cout << "\radding ground " << ++i << " / " << w * h;
-		// 		}
-
-		// 		const float heightValue = -p.model.GetAtXY( x, y )[ 0 ];
-		// 		ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( ( float( x ) / float( w ) - 0.5f ) * scale.x, ( float( y ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f ), radius(), palette::paletteRef( RemapRange( -heightValue, 0.0f, 1.0f, ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax ) ) );
-		// 	}
-		// }
-
-		// cout << endl;
-
-		// // do trees, positioned by their location on the map
-		// palette::PaletteIndex = ChorizoConfig.treePaletteID;
-		// for ( int i = 0; i < localCopy.numCopies; i++ ) {
-		// 	cout << "\radding trees " << i + 1 << " / " << localCopy.numCopies;
-		// 	// place the base point, consider also the z axis on the map
-
-		// 	const vec2 pick = vec2( x(), y() );
-		// 	const float heightValue = -p.model.GetAtXY( pick.x, pick.y )[ 0 ];
-		// 	localCopy.basePoint = vec3( ( pick.x / float( w ) - 0.5f ) * scale.x, ( pick.y / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f );
-		// 	TreeRecurse( localCopy );
-		// }
-
-		// cout << endl;
-
-
 
 		// roving pipes
 		std::unordered_map< glm::ivec3, int > occupancyMap;
@@ -442,7 +273,6 @@ public:
 			// 	rngi pick = rngi( 0, 2 );
 			// 	rngi offset = rngi( -1, 1 );
 			// 	ivec3 point = ivec3( 0 );aaaA
-
 
 			// 	// do {
 			// 	// 	point = ivec3( offset(), offset(), offset() );
@@ -534,8 +364,6 @@ public:
 			}
 		};
 
-
-
 		// rngi xyPick = rngi( -100, 100 );
 		// rngi zPick = rngi( -200, 200 );
 		// for ( int i = 0; i < 150; i++ ) {
@@ -563,7 +391,6 @@ public:
 				}
 			}
 		}
-
 
 		for ( int i = 0; i < 200; i++ ) {
 			// place the rover, at some initial point
@@ -671,7 +498,6 @@ public:
 
 	void PrepSceneParameters () {
 		// const float time = SDL_GetTicks() / 10000.0f;
-
 		static rng jitterAmount = rng( 0.0f, 1.0f );
 		const vec2 pixelJitter = vec2( jitterAmount() - 0.5f, jitterAmount() - 0.5f ) * 0.001f;
 		const vec2 hexJitter = UniformSampleHexagon( vec2( jitterAmount(), jitterAmount() ) ) * ChorizoConfig.apertureAdjust;
@@ -705,31 +531,6 @@ public:
 		const bool control	= ( k & KMOD_CTRL );
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
-
-	// 	if ( state[ SDL_SCANCODE_R ] ) {
-	// 		ChorizoConfig.geometryManager.ClearLists();
-	// 		ChorizoConfig.lights.clear();
-	// 		regenTree();
-
-	// // I want to try this - clear out old buffer data, needs to be done before the counts are updated to avoid leftover stuff
-	// 	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClearBufferData.xhtml
-
-	// 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
-	// 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.shapeParametersBuffer );
-	// 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPrimitives * 4, ( GLvoid * ) ChorizoConfig.geometryManager.parametersList.data(), GL_DYNAMIC_COPY );
-	// 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, ChorizoConfig.shapeParametersBuffer );
-
-	// 		// point sprite spheres, separate from the bounding box impostors
-	// 		ChorizoConfig.numPointSprites = ChorizoConfig.geometryManager.countPointSprite;
-	// 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.pointSpriteParametersBuffer );
-	// 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numPointSprites * 4, ( GLvoid * ) ChorizoConfig.geometryManager.pointSpriteParametersList.data(), GL_DYNAMIC_COPY );
-	// 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, ChorizoConfig.pointSpriteParametersBuffer );
-
-	// 		ChorizoConfig.numLights = ChorizoConfig.lights.size() / 2;
-	// 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, ChorizoConfig.lightsBuffer );
-	// 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( vec4 ) * ChorizoConfig.numLights * 2, ( GLvoid * ) ChorizoConfig.lights.data(), GL_DYNAMIC_COPY );
-	// 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, ChorizoConfig.lightsBuffer );
-	// 	}
 
 		// quaternion based rotation via retained state in the basis vectors
 		const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
@@ -1023,37 +824,6 @@ public:
 
 		ImGui::End();
 
-		// controls for the physics sim
-		ImGui::Begin( "Model Config", NULL, 0 );
-		if ( ImGui::BeginTabBar( "Config Sections", ImGuiTabBarFlags_None ) ) {
-			ImGui::SameLine();
-			if ( ImGui::BeginTabItem( "Simulation" ) ) {
-				ImGui::SliderFloat( "Time Scale", &simulationModel.simParameters.timeScale, 0.0f, 0.01f );
-				ImGui::SliderFloat( "Gravity", &simulationModel.simParameters.gravity, -10.0f, 10.0f );
-				ImGui::Text(" ");
-				ImGui::SliderFloat( "Noise Amplitude", &simulationModel.simParameters.noiseAmplitudeScale, 0.0f, 0.45f );
-				ImGui::SliderFloat( "Noise Speed", &simulationModel.simParameters.noiseSpeed, 0.0f, 10.0f );
-				ImGui::Text(" ");
-				ImGui::SliderFloat( "Chassis Node Mass", &simulationModel.simParameters.chassisNodeMass, 0.1f, 10.0f );
-				ImGui::SliderFloat( "Chassis K", &simulationModel.simParameters.chassisKConstant, 0.0f, 15000.0f );
-				ImGui::SliderFloat( "Chassis Damping", &simulationModel.simParameters.chassisDamping, 0.0f, 100.0f );
-				ImGui::Text(" ");
-				ImGui::SliderFloat( "Suspension K", &simulationModel.simParameters.suspensionKConstant, 0.0f, 15000.0f );
-				ImGui::SliderFloat( "Suspension Damping", &simulationModel.simParameters.suspensionDamping, 0.0f, 100.0f );
-				ImGui::EndTabItem();
-			}
-			if ( ImGui::BeginTabItem( "Render" ) ) {
-				ImGui::Text("Geometry Toggles");
-				ImGui::Separator();
-				// ImGui::Checkbox( "Draw Chassis Edges", &simulationModel.displayParameters.showChassisEdges );
-				// ImGui::Checkbox( "Draw Chassis Nodes", &simulationModel.displayParameters.showChassisNodes );
-				// ImGui::Checkbox( "Draw Suspension Edges", &simulationModel.displayParameters.showSuspensionEdges );
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-		}
-		ImGui::End();
-
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
@@ -1141,18 +911,12 @@ public:
 			} else {
 				glUniform1f( glGetUniformLocation( shader, "blendAmount" ), ChorizoConfig.blendAmount );
 			}
-			
+
 			glUniform1f( glGetUniformLocation( shader, "volumetricStrength" ), ChorizoConfig.volumetricStrength );
 			glUniform3fv( glGetUniformLocation( shader, "volumetricColor" ), 1, glm::value_ptr( ChorizoConfig.volumetricColor ) );
 			glUniform1i( glGetUniformLocation( shader, "numLights" ), ChorizoConfig.numLights );
 			glUniform3fv( glGetUniformLocation( shader, "eyePosition" ), 1, glm::value_ptr( ChorizoConfig.eyePosition ) );
 			glUniform3fv( glGetUniformLocation( shader, "ambientColor" ), 1, glm::value_ptr( ChorizoConfig.ambientColor ) );
-
-			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransform ) );
-			// glUniformMatrix4fv( glGetUniformLocation( shader, "viewTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.viewTransformInverse ) );
-
-			// glUniformMatrix4fv( glGetUniformLocation( shader, "projTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.projTransform ) );
-			// glUniformMatrix4fv( glGetUniformLocation( shader, "projTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.projTransformInverse ) );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -1183,11 +947,6 @@ public:
 		// const uint workgroupsRoundedUp = ( ChorizoConfig.numPrimitives + 63 ) / 64;
 		// glDispatchCompute( 64, workgroupsRoundedUp / 64, 1 );
 		// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-		simulationModel.Update( 3 );
-		ChorizoConfig.geometryManager.ClearLists();
-		AddCurrentSoftbodyPoints();
-		PrepSSBOs();
 	}
 
 	void OnRender () {
