@@ -162,6 +162,18 @@ target_link_libraries( Daedalus
 	engineBase
 )
 
+# =================================================================================================
+# realtime caustics experiment
+# =================================================================================================
+add_executable( Caustic
+	src/projects/PathTracing/Caustic/main.cc
+)
+
+target_link_libraries( Caustic
+	PUBLIC
+	engineBase
+)
+
 
 # =================================================================================================
 # Cellular Automata with History
