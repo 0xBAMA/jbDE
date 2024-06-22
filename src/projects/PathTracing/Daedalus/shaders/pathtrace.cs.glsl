@@ -318,9 +318,9 @@ vec3 SkyColor( ray_t ray ) {
 	}
 
 	float elevationFactor = dot( ray.direction, vec3( 0.0f, 1.0f, 0.0f ) );
-	const float epsilon = 1.0f / 4096.0f;
+	const float epsilonBump = 1.0f / 4096.0f;
 	vec2 samplePoint = vec2(
-		RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f + epsilon / 2.0f, 1.0f - epsilon / 2.0f ),
+		RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f + epsilonBump / 2.0f, 1.0f - epsilonBump / 2.0f ),
 		// RangeRemapValue( atan( ray.direction.x, ray.direction.z ), -pi, pi, 0.0f, 1.0f ),
 		RangeRemapValue( elevationFactor, -1.0f, 1.0f, 0.0f, 1.0f )
 	);
@@ -661,6 +661,54 @@ float deGazTemple3( vec3 p ){
 	return length(cross(p,vec3(1,1,-1)*.577))/s;
 }
 
+float deGazTemple4( vec3 p ){
+	vec3 a=vec3(.5);
+	p.z-=55.; p = abs(p);
+	float s=2., l=0.;
+	for(int j=0;j++<8;)
+		p=-sign(p)*(abs(abs(abs(p)-2.)-1.)-1.),
+		s*=l=-2.12/max(.2,dot(p,p)),
+		p=p*l-.55;
+	return dot(p,a)/s;
+}
+
+#define fold45(p)(p.y>p.x)?p.yx:p
+float deGazTemple5( vec3 p ) {
+	float scale = 2.1, off0 = .8, off1 = .3, off2 = .83;
+	vec3 off =vec3(2.,.2,.1);
+	float s=1.0;
+	for(int i = 0;++i<20;) {
+		p.xy = abs(p.xy);
+		p.xy = fold45(p.xy);
+		p.y -= off0;
+		p.y = -abs(p.y);
+		p.y += off0;
+		p.x += off1;
+		p.xz = fold45(p.xz);
+		p.x -= off2;
+		p.xz = fold45(p.xz);
+		p.x += off1;
+		p -= off;
+		p *= scale;
+		p += off;
+		s *= scale;
+	}
+	return length(p)/s;
+}
+
+float deRingo ( vec3 p ) {
+  float e, s, t=0.0; // time adjust term
+  vec3 q=p;
+  p.z+=7.;
+  p=vec3(log(s=length(p)),atan(p.y,p.x),sin(t/4.+p.z/s));
+  s=1.;
+  for(int j=0;j++<6;)
+    s*=e=PI/min(dot(p,p),.8),
+    p=abs(p)*e-3.,
+    p.y-=round(p.y);
+  return e=length(p)/s;
+}
+
 float deWater( vec3 p ) {
 	float e, i=0., j, f, a, w;
 	// p.yz *= mat2(cos(0.7f),sin(0.7f),-sin(0.7f),cos(0.7f));
@@ -685,6 +733,18 @@ float deSquiggles(vec3 p){
 	return (length(cross(cos(p+v),p.zxy))-0.4)*0.2;
 }
 
+float deAnemone(vec3 p){
+	#define V vec2(.7,-.7)
+	#define G(p)dot(p,V)
+	float i=0.,g=0.,e=1.;
+	float t = 0.34; // change to see different behavior
+	for(int j=0;j++<8;){
+		p=abs(rotate3D(0.34,vec3(1,-3,5))*p*2.)-1.,
+		p.xz-=(G(p.xz)-sqrt(G(p.xz)*G(p.xz)+.05))*V;
+	}
+	return length(p.xz)/3e2;
+}
+
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
 //=============================================================================================================================
@@ -704,50 +764,60 @@ float de( in vec3 p ) {
 		// }
 	// }
 
+	// pModInterval1( p.x, 1.0f, -5.0f, 5.0f );
+	// pModInterval1( p.y, 1.0f, -5.0f, 5.0f );
+
 	{
-		// const float d = max( deChapel( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
 		// const float d = deFractal( p );
-		// const float d = deGazTemple1( p );
-		// const float d = deGazTemple2( p );
-		const float d = deGazTemple3( p );
+		const float d = max( deRingo( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.001f );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
+			// hitSurfaceType = DIFFUSE;
+			// hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
+			// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
 			// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
 			// hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
 			// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
-		}
-	}
-
-	{
-		const float d = deGazTemple2( p );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
-		}
-	}
-
-	{
-		const float d = deGazTemple1( p );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+			hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.649f, 0.610f, 0.541f ) : vec3( 0.797f, 0.801f, 0.789f ); // nickel + specular coloring
 		}
 	}
 
 	// {
-	// 	const float d = max( deSquiggles( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+	// 	const float d = deGazTemple2( p );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = EMISSIVE;
-	// 		hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
 	// 	}
 	// }
 
+	// {
+	// 	const float d = deGazTemple1( p );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+	// 	}
+	// }
 
+	// {
+	// 	const float d = deGazTemple4( p );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = MIRROR;
+	// 		hitColor = vec3( 0.618f );
+	// 	}
+	// }
+
+	// {
+	// 	const float d = max( deWater( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = METALLIC;
+	// 		hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 	}
+	// }
 
 	return sceneDist;
 }
@@ -850,9 +920,9 @@ bool CheckValidityOfIdx( ivec3 idx ) {
 
 	// bool mask = deStairs( idx * 0.01f - vec3( 2.9f ) ) < 0.001f;
 	// bool mask = deWater( idx * 0.02f - vec3( 3.5f ) ) < 0.01f;
-	bool mask = ddaDiskSDF( GetPositionForIdx( idx ) ) < 0.01f;
+	// bool mask = ddaDiskSDF( GetPositionForIdx( idx ) ) < 0.01f;
 
-	// bool mask = ( imageLoad( DDATex, idx ).a != 0 );
+	bool mask = ( imageLoad( DDATex, idx ).a != 0 );
 
 	// const float heightSample = imageLoad( HeightmapTex, idx.xy ).r * 512;
 	// const float scaledZAxis = float( idx.z );
@@ -878,8 +948,8 @@ vec3 GetOffsetForIdx( ivec3 idx ) {
 }
 //=============================================================================================================================
 float GetRadiusForIdx( ivec3 idx ) {
-	// return 0.47f;
-	return 0.37f;
+	return 0.47f;
+	// return 0.37f;
 	// return 0.4f;
 	// return 0.2f;
 
@@ -896,12 +966,12 @@ uint GetAlphaValueForIdx( ivec3 idx ) {
 //=============================================================================================================================
 vec3 GetColorForIdx( ivec3 idx ) {
 	// return vec3( 0.23f, 0.618f, 0.123f ).ggg;
-	return vec3( 0.99f );
+	// return vec3( 0.99f );
 	// return viridis( ( pcg3d( uvec3( idx ) ).x / 4294967296.0f ) / 5.0f + 0.6f );
 	// return vec3( pcg3d( uvec3( idx ) ) / 4294967296.0f ) + vec3( 0.8f );
 	// return mix( vec3( 0.99f ), vec3( 0.99, 0.6f, 0.1f ), pcg3d( uvec3( idx ) ).x / 4294967296.0f );
 	// return mix( vec3( 0.618f ), vec3( 0.0, 0.0f, 0.0f ), saturate( pcg3d( uvec3( idx ) ) / 4294967296.0f ) );
-	// return imageLoad( DDATex, idx ).rgb / 255.0f;
+	return imageLoad( DDATex, idx ).rgb / 255.0f;
 	// return magma( imageLoad( HeightmapTex, idx.xy ).r );
 }
 //=============================================================================================================================
@@ -957,8 +1027,8 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 		if ( CheckValidityOfIdx( mapPos0 ) ) {
 
 // changing behavior of the traversal - the disks are not super compatible with the sphere/box intersection code
-// #define SPHEREORBOX
-#define DISKS
+#define SPHEREORBOX
+// #define DISKS
 
 			#ifdef SPHEREORBOX
 				// see if we found an intersection - ball will almost fill the grid cell
@@ -992,10 +1062,10 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					// 	intersection.materialID = DIFFUSE;
 					// 	intersection.albedo = vec3( 0.618f );
 					// } else {
-						intersection.materialID = MIRROR;
-						// intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-						// intersection.albedo = GetColorForIdx( mapPos0 );
-						intersection.albedo = vec3( 0.99f );
+						// intersection.materialID = MIRROR;
+						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
+						intersection.albedo = GetColorForIdx( mapPos0 );
+						// intersection.albedo = vec3( 0.99f );
 						// intersection.roughness = 0.5f;
 						// intersection.roughness = 0.0f;
 						intersection.roughness = 0.3f;
