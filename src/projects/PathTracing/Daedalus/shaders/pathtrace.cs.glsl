@@ -597,6 +597,24 @@ float deFractal2 ( vec3 p ) {
   return d;
 }
 
+#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+float deJune ( vec3 p ) {
+	p=abs(p)-3.;
+	if(p.x < p.z)p.xz=p.zx;
+	if(p.y < p.z)p.yz=p.zy;
+	if(p.x < p.y)p.xy=p.yx;
+	float s=2.; vec3 off=p*.5;
+	for(int i=0;i<12;i++){
+		p=1.-abs(p-1.);
+		float k=-1.1*max(1.5/dot(p,p),1.5);
+		s*=abs(k); p*=k; p+=off;
+		p.zx*=rot(-1.2);
+	}
+	float a=2.5;
+	p-=clamp(p,-a,a);
+	return length(p)/s;
+}
+
 float deFractal( vec3 pos ) {
 	vec3 tpos = pos;
 	tpos.xz = abs( 0.5f - mod( tpos.xz, 1.0f ) );
@@ -734,6 +752,62 @@ float deSquiggles(vec3 p){
 	return (length(cross(cos(p+v),p.zxy))-0.4)*0.2;
 }
 
+vec3 pmin ( vec3 a, vec3 b, vec3 k ) {
+  vec3 h = clamp( 0.5 + 0.5 * ( b - a ) / k, 0.0, 1.0 );
+  return mix( b, a, h ) - k * h * ( 1.0 - h );
+}
+void sphere_fold ( inout vec3 z, inout float dz ) {
+  const float fixed_radius2 = 1.9;
+  const float min_radius2 = 0.5;
+  float r2 = dot( z, z );
+  if ( r2 < min_radius2 ) {
+    float temp = ( fixed_radius2 / min_radius2 );
+    z *= temp;
+    dz *= temp;
+  } else if ( r2 < fixed_radius2 ) {
+    float temp = ( fixed_radius2 / r2 );
+    z *= temp;
+    dz *= temp;
+  }
+}
+void box_fold(float k, inout vec3 z, inout float dz) {
+  vec3 zz = sign( z ) * pmin( abs( z ), vec3( 1.0 ), vec3( k ) );
+  z = zz * 2.0 - z;
+}
+float sphere ( vec3 p, float t ) {
+  return length( p ) - t;
+}
+float boxf ( vec3 p, vec3 b, float e ) {
+  p = abs( p ) - b;
+  vec3 q = abs( p + e ) - e;
+  return min( min(
+    length( max( vec3( p.x, q.y, q.z ), 0.0 ) ) + min( max( p.x, max( q.y, q.z ) ), 0.0 ),
+    length( max( vec3( q.x, p.y, q.z ), 0.0 ) ) + min( max( q.x, max( p.y, q.z ) ), 0.0 ) ),
+    length( max( vec3( q.x, q.y, p.z ), 0.0 ) ) + min( max( q.x, max( q.y, p.z ) ), 0.0 ) );
+}
+float deGorp ( vec3 z ) {
+  const float scale = -2.8;
+  vec3 offset = z;
+  float dr = 1.0;
+  float fd = 0.0;
+  const float k = 0.05;
+  for ( int n = 0; n < 5; ++n ) {
+    box_fold( k / dr, z, dr );
+    sphere_fold( z, dr );
+    z = scale * z + offset;
+    dr = dr * abs( scale ) + 1.0;
+    float r1 = sphere( z, 5.0 );
+    float r2 = boxf( z, vec3( 5.0 ), 0.5 );
+    float r = n < 4 ? r2 : r1;
+    float dd = r / abs( dr );
+    if ( n < 3 || dd < fd ) {
+      fd = dd;
+    }
+  }
+  return fd;
+}
+
+
 float deAnemone(vec3 p){
 	#define V vec2(.7,-.7)
 	#define G(p)dot(p,V)
@@ -766,23 +840,23 @@ float de( in vec3 p ) {
 	// }
 
 	// pModInterval1( p.x, 1.0f, -5.0f, 5.0f );
-	// pModInterval1( p.y, 1.0f, -5.0f, 5.0f );
+	// pModInterval1( p.y, 4.0f, -2.0f, 2.0f );
 
-	{
-		// const float d = deFractal( p );
-		const float d = max( deRingo( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.001f );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			// hitSurfaceType = DIFFUSE;
-			// hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
-			// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
-			// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
-			// hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
-			// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
-			hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.649f, 0.610f, 0.541f ) : vec3( 0.797f, 0.801f, 0.789f ); // nickel + specular coloring
-		}
-	}
+	// {
+	// 	// const float d = deFractal( p );
+	// 	const float d = max( deRingo( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.001f );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		// hitSurfaceType = DIFFUSE;
+	// 		// hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
+	// 		// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
+	// 		// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
+	// 		// hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+	// 		// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 		hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.649f, 0.610f, 0.541f ) : vec3( 0.797f, 0.801f, 0.789f ); // nickel + specular coloring
+	// 	}
+	// }
 
 	// {
 	// 	const float d = deGazTemple2( p );
@@ -811,14 +885,19 @@ float de( in vec3 p ) {
 	// 	}
 	// }
 
-	// {
-	// 	const float d = max( deWater( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = METALLIC;
-	// 		hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
-	// 	}
-	// }
+	{
+		const float d = max( deLeaf( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			// hitSurfaceType = METALLIC;
+			// hitRoughness = 0.5f;
+			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+			// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
+			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.670f, 0.764f, 0.855f ) : vec3( 0.797f, 0.201f, 0.1f );
+			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.023f, 0.023f, 0.023f ) : vec3( 0.831f, 0.397f, 0.038f );
+			hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.23f, 0.23f, 0.23f ) : vec3( 0.831f, 0.107f, 0.038f );
+		}
+	}
 
 	return sceneDist;
 }
