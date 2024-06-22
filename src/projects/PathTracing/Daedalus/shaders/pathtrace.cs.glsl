@@ -413,7 +413,8 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		}
 
 		case MIRROR: {	// mirror surface ( some attenuation )
-			throughput *= 0.618f;
+			// throughput *= 0.618f;
+			throughput *= intersection.albedo;
 			ray.direction = reflectedVector;
 			break;
 		}
