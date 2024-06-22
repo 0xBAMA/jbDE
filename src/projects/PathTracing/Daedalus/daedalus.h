@@ -45,7 +45,7 @@ public:
 
 			// prepare the glyph and DDA VAT buffers
 			PrepGlyphBuffer();
-			// DDAVATTex();
+			DDAVATTex();
 			// HeightmapTex();
 
 			{ // color grading tools

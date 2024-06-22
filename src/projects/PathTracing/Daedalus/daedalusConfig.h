@@ -153,7 +153,7 @@ struct daedalusConfig_t {
 		render.uvScalar = 1.0f;
 		render.exposure = 1.0f;
 		render.FoV = 0.618f;
-		render.epsilon = 0.001f;
+		render.epsilon = 0.0001f;
 		render.maxDistance = 100.0f;
 
 		render.viewerPosition = vec3( 0.0f );
@@ -164,8 +164,8 @@ struct daedalusConfig_t {
 		// thin lens config
 		render.thinLensEnable = false;
 		render.thinLensFocusDistance = 10.0f;
-		render.thinLensJitterRadiusInner = 0.001f;
-		render.thinLensJitterRadiusOuter = 0.01f;
+		render.thinLensJitterRadiusInner = 0.01f;
+		render.thinLensJitterRadiusOuter = 0.1f;
 		render.bokehMode = 4;
 		render.cameraType = 0;
 		render.voraldoCameraScalar = 1.0f;
