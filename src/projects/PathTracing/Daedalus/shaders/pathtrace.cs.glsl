@@ -17,6 +17,7 @@ uniform int wangSeed;
 #include "mathUtils.h"	// couple random math utilities
 #include "colorRamps.glsl.h" // 1d -> 3d color mappings
 #include "glyphs.h"		// the uint encoded glyph masks
+#include "consistentPrimitives.glsl.h" // primitives with the same handling of normal, etc
 //=============================================================================================================================
 bool BoundsCheck( in ivec2 loc ) {
 	const ivec2 b = ivec2( imageSize( accumulatorColor ) ).xy;
@@ -1362,28 +1363,39 @@ layout( binding = 0, std430 ) readonly buffer sphereData {
 };
 //=============================================================================================================================
 intersection_t ExplicitListIntersect( in ray_t ray ) {
-	iqIntersect iResult = kEmpty;
 	int indexOfHit = -1;
 	float nearestOverallHit = 1e20f;
+	vec3 currentNormal = vec3( 0.0f );
+
 	for ( int i = 0; i < numExplicitPrimitives; i++ ) {
-		iqIntersect current = IntersectSphere( ray, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
-		// iqIntersect current = ( i % 2 == 0 ) ? IntersectBox( origin, direction, spheres[ i ].positionRadius.xyz, vec3( spheres[ i ].positionRadius.w ) )
-			// : IntersectSphere( origin, direction, spheres[ i ].positionRadius.xyz, spheres[ i ].positionRadius.w );
-		const float currentNearestPositive = ( current.a.x < 0.0f ) ? ( current.b.x < 0.0f ) ? 1e20f : current.b.x : current.a.x;
+		vec3 tempNormal = vec3( 0.0f );
+
+		// this will need to be handled in a way that can do multiple types of parameters - distance and normal are the outputs
+		const float currentNearestPositive =
+			// iSphereOffset( ray.origin, ray.direction, tempNormal, spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.xyz );
+			iBoxOffset( ray.origin, ray.direction, tempNormal, vec3( spheres[ i ].positionRadius.w ), spheres[ i ].positionRadius.xyz );
+			// iTorusOffset( ray.origin, ray.direction, tempNormal, vec2( spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w / 5.0f ), spheres[ i ].positionRadius.xyz );
+			// iEllipsoidOffset( ray.origin, ray.direction, tempNormal, vec3( spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w * 3.0f ), spheres[ i ].positionRadius.xyz );
+			// iGoursat( ray.origin - spheres[ i ].positionRadius.xyz, ray.direction, tempNormal, 5.0f * 0.16f * spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w );
+
 		nearestOverallHit = min( currentNearestPositive, nearestOverallHit );
 		if ( currentNearestPositive == nearestOverallHit ) {
-			iResult = current;
+			currentNormal = tempNormal;
 			indexOfHit = i;
 		}
 	}
+
 	intersection_t result = DefaultIntersection();
 	if ( indexOfHit != -1 ) { // at least one primitive got a valid hit
 		result.dTravel = nearestOverallHit;
-		result.frontfaceHit = ( iResult.a.x == nearestOverallHit );
-		result.normal = result.frontfaceHit ? iResult.a.yzw : iResult.b.yzw;
-		result.materialID = int( spheres[ indexOfHit ].colorMaterial.w );
-		if ( result.materialID == REFRACTIVE && result.frontfaceHit == false )
+		result.frontfaceHit = ( dot( ray.direction, currentNormal ) < 0.0f );
+		result.normal = currentNormal;
+		// result.materialID = int( spheres[ indexOfHit ].colorMaterial.w );
+		result.materialID = EMISSIVE;
+		if ( result.materialID == REFRACTIVE && result.frontfaceHit == false ) {
 			result.materialID = REFRACTIVE_BACKFACE; // this needs to be more generalized
+			// result.normal = -result.normal; // this is already handled, for the sphere, at least...
+		}
 		result.albedo = spheres[ indexOfHit ].colorMaterial.xyz;
 		result.IoR = spheres[ indexOfHit ].materialProps.r;
 		result.roughness = spheres[ indexOfHit ].materialProps.g;
