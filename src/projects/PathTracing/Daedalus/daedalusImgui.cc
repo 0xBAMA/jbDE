@@ -138,6 +138,10 @@ void Daedalus::ShowDaedalusConfigWindow() {
 					LoadSkyBoxEXRFromString( savesList[ listboxSelected ] );
 				}
 				ImGui::SameLine();
+				if ( ImGui::Button( "Refresh List" ) ) {
+					savesList.clear(); // will hook the filesystem iterator thing, next frame
+				}
+				ImGui::SameLine();
 				if ( ImGui::Button( " Pick Random " ) ) {
 					rngi pick = rngi( 0, savesList.size() - 1 );
 					listboxSelected = pick();
