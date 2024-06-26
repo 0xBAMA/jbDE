@@ -166,7 +166,7 @@ struct daedalusConfig_t {
 		render.thinLensFocusDistance = 10.0f;
 		render.thinLensJitterRadiusInner = 0.01f;
 		render.thinLensJitterRadiusOuter = 0.1f;
-		render.bokehMode = 4;
+		render.bokehMode = 14;
 		render.cameraType = 0;
 		render.voraldoCameraScalar = 1.0f;
 		render.cameraOriginJitter = true;
