@@ -2,11 +2,11 @@
 // https://www.shadertoy.com/view/flccWs // raytracing csg
 
 #define MAX_DIST 1e10
-const vec2 distBound = vec2( 0.001f, 100000.0f );
+const vec2 distBound = vec2( 0.0001f, 100000.0f );
 float dot2( in vec3 v ) { return dot(v,v); }
 
 // Plane
-float iPlane( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 planeNormal, in float planeDist) {
+float iPlane( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 planeNormal, in float planeDist ) {
 	float a = dot(rd, planeNormal);
 	float d = -(dot(ro, planeNormal)+planeDist)/a;
 	if (a > 0. || d < distBound.x || d > distBound.y) {
@@ -31,8 +31,32 @@ float iSphere( in vec3 ro, in vec3 rd, inout vec3 normal, float sphereRadius ) {
 		if (d1 >= distBound.x && d1 <= distBound.y) {
 			normal = normalize(ro + rd*d1);
 			return d1;
-		} else if (d2 >= distBound.x && d2 <= distBound.y) { 
-			normal = normalize(ro + rd*d2);            
+		} else if (d2 >= distBound.x && d2 <= distBound.y) {
+			normal = normalize(ro + rd*d2);
+			return d2;
+		} else {
+			return MAX_DIST;
+		}
+	}
+}
+
+// Sphere:          https://www.shadertoy.com/view/4d2XWV
+float iSphereOffset( in vec3 ro, in vec3 rd, inout vec3 normal, float sphereRadius, vec3 spherePosition ) {
+	ro -= spherePosition;
+	float b = dot( ro, rd );
+	float c = dot( ro, ro ) - sphereRadius * sphereRadius;
+	float h = b * b - c;
+	if ( h < 0.0f ) {
+		return MAX_DIST;
+	} else {
+		h = sqrt( h );
+		float d1 = -b - h;
+		float d2 = -b + h;
+		if ( d1 >= distBound.x && d1 <= distBound.y ) {
+			normal = normalize( ro + rd * d1 );
+			return d1;
+		} else if ( d2 >= distBound.x && d2 <= distBound.y ) {
+			normal = normalize( ro + rd * d2 );
 			return d2;
 		} else {
 			return MAX_DIST;
@@ -58,7 +82,35 @@ float iBox( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 boxSize ) {
 		if (tN >= distBound.x && tN <= distBound.y) {
 			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 			return tN;
-		} else if (tF >= distBound.x && tF <= distBound.y) { 
+		} else if (tF >= distBound.x && tF <= distBound.y) {
+			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
+			return tF;
+		} else {
+			return MAX_DIST;
+		}
+	}
+}
+
+float iBoxOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 boxSize, in vec3 boxPosition ) {
+	ro -= boxPosition;
+
+	vec3 m = sign(rd)/max(abs(rd), 1e-8);
+	vec3 n = m*ro;
+	vec3 k = abs(m)*boxSize;
+
+	vec3 t1 = -n - k;
+	vec3 t2 = -n + k;
+
+	float tN = max( max( t1.x, t1.y ), t1.z );
+	float tF = min( min( t2.x, t2.y ), t2.z );
+
+	if (tN > tF || tF <= 0.) {
+		return MAX_DIST;
+	} else {
+		if (tN >= distBound.x && tN <= distBound.y) {
+			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
+			return tN;
+		} else if (tF >= distBound.x && tF <= distBound.y) {
 			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 			return tF;
 		} else {
@@ -93,7 +145,7 @@ float iCylinder( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 
 	}
 
 	d = ((y < 0. ? 0. : caca) - caoc)/card;
-	
+
 	if( abs(b+a*d) < h && d >= distBound.x && d <= distBound.y) {
 		normal = normalize(ca*sign(y)/caca);
 		return d;
@@ -105,10 +157,10 @@ float iCylinder( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 
 // Torus:           https://www.shadertoy.com/view/4sBGDy
 float iTorus( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus ) {
 	// bounding sphere
-	// vec3 tmpnormal = vec3( 0.0f );
-	// if (iSphere(ro, rd, tmpnormal, torus.y+torus.x) > distBound.y) {
-	//     return MAX_DIST;
-	// }
+	vec3 tmpnormal = vec3( 0.0f );
+	if ( iSphere( ro, rd, tmpnormal, torus.y + torus.x + 0.01f ) > distBound.y ) {
+		return MAX_DIST;
+	}
 
 	float po = 1.0;
 
@@ -207,6 +259,113 @@ float iTorus( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus ) {
 	}
 }
 
+float iTorusOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus, in vec3 offset ) {
+	// bounding sphere
+	vec3 tmpnormal = vec3( 0.0f );
+	if ( iSphereOffset( ro, rd, tmpnormal, torus.y + torus.x + 0.01f, offset ) > distBound.y ) {
+		return MAX_DIST;
+	}
+
+	ro -= offset;
+
+	float po = 1.0;
+
+	float Ra2 = torus.x*torus.x;
+	float ra2 = torus.y*torus.y;
+
+	float m = dot(ro,ro);
+	float n = dot(ro,rd);
+
+#if 1
+	float k = (m + Ra2 - ra2)/2.0;
+	float k3 = n;
+	float k2 = n*n - Ra2*dot(rd.xy,rd.xy) + k;
+	float k1 = n*k - Ra2*dot(rd.xy,ro.xy);
+	float k0 = k*k - Ra2*dot(ro.xy,ro.xy);
+#else
+	float k = (m - Ra2 - ra2)/2.0;
+	float k3 = n;
+	float k2 = n*n + Ra2*rd.z*rd.z + k;
+	float k1 = k*n + Ra2*ro.z*rd.z;
+	float k0 = k*k + Ra2*ro.z*ro.z - Ra2*ra2;
+#endif
+
+#if 1
+	// prevent |c1| from being too close to zero
+	if (abs(k3*(k3*k3-k2)+k1) < 0.01) {
+		po = -1.0;
+		float tmp=k1; k1=k3; k3=tmp;
+		k0 = 1.0/k0;
+		k1 = k1*k0;
+		k2 = k2*k0;
+		k3 = k3*k0;
+	}
+#endif
+
+	// reduced cubic
+	float c2 = k2*2.0 - 3.0*k3*k3;
+	float c1 = k3*(k3*k3-k2)+k1;
+	float c0 = k3*(k3*(c2+2.0*k2)-8.0*k1)+4.0*k0;
+
+	c2 /= 3.0;
+	c1 *= 2.0;
+	c0 /= 3.0;
+
+	float Q = c2*c2 + c0;
+	float R = c2*c2*c2 - 3.0*c2*c0 + c1*c1;
+
+	float h = R*R - Q*Q*Q;
+	float t = MAX_DIST;
+
+	if (h>=0.0) {
+		// 2 intersections
+		h = sqrt(h);
+
+		float v = sign(R+h)*pow(abs(R+h),1.0/3.0); // cube root
+		float u = sign(R-h)*pow(abs(R-h),1.0/3.0); // cube root
+
+		vec2 s = vec2( (v+u)+4.0*c2, (v-u)*sqrt(3.0));
+	
+		float y = sqrt(0.5*(length(s)+s.x));
+		float x = 0.5*s.y/y;
+		float r = 2.0*c1/(x*x+y*y);
+
+		float t1 =  x - r - k3; t1 = (po<0.0)?2.0/t1:t1;
+		float t2 = -x - r - k3; t2 = (po<0.0)?2.0/t2:t2;
+
+		if (t1 >= distBound.x) t=t1;
+		if (t2 >= distBound.x) t=min(t,t2);
+	} else {
+		// 4 intersections
+		float sQ = sqrt(Q);
+		float w = sQ*cos( acos(-R/(sQ*Q)) / 3.0 );
+
+		float d2 = -(w+c2); if( d2<0.0 ) return MAX_DIST;
+		float d1 = sqrt(d2);
+
+		float h1 = sqrt(w - 2.0*c2 + c1/d1);
+		float h2 = sqrt(w - 2.0*c2 - c1/d1);
+		float t1 = -d1 - h1 - k3; t1 = (po<0.0)?2.0/t1:t1;
+		float t2 = -d1 + h1 - k3; t2 = (po<0.0)?2.0/t2:t2;
+		float t3 =  d1 - h2 - k3; t3 = (po<0.0)?2.0/t3:t3;
+		float t4 =  d1 + h2 - k3; t4 = (po<0.0)?2.0/t4:t4;
+
+		if (t1 >= distBound.x) t=t1;
+		if (t2 >= distBound.x) t=min(t,t2);
+		if (t3 >= distBound.x) t=min(t,t3);
+		if (t4 >= distBound.x) t=min(t,t4);
+	}
+
+	if (t >= distBound.x && t <= distBound.y) {
+		vec3 pos = ro + rd*t;
+		normal = normalize( pos*(dot(pos,pos) - torus.y*torus.y - torus.x*torus.x*vec3(1,1,-1)));
+		return t;
+	} else {
+		return MAX_DIST;
+	}
+}
+
+
 // Capsule:         https://www.shadertoy.com/view/Xt3SzX
 float iCapsule( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 pb, in float r ) {
 	vec3  ba = pb - pa;
@@ -225,9 +384,9 @@ float iCapsule( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 p
 	if (h >= 0.) {
 		float t = (-b-sqrt(h))/a;
 		float d = MAX_DIST;
-		
+
 		float y = baoa + t*bard;
-		
+
 		// body
 		if (y > 0. && y < baba) {
 			d = t;
@@ -263,7 +422,7 @@ float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3  pa, in vec3  pb
 	float m3 = dot(rd,ba);
 
 	//caps
-	if (m1 < 0.) { 
+	if (m1 < 0.) {
 		if( dot2(oa*m3-rd*m1)<(ra*ra*m3*m3) ) {
 			float d = -m1/m3;
 			if (d >= distBound.x && d <= distBound.y) {
@@ -271,8 +430,7 @@ float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3  pa, in vec3  pb
 				return d;
 			}
 		}
-	}
-	else if (m2 > 0.) { 
+	} else if (m2 > 0.) {
 		if( dot2(ob*m3-rd*m2)<(rb*rb*m3*m3) ) {
 			float d = -m2/m3;
 			if (d >= distBound.x && d <= distBound.y) {
@@ -308,6 +466,30 @@ float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3  pa, in vec3  pb
 
 // Ellipsoid:       https://www.shadertoy.com/view/MlsSzn
 float iEllipsoid( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 rad ) {
+	vec3 ocn = ro / rad;
+	vec3 rdn = rd / rad;
+
+	float a = dot( rdn, rdn );
+	float b = dot( ocn, rdn );
+	float c = dot( ocn, ocn );
+	float h = b*b - a*(c-1.);
+
+	if (h < 0.) {
+		return MAX_DIST;
+	}
+
+	float d = (-b - sqrt(h))/a;
+
+	if (d < distBound.x || d > distBound.y) {
+		return MAX_DIST;
+	} else {
+		normal = normalize((ro + d*rd)/rad);
+		return d;
+	}
+}
+
+float iEllipsoidOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 rad, in vec3 offset ) {
+	ro -= offset;
 	vec3 ocn = ro / rad;
 	vec3 rdn = rd / rad;
 
@@ -418,8 +600,7 @@ float iTriangle( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 v0, in vec3 
 }
 
 // Sphere4:         https://www.shadertoy.com/view/3tj3DW
-float iSphere4( in vec3 ro, in vec3 rd, inout vec3 normal,
-				in float ra ) {
+float iSphere4( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra ) {
 	// -----------------------------
 	// solve quartic equation
 	// -----------------------------
@@ -509,8 +690,7 @@ float iGoursat( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra, float rb
 	float Q = c2*c2 + c0;
 	float R = c2*c2*c2 - 3.0*c0*c2 + c1*c1;
 	float h = R*R - Q*Q*Q;
-	
-	
+
 	// 2 intersections
 	if (h>0.0) {
 		h = sqrt(h);
