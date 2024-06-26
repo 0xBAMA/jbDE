@@ -73,7 +73,8 @@ void main() { // This is where tonemapping etc will be happening on the accumula
 			vec3 colorWeight = vec3( 1.0f );
 			if ( lensDistortChromab ) {
 				const float i = interpolationValue * ( 3.1415f / 2.0f );
-				colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) );
+				// colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) );
+				colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f; // why is this compensation value needed?
 			}
 
 		// sample the colors out at points along the interpolated Brown-Conrady distort
