@@ -273,6 +273,11 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			if ( ImGui::SmallButton( " Preview ##ultrawide" ) )	ResizeAccumulators( x = 768, y = 144 );
 			ImGui::SameLine(); if ( ImGui::SmallButton( " Wallpaper ##ultrawide" ) )	ResizeAccumulators( x = 7680, y = 1440 );
 			ImGui::Unindent();
+			ImGui::Indent();
+			ImGui::Text( "HDRI" ); // ouroboros
+			if ( ImGui::SmallButton( " Preview ##hdri" ) )	ResizeAccumulators( x = 256, y = 128 );
+			ImGui::SameLine(); if ( ImGui::SmallButton( " 4k ##hdri" ) )	ResizeAccumulators( x = 4096, y = 2048 );
+			ImGui::Unindent();
 
 			float availableWidth = ImGui::GetContentRegionAvail().x - 20;
 			float proportionalHeight = availableWidth * ( float ) config.height / ( float ) config.width;
