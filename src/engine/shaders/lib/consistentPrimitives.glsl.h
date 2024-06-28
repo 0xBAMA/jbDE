@@ -411,7 +411,7 @@ float iCapsule( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 p
 }
 
 // Capped Cone:     https://www.shadertoy.com/view/llcfRf
-float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3  pa, in vec3  pb, in float ra, in float rb ) {
+float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 pb, in float ra, in float rb ) {
 	vec3  ba = pb - pa;
 	vec3  oa = ro - pa;
 	vec3  ob = ro - pb;
@@ -445,7 +445,7 @@ float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3  pa, in vec3  pb
 	float m5 = dot(oa,oa);
 	float rr = ra - rb;
 	float hy = m0 + rr*rr;
-	
+
 	float k2 = m0*m0    - m3*m3*hy;
 	float k1 = m0*m0*m4 - m1*m3*hy + m0*ra*(rr*m3*1.0        );
 	float k0 = m0*m0*m5 - m1*m1*hy + m0*ra*(rr*m1*2.0 - m0*ra);
@@ -513,7 +513,7 @@ float iEllipsoidOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 rad, 
 }
 
 // Rounded Cone:    https://www.shadertoy.com/view/MlKfzm
-float iRoundedCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3  pa, in vec3  pb, in float ra, in float rb ) {
+float iRoundedCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 pb, in float ra, in float rb ) {
 	vec3  ba = pb - pa;
 	vec3  oa = ro - pa;
 	vec3  ob = ro - pb;
