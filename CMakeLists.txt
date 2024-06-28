@@ -110,6 +110,7 @@ target_link_libraries(
 	STB_ImageUtilsWrapper
 	stdc++fs
 	FastNoise
+	fftw3
 	Perlin
 	Tracy::TracyClient
 	TinyOBJLoader

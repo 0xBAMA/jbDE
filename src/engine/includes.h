@@ -26,6 +26,9 @@
 #include <unordered_map>
 #include <vector>
 
+// fftw3 include
+#include "../utils/fftw-3.3.10/api/fftw3.h"
+
 // iostream stuff
 using std::cerr;
 using std::cin;
