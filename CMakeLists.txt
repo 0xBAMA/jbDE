@@ -38,6 +38,9 @@ link_libraries( ${GLEW_LIBRARIES} )
 # FastNoise2
 add_subdirectory( ${PROJECT_SOURCE_DIR}/src/utils/noise/FastNoise2 )
 
+# FFTW3
+add_subdirectory( ${PROJECT_SOURCE_DIR}/src/utils/fftw-3.3.10 )
+
 # Tracy Profiler
 option( TRACY_ENABLE "" ON )
 option( TRACY_ON_DEMAND "" ON )
