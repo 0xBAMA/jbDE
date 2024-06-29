@@ -429,3 +429,15 @@ target_link_libraries( ChorizoSoftbody
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# Trying to implement slow-scan television (SSTV)
+# =================================================================================================
+add_executable( SlowScan
+	src/projects/SlowScan/main.cc
+)
+
+target_link_libraries( SlowScan
+	PUBLIC
+	engineBase
+)
