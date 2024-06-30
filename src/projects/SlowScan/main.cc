@@ -195,16 +195,39 @@ public:
 		static int offset = 0;
 		offset++;
 
-		// fill out the array with some shit
-		static rng noise = rng( -0.1f, 0.1f );
+		// // fill out the array with some shit
+		// static rng noise = rng( -0.1f, 0.1f );
+		// for ( int i = 0; i < N; i++ ) {
+
+		// 	// inputData[ i ][ 0 ] = 0.0f;
+		// 	// for ( int j = 0; j < 10; j++ ) {
+		// 	// 	inputData[ i ][ 0 ] += 0.125f * ( sin( 0.1f * j * ( i + offset ) ) + cos( 0.3f * j * ( i + offset / 3.0f ) ) );
+		// 	// }
+
+		// 	inputData[ i ][ 0 ] = 0.125f * (
+		// 		0.7f * sin( RangeRemap( sin( 0.01f * offset ), -1.0f, 1.0f, 0.1f, 0.5f ) * ( i + offset ) ) +
+		// 		0.5f * sin( RangeRemap( sin( 0.044f * offset ), -1.0f, 1.0f, 0.6f, 0.8f ) * ( i + offset ) ) +
+		// 		0.3f * sin( RangeRemap( sin( 0.0127f * offset ), -1.0f, 1.0f, 0.2f, 1.6f ) * ( i + offset / 18.0f ) ) +
+		// 		0.1f * cos( 0.123f * ( i + offset / 3.0f ) ) ) +
+		// 		noise();
+
+		// 	// pull samples from the audio stream
+
+		// 	inputData[ i ][ 1 ] = 0.0f;
+		// }
+
+
+		// get the data out of the audio stream
+
+
+		static float data[ N ];
+		int gotten = SDL_AudioStreamGet( streamBufferAnalyze, data, sizeof ( data ) );
+		if ( gotten == -1 ) {
+			cout << "Uhoh, failed to get converted data: " << SDL_GetError() << newline;
+		}
+
 		for ( int i = 0; i < N; i++ ) {
-			// inputData[ i ][ 0 ] = 0.5f * ( sin( 0.1f * ( i + offset ) ) + cos( 0.3f * ( i + offset / 3.0f ) ) ) + noise();
-			inputData[ i ][ 0 ] = 0.125f * (
-				0.7f * sin( RangeRemap( sin( 0.01f * offset ), -1.0f, 1.0f, 0.1f, 0.5f ) * ( i + offset ) ) +
-				0.5f * sin( RangeRemap( sin( 0.044f * offset ), -1.0f, 1.0f, 0.6f, 0.8f ) * ( i + offset ) ) +
-				0.3f * sin( RangeRemap( sin( 0.0127f * offset ), -1.0f, 1.0f, 0.2f, 1.6f ) * ( i + offset / 18.0f ) ) +
-				0.1f * cos( 0.123f * ( i + offset / 3.0f ) ) ) +
-				noise();
+			inputData[ i ][ 0 ] = data[ i ];
 			inputData[ i ][ 1 ] = 0.0f;
 		}
 
