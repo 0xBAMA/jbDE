@@ -7,6 +7,7 @@ layout( binding = 2, r32f ) uniform image2D waterfall;
 
 uniform int waterfallOffset;
 uniform int dataSize;
+uniform int paletteSelect;
 
 layout( binding = 0, std430 ) readonly buffer signalData	{ float inputData[]; };
 layout( binding = 1, std430 ) readonly buffer fftData		{ float outputData[]; };

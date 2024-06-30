@@ -5,7 +5,8 @@ public:
 	slowScan () { Init(); OnInit(); PostInit(); }
 	~slowScan () { DeInit(); Quit(); }
 
-	static constexpr int N = 2048;
+	// static constexpr int N = 2048;
+	static constexpr int N = 800;
 	fftw_complex *inputData, *outputData;
 	fftw_plan p;
 
@@ -16,6 +17,7 @@ public:
 	GLuint signalBuffer;
 	GLuint fftBuffer;
 
+	int paletteSelect = 10;
 	int waterfallRowUpdate = 0;
 	const int waterfallHeight = 1024;
 
@@ -105,7 +107,7 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
 		// // current state of the whole keyboard
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// // current state of the modifier keys
 		// const SDL_Keymod k	= SDL_GetModState();
@@ -115,6 +117,9 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+		if ( state[ SDL_SCANCODE_R ] ) {
+			paletteSelect = ( paletteSelect + 1 ) % 27;
+		}
 	}
 
 	void ImguiPass () {
@@ -151,6 +156,7 @@ public:
 			glUseProgram( shader );
 
 			glUniform1i( glGetUniformLocation( shader, "dataSize" ), N );
+			glUniform1i( glGetUniformLocation( shader, "paletteSelect" ), paletteSelect );
 
 			// waterfall/spectrogram ring buffer
 			glUniform1i( glGetUniformLocation( shader, "waterfallOffset" ), waterfallRowUpdate );
