@@ -9,6 +9,10 @@ public:
 	fftw_complex *inputData, *outputData;
 	fftw_plan p;
 
+	// holding the audio data, pulling out 800 samples per frame
+		// ( 48000 samples per second / 60 frames per second = 800 samples per frame )
+	SDL_AudioStream * streamBufferAnalyze = NULL;
+
 	GLuint signalBuffer;
 	GLuint fftBuffer;
 
@@ -48,6 +52,45 @@ public:
 			opts.magFilter		= GL_NEAREST;
 			opts.textureType	= GL_TEXTURE_2D;
 			textureManager.Add( "Waterfall", opts );
+
+			// load an audio file
+			SDL_AudioSpec wavSpec;
+			Uint32 wavLengthBytes;
+			Uint8 *wavDataBuffer;
+
+			// string filename = string( "../dennisMorrowMonoFloat.wav" );
+			// string filename = string( "../cave14.wav" );
+			// string filename = string( "../resultpele.wav" );
+			string filename = string( "../groupB.wav" );
+
+			if ( SDL_LoadWAV( filename.c_str(), &wavSpec, &wavDataBuffer, &wavLengthBytes ) == NULL ) {
+				cout << "\nCould not open test.wav: " << SDL_GetError() << newline;
+			} else {
+				// Do stuff with the WAV data, and then...
+				cout << "\nLoaded " << filename << ", " << wavLengthBytes << " bytes" << newline;
+				cout << "Details:" << newline;
+				cout << "\tSample Rate:\t\t" << wavSpec.freq << newline;
+				cout << "\tEndianness:\t\t" << ( ( SDL_AUDIO_ISBIGENDIAN( wavSpec.format ) ) ? "big" : "little" ) << newline;
+				cout << "\tSignedness:\t\t" << ( ( SDL_AUDIO_ISSIGNED( wavSpec.format ) ) ? "signed" : "unsigned" ) << newline;
+				cout << "\tData Type:\t\t" << ( ( SDL_AUDIO_ISFLOAT( wavSpec.format ) ) ? "float" : "integer" ) << newline;
+				cout << "\tBits Per Sample:\t" << ( int ) SDL_AUDIO_BITSIZE( wavSpec.format ) << newline;
+				cout << "\tChannels:\t\t" << ( int ) wavSpec.channels << newline;
+
+				// create the audio stream, to pull data from
+				streamBufferAnalyze = SDL_NewAudioStream( AUDIO_F32, 1, 48000, AUDIO_F32, 1, 48000 );
+				int rc = SDL_AudioStreamPut( streamBufferAnalyze, wavDataBuffer, wavLengthBytes );
+				if ( rc == -1 ) {
+					cout << "Failed to put samples in stream: " << SDL_GetError() << newline;
+				}
+
+				// set the playback to begin
+				SDL_AudioDeviceID dev = SDL_OpenAudioDevice( NULL, 0, &wavSpec, NULL, 0 );
+				SDL_QueueAudio( dev, wavDataBuffer, wavLengthBytes );
+				SDL_PauseAudioDevice( dev, 0 );
+
+				// free the data - is this needed?
+				SDL_FreeWAV( wavDataBuffer );
+			}
 		}
 	}
 
