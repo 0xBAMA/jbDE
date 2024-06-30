@@ -12,6 +12,9 @@ public:
 	GLuint signalBuffer;
 	GLuint fftBuffer;
 
+	int waterfallRowUpdate = 0;
+	const int waterfallHeight = 1024;
+
 	void OnInit () {
 		ZoneScoped;
 		{
@@ -35,6 +38,16 @@ public:
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, fftBuffer );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * N, NULL, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, fftBuffer );
+
+			// waterfall graph, spectrogram - update by rows, with new fft data
+			textureOptions_t opts;
+			opts.width			= N / 2;
+			opts.height			= waterfallHeight;
+			opts.dataType		= GL_R32F;
+			opts.minFilter		= GL_NEAREST;
+			opts.magFilter		= GL_NEAREST;
+			opts.textureType	= GL_TEXTURE_2D;
+			textureManager.Add( "Waterfall", opts );
 		}
 	}
 
@@ -90,9 +103,16 @@ public:
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Draw" ] );
-			// glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
-			glUniform1i( glGetUniformLocation( shaders[ "Draw" ], "dataSize" ), N );
+
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+
+			glUniform1i( glGetUniformLocation( shader, "dataSize" ), N );
+
+			// waterfall/spectrogram ring buffer
+			glUniform1i( glGetUniformLocation( shader, "waterfallOffset" ), waterfallRowUpdate );
+			textureManager.BindImageForShader( "Waterfall", "waterfall", shader, 2 );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -166,6 +186,15 @@ public:
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, fftBuffer );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * N, ( GLvoid * ) &outputDataCastToSinglePrecision, GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, fftBuffer );
+
+		// update the next row in the spectrogram waterfall graph image, with the same data that was passed to the fftBuffer
+		glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Waterfall" ) );
+		glTexSubImage2D( GL_TEXTURE_2D, 0, 0, waterfallRowUpdate, N / 2, 1, GL_RED, GL_FLOAT, ( GLvoid * ) &outputDataCastToSinglePrecision );
+
+		waterfallRowUpdate--;
+		if ( waterfallRowUpdate < 0 ) {
+			waterfallRowUpdate = waterfallHeight - 1;
+		}
 	}
 
 	void OnRender () {
