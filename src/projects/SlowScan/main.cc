@@ -5,7 +5,7 @@ public:
 	slowScan () { Init(); OnInit(); PostInit(); }
 	~slowScan () { DeInit(); Quit(); }
 
-	static constexpr int N = 512;
+	static constexpr int N = 2048;
 	fftw_complex *inputData, *outputData;
 	fftw_plan p;
 
@@ -28,12 +28,12 @@ public:
 			// declare buffers, to pass signal + fft to GPU
 			glGenBuffers( 1, &signalBuffer );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, signalBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * N, ( GLvoid * ) &inputData, GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * N, NULL, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, signalBuffer );
 
 			glGenBuffers( 1, &fftBuffer );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, fftBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * N, ( GLvoid * ) &outputData, GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, sizeof( GLfloat ) * N, NULL, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, fftBuffer );
 		}
 	}
