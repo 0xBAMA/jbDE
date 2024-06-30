@@ -91,7 +91,8 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			// glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			glUniform1i( glGetUniformLocation( shaders[ "Draw" ], "dataSize" ), N );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -132,8 +133,15 @@ public:
 		offset++;
 
 		// fill out the array with some shit
+		static rng noise = rng( -0.1f, 0.1f );
 		for ( int i = 0; i < N; i++ ) {
-			inputData[ i ][ 0 ] = sin( 0.1f * ( i + offset ) );
+			// inputData[ i ][ 0 ] = 0.5f * ( sin( 0.1f * ( i + offset ) ) + cos( 0.3f * ( i + offset / 3.0f ) ) ) + noise();
+			inputData[ i ][ 0 ] = 0.125f * (
+				0.7f * sin( RangeRemap( sin( 0.01f * offset ), -1.0f, 1.0f, 0.1f, 0.5f ) * ( i + offset ) ) +
+				0.5f * sin( RangeRemap( sin( 0.044f * offset ), -1.0f, 1.0f, 0.6f, 0.8f ) * ( i + offset ) ) +
+				0.3f * sin( RangeRemap( sin( 0.0127f * offset ), -1.0f, 1.0f, 0.2f, 1.6f ) * ( i + offset / 18.0f ) ) +
+				0.1f * cos( 0.123f * ( i + offset / 3.0f ) ) ) +
+				noise();
 			inputData[ i ][ 1 ] = 0.0f;
 		}
 
