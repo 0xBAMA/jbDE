@@ -17,6 +17,7 @@ fi
 
 mkdir build
 cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Release
+# cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug
 cd build
 
 # -j arg is max jobs + 1, here configured for 16 compilation threads
