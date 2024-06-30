@@ -144,8 +144,11 @@ public:
 		static float outputDataCastToSinglePrecision[ N ] = { 0.0f };
 
 		for ( int i = 0; i < N; i++ ) {
-			inputDataCastToSinglePrecision[ i ] = ( float ) inputData[ i / 2 ][ i % 2 ];
-			outputDataCastToSinglePrecision[ i ] = ( float ) outputData[ i / 2 ][ i % 2 ];
+			inputDataCastToSinglePrecision[ i ] = static_cast< float > ( inputData[ i ][ 0 ] );
+
+			// need to get magnitude from the complex numbers, here - angle is phase
+			outputDataCastToSinglePrecision[ i ] = static_cast< float > (
+				sqrt( outputData[ i ][ 0 ] * outputData[ i ][ 0 ] + outputData[ i ][ 1 ] * outputData[ i ][ 1 ] ) );
 		}
 
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, signalBuffer );
