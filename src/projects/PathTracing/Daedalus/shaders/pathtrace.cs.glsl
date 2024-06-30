@@ -753,69 +753,120 @@ float deSquiggles(vec3 p){
 	return (length(cross(cos(p+v),p.zxy))-0.4)*0.2;
 }
 
-vec3 pmin ( vec3 a, vec3 b, vec3 k ) {
-  vec3 h = clamp( 0.5 + 0.5 * ( b - a ) / k, 0.0, 1.0 );
-  return mix( b, a, h ) - k * h * ( 1.0 - h );
-}
-void sphere_fold ( inout vec3 z, inout float dz ) {
-  const float fixed_radius2 = 1.9;
-  const float min_radius2 = 0.5;
-  float r2 = dot( z, z );
-  if ( r2 < min_radius2 ) {
-    float temp = ( fixed_radius2 / min_radius2 );
-    z *= temp;
-    dz *= temp;
-  } else if ( r2 < fixed_radius2 ) {
-    float temp = ( fixed_radius2 / r2 );
-    z *= temp;
-    dz *= temp;
-  }
-}
-void box_fold(float k, inout vec3 z, inout float dz) {
-  vec3 zz = sign( z ) * pmin( abs( z ), vec3( 1.0 ), vec3( k ) );
-  z = zz * 2.0 - z;
-}
-float sphere ( vec3 p, float t ) {
-  return length( p ) - t;
-}
-float boxf ( vec3 p, vec3 b, float e ) {
-  p = abs( p ) - b;
-  vec3 q = abs( p + e ) - e;
-  return min( min(
-    length( max( vec3( p.x, q.y, q.z ), 0.0 ) ) + min( max( p.x, max( q.y, q.z ) ), 0.0 ),
-    length( max( vec3( q.x, p.y, q.z ), 0.0 ) ) + min( max( q.x, max( p.y, q.z ) ), 0.0 ) ),
-    length( max( vec3( q.x, q.y, p.z ), 0.0 ) ) + min( max( q.x, max( q.y, p.z ) ), 0.0 ) );
-}
-float deGorp ( vec3 z ) {
-  const float scale = -2.8;
-  vec3 offset = z;
-  float dr = 1.0;
-  float fd = 0.0;
-  const float k = 0.05;
-  for ( int n = 0; n < 5; ++n ) {
-    box_fold( k / dr, z, dr );
-    sphere_fold( z, dr );
-    z = scale * z + offset;
-    dr = dr * abs( scale ) + 1.0;
-    float r1 = sphere( z, 5.0 );
-    float r2 = boxf( z, vec3( 5.0 ), 0.5 );
-    float r = n < 4 ? r2 : r1;
-    float dd = r / abs( dr );
-    if ( n < 3 || dd < fd ) {
-      fd = dd;
-    }
-  }
-  return fd;
+vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
+        float sPFXY = sin(radians(AngPFXY)); float cPFXY = cos(radians(AngPFXY));
+        float sPFYZ = sin(radians(AngPFYZ)); float cPFYZ = cos(radians(AngPFYZ));
+        float sPFXZ = sin(radians(AngPFXZ)); float cPFXZ = cos(radians(AngPFXZ));
+
+        float zx = z.x; float zy = z.y; float zz = z.z; float t;
+
+        // rotate BACK
+        t = zx; // XY
+        zx = cPFXY * t - sPFXY * zy; zy = sPFXY * t + cPFXY * zy;
+        t = zx; // XZ
+        zx = cPFXZ * t + sPFXZ * zz; zz = -sPFXZ * t + cPFXZ * zz;
+        t = zy; // YZ
+        zy = cPFYZ * t - sPFYZ * zz; zz = sPFYZ * t + cPFYZ * zz;
+        return vec3(zx,zy,zz);
 }
 
+float deTT( vec3 p ) {
+    float Scale = 1.34f;
+    float FoldY = 1.5709f;
+    float FoldX = 1.425709f;
+    float FoldZ = 0.035271f;
+    float JuliaX = -1.763517f;
+    float JuliaY = 1.92486f;
+    float JuliaZ = -1.734913f;
+    float AngX = -51.080209f;
+    float AngY = 0.4f;
+    float AngZ = -19.096322f;
+    float Offset = -3.036726f;
+    int EnableOffset = 1;
+    int Iterations = 80;
+    float Precision = 1.0f;
+    // output _sdf c = _SDFDEF)
+
+    vec4 OrbitTrap = vec4(1,1,1,1);
+    float u2 = 1;
+    float v2 = 1;
+    if(EnableOffset==1)p = Offset+abs(vec3(p.x,p.y,p.z));
+
+    vec3 p0 = vec3(JuliaX,JuliaY,JuliaZ);
+    float l = 0.0;
+    int i=0;
+    for (i=0; i<Iterations; i++) {
+        p = Rotate(p,AngX,AngY,AngZ);
+        p.x=abs(p.x+FoldX)-FoldX;
+        p.y=abs(p.y+FoldY)-FoldY;
+        p.z=abs(p.z+FoldZ)-FoldZ;
+        p=p*Scale+p0;
+        l=length(p);
+        float rr = dot(p,p);
+    }
+    return Precision*(l)*pow(Scale, -float(i));
+}
+
+float deGazTemple6(vec3 p){
+	float s=2., l=0.;
+	p=abs(p);
+	for(int j=0;j++<8;)
+		p=1.-abs(abs(p-2.)-1.),
+		p*=l=1.2/dot(p,p), s*=l;
+	return dot(p,normalize(vec3(3,-2,-1)))/s;
+}
+
+float deGazTemple7 ( vec3 p ) {
+	#define R(p,a,t) mix(a*dot(p,a),p,cos(t))+sin(t)*cross(p,a)
+	#define H(h) (cos((h)*6.3+vec3(0,23,21))*.5+.5)
+	float i=0., s, e, g=0.0;
+	float t = 0.0f;
+	vec4 pp=vec4(p,.07);
+	pp.z-=0.5;
+	pp.xyz=R(pp.xyz,normalize(H(t*.1)),t*.2);
+	s=2.0;
+	for(int j=0;j++<6;)
+		pp=.02-abs(pp-.1),
+		s*=e=max(1./dot(pp,pp),1.3),
+		pp=abs(pp.x<pp.y?pp.wzxy:pp.wzyx)*e-1.3;
+		g+=e=abs(length(pp.xz*pp.wy)-.02)/s+1e-4;
+	return g;
+	#undef R
+	#undef H
+}
+
+float deUnguate(vec3 p){
+	float n=1.+snoise3D(p), s=4., e;
+	for(int i=0;i++<7;p.y-=20.*n)
+		p.xz=.8-abs(p.xz),
+		p.x < p.z?p=p.zyx:p,
+		s*=e=2.1/min(dot(p,p),1.),
+		p=abs(p)*e-n;
+	return length(p)/s+1e-4;
+}
+
+float deGazTemple8(vec3 p){
+	p=mod(p,2.)-1.;
+	p=abs(p)-1.;
+	if(p.x < p.z)p.xz=p.zx;
+	if(p.y < p.z)p.yz=p.zy;
+	if(p.x < p.y)p.xy=p.yx;
+	float s=1.;
+	for(int i=0;i<10;i++){
+		float r2=2./clamp(dot(p,p),.1,1.);
+		p=abs(p)*r2-vec3(.6,.6,3.5);
+		s*=r2;
+	}
+	return length(p)/s;
+}
 
 float deAnemone(vec3 p){
 	#define V vec2(.7,-.7)
 	#define G(p)dot(p,V)
 	float i=0.,g=0.,e=1.;
-	float t = 0.34; // change to see different behavior
+	float t = 6.9; // change to see different behavior
 	for(int j=0;j++<8;){
-		p=abs(rotate3D(0.34,vec3(1,-3,5))*p*2.)-1.,
+		p=abs(rotate3D(t,vec3(1,-3,5))*p*2.)-1.,
 		p.xz-=(G(p.xz)-sqrt(G(p.xz)*G(p.xz)+.05))*V;
 	}
 	return length(p.xz)/3e2;
@@ -887,16 +938,19 @@ float de( in vec3 p ) {
 	// }
 
 	{
-		const float d = max( deLeaf( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+		// const float d = max( deGazTemple8( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+		const float d = max( deGazTemple8( p ), fBox( p, vec3( 10.0f ) ) );
+		// const float d = deGazTemple8( p );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			// hitSurfaceType = METALLIC;
 			// hitRoughness = 0.5f;
 			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
 			// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
+			hitColor = vec3( 0.618f );
 			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.670f, 0.764f, 0.855f ) : vec3( 0.797f, 0.201f, 0.1f );
 			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.023f, 0.023f, 0.023f ) : vec3( 0.831f, 0.397f, 0.038f );
-			hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.23f, 0.23f, 0.23f ) : vec3( 0.831f, 0.107f, 0.038f );
+			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.23f, 0.23f, 0.23f ) : vec3( 0.831f, 0.107f, 0.038f );
 		}
 	}
 
