@@ -118,7 +118,11 @@ public:
 		// const bool super		= ( k & KMOD_GUI );
 
 		if ( state[ SDL_SCANCODE_R ] ) {
-			paletteSelect = ( paletteSelect + 1 ) % 27;
+			static uint32_t tLastUpdate = 0;
+			if ( ( SDL_GetTicks() - tLastUpdate ) > 100 ) {
+				tLastUpdate = SDL_GetTicks();
+				paletteSelect = ( paletteSelect + 1 ) % 27;
+			}
 		}
 	}
 
