@@ -45,7 +45,7 @@ void main () {
 			} else if ( abs( graphY ) < 0.0125f ) { // axis marker
 				col = vec3( 0.618f );
 			}
-		} else if ( sampleLoc.y < heightSignalDisplay + heightFFTDisplay ) {
+		} else if ( sampleLoc.y <= heightSignalDisplay + heightFFTDisplay ) {
 			// show the fft data
 			const float graphY = RangeRemapValue( float( sampleLoc.y ), heightSignalDisplay, heightSignalDisplay + heightFFTDisplay, 50.0f, 0.0f );
 			if ( graphY < fftValue ) {
