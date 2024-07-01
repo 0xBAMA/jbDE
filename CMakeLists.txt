@@ -433,11 +433,11 @@ target_link_libraries( ChorizoSoftbody
 # =================================================================================================
 # Trying to implement slow-scan television (SSTV)
 # =================================================================================================
-add_executable( SlowScan
-	src/projects/SlowScan/main.cc
+add_executable( Spectrogram
+	src/projects/SignalProcessing/Spectrogram/main.cc
 )
 
-target_link_libraries( SlowScan
+target_link_libraries( Spectrogram
 	PUBLIC
 	engineBase
 )

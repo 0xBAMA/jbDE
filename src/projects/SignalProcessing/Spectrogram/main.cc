@@ -1,9 +1,9 @@
-#include "../../engine/engine.h"
+#include "../../../engine/engine.h"
 
-class slowScan final : public engineBase { // sample derived from base engine class
+class spectrogram final : public engineBase { // sample derived from base engine class
 public:
-	slowScan () { Init(); OnInit(); PostInit(); }
-	~slowScan () { DeInit(); Quit(); }
+	spectrogram () { Init(); OnInit(); PostInit(); }
+	~spectrogram () { DeInit(); Quit(); }
 
 	// static constexpr int N = 2048;
 	static constexpr int N = 800;
@@ -27,7 +27,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Draw" ] = computeShader( "./src/projects/SlowScan/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/SignalProcessing/Spectrogram/shaders/draw.cs.glsl" ).shaderHandle;
 
 			// init fftw3 resources
 			inputData = ( fftw_complex* ) fftw_malloc( sizeof( fftw_complex ) * N );
@@ -303,7 +303,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	slowScan engineInstance;
+	spectrogram engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
