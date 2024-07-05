@@ -304,18 +304,20 @@ public:
 	}
 
 	void CompileShaders() {
-		shaders[ "Sky Cache" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/skyCache.cs.glsl" ).shaderHandle;
-		shaders[ "Pathtrace" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/pathtrace.cs.glsl" ).shaderHandle;
-		shaders[ "Prepare" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/prepare.cs.glsl" ).shaderHandle;
-		shaders[ "Present" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/present.cs.glsl" ).shaderHandle;
-		shaders[ "Filter" ]				= computeShader( "./src/projects/PathTracing/Daedalus/shaders/filter.cs.glsl" ).shaderHandle;
-		shaders[ "Copy Back" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/copyBack.cs.glsl" ).shaderHandle;
-		shaders[ "Histogram" ]			= computeShader( "./src/projects/PathTracing/Daedalus/shaders/histogram.cs.glsl" ).shaderHandle;
-		shaders[ "Waveform Prepare" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformPrepare.cs.glsl" ).shaderHandle;
-		shaders[ "Waveform Composite" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/waveformComposite.cs.glsl" ).shaderHandle;
-		shaders[ "Parade Composite" ]	= computeShader( "./src/projects/PathTracing/Daedalus/shaders/paradeComposite.cs.glsl" ).shaderHandle;
-		shaders[ "Vectorscope Prepare" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/vectorscopePrepare.cs.glsl" ).shaderHandle;
-		shaders[ "Vectorscope Composite" ] = computeShader( "./src/projects/PathTracing/Daedalus/shaders/vectorscopeComposite.cs.glsl" ).shaderHandle;
+		const string basePath( "./src/projects/PathTracing/Daedalus/shaders/" );
+		shaders[ "Sky Cache" ]			= computeShader( basePath + "skyCache.cs.glsl" ).shaderHandle;
+		shaders[ "Pathtrace" ]			= computeShader( basePath + "pathtrace.cs.glsl" ).shaderHandle;
+		shaders[ "Prepare" ]			= computeShader( basePath + "prepare.cs.glsl" ).shaderHandle;
+		shaders[ "Present" ]			= computeShader( basePath + "present.cs.glsl" ).shaderHandle;
+		shaders[ "Filter" ]				= computeShader( basePath + "filter.cs.glsl" ).shaderHandle;
+		shaders[ "Copy Back" ]			= computeShader( basePath + "copyBack.cs.glsl" ).shaderHandle;
+		shaders[ "Histogram" ]			= computeShader( basePath + "histogram.cs.glsl" ).shaderHandle;
+		shaders[ "Waveform Prepare" ]	= computeShader( basePath + "waveformPrepare.cs.glsl" ).shaderHandle;
+		shaders[ "Waveform Composite" ]	= computeShader( basePath + "waveformComposite.cs.glsl" ).shaderHandle;
+		shaders[ "Parade Composite" ]	= computeShader( basePath + "paradeComposite.cs.glsl" ).shaderHandle;
+		shaders[ "Vectorscope Prepare" ] = computeShader( basePath + "vectorscopePrepare.cs.glsl" ).shaderHandle;
+		shaders[ "Vectorscope Composite" ] = computeShader( basePath + "vectorscopeComposite.cs.glsl" ).shaderHandle;
+		shaders[ "GoL" ]				= computeShader( basePath + "GoL.cs.glsl" ).shaderHandle;
 		daedalusConfig.render.scene.skyNeedsUpdate = true;
 	}
 
