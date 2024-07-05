@@ -192,6 +192,18 @@ target_link_libraries( CAHistory
 )
 
 # =================================================================================================
+# Same thing but visualizing in 3d
+# =================================================================================================
+add_executable( CAHistory3D
+	src/projects/CellularAutomata/CAHistory3D/main.cc
+)
+
+target_link_libraries( CAHistory3D
+	PUBLIC
+	engineBase
+)
+
+# =================================================================================================
 # Cellular Automata with History ( split colors )
 # =================================================================================================
 add_executable( CAColorSplit
