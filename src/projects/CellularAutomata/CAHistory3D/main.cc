@@ -6,7 +6,7 @@ public:
 	~CAHistory () { Quit(); }
 
 	const uvec3 dims = uvec3( 256, 256, 256 );
-	vec3 viewerPosition = vec3( 1.0f, 1.0f, 1.0f );
+	vec3 viewerPosition = vec3( 2.0f, 2.0f, 2.0f );
 	int currentSlice = 0;
 
 	void OnInit () {
@@ -44,6 +44,16 @@ public:
 			// reset buffer contents, in the back buffer
 			BufferReset();
 			SDL_Delay( 20 ); // debounce
+		}
+	
+		if ( state[ SDL_SCANCODE_RIGHT ] ) {
+			glm::quat rot = glm::angleAxis( -0.01f, vec3( 0.0f, 0.0f, 1.0f ) );
+			viewerPosition = ( rot * vec4( viewerPosition, 0.0f ) ).xyz();
+		}
+
+		if ( state[ SDL_SCANCODE_LEFT ] ) {
+			glm::quat rot = glm::angleAxis( 0.01f, vec3( 0.0f, 0.0f, 1.0f ) );
+			viewerPosition = ( rot * vec4( viewerPosition, 0.0f ) ).xyz();
 		}
 	}
 
