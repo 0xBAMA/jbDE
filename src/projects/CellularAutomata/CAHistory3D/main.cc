@@ -6,6 +6,8 @@ public:
 	~CAHistory () { Quit(); }
 
 	const uvec3 dims = uvec3( 256, 256, 256 );
+	vec3 viewerPosition = vec3( 1.0f, 1.0f, 1.0f );
+	int currentSlice = 0;
 
 	void OnInit () {
 		ZoneScoped;
@@ -66,10 +68,6 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		// swap buffers - precalculate strings for use later
-		string backBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "0" : "1" );
-		string frontBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "1" : "0" );
-
 		{ // update the state of the CA
 			scopedTimer Start( "Update" );
 			// glUseProgram( shaders[ "Update" ] );
@@ -82,7 +80,11 @@ public:
 		{ // draw the current state of the front buffer
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Draw" ] );
+
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+
+			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
 
 			// pass the current front buffer, to display it
 			// glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ),
@@ -110,9 +112,6 @@ public:
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// buffer swap
-		CAConfig.oddFrame = !CAConfig.oddFrame;
 	}
 
 	void OnRender () {
