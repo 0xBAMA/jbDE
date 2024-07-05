@@ -672,34 +672,23 @@ void Daedalus::DDAVATTex() {
 		}
 	}
 	static bool firstRun = true;
-	if ( firstRun ) {
-		firstRun = false;
-		textureOptions_t opts;
-		opts.width			= BLOCKDIM;
-		opts.height			= BLOCKDIM;
-		opts.depth			= BLOCKDIM;
-		opts.dataType		= GL_RGBA8UI;
-		opts.minFilter		= GL_NEAREST;
-		opts.magFilter		= GL_NEAREST;
-		opts.textureType	= GL_TEXTURE_3D;
-		opts.wrap			= GL_CLAMP_TO_BORDER;
-		opts.initialData	= ( void * ) &loaded[ 0 ];
-		textureManager.Add( "DDATex", opts );
-	} else {
+	if ( !firstRun ) {
 		textureManager.Remove( "DDATex" );
-		// pass the new generated texture data to the existing texture
-		textureOptions_t opts;
-		opts.width			= BLOCKDIM;
-		opts.height			= BLOCKDIM;
-		opts.depth			= BLOCKDIM;
-		opts.dataType		= GL_RGBA8UI;
-		opts.minFilter		= GL_NEAREST;
-		opts.magFilter		= GL_NEAREST;
-		opts.textureType	= GL_TEXTURE_3D;
-		opts.wrap			= GL_CLAMP_TO_BORDER;
-		opts.initialData	= ( void * ) &loaded[ 0 ];
-		textureManager.Add( "DDATex", opts );
 	}
+	firstRun = false;
+
+	textureOptions_t opts;
+	opts.width			= BLOCKDIM;
+	opts.height			= BLOCKDIM;
+	opts.depth			= BLOCKDIM;
+	opts.dataType		= GL_RGBA8UI;
+	opts.minFilter		= GL_NEAREST;
+	opts.magFilter		= GL_NEAREST;
+	opts.textureType	= GL_TEXTURE_3D;
+	opts.wrap			= GL_CLAMP_TO_BORDER;
+	opts.initialData	= ( void * ) &loaded[ 0 ];
+	textureManager.Add( "DDATex", opts );
+
 }
 
 void Daedalus::HeightmapTex() {
@@ -718,34 +707,22 @@ void Daedalus::HeightmapTex() {
 	// p.Save( "test.png" );
 
 	static bool firstRun = true;
-	if ( firstRun ) {
-		firstRun = false;
-		textureOptions_t opts;
-		opts.width			= p.model.Width();
-		opts.height			= p.model.Height();
-		opts.dataType		= GL_R32F;
-		opts.minFilter		= GL_NEAREST;
-		opts.magFilter		= GL_NEAREST;
-		opts.textureType	= GL_TEXTURE_2D;
-		opts.wrap			= GL_CLAMP_TO_BORDER;
-		opts.pixelDataType	= GL_FLOAT;
-		opts.initialData	= ( void * ) &p.model.GetImageDataBasePtr()[ 0 ];
-		textureManager.Add( "HeightmapTex", opts );
-	} else {
+	if ( !firstRun ) {
 		textureManager.Remove( "HeightmapTex" );
-		// pass the new generated texture data to the existing texture
-		textureOptions_t opts;
-		opts.width			= p.model.Width();
-		opts.height			= p.model.Height();
-		opts.dataType		= GL_R32F;
-		opts.minFilter		= GL_NEAREST;
-		opts.magFilter		= GL_NEAREST;
-		opts.textureType	= GL_TEXTURE_2D;
-		opts.wrap			= GL_CLAMP_TO_BORDER;
-		opts.pixelDataType	= GL_FLOAT;
-		opts.initialData	= ( void * ) &p.model.GetImageDataBasePtr()[ 0 ];
-		textureManager.Add( "HeightmapTex", opts );
 	}
+
+	firstRun = false;
+	textureOptions_t opts;
+	opts.width			= p.model.Width();
+	opts.height			= p.model.Height();
+	opts.dataType		= GL_R32F;
+	opts.minFilter		= GL_NEAREST;
+	opts.magFilter		= GL_NEAREST;
+	opts.textureType	= GL_TEXTURE_2D;
+	opts.wrap			= GL_CLAMP_TO_BORDER;
+	opts.pixelDataType	= GL_FLOAT;
+	opts.initialData	= ( void * ) &p.model.GetImageDataBasePtr()[ 0 ];
+	textureManager.Add( "HeightmapTex", opts );
 }
 
 void Daedalus::LoadSkyBoxEXRFromString( const string label ) {
