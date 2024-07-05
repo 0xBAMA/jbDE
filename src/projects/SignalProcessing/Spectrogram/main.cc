@@ -202,34 +202,7 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		static int offset = 0;
-		offset++;
-
-		// // fill out the array with some shit
-		// static rng noise = rng( -0.1f, 0.1f );
-		// for ( int i = 0; i < N; i++ ) {
-
-		// 	// inputData[ i ][ 0 ] = 0.0f;
-		// 	// for ( int j = 0; j < 10; j++ ) {
-		// 	// 	inputData[ i ][ 0 ] += 0.125f * ( sin( 0.1f * j * ( i + offset ) ) + cos( 0.3f * j * ( i + offset / 3.0f ) ) );
-		// 	// }
-
-		// 	inputData[ i ][ 0 ] = 0.125f * (
-		// 		0.7f * sin( RangeRemap( sin( 0.01f * offset ), -1.0f, 1.0f, 0.1f, 0.5f ) * ( i + offset ) ) +
-		// 		0.5f * sin( RangeRemap( sin( 0.044f * offset ), -1.0f, 1.0f, 0.6f, 0.8f ) * ( i + offset ) ) +
-		// 		0.3f * sin( RangeRemap( sin( 0.0127f * offset ), -1.0f, 1.0f, 0.2f, 1.6f ) * ( i + offset / 18.0f ) ) +
-		// 		0.1f * cos( 0.123f * ( i + offset / 3.0f ) ) ) +
-		// 		noise();
-
-		// 	// pull samples from the audio stream
-
-		// 	inputData[ i ][ 1 ] = 0.0f;
-		// }
-
-
 		// get the data out of the audio stream
-
-
 		static float data[ N ];
 		int gotten = SDL_AudioStreamGet( streamBufferAnalyze, data, sizeof ( data ) );
 		if ( gotten == -1 ) {
@@ -250,7 +223,7 @@ public:
 		for ( int i = 0; i < N; i++ ) {
 			inputDataCastToSinglePrecision[ i ] = static_cast< float > ( inputData[ i ][ 0 ] );
 
-			// need to get magnitude from the complex numbers, here - angle is phase
+			// need to get magnitude from the complex numbers, here - angle is phase, not used
 			outputDataCastToSinglePrecision[ i ] = static_cast< float > (
 				sqrt( outputData[ i ][ 0 ] * outputData[ i ][ 0 ] + outputData[ i ][ 1 ] * outputData[ i ][ 1 ] ) );
 		}
