@@ -5,7 +5,7 @@ public:
 	CAHistory () { Init(); OnInit(); PostInit(); }
 	~CAHistory () { Quit(); }
 
-	const uvec3 dims = uvec3( 256, 256, 256 );
+	const uvec3 dims = uvec3( 256, 256, 512 );
 	vec3 viewerPosition = vec3( 2.0f, 2.0f, 2.0f );
 	int currentSlice = 0;
 
@@ -17,6 +17,13 @@ public:
 			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/CAHistory3D/shaders/draw.cs.glsl" ).shaderHandle;
 			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/CAHistory3D/shaders/update.cs.glsl" ).shaderHandle;
 
+			std::vector< uint8_t > data;
+			rngi valueGen = rngi( 0, 1 );
+			data.resize( dims.x * dims.y * dims.z );
+			for ( auto& entry : data ) {
+				entry = valueGen();
+			}
+
 			// setup the image buffers for the CA state ( 2x for ping-ponging )
 			textureOptions_t opts;
 			opts.dataType		= GL_R8UI;
@@ -25,7 +32,8 @@ public:
 			opts.depth			= dims.z;
 			opts.textureType	= GL_TEXTURE_3D;
 			opts.pixelDataType	= GL_UNSIGNED_BYTE;
-			opts.initialData	= nullptr;
+			// opts.initialData	= nullptr;
+			opts.initialData	= &data[ 0 ];
 			textureManager.Add( "State Buffer", opts );
 
 			BufferReset();
@@ -95,12 +103,15 @@ public:
 			glUseProgram( shader );
 
 			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
+			glUniform1i( glGetUniformLocation( shader, "sliceOffset" ), currentSlice );
+
+			currentSlice++;
 
 			// pass the current front buffer, to display it
 			// glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ),
 			// 	( float( config.width ) / float( CAConfig.dimensionX ) ) * float( CAConfig.dimensionX ),
 			// 	( float( config.height ) / float( CAConfig.dimensionY ) ) * float( CAConfig.dimensionY ) );
-			// textureManager.BindTexForShader( frontBufferLabel, "CAStateBuffer", shaders[ "Draw" ], 2 );
+			textureManager.BindImageForShader( "State Buffer", "CAStateBuffer", shader, 2 );
 
 			// put it in the accumulator
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
