@@ -45,7 +45,8 @@ public:
 
 			// prepare the glyph and DDA VAT buffers
 			PrepGlyphBuffer();
-			DDAVATTex();
+			GoLTex();
+			// DDAVATTex();
 			// HeightmapTex();
 
 			{ // color grading tools
@@ -286,6 +287,7 @@ public:
 	void RelaxSphereList();
 	void SendExplicitPrimitiveSSBO();
 	void PrepGlyphBuffer();
+	void GoLTex();
 	void DDAVATTex();
 	void HeightmapTex();
 	void ClearColorGradingHistogramBuffer();

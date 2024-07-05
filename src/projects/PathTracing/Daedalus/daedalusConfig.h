@@ -173,13 +173,13 @@ struct daedalusConfig_t {
 		render.maxBounces = 10;
 
 		// SDF raymarch geo
-		render.scene.raymarchEnable = true;
+		render.scene.raymarchEnable = false;
 		render.scene.raymarchMaxDistance = render.maxDistance; // do I want to keep both? not sure
 		render.scene.raymarchMaxSteps = 100;
 		render.scene.raymarchUnderstep = 0.9f;
 		render.scene.marbleRadius = 8.0f;
 
-		render.scene.ddaSpheresEnable = false;
+		render.scene.ddaSpheresEnable = true;
 		render.scene.ddaSpheresBoundSize = vec3( 1.6f );
 		render.scene.ddaSpheresResolution = 513;
 

@@ -240,7 +240,7 @@ void Daedalus::PrepSphereBufferRandom() {
 	// simple implementation, randomizing all parameters
 	rng c = rng(  0.3f, 1.0f );
 	rngN o = rngN( 0.0f, 0.125f );
-	rng r = rng( 0.1f, 0.5f );
+	rng r = rng( 0.1f, 0.15f );
 	rng IoR = rng( 1.0f / 1.1f, 1.0f / 1.5f );
 	rng Roughness = rng( 0.0f, 0.5f );
 
@@ -623,6 +623,69 @@ void Daedalus::PrepGlyphBuffer() {
 		// pass the new generated texture data to the existing texture
 		glBindTexture( GL_TEXTURE_3D, textureManager.Get( "TextBuffer" ) );
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA8UI, texW, texH, texD, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) data.GetImageDataBasePtr() );
+	}
+}
+
+void Daedalus::GoLTex() {
+	// initialize the texture
+	std::vector< uint8_t > data;
+	data.resize( 512 * 512 * 512 * 4, 255 );
+
+	static bool firstRun = true;
+	if ( !firstRun ) {
+		textureManager.Remove( "DDATex" );
+	}
+	firstRun = false;
+
+	textureOptions_t opts;
+	opts.width			= 512;
+	opts.height			= 512;
+	opts.depth			= 512;
+	opts.dataType		= GL_RGBA8UI;
+	opts.minFilter		= GL_NEAREST;
+	opts.magFilter		= GL_NEAREST;
+	opts.textureType	= GL_TEXTURE_3D;
+	opts.wrap			= GL_CLAMP_TO_BORDER;
+	opts.initialData	= ( void * ) &data[ 0 ];
+	textureManager.Add( "DDATex", opts );
+
+	palette::PickRandomPalette( true );
+	// vec3 color = palette::paletteRef( 0.5f );
+
+	// overwrite the first slice with noise
+	const GLuint tex = textureManager.Get( "DDATex" );
+	rng init = rng( 0.0f, 1.0f );
+	data.clear();
+	data.resize( 512 * 512 * 4, 0 );
+	const int www = 1;
+	for ( int x = 0; x < 512; x++ ) {
+		for ( int y = 0; y < 512; y++ ) {
+			vec3 color = palette::paletteRef( init() );
+			data[ ( x + y * 512 ) * 4 + 0 ] = color.x * 255;
+			data[ ( x + y * 512 ) * 4 + 1 ] = color.y * 255;
+			data[ ( x + y * 512 ) * 4 + 2 ] = color.z * 255;
+			data[ ( x + y * 512 ) * 4 + 3 ] = init() < 0.5f ? 0 : 255;
+			// data[ ( x + y * 512 ) * 4 + 3 ] = 255;
+		}
+	}
+
+	glBindTexture( GL_TEXTURE_3D, tex );
+	glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, 0, 512, 512, 1, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &data[ 0 ] );
+
+	const GLuint shader = shaders[ "GoL" ];
+	glUseProgram( shader );
+	textureManager.BindImageForShader( "DDATex", "ddatex", shader, 1 );
+
+	// then evaluate the update, slices up the z axis
+	for ( int i = 0; i < 512; i++ ) {
+		// uniform var, i, indicating current generation's slice
+		glUniform1i( glGetUniformLocation( shader, "previousSlice" ), i );
+
+		// dispatch the compute shader to update the slice
+		glDispatchCompute( 512 / 16, 512 / 16, 1 );
+
+		// memory barrier
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
 }
 
