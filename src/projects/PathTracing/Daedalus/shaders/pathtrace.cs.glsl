@@ -871,6 +871,128 @@ float deAnemone(vec3 p){
 	}
 	return length(p.xz)/3e2;
 }
+float escape;
+  float deJuly(vec3 p0){
+    vec4 p = vec4(p0, 1.);
+    escape = 0.;
+    p=abs(p);
+    if(p.x < p.z)p.xz = p.zx;
+    if(p.z < p.y)p.zy = p.yz;
+    if(p.y < p.x)p.yx = p.xy;
+    for(int i = 0; i < 12; i++){
+      if(p.x < p.z)p.xz = p.zx;
+      if(p.z < p.y)p.zy = p.yz;
+      if(p.y < p.x)p.yx = p.xy;
+      p = abs(p);
+      p*=(1.9/clamp(dot(p.xyz,p.xyz),0.1,1.));
+      p.xyz-=vec3(0.2,1.9,0.6);
+      escape += exp(-0.2*dot(p.xyz,p.xyz)); 
+    }
+    float m = 1.2;
+    p.xyz-=clamp(p.xyz,-m,m);
+    return (length(p.xyz)/p.w);
+  }
+
+// please, do not use in real projects - replace this by something better
+float hashiq(vec3 p) {
+    p  = 17.0*fract( p*0.3183099+vec3(.11,.17,.13) );
+    return fract( p.x*p.y*p.z*(p.x+p.y+p.z) );
+}
+
+// https://iquilezles.org/articles/distfunctions
+float sdBoxiq( vec3 p, vec3 b ) {
+    vec3 d = abs(p) - b;
+    return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
+}
+
+// https://iquilezles.org/articles/smin
+float smaxiq( float a, float b, float k ) {
+    float h = max(k-abs(a-b),0.0);
+    return max(a, b) + h*h*0.25/k;
+}
+
+//---------------------------------------------------------------
+// A random SDF - it places spheres of random sizes in a grid
+//---------------------------------------------------------------
+#define NOISE 0
+float sdBaseiq( in vec3 p ) {
+#if NOISE==0
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+
+	#define RAD(r) ((r)*(r)*0.7)
+    #define SPH(i,f,c) length(f-c)-RAD(hashiq(i+c))
+    
+    return min(min(min(SPH(i,f,vec3(0,0,0)),
+                       SPH(i,f,vec3(0,0,1))),
+                   min(SPH(i,f,vec3(0,1,0)),
+                       SPH(i,f,vec3(0,1,1)))),
+               min(min(SPH(i,f,vec3(1,0,0)),
+                       SPH(i,f,vec3(1,0,1))),
+                   min(SPH(i,f,vec3(1,1,0)),
+                       SPH(i,f,vec3(1,1,1)))));
+#else
+    const float K1 = 0.333333333;
+    const float K2 = 0.166666667;
+    
+    vec3 i = floor(p + (p.x + p.y + p.z) * K1);
+    vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
+    
+    vec3 e = step(d0.yzx, d0);
+	vec3 i1 = e*(1.0-e.zxy);
+	vec3 i2 = 1.0-e.zxy*(1.0-e);
+    
+    vec3 d1 = d0 - (i1  - 1.0*K2);
+    vec3 d2 = d0 - (i2  - 2.0*K2);
+    vec3 d3 = d0 - (1.0 - 3.0*K2);
+    
+    float r0 = hashiq( i+0.0 );
+    float r1 = hashiq( i+i1 );
+    float r2 = hashiq( i+i2 );
+    float r3 = hashiq( i+1.0 );
+
+    #define SPH(d,r) length(d)-r*r*0.55
+
+    return min( min(SPH(d0,r0),
+                    SPH(d1,r1)),
+                min(SPH(d2,r2),
+                    SPH(d3,r3)));
+#endif
+}
+
+//---------------------------------------------------------------
+// subtractive fbm
+//---------------------------------------------------------------
+vec2 sdFbmiq( in vec3 p, float d ) {
+    const mat3 m = mat3( 0.00,  0.80,  0.60,
+                        -0.80,  0.36, -0.48,
+                        -0.60, -0.48,  0.64 );
+    float t = 0.0;
+	float s = 1.0;
+    for( int i=0; i<10; i++ ) {
+        float n = s*sdBaseiq(p);
+    	d = smaxiq( d, -n, 0.15*s );
+        t += d;
+        p = 2.0*m*p;
+        s = 0.55*s;
+    }
+    
+    return vec2(d,t);
+}
+
+// vec2 deRode( in vec3 p ) {
+float deRode( in vec3 p ) {
+    // box
+    float d = sdBoxiq( p, vec3( 0.5f, 10.0f, 5.0f ) );
+
+    // fbm
+    vec2 dt = sdFbmiq( p+0.5, d );
+
+    dt.y = 1.0+dt.y*2.0; dt.y = dt.y*dt.y;
+
+    return dt.x;
+}
+
 
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
@@ -929,28 +1051,36 @@ float de( in vec3 p ) {
 	// }
 
 	// {
-	// 	const float d = deGazTemple4( p );
+	// 	// const float d = max( deRode( p ), distance( p, vec3( 0.0f ) ) - 2.0f );
+	// 	const float d = deRode( p );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = MIRROR;
+	// 		// hitSurfaceType = DIFFUSE;
 	// 		hitColor = vec3( 0.618f );
+	// 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		// hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
 	// 	}
 	// }
 
 	{
 		// const float d = max( deGazTemple8( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
-		const float d = max( deGazTemple8( p ), fBox( p, vec3( 10.0f ) ) );
-		// const float d = deGazTemple8( p );
+		const float d = max( deJuly( p ), fBox( p, vec3( 1.0f, 1.0f, 1.5f ) ) );
+		// const float d = deJuly( p );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
-			// hitSurfaceType = METALLIC;
-			// hitRoughness = 0.5f;
-			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
-			hitColor = vec3( 0.618f );
-			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.670f, 0.764f, 0.855f ) : vec3( 0.797f, 0.201f, 0.1f );
-			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.023f, 0.023f, 0.023f ) : vec3( 0.831f, 0.397f, 0.038f );
-			// hitColor = hitSurfaceType == DIFFUSE ? vec3( 0.23f, 0.23f, 0.23f ) : vec3( 0.831f, 0.107f, 0.038f );
+			if ( abs( escape ) < 5.1f ) {
+				hitSurfaceType = EMISSIVE;
+				if ( abs( escape ) < 5.0f ) {
+					hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
+				} else {
+					hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
+				}
+			} else {
+				// hitRoughness = 0.5f;
+				// hitSurfaceType = METALLIC;
+				hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+				hitColor = vec3( 0.618f );
+			}
 		}
 	}
 
