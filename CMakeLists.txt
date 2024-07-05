@@ -183,7 +183,7 @@ target_link_libraries( Caustic
 # Cellular Automata with History
 # =================================================================================================
 add_executable( CAHistory
-	src/projects/CellularAutomata/history/main.cc
+	src/projects/CellularAutomata/CAHistory/main.cc
 )
 
 target_link_libraries( CAHistory
