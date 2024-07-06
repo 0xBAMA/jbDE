@@ -1316,26 +1316,33 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 
 					intersection.dTravel = distance( ray.origin, rayCache.origin );
 					intersection.normal = intersection.frontfaceHit ? test.a.yzw : test.b.yzw;
+					// intersection.normal *= -1.0f;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
 
 					vec3 testVal = ( pcg3d( uvec3( mapPos0 ) ) / 4294967296.0f );
 					// vec3 testVal = vec3( 1.0f );
-					// if ( testVal.x < 0.0004f ) {
-					// 	intersection.materialID = EMISSIVE;
+					if ( testVal.x < 0.05f ) {
 					// 	intersection.albedo = 3.0f * ( vec3( 0.618f ) + inferno( testVal.g ) );
 					// } else if ( testVal.x < 0.1f ) {
-					// 	intersection.materialID = DIFFUSE;
-					// 	intersection.albedo = vec3( 0.618f );
-					// } else {
+						// intersection.materialID = METALLIC;
+						intersection.materialID = EMISSIVE;
+						// intersection.albedo = vec3( 0.831f, 0.397f, 0.038f ); // honey
+						ray_t ray;
+						ray.origin = vec3( 0.0f );
+						ray.direction = normalize( testVal );
+						intersection.albedo = SkyColor( ray );
+						// intersection.roughness = 0.9f;
+					} else {
 						// intersection.materialID = MIRROR;
 						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-						intersection.albedo = GetColorForIdx( mapPos0 );
-						// intersection.albedo = vec3( 0.99f );
-						// intersection.roughness = 0.5f;
+						// intersection.albedo = GetColorForIdx( mapPos0 );
+						// intersection.albedo = vec3( 0.831f, 0.397f, 0.038f ).grb; // honey
+						intersection.albedo = vec3( 0.9f );
+						intersection.roughness = 0.2f;
 						// intersection.roughness = 0.0f;
-						intersection.roughness = 0.3f;
+						// intersection.roughness = 0.9f;
 						// intersection.materialID = DIFFUSE;
-					// }
+					}
 
 					// intersection.materialID = NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 					// if ( GetAlphaValueForIdx( mapPos0 ) < 35 ) {

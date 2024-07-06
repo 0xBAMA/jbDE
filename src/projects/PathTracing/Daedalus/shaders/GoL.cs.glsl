@@ -31,16 +31,16 @@ void main () {
 	uint state = ( getState( ivec3( writeLoc, previousSlice ) ) ? 255 : 0 );
 	uvec3 color = imageLoad( ddatex, ivec3( writeLoc, previousSlice ) ).rgb;
 
-	// mitigation of blinkers, making constant value columns
-	if ( state == 255 ) {
-		int sum = 0;
-		for ( int i = 0; i < 10; i++ ) {
-			sum += ( imageLoad( ddatex, ivec3( writeLoc, previousSlice - i ) ).a == 255 ) ? 0 : 1;
-		}
-		if ( sum <= 2 ) {
-			state = 0;
-		}
-	}
+	// // mitigation of blinkers, making constant value columns
+	// if ( state == 255 ) {
+	// 	int sum = 0;
+	// 	for ( int i = 0; i < 10; i++ ) {
+	// 		sum += ( imageLoad( ddatex, ivec3( writeLoc, previousSlice - i ) ).a == 255 ) ? 0 : 1;
+	// 	}
+	// 	if ( sum <= 2 ) {
+	// 		state = 0;
+	// 	}
+	// }
 
 	// write the data to the front buffer
 	imageStore( ddatex, ivec3( writeLoc, previousSlice + 1 ), uvec4( color, state ) );
