@@ -1,24 +1,34 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-uniform int previousSlice;
-layout( rgba8ui ) uniform uimage3D ddatex;
+uniform int sliceOffset;
+layout( r8ui ) uniform uimage3D CAStateBuffer;
+
+ivec3 getOffsetPos ( ivec3 pos ) {
+	pos.z += sliceOffset;
+	pos.z = pos.z % imageSize( CAStateBuffer ).z;
+	return pos;
+}
+
+uint getValue ( ivec3 pos ) {
+	return imageLoad( CAStateBuffer, getOffsetPos( pos ) ).r;
+}
 
 bool getState ( ivec3 location ) {
 	// read state from back buffer
-	uint previousState = ( ( imageLoad( ddatex, location ).a ) == 255 ) ? 1 : 0;
+	uint previousState = ( getValue( location ) != 0 ) ? 1 : 0;
 
 	// read neighborhood values from back buffer
 	uint count = 0;
-	count += ( ( imageLoad( ddatex, location + ivec3( -1, -1,  0 ) ).a ) == 255 ) ? 1 : 0;
-	count += ( ( imageLoad( ddatex, location + ivec3(  0, -1,  0 ) ).a ) == 255 ) ? 1 : 0;
-	count += ( ( imageLoad( ddatex, location + ivec3(  1, -1,  0 ) ).a ) == 255 ) ? 1 : 0;
-	count += ( ( imageLoad( ddatex, location + ivec3( -1,  0,  0 ) ).a ) == 255 ) ? 1 : 0;
+	count += ( getValue( location + ivec3( -1, -1,  0 ) ) != 0 ) ? 1 : 0;
+	count += ( getValue( location + ivec3(  0, -1,  0 ) ) != 0 ) ? 1 : 0;
+	count += ( getValue( location + ivec3(  1, -1,  0 ) ) != 0 ) ? 1 : 0;
+	count += ( getValue( location + ivec3( -1,  0,  0 ) ) != 0 ) ? 1 : 0;
 	// skip center pixel, already exists in previousState
-	count += ( ( imageLoad( ddatex, location + ivec3(  1,  0,  0 ) ).a ) == 255 ) ? 1 : 0;
-	count += ( ( imageLoad( ddatex, location + ivec3( -1,  1,  0 ) ).a ) == 255 ) ? 1 : 0;
-	count += ( ( imageLoad( ddatex, location + ivec3(  0,  1,  0 ) ).a ) == 255 ) ? 1 : 0;
-	count += ( ( imageLoad( ddatex, location + ivec3(  1,  1,  0 ) ).a ) == 255 ) ? 1 : 0;
+	count += ( getValue( location + ivec3(  1,  0,  0 ) ) != 0 ) ? 1 : 0;
+	count += ( getValue( location + ivec3( -1,  1,  0 ) ) != 0 ) ? 1 : 0;
+	count += ( getValue( location + ivec3(  0,  1,  0 ) ) != 0 ) ? 1 : 0;
+	count += ( getValue( location + ivec3(  1,  1,  0 ) ) != 0 ) ? 1 : 0;
 
 	// determine new state - Conway's Game of Life rules
 	return ( ( count == 2 || count == 3 ) && previousState == 1 ) || ( count == 3 && previousState == 0 );
@@ -26,20 +36,10 @@ bool getState ( ivec3 location ) {
 
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
-	uint state = ( getState( ivec3( writeLoc, previousSlice ) ) ? 255 : 0 );
-	uvec3 color = imageLoad( ddatex, ivec3( writeLoc, previousSlice ) ).rgb;
-
-	// // mitigation of blinkers, making constant value columns
-	// if ( state == 255 ) {
-	// 	int sum = 0;
-	// 	for ( int i = 0; i < 10; i++ ) {
-	// 		sum += ( imageLoad( ddatex, ivec3( writeLoc, previousSlice - i ) ).a == 255 ) ? 0 : 1;
-	// 	}
-	// 	if ( sum <= 2 ) {
-	// 		state = 0;
-	// 	}
-	// }
+	uint state = ( getState( ivec3( writeLoc, -1 ) ) ? 255 : 0 );
+	// uint state = getValue( ivec3( writeLoc, 0 ) ) != 0 ? 255 : 0;
+	// uint state = getValue( ivec3( writeLoc, -1 ) );
 
 	// write the data to the front buffer
-	imageStore( ddatex, ivec3( writeLoc, previousSlice + 1 ), uvec4( color, state ) );
+	imageStore( CAStateBuffer, getOffsetPos( ivec3( writeLoc, 0 ) ), uvec4( state ) );
 }

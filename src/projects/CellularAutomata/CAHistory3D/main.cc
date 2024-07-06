@@ -144,6 +144,30 @@ public:
 		}
 	}
 
+	void OnUpdate () {
+		// update the state of the CA
+		scopedTimer Start( "Update" );
+		const GLuint shader = shaders[ "Update" ];
+		glUseProgram( shader );
+
+		glUniform1i( glGetUniformLocation( shader, "sliceOffset" ), currentSlice );
+		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
+		textureManager.BindImageForShader( "State Buffer", "CAStateBuffer", shader, 2 );
+		IncrementSlice();
+
+		// if ( userClickedThisFrame == true ) {
+			// 	// this probably makes more sense to do on the CPU...
+			// 	// glUniform1i( glGetUniformLocation( shader, "userClickedThisFrame" ), userClickedThisFrame )
+
+			// reset click state
+			// userClickedThisFrame = false;
+		// }
+
+		// dispatch the compute shader to update the thing
+		glDispatchCompute( dims.x / 16, dims.y / 16, 1 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
+
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
@@ -167,6 +191,7 @@ public:
 		HandleQuitEvents();
 
 		// derived-class-specific functionality
+		OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
