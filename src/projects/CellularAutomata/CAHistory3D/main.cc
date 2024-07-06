@@ -5,9 +5,20 @@ public:
 	CAHistory () { Init(); OnInit(); PostInit(); }
 	~CAHistory () { Quit(); }
 
-	const uvec3 dims = uvec3( 256, 256, 512 );
-	vec3 viewerPosition = vec3( 2.0f, 2.0f, 2.0f );
+	const uvec3 dims = uvec3( 512 );
+	vec3 viewerPosition = vec3( 6.0f, 6.0f, 6.0f );
 	int currentSlice = 0;
+
+	bool userClickedThisFrame = false;
+	ivec2 userClickLocation = ivec2( -1 );
+
+	float zoom = 2.0f;
+	float verticalOffset = 2.0f;
+
+	void IncrementSlice() {
+		currentSlice = ( currentSlice + 1 ) % dims.z;
+		// cout << currentSlice << endl;
+	}
 
 	void OnInit () {
 		ZoneScoped;
@@ -17,13 +28,6 @@ public:
 			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/CAHistory3D/shaders/draw.cs.glsl" ).shaderHandle;
 			shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/CAHistory3D/shaders/update.cs.glsl" ).shaderHandle;
 
-			std::vector< uint8_t > data;
-			rngi valueGen = rngi( 0, 1 );
-			data.resize( dims.x * dims.y * dims.z );
-			for ( auto& entry : data ) {
-				entry = valueGen();
-			}
-
 			// setup the image buffers for the CA state ( 2x for ping-ponging )
 			textureOptions_t opts;
 			opts.dataType		= GL_R8UI;
@@ -32,16 +36,30 @@ public:
 			opts.depth			= dims.z;
 			opts.textureType	= GL_TEXTURE_3D;
 			opts.pixelDataType	= GL_UNSIGNED_BYTE;
-			// opts.initialData	= nullptr;
-			opts.initialData	= &data[ 0 ];
+			opts.initialData	= nullptr;
 			textureManager.Add( "State Buffer", opts );
 
-			BufferReset();
+			BufferReset( 0.5f );
 		}
 	}
 
-	void BufferReset () { // put random bits in the buffer
-		// todo
+	void BufferReset ( float onChance ) { // put random bits in the buffer
+		static rng pick = rng( 0.0f, 1.0f );
+		std::vector< uint8_t > data;
+		glBindTexture( GL_TEXTURE_3D, textureManager.Get( "State Buffer" ) );
+
+		// fill the block with zeroes
+		data.resize( dims.x * dims.y, 0 );
+		for ( uint i = 0; i < dims.z; i++ ) {
+			glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, i, dims.x, dims.y, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &data[ 0 ] );
+		}
+
+		// fill the first slice with noise
+		for ( uint i = 0; i < dims.x * dims.y; i++ ) {
+			data[ i ] = ( pick() < onChance ) ? 0 : 255;
+		}
+		currentSlice = 0;
+		glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, dims.z - 1, dims.x, dims.y, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &data[ 0 ] );
 	}
 
 	void HandleCustomEvents () {
@@ -50,10 +68,15 @@ public:
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 		if ( state[ SDL_SCANCODE_R ] ) {
 			// reset buffer contents, in the back buffer
-			BufferReset();
+			BufferReset( 0.5f );
 			SDL_Delay( 20 ); // debounce
 		}
-	
+
+		if ( state[ SDL_SCANCODE_T ] ) {
+			IncrementSlice();
+			SDL_Delay( 100 ); // debounce
+		}
+
 		if ( state[ SDL_SCANCODE_RIGHT ] ) {
 			glm::quat rot = glm::angleAxis( -0.01f, vec3( 0.0f, 0.0f, 1.0f ) );
 			viewerPosition = ( rot * vec4( viewerPosition, 0.0f ) ).xyz();
@@ -86,15 +109,6 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // update the state of the CA
-			scopedTimer Start( "Update" );
-			// glUseProgram( shaders[ "Update" ] );
-
-			// dispatch the compute shader to update the thing
-			// glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
-			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-		}
-
 		{ // draw the current state of the front buffer
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
@@ -102,15 +116,10 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 
+			glUniform1f( glGetUniformLocation( shader, "zoom" ), zoom );
+			glUniform1f( glGetUniformLocation( shader, "verticalOffset" ), verticalOffset );
 			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
 			glUniform1i( glGetUniformLocation( shader, "sliceOffset" ), currentSlice );
-
-			currentSlice++;
-
-			// pass the current front buffer, to display it
-			// glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ),
-			// 	( float( config.width ) / float( CAConfig.dimensionX ) ) * float( CAConfig.dimensionX ),
-			// 	( float( config.height ) / float( CAConfig.dimensionY ) ) * float( CAConfig.dimensionY ) );
 			textureManager.BindImageForShader( "State Buffer", "CAStateBuffer", shader, 2 );
 
 			// put it in the accumulator
