@@ -103,8 +103,44 @@ void main () {
 			RangeRemapValue( hitPosition.y, -CABlockDims.y, CABlockDims.y, 0.0f, CASimDims.y )
 		);
 
+		#define SOLID	0
+		#define CLEAR	1
+		#define NOISE	2
+		#define LINEX	3
+		#define LINEY	4
+		#define CROSS	5
+
 		if ( distance( hitInUVSpace, vec2( writeLoc ) ) < brushRadius ) {
-			state = 255;
+			switch ( clickMode ) {
+				case SOLID:
+				state = 255;
+				break;
+
+				case CLEAR:
+				state = 0;
+				break;
+
+				case NOISE:
+				break;
+
+				case LINEX:
+				if ( int( hitInUVSpace.x ) == writeLoc.x ) {
+					state = 255;
+				}
+				break;
+
+				case LINEY:
+				if ( int( hitInUVSpace.y ) == writeLoc.y ) {
+					state = 255;
+				}
+				break;
+
+				case CROSS:
+				if ( int( hitInUVSpace.x ) == writeLoc.x || int( hitInUVSpace.y ) == writeLoc.y ) {
+					state = 255;
+				}
+				break;
+			}
 		}
 	}
 

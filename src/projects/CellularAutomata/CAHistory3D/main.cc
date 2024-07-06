@@ -12,8 +12,9 @@ public:
 	float zoom = 2.0f;
 	float verticalOffset = 2.0f;
 
+	float initThreshold = 0.5f;
 	float brushRadius = 10.0f;
-
+	int brushMode = 0;
 
 	void IncrementSlice() {
 		currentSlice = ( currentSlice + 1 ) % dims.z;
@@ -137,6 +138,12 @@ public:
 		}
 
 		// add some config stuff
+		ImGui::Begin( "Config", NULL );
+		ImGui::SliderFloat( "Init Threshold", &initThreshold, 0.0f, 1.0f );
+		ImGui::SliderFloat( "Brush Radius", &brushRadius, 0.0f, 100.0f );
+		const char * brushModes[] = { "SOLID", "CLEAR", "NOISE", "LINE X", "LINE Y", "CROSS" };
+		ImGui::Combo( "Brush Mode", &brushMode, brushModes, IM_ARRAYSIZE( brushModes ) );
+		ImGui::End();
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
@@ -201,7 +208,7 @@ public:
 			glUniform1i( glGetUniformLocation( shader, "userClicked" ), 1 );
 			glUniform2i( glGetUniformLocation( shader, "clickLocation" ), userClickLocation.x, userClickLocation.y );
 			glUniform2i( glGetUniformLocation( shader, "sizeOfScreen" ), config.width, config.height );
-			glUniform1i( glGetUniformLocation( shader, "clickMode" ), 0 ); // todo, different brushes
+			glUniform1i( glGetUniformLocation( shader, "clickMode" ), brushMode );
 			glUniform1f( glGetUniformLocation( shader, "brushRadius" ), brushRadius );
 		}
 
