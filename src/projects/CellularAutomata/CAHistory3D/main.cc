@@ -39,11 +39,11 @@ public:
 			opts.initialData	= nullptr;
 			textureManager.Add( "State Buffer", opts );
 
-			BufferReset( 0.5f );
+			BufferReset();
 		}
 	}
 
-	void BufferReset ( float onChance ) { // put random bits in the buffer
+	void BufferReset () { // put random bits in the buffer
 		static rng pick = rng( 0.0f, 1.0f );
 		std::vector< uint8_t > data;
 		glBindTexture( GL_TEXTURE_3D, textureManager.Get( "State Buffer" ) );
@@ -56,7 +56,7 @@ public:
 
 		// fill the first slice with noise
 		for ( uint i = 0; i < dims.x * dims.y; i++ ) {
-			data[ i ] = ( pick() < onChance ) ? 0 : 255;
+			data[ i ] = ( pick() < initThreshold ) ? 255 : 0;
 		}
 		currentSlice = 0;
 		glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, dims.z - 1, dims.x, dims.y, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &data[ 0 ] );
@@ -68,7 +68,7 @@ public:
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
 		if ( state[ SDL_SCANCODE_R ] ) {
 			// reset buffer contents, in the back buffer
-			BufferReset( 0.5f );
+			BufferReset();
 			SDL_Delay( 20 ); // debounce
 		}
 
