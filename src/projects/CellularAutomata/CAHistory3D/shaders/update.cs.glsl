@@ -121,6 +121,11 @@ void main () {
 				break;
 
 				case NOISE:
+				if ( ( pcg3d( uvec3( writeLoc.xy, sliceOffset ) ) / 4294967296.0f ).x < 0.5f ) {
+					state = 255;
+				} else {
+					state = 0;
+				}
 				break;
 
 				case LINEX:
