@@ -100,6 +100,27 @@ public:
 		if ( state[ SDL_SCANCODE_EQUALS ] ) {
 			zoom -= 0.1f;
 		}
+
+		SDL_Event event;
+		SDL_PumpEvents();
+		while ( SDL_PollEvent( &event ) ) {
+			ImGui_ImplSDL2_ProcessEvent( &event ); // imgui event handling
+			pQuit = config.oneShot || // swap out the multiple if statements for a big chained boolean setting the value of pQuit
+				( event.type == SDL_QUIT ) ||
+				( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( window.window ) ) ||
+				( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
+			if ( ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE ) || ( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_X1 ) ) {
+				quitConfirm = !quitConfirm; // this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
+			}
+
+			if ( event.type == SDL_MOUSEWHEEL && !ImGui::GetIO().WantCaptureMouse ) {
+				// float wheel_x = -event.wheel.x;
+				const float wheel_y = event.wheel.y;
+
+				// change brush radius
+
+			}
+		}
 	}
 
 	void ImguiPass () {
@@ -208,9 +229,7 @@ public:
 		ZoneScoped;
 
 		// event handling
-		HandleTridentEvents();
 		HandleCustomEvents();
-		HandleQuitEvents();
 
 		// derived-class-specific functionality
 		OnUpdate();
