@@ -117,9 +117,6 @@ public:
 			}
 
 			if ( event.type == SDL_MOUSEWHEEL && !ImGui::GetIO().WantCaptureMouse ) {
-				// float wheel_x = -event.wheel.x;
-				// const float wheel_y = event.wheel.y;
-
 				// change brush radius
 				brushRadius = std::clamp( brushRadius + event.wheel.y, 0.0f, 100.0f );
 			}
@@ -206,8 +203,6 @@ public:
 			glUniform2i( glGetUniformLocation( shader, "sizeOfScreen" ), config.width, config.height );
 			glUniform1i( glGetUniformLocation( shader, "clickMode" ), 0 ); // todo, different brushes
 			glUniform1f( glGetUniformLocation( shader, "brushRadius" ), brushRadius );
-
-			// cout << "trying to write at " << userClickLocation.x << " " << userClickLocation.y << endl;
 		}
 
 		// dispatch the compute shader to update the thing
