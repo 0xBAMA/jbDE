@@ -12,6 +12,9 @@ public:
 	float zoom = 2.0f;
 	float verticalOffset = 2.0f;
 
+	float brushRadius = 10.0f;
+
+
 	void IncrementSlice() {
 		currentSlice = ( currentSlice + 1 ) % dims.z;
 		// cout << currentSlice << endl;
@@ -115,10 +118,10 @@ public:
 
 			if ( event.type == SDL_MOUSEWHEEL && !ImGui::GetIO().WantCaptureMouse ) {
 				// float wheel_x = -event.wheel.x;
-				const float wheel_y = event.wheel.y;
+				// const float wheel_y = event.wheel.y;
 
 				// change brush radius
-
+				brushRadius = std::clamp( brushRadius + event.wheel.y, 0.0f, 100.0f );
 			}
 		}
 	}
@@ -202,6 +205,7 @@ public:
 			glUniform2i( glGetUniformLocation( shader, "clickLocation" ), userClickLocation.x, userClickLocation.y );
 			glUniform2i( glGetUniformLocation( shader, "sizeOfScreen" ), config.width, config.height );
 			glUniform1i( glGetUniformLocation( shader, "clickMode" ), 0 ); // todo, different brushes
+			glUniform1f( glGetUniformLocation( shader, "brushRadius" ), brushRadius );
 
 			// cout << "trying to write at " << userClickLocation.x << " " << userClickLocation.y << endl;
 		}

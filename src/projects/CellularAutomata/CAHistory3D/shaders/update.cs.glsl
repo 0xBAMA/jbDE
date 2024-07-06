@@ -5,6 +5,7 @@ uniform bool userClicked;
 uniform ivec2 clickLocation;
 uniform int clickMode;
 uniform ivec2 sizeOfScreen;
+uniform float brushRadius;
 
 uniform vec3 viewerPosition;
 uniform float zoom;
@@ -102,7 +103,7 @@ void main () {
 			RangeRemapValue( hitPosition.y, -CABlockDims.y, CABlockDims.y, 0.0f, CASimDims.y )
 		);
 
-		if ( distance( hitInUVSpace, vec2( writeLoc ) ) < 50.0f ) {
+		if ( distance( hitInUVSpace, vec2( writeLoc ) ) < brushRadius ) {
 			state = 255;
 		}
 	}
