@@ -57,6 +57,7 @@ vec3 colorFromIterations ( int i ) {
 }
 
 #include "mathUtils.h"
+#include "colorRamps.glsl.h"
 
 void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
@@ -106,6 +107,9 @@ void main () {
 			// consider using distance to hit
 			uint read = sampleBlock( mapPos0 );
 			if ( read != 0 ) { // this should be the hit condition
+				// color = colorFromIterations( i ) + magma( 1.0f - float( mapPos0.z ) / imageSize( CAStateBuffer ).z );
+				// color = colorFromIterations( i ) + magma( pcg3d( uvec3( getOffsetPos( mapPos0 ) ) ).x / 4294967296.0f );
+				// color = colorFromIterations( i ) + vec3( 0.1618f ) + vec3( 0.0f, 0.1f * pcg3d( uvec3( getOffsetPos( mapPos0 ) ) ).xy / 4294967296.0f );
 				color = colorFromIterations( i ) + vec3( 0.1618f );
 				break;
 			} else {
