@@ -76,7 +76,7 @@ void main () {
 
 	const vec3 location = viewerPosition + p.x * left + ( p.y - verticalOffset ) * up;
 
-	// ray-plane test
+	// ray-box test
 	const float d = box( location, forwards, CABlockDims, vec3( 0.0f ) );
 	const vec3 hitPosition = location + forwards * d * 1.0001f;
 

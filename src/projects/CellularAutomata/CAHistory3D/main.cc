@@ -9,9 +9,6 @@ public:
 	vec3 viewerPosition = vec3( 6.0f, 6.0f, 6.0f );
 	int currentSlice = 0;
 
-	bool userClickedThisFrame = false;
-	ivec2 userClickLocation = ivec2( -1 );
-
 	float zoom = 2.0f;
 	float verticalOffset = 2.0f;
 
@@ -95,11 +92,6 @@ public:
 			verticalOffset -= 0.1f;
 		}
 
-		uint32_t mouseState = SDL_GetMouseState( &userClickLocation.x, &userClickLocation.y );
-		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
-			userClickedThisFrame = true;
-		}
-
 		// zoom in and out with plus/minus
 		if ( state[ SDL_SCANCODE_MINUS ] ) {
 			zoom += 0.1f;
@@ -172,18 +164,26 @@ public:
 		const GLuint shader = shaders[ "Update" ];
 		glUseProgram( shader );
 
+		glUniform1i( glGetUniformLocation( shader, "userClicked" ), 0 );
 		glUniform1i( glGetUniformLocation( shader, "sliceOffset" ), currentSlice );
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
 		textureManager.BindImageForShader( "State Buffer", "CAStateBuffer", shader, 2 );
 		IncrementSlice();
 
-		// if ( userClickedThisFrame == true ) {
-			// 	// this probably makes more sense to do on the CPU...
-			// 	// glUniform1i( glGetUniformLocation( shader, "userClickedThisFrame" ), userClickedThisFrame )
+		ivec2 userClickLocation = ivec2( -1 );
+		uint32_t mouseState = SDL_GetMouseState( &userClickLocation.x, &userClickLocation.y );
+		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
+			glUniform1f( glGetUniformLocation( shader, "zoom" ), zoom );
+			glUniform1f( glGetUniformLocation( shader, "verticalOffset" ), verticalOffset );
+			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
 
-			// reset click state
-			// userClickedThisFrame = false;
-		// }
+			glUniform1i( glGetUniformLocation( shader, "userClicked" ), 1 );
+			glUniform2i( glGetUniformLocation( shader, "clickLocation" ), userClickLocation.x, userClickLocation.y );
+			glUniform2i( glGetUniformLocation( shader, "sizeOfScreen" ), config.width, config.height );
+			glUniform1i( glGetUniformLocation( shader, "clickMode" ), 0 ); // todo, different brushes
+
+			// cout << "trying to write at " << userClickLocation.x << " " << userClickLocation.y << endl;
+		}
 
 		// dispatch the compute shader to update the thing
 		glDispatchCompute( dims.x / 16, dims.y / 16, 1 );
