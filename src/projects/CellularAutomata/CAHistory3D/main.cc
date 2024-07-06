@@ -86,6 +86,28 @@ public:
 			glm::quat rot = glm::angleAxis( 0.01f, vec3( 0.0f, 0.0f, 1.0f ) );
 			viewerPosition = ( rot * vec4( viewerPosition, 0.0f ) ).xyz();
 		}
+
+		if ( state[ SDL_SCANCODE_UP ] ) {
+			verticalOffset += 0.1f;
+		}
+
+		if ( state[ SDL_SCANCODE_DOWN ] ) {
+			verticalOffset -= 0.1f;
+		}
+
+		uint32_t mouseState = SDL_GetMouseState( &userClickLocation.x, &userClickLocation.y );
+		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
+			userClickedThisFrame = true;
+		}
+
+		// zoom in and out with plus/minus
+		if ( state[ SDL_SCANCODE_MINUS ] ) {
+			zoom += 0.1f;
+		}
+
+		if ( state[ SDL_SCANCODE_EQUALS ] ) {
+			zoom -= 0.1f;
+		}
 	}
 
 	void ImguiPass () {
