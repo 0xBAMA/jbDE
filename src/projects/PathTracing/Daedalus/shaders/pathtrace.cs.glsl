@@ -411,6 +411,7 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		case METALLIC: {
 			throughput *= intersection.albedo;
 			ray.direction = randomVectorSpecular;
+			break;
 		}
 
 		case MIRROR: {	// mirror surface ( some attenuation )
