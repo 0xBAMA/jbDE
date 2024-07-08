@@ -880,14 +880,16 @@ float escape;
     if(p.x < p.z)p.xz = p.zx;
     if(p.z < p.y)p.zy = p.yz;
     if(p.y < p.x)p.yx = p.xy;
-    for(int i = 0; i < 12; i++){
+    for(int i = 0; i < 20; i++){
       if(p.x < p.z)p.xz = p.zx;
       if(p.z < p.y)p.zy = p.yz;
       if(p.y < p.x)p.yx = p.xy;
       p = abs(p);
       p*=(1.9/clamp(dot(p.xyz,p.xyz),0.1,1.));
-      p.xyz-=vec3(0.2,1.9,0.6);
-      escape += exp(-0.2*dot(p.xyz,p.xyz)); 
+    //   p.xyz-=vec3(0.2,1.9,0.6);
+    //   p.xyz-=vec3(1.7,1.6,0.2);
+      p.xyz-=vec3(0.9,1.1,0.5);
+      escape += exp(-0.2*dot(p.xyz,p.xyz));
     }
     float m = 1.2;
     p.xyz-=clamp(p.xyz,-m,m);
@@ -994,6 +996,92 @@ float deRode( in vec3 p ) {
     return dt.x;
 }
 
+// Nikolay's water
+float sumWaves(float x){
+	float sumstuff = 0.;
+	for(int i = 0; i < 10; i++){
+		sumstuff += abs(sin(x*float(i)))/(float(i)+1.);
+	}
+	return (2.-sumstuff)*0.5;
+}
+vec2 rotXXX(vec2 a, float t){
+	vec2 b = vec2(cos(t), sin(t));
+	return vec2(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x );
+}
+
+float rotatewaves(vec2 py, float times){
+	float addsm = 0.;
+	times *= 0.004;
+	for(int i = 0; i < 25; i++){
+		float k = 0.73;
+		// for(int i = 0; i < 150; i++){
+		float m = sqrt(float(i) / 25.);
+		float r = 2. * 3.14159 * k * float(i);
+		// vec2 coords = vec2(m * cos(r), m * sin(r)) * CoCSize
+		py = rotXXX(py, r);
+		vec2 waterDir = normalize(vec2(1., 1.))*times*122.5;
+		addsm += (sumWaves(py.x-2.*float(i)+waterDir.x) + sumWaves(py.y+3.*float(i)+waterDir.y));
+	}
+	return addsm / 15.;
+}
+
+float isWat = 0.;
+float mapPl(vec3 p, float times) {
+	p = p.xzy;
+	p.x *= .2;
+	p.y *= .3;
+	// p.z += 4.;
+	float plane = p.z - ((rotatewaves(p.xy, times))*1.7);
+	return plane;
+}
+
+// Tdhooper Variant 2 
+vec2 wrap ( vec2 x, vec2 a, vec2 s ) {
+  x -= s;
+  return ( x - a * floor( x / a ) ) + s;
+}
+
+void TransA ( inout vec3 z, inout float DF, float a, float b ) {
+  float iR = 1.0 / dot( z, z );
+  z *= -iR;
+  z.x = -b - z.x; 
+  z.y =  a + z.y;
+  DF *= iR; //max( 1.0, iR );
+}
+
+float deGGG( vec3 z ) {
+  float t = 0.0;
+  float KleinR = 1.5 + 0.39;
+  float KleinI = ( 0.55 * 2.0 - 1.0 );
+  vec2 box_size = vec2( -0.40445, 0.34 ) * 2.0;
+  vec3 lz = z + vec3( 1.0 ), llz = z + vec3( -1.0 );
+  float d = 0.0; float d2 = 0.0;
+  float DE = 1e12;
+  float DF = 1.0;
+  float a = KleinR;
+  float b = KleinI;
+  float f = sign( b ) * 0.45;
+  orbitColor = vec3(1e20);
+  for ( int i = 0; i < 80; i++ ) {
+    z.x += b / a * z.y;
+    z.xz = wrap( z.xz, box_size * 2.0, -box_size );
+    z.x -= b / a * z.y;
+    if ( z.y >= a * 0.5 + f * ( 2.0 * a - 1.95 ) / 4.0 * sign( z.x + b * 0.5 ) * 
+     ( 1.0 - exp( -( 7.2 - ( 1.95 - a ) * 15.0 )* abs(z.x + b * 0.5 ) ) ) ) {
+      z = vec3( -b, a, 0.0 ) - z;
+    } //If above the separation line, rotate by 180° about (-b/2, a/2)
+    TransA(z, DF, a, b); //Apply transformation a
+    if ( dot( z - llz, z - llz ) < 1e-5 ) {
+      break;
+    } //If the iterated points enters a 2-cycle, bail out
+    llz = lz; lz = z; //Store previous iterates
+	orbitColor = min(orbitColor, z);
+  }
+  float y =  min( z.y, a - z.y );
+  DE = min( DE, min( y, 0.3 ) / max( DF, 2.0 ) );
+  return DE;
+}
+
 
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
@@ -1033,23 +1121,40 @@ float de( in vec3 p ) {
 	// 	}
 	// }
 
+	{
+		const float d = max( deGGG( p ), fBox( p - vec3( 1.0f, -3.0f, 0.0f ), vec3( 5.0f ) ) );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = METALLIC;
+			hitRoughness = 0.6f;
+			// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+
+			// hitColor = vec3( 0.618f );
+			// hitColor = orbitColor;
+			hitColor = magma( 1.0f - clamp(orbitColor.y * 2., 0., 1. ) ) * mix(1., 3., smoothstep(0., .4, orbitColor.y) );
+		}
+	}
+
 	// {
-	// 	const float d = deGazTemple2( p );
+	// 	const float d = max( mapPl( p - vec3( -5.0f, -5.0f, 5.0f ), 0.0f ), fBox( p - vec3( -18.0f, -3.0f, 0.0f ), vec3( 8.0f, 3.0f, 10.5f ) ) );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-	// 		hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
+	// 		// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		hitSurfaceType = DIFFUSE;
+	// 		hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
 	// 	}
 	// }
 
 	// {
-	// 	const float d = deGazTemple1( p );
+	// 	const float d = max( deWater( p ), fBox( p - vec3( 0.0f, -3.0f, 0.0f ), vec3( 8.0f, 3.0f, 10.5f ) ) );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-	// 		hitColor = vec3( 0.023f, 0.023f, 0.023f ); // tire
+	// 		// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		hitSurfaceType = DIFFUSE;
+	// 		hitColor = vec3( 0.887f, 0.789f, 0.434f ); // bone
 	// 	}
 	// }
+
 
 	// {
 	// 	// const float d = max( deRode( p ), distance( p, vec3( 0.0f ) ) - 2.0f );
@@ -1063,27 +1168,31 @@ float de( in vec3 p ) {
 	// 	}
 	// }
 
-	{
-		// const float d = max( deGazTemple8( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
-		const float d = max( deJuly( p ), fBox( p, vec3( 1.0f, 1.0f, 1.5f ) ) );
-		// const float d = deJuly( p );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			if ( abs( escape ) < 5.1f ) {
-				hitSurfaceType = EMISSIVE;
-				if ( abs( escape ) < 5.0f ) {
-					hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
-				} else {
-					hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
-				}
-			} else {
-				// hitRoughness = 0.5f;
-				// hitSurfaceType = METALLIC;
-				hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-				hitColor = vec3( 0.618f );
-			}
-		}
-	}
+	// {
+	// 	// const float d = max( deGazTemple8( p ), distance( p, vec3( 0.0f ) ) - marbleRadius - 0.4f );
+	// 	const float d = max( deJuly( p ), fBox( p, vec3( 1.0f, 1.0f, 1.5f ) ) );
+	// 	// const float d = deJuly( p );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		if ( abs( escape ) < 6.9f ) {
+	// 			hitSurfaceType = EMISSIVE;
+	// 			// if ( abs( escape ) < 6.7f ) {
+	// 			// 	// hitColor = vec3( 0.713f, 0.170f, 0.026f ); // carrot
+	// 			// 	// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 			// 	hitColor = vec3( 0.855f );
+	// 			// } else {
+	// 			// 	// hitColor = vec3( 0.831f, 0.397f, 0.038f ); // honey
+	// 			// 	hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 			// }
+	// 			hitColor = viridis( RangeRemapValue( abs( escape ), 6.5f, 6.9f, 0.0f, 1.0f ) );
+	// 		} else {
+	// 			// hitRoughness = 0.5f;
+	// 			// hitSurfaceType = METALLIC;
+	// 			hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 			hitColor = vec3( 0.618f );
+	// 		}
+	// 	}
+	// }
 
 	return sceneDist;
 }
@@ -1320,30 +1429,30 @@ intersection_t DDATraversal( in ray_t ray, in float distanceToBounds ) {
 					// intersection.normal *= -1.0f;
 					// intersection.materialID = GetMaterialIDForIdx( mapPos0 );
 
-					vec3 testVal = ( pcg3d( uvec3( mapPos0 ) ) / 4294967296.0f );
+					// vec3 testVal = ( pcg3d( uvec3( mapPos0 ) ) / 4294967296.0f );
 					// vec3 testVal = vec3( 1.0f );
-					if ( testVal.x < 0.05f ) {
-					// 	intersection.albedo = 3.0f * ( vec3( 0.618f ) + inferno( testVal.g ) );
-					// } else if ( testVal.x < 0.1f ) {
-						// intersection.materialID = METALLIC;
-						intersection.materialID = EMISSIVE;
-						// intersection.albedo = vec3( 0.831f, 0.397f, 0.038f ); // honey
-						ray_t ray;
-						ray.origin = vec3( 0.0f );
-						ray.direction = normalize( testVal );
-						intersection.albedo = SkyColor( ray );
-						// intersection.roughness = 0.9f;
-					} else {
+					// if ( testVal.x < 0.05f ) {
+					// // 	intersection.albedo = 3.0f * ( vec3( 0.618f ) + inferno( testVal.g ) );
+					// // } else if ( testVal.x < 0.1f ) {
+					// 	// intersection.materialID = METALLIC;
+					// 	intersection.materialID = EMISSIVE;
+					// 	// intersection.albedo = vec3( 0.831f, 0.397f, 0.038f ); // honey
+					// 	ray_t ray;
+					// 	ray.origin = vec3( 0.0f );
+					// 	ray.direction = normalize( testVal );
+					// 	intersection.albedo = SkyColor( ray );
+					// 	// intersection.roughness = 0.9f;
+					// } else {
 						// intersection.materialID = MIRROR;
 						intersection.materialID = intersection.frontfaceHit ? REFRACTIVE : REFRACTIVE_BACKFACE;
-						// intersection.albedo = GetColorForIdx( mapPos0 );
+						intersection.albedo = GetColorForIdx( mapPos0 );
 						// intersection.albedo = vec3( 0.831f, 0.397f, 0.038f ).grb; // honey
-						intersection.albedo = vec3( 0.9f );
+						// intersection.albedo = vec3( 0.9f );
 						intersection.roughness = 0.2f;
 						// intersection.roughness = 0.0f;
 						// intersection.roughness = 0.9f;
 						// intersection.materialID = DIFFUSE;
-					}
+					// }
 
 					// intersection.materialID = NormalizedRandomFloat() < 0.9f ? MIRROR : DIFFUSE;
 					// if ( GetAlphaValueForIdx( mapPos0 ) < 35 ) {
