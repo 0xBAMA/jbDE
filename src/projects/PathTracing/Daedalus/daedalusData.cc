@@ -660,12 +660,18 @@ void Daedalus::GoLTex() {
 	const int www = 1;
 	for ( int x = 0; x < 512; x++ ) {
 		for ( int y = 0; y < 512; y++ ) {
+		// for ( int y = 256 - www; y < 256 + www; y++ ) {
+
 			vec3 color = palette::paletteRef( init() );
 			data[ ( x + y * 512 ) * 4 + 0 ] = color.x * 255;
 			data[ ( x + y * 512 ) * 4 + 1 ] = color.y * 255;
 			data[ ( x + y * 512 ) * 4 + 2 ] = color.z * 255;
-			data[ ( x + y * 512 ) * 4 + 3 ] = init() < 0.5f ? 0 : 255;
-			// data[ ( x + y * 512 ) * 4 + 3 ] = 255;
+
+			const float d = glm::distance( vec2( float( x ), float( y ) ), vec2( 256.0f ) );
+			if ( d < 100.0f && d > 50.0f ) {
+				data[ ( x + y * 512 ) * 4 + 3 ] = init() < 0.5f ? 0 : 255;
+				// data[ ( x + y * 512 ) * 4 + 3 ] = 255;
+			}
 		}
 	}
 
