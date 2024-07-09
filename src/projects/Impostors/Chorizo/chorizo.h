@@ -506,7 +506,7 @@ public:
 			GLuint shader = shaders[ "Bounds" ];
 			glUseProgram( shader );
 			const uint workgroupsRoundedUp = ( ChorizoConfig.numPrimitives + 63 ) / 64;
-			glDispatchCompute( 64, workgroupsRoundedUp / 64, 1 );
+			glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1u ), 1 );
 			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
