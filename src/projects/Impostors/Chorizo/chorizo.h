@@ -59,33 +59,9 @@ struct ChorizoConfig_t {
 	float lightPaletteMin = 0.0f;
 	float lightPaletteMax = 1.0f;
 
-	// I think a generecized generator needs:
-		// some kind of type identifier... probably a string, not sure
-		// palette ID
-		// palette min, max
-		// draw toggle
-			// toggling individual trees... separate generator, per tree? maybe makes sense, actually
-		// info to draw - this is also used if you need to clear out the data associated with these primitives
-			// index of first bounding box impostor
-			// count of bounding box impostors ( can be zero, e.g. lights )
-			// index of first point sprite impostor
-			// count of point sprite impostors ( debug geo for lights )
-
-		// among other things, this lets us:
-			// clear those ranges, say you wanted to regenerate e.g. only the trees, only the grass, etc
-			// batching the drawing, I think it should Just Work with gl_VertexID
-
-	int grassPaletteID = 0;
-	float grassPaletteMin = 0.0f;
-	float grassPaletteMax = 1.0f;
-
-	int treePaletteID = 0;
-	float treePaletteMin = 0.0f;
-	float treePaletteMax = 1.0f;
-
-	int groundPaletteID = 0;
-	float groundPaletteMin = 0.0f;
-	float groundPaletteMax = 1.0f;
+	int paletteID = 0;
+	float paletteMin = 0.0f;
+	float paletteMax = 1.0f;
 
 	rngi wangSeeder = rngi( 0, 10042069 );
 
@@ -139,13 +115,12 @@ public:
 			// get some initial data for the impostor shapes
 			rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
 			uint colorCap = 14;
-			do { ChorizoConfig.treePaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.treePaletteID ].colors.size() > colorCap );
-			do { ChorizoConfig.grassPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.grassPaletteID ].colors.size() > colorCap );
-			do { ChorizoConfig.groundPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.groundPaletteID ].colors.size() > colorCap );
+			do { ChorizoConfig.paletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.paletteID ].colors.size() > colorCap );
 			do { ChorizoConfig.lightPaletteID = pick(); } while ( palette::paletteListLocal[ ChorizoConfig.lightPaletteID ].colors.size() > colorCap );
 
 			AddLights();
-			PrepSSBOs();
+			Generate();
+			PrepGeometrySSBOs();
 
 			// == Render Framebuffer(s) ===========
 			textureOptions_t opts;
@@ -196,217 +171,19 @@ public:
 		}
 	}
 
-	struct recursiveTreeConfig {
-		int numBranches = 3;
-		float rotateJitterMin = 0.0f;
-		float rotateJitterMax = 0.5f;
-		float branchTilt = 0.1f;
-		float branchJitterMin = 0.0f;
-		float branchJitterMax = 0.5f;
-		float branchLength = 0.6f;
-		float branchRadius = 0.04f;
-		float lengthShrink = 0.8f;
-		float radiusShrink = 0.79f;
-		float shrinkJitterMin = 0.8f;
-		float shrinkJitterMax = 1.1f;
-		float paletteJitter = 0.03f;
-		float terminateChance = 0.02f;
-		int levelsDeep = 0;
-		int maxLevels = 10;
-		// int maxLevels = 8;
-		int numCopies = 30;
-		vec3 basePoint = vec3( 0.0f, 0.0f, -1.0f );
-		mat3 basis = mat3( 1.0f );
-	};
+	void Generate () {
+		palette::PaletteIndex = ChorizoConfig.paletteID;
 
-	recursiveTreeConfig myConfig;
-	rng rotateJitter = rng( myConfig.rotateJitterMin, myConfig.rotateJitterMax );
-	rng shrinkJitter = rng( myConfig.shrinkJitterMin, myConfig.shrinkJitterMax );
-	rng branchJitter = rng( myConfig.branchJitterMin, myConfig.branchJitterMax );
-	rng paletteJitter = rng( -myConfig.paletteJitter, myConfig.paletteJitter );
-	rng terminator = rng( 0.0f, 1.0f );
+		rng pick = rng( -1.0f, 1.0f );
+		rng colorPick = rng( ChorizoConfig.paletteMin, ChorizoConfig.paletteMax );
 
-	void TreeRecurse ( recursiveTreeConfig config ) {
-		vec3 basePointNext = config.basePoint + config.branchLength * config.basis * vec3( 0.0f, 0.0f, 1.0f );
-		vec3 color = palette::paletteRef( RemapRange( float( config.levelsDeep ) / float( config.maxLevels ) + paletteJitter(), 0.0f, 1.0f, ChorizoConfig.treePaletteMin, ChorizoConfig.treePaletteMax ) );
-		ChorizoConfig.geometryManager.AddCapsule( config.basePoint, basePointNext, config.branchRadius, color );
-		ChorizoConfig.geometryManager.AddPointSpriteSphere( basePointNext, config.branchRadius * 1.5f, color );
-		config.basePoint = basePointNext;
-		if ( config.levelsDeep == config.maxLevels || terminator() < config.terminateChance ) {
-			return;
-		} else {
-			config.levelsDeep++;
-			config.branchRadius = config.branchRadius * ( config.radiusShrink * shrinkJitter() );
-			config.branchLength = config.branchLength * ( config.lengthShrink * shrinkJitter() );
-			vec3 xBasis = config.basis * vec3( 1.0f, 0.0f, 0.0f );
-			vec3 zBasis = config.basis * vec3( 0.0f, 0.0f, 1.0f );
-			config.basis = mat3( glm::rotate( config.branchTilt + branchJitter(), xBasis ) ) * config.basis;
-			const float rotateIncrement = 6.28f / float( config.numBranches ); // 2 pi in a full rotation
-			for ( int i = 0; i < config.numBranches; i++ ) {
-				TreeRecurse( config );
-				config.basis = mat3( glm::rotate( rotateIncrement + rotateJitter(), zBasis ) ) * config.basis;
-			}
-		}
-	}
+		for ( int i = 0; i < 100; i++ ) {
+			vec3 location = vec3( pick(), pick(), pick() );
+			ChorizoConfig.geometryManager.AddPointSpriteSphere( location, 0.005f, palette::paletteRef( colorPick() ) );
 
-	void regenTree () {
-
-		// roving pipes
-		std::unordered_map< glm::ivec3, int > occupancyMap;
-
-		rng paletteJitter = rng( 0.0f, 0.1f );
-		rng palette = rng( 0.0f, 1.0f );
-		rngi place = rngi( -75, 75 );
-		rngi directionPick = rngi( -1, 1 );
-
-		palette::PaletteIndex = ChorizoConfig.treePaletteID;
-
-		struct rover {
-			ivec3 position = ivec3( 0 );
-			ivec3 direction = ivec3( 1, 0, 0 );
-			bool dead = false;
-			float paletteValue;
-
-			geometryManager_t* localGeometryManager;
-
-			// ivec3 pickNeighbor( std::unordered_map< glm::ivec3, int > &map ) {
-			// 	rngi pick = rngi( 0, 2 );
-			// 	rngi offset = rngi( -1, 1 );
-			// 	ivec3 point = ivec3( 0 );aaaA
-
-			// 	// do {
-			// 	// 	point = ivec3( offset(), offset(), offset() );
-			// 	// } while (
-			// 	// 	point == ivec3( 0 ) ? true :		// don't pick self
-			// 	// 	( tries++ < maxTries ||				// don't get stuck in infinite loop
-			// 	// 	map[ point ] == 1 )					// don't go to an occupied space
-			// 	// );
-
-			// 	if ( tries == maxTries ) {
-			// 		// im ded
-			// 		dead = true;
-			// 		return ivec3( 0 );
-			// 	} else {
-			// 		// this point is now occupied, mark it
-			// 		map[ point ] = 1;
-			// 		return point;
-			// 	}
-
-			bool update ( std::unordered_map< glm::ivec3, int > &map ) {
-				rngi pick = rngi( -1, 1 );
-				// rngi steppy = rngi( 1, 2 );
-				// rng thresh = rng( 0.0f, 1.0f );
-				const ivec3 initialPosition = position;
-				// if ( thresh() < 0.2f ) {
-				// 	// change direction
-				// 	int tries = 0;
-				// 	const int maxTries = 10;
-				// 	for ( tries = 0; tries <= maxTries; tries++ ) {
-				// 		direction = ivec3( pick(), pick(), pick() );
-				// 		if ( map[ position + direction ] == 1 ) {
-				// 			// this is an already-occupied space
-				// 		} else {
-				// 			break;
-				// 		}
-				// 	}
-				// 	if ( tries >= maxTries ) {
-				// 		dead = true;
-				// 	}
-				// }
-				// // continue some number of steps in the same direction
-				// const int steps = steppy() + ( abs( direction.z ) != 0 ) ? 3 : 0;
-				// for ( int step = 1; step < steps; step++ ) {
-				// 	// if you hit an occupied cell, you die
-				// 	position = position + step * direction;
-				// 	if ( map[ position ] == 1 ) {
-				// 		dead = true;
-				// 	} else { // mark it as visited
-				// 		map[ position ] = 1;
-				// 	}
-				// }
-				// localGeometryManager->AddCapsule( vec3( initialPosition ) / 100.0f, vec3( position ) / 100.0f, 0.005f, palette::paletteRef( paletteValue ) );
-				// if ( abs( position ).x > 50 || abs( position ).y > 50 || abs( position ).z > 150 ) {
-				// 	dead = true; // kill out of bounds
-				// }
-
-				int tries = 0;
-				const int maxTries = 30;
-				for ( tries = 0; tries <= maxTries; tries++ ) {
-					direction = ivec3( pick(), pick(), pick() );
-
-					// switch ( pick() ) {
-					// 	case -1:
-					// 	direction = ivec3( pick(), 0, 0 );
-					// 	break;
-
-					// 	case 0:
-					// 	direction = ivec3( 0, pick(), 0 );
-					// 	break;
-
-					// 	case 1:
-					// 	direction = ivec3( 0, 0, pick() );
-					// 	break;
-					// }
-
-					if ( map[ position + direction ] == 1 ) {
-						// this is an already-occupied space
-					} else {
-						break;
-					}
-				}
-				if ( tries >= maxTries || abs( position ).x > 100 || abs( position ).y > 100 || abs( position ).z > 250 ) {
-					dead = true;
-				} else {
-					position = position + direction;
-					localGeometryManager->AddCapsule( vec3( initialPosition ) / 100.0f, vec3( position ) / 100.0f, 0.005f, palette::paletteRef( paletteValue ) );
-				}
-				return dead;
-			}
-		};
-
-		// rngi xyPick = rngi( -100, 100 );
-		// rngi zPick = rngi( -200, 200 );
-		// for ( int i = 0; i < 150; i++ ) {
-			// ivec3 basePos = ivec3( xyPick(), xyPick(), zPick() );
-			for ( int x = -25; x < 25; x++ )
-			for ( int y = -25; y < 25; y++ )
-			for ( int z = -200; z < 200; z++ ) {
-				// ivec3 location = basePos + ivec3( x, y, z );
-				ivec3 location = ivec3( x, y, z );
-				if ( occupancyMap[ location ] != 1 ) {
-					occupancyMap[ location ] = 1;
-					ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( location ) / 100.0f, 0.005f, palette::paletteRef( 0.1f ) );
-				}
-			}
-		// }
-
-		for ( int i = -200; i < 200; i += 35 ) {
-			for ( int x = -100; x < 100; x++ )
-			for ( int y = -8; y < 8; y++ )
-			for ( int z = -8; z < 8; z++ ) {
-				ivec3 location = ivec3( x, y, z + i );
-				if ( occupancyMap[ location ] != 1 ) {
-					occupancyMap[ location ] = 1;
-					ChorizoConfig.geometryManager.AddPointSpriteSphere( vec3( location ) / 100.0f, 0.005f, palette::paletteRef( 0.1f ) );
-				}
-			}
-		}
-
-		for ( int i = 0; i < 200; i++ ) {
-			// place the rover, at some initial point
-			rover r;
-			do {
-				r.position = ivec3( place(), place(), RemapRange( i, 0.0f, 200.0f, -200.0f, 200.0f ) );
-			} while ( occupancyMap[ r.position ] == 1 );
-			r.direction = ivec3( directionPick(), directionPick(), directionPick() );
-			occupancyMap[ r.position ] = 1;
-			// r.paletteValue = i / 400.0f;
-			r.paletteValue = palette();
-			r.localGeometryManager = &ChorizoConfig.geometryManager;
-			cout << "\r" << i << " finished" << std::flush;
-			while ( !r.update( occupancyMap ) ) {
-
-			}
+			vec3 point1 = vec3( pick(), pick(), pick() );
+			vec3 point2 = vec3( pick(), pick(), pick() );
+			ChorizoConfig.geometryManager.AddCapsule( point1, point2, 0.01f, palette::paletteRef( colorPick() ) );
 		}
 	}
 
@@ -414,7 +191,6 @@ public:
 		// add some point sprite spheres to indicate light positions
 		palette::PaletteIndex = ChorizoConfig.lightPaletteID;
 		rng dist = rng( ChorizoConfig.lightPaletteMin, ChorizoConfig.lightPaletteMax );
-		rng radius = rng( 0.01f, 0.1f );
 
 		const int numLightsPerSide = 4;
 		const int w = 512;
@@ -424,20 +200,13 @@ public:
 		for ( int x = 1; x <= w; x += w / ( numLightsPerSide ) ) {
 			for ( int y = 1; y <= h; y += h / numLightsPerSide ) {
 
-				// const float heightValue = -p.model.GetAtXY( x - 1, y - 1 )[ 0 ];
-
 				vec3 position = vec3(
 					( float( x - 1 ) / float( w ) - 0.5f ) * scale.x,
 					( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, -1.0f ).yzx();
-				// vec3 position = vec3( ( float( x - 1 ) / float( w ) - 0.5f ) * scale.x, ( float( y - 1 ) / float( h ) - 0.5f ) * scale.y, ( heightValue * heightScale - 0.5f ) * 10.0f + 0.2f );
 				vec3 color = palette::paletteRef( dist() );
 
-				// const float r = -radius();
 				const float r = -0.013f;
-				const vec3 grey = vec3( 0.618f );
-				const vec3 offset = vec3( 0.0f, 0.0f, 0.8f * r );
 				ChorizoConfig.geometryManager.AddPointSpriteSphere( position, r, color );
-				// ChorizoConfig.geometryManager.AddCapsule( position + offset, position + 10.0f * offset, -r * 0.618f, grey );
 
 				ChorizoConfig.lights.push_back( vec4( position, 0.0f ) );
 				ChorizoConfig.lights.push_back( vec4( color / 3.0f, 0.0f ) );
@@ -445,7 +214,7 @@ public:
 		}
 	}
 
-	void PrepSSBOs () {
+	void PrepGeometrySSBOs () {
 		static bool firstTime = true;
 		
 		ChorizoConfig.numPrimitives = ChorizoConfig.geometryManager.count;
@@ -680,127 +449,29 @@ public:
 
 		ImGui::SeparatorText( "Generator" );
 
-		if ( ImGui::CollapsingHeader( "Trees" ) ) {
-
-			const int64_t count = myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels );
-			ImGui::Text( "Estimated Number of Primitives: %ld", count );
-
-			ImGui::SliderInt( "Num Copies", &myConfig.numCopies, 1, 10 );
-			ImGui::SliderInt( "Max Levels Deep", &myConfig.maxLevels, 1, 15 );
-			ImGui::SliderInt( "Num Branches", &myConfig.numBranches, 1, 6 );
-			ImGui::SliderFloat( "Terminate Chance", &myConfig.terminateChance, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
-			ImGui::SliderFloat( "Rotate Jitter Min", &myConfig.rotateJitterMin, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Rotate Jitter Max", &myConfig.rotateJitterMax, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Branch Tilt", &myConfig.branchTilt, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Branch Jitter Min", &myConfig.branchJitterMin, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Branch Jitter Max", &myConfig.branchJitterMax, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Branch Length", &myConfig.branchLength, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Length Shrink", &myConfig.lengthShrink, 0.5f, 1.0f );
-			ImGui::SliderFloat( "Branch Radius", &myConfig.branchRadius, 0.0f, 0.1f );
-			ImGui::SliderFloat( "Radius Shrink", &myConfig.radiusShrink, 0.5f, 1.0f );
-			ImGui::SliderFloat( "Shrink Jitter Min", &myConfig.shrinkJitterMin, 0.0f, 2.0f );
-			ImGui::SliderFloat( "Shrink Jitter Max", &myConfig.shrinkJitterMax, 0.0f, 2.0f );
-			ImGui::SliderFloat( "Palette Jitter", &myConfig.paletteJitter, 0.0f, 0.1f );
-			ImGui::SliderFloat( "Base Point X", &myConfig.basePoint.x, -1.0f, 1.0f );
-			ImGui::SliderFloat( "Base Point Y", &myConfig.basePoint.y, -1.0f, 1.0f );
-			ImGui::SliderFloat( "Base Point Z", &myConfig.basePoint.z, -1.0f, 1.0f );
-			if ( ImGui::Button( "Randomize Parameters" ) ) {
-
-				do {
-					rngi branches = rngi( 1, 6 );
-					myConfig.numBranches = branches();
-
-					rng rotateJitter = rng( 0.0f, 0.75f );
-					myConfig.rotateJitterMin = rotateJitter();
-					myConfig.rotateJitterMax = rotateJitter();
-					myConfig.branchJitterMin = rotateJitter();
-					myConfig.branchJitterMax = rotateJitter();
-
-					rng tilt = rng( 0.03f, 0.75f );
-					myConfig.branchTilt = tilt();
-
-					rng length = rng( 0.2f, 1.3f );
-					myConfig.branchLength = length();
-
-					rng radius = rng( 0.01f, 0.2f );
-					myConfig.branchRadius = radius();
-
-					rng shrink = rng( 0.5f, 1.0f );
-					myConfig.lengthShrink = shrink();
-					myConfig.radiusShrink = shrink();
-
-					rng offset = rng( 0.75f, 1.25f );
-					myConfig.shrinkJitterMin = offset();
-					myConfig.shrinkJitterMax = offset();
-				} while( ( myConfig.numCopies * intPow( myConfig.numBranches, myConfig.maxLevels ) ) > 10000000 );
-			}
-		}
-
 		if ( ImGui::CollapsingHeader( "Colors" ) ) {
 			static uint colorCap = 256;
 			ImGui::SliderInt( "Random Select Color Count Cap", ( int* ) &colorCap, 2, 256 );
 			ImGui::Text( " " );
 			ImGui::Text( " " );
 
-			ImGui::SeparatorText( "Trees" );
+			ImGui::SeparatorText( "Geo" );
 			ImGui::Text( " " );
 			ImGui::Indent();
-			ImGuiDrawPalette( ChorizoConfig.treePaletteID, "trees", ChorizoConfig.treePaletteMin, ChorizoConfig.treePaletteMax );
-			if ( ImGui::Button( "Random##trees" ) ) {
+			ImGuiDrawPalette( ChorizoConfig.paletteID, "trees", ChorizoConfig.paletteMin, ChorizoConfig.paletteMax );
+			if ( ImGui::Button( "Random##geo" ) ) {
 				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
 				do {
-					ChorizoConfig.treePaletteID = pick();
-				} while ( palette::paletteListLocal[ ChorizoConfig.treePaletteID ].colors.size() > colorCap );
+					ChorizoConfig.paletteID = pick();
+				} while ( palette::paletteListLocal[ ChorizoConfig.paletteID ].colors.size() > colorCap );
 			}
 			ImGui::SameLine();
-			if ( ImGui::Button( "Reverse##trees" ) ) {
-				std::swap( ChorizoConfig.treePaletteMin, ChorizoConfig.treePaletteMax );
+			if ( ImGui::Button( "Reverse##geo" ) ) {
+				std::swap( ChorizoConfig.paletteMin, ChorizoConfig.paletteMax );
 			}
-			ImGui::SliderFloat( "Palette Min##trees", &ChorizoConfig.treePaletteMin, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Palette Max##trees", &ChorizoConfig.treePaletteMax, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Palette Min##geo", &ChorizoConfig.paletteMin, 0.0f, 1.0f );
+			ImGui::SliderFloat( "Palette Max##geo", &ChorizoConfig.paletteMax, 0.0f, 1.0f );
 			ImGui::Unindent();
-
-
-
-			ImGui::SeparatorText( "Grass" );
-			ImGui::Text( " " );
-			ImGui::Indent();
-			ImGuiDrawPalette( ChorizoConfig.grassPaletteID, "grass", ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax );
-			if ( ImGui::Button( "Random##grass" ) ) {
-				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
-				do {
-					ChorizoConfig.grassPaletteID = pick();
-				} while ( palette::paletteListLocal[ ChorizoConfig.grassPaletteID ].colors.size() > colorCap );
-			}
-			ImGui::SameLine();
-			if ( ImGui::Button( "Reverse##grass" ) ) {
-				std::swap( ChorizoConfig.grassPaletteMin, ChorizoConfig.grassPaletteMax );
-			}
-			ImGui::SliderFloat( "Palette Min##grass", &ChorizoConfig.grassPaletteMin, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Palette Max##grass", &ChorizoConfig.grassPaletteMax, 0.0f, 1.0f );
-			ImGui::Unindent();
-
-
-
-			ImGui::SeparatorText( "Ground" );
-			ImGui::Text( " " );
-			ImGui::Indent();
-			ImGuiDrawPalette( ChorizoConfig.groundPaletteID, "ground", ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax );
-			if ( ImGui::Button( "Random##ground" ) ) {
-				rngi pick = rngi( 0, palette::paletteListLocal.size() - 1 );
-				do {
-					ChorizoConfig.groundPaletteID = pick();
-				} while ( palette::paletteListLocal[ ChorizoConfig.groundPaletteID ].colors.size() > colorCap );
-			}
-			ImGui::SameLine();
-			if ( ImGui::Button( "Reverse##ground" ) ) {
-				std::swap( ChorizoConfig.groundPaletteMin, ChorizoConfig.groundPaletteMax );
-			}
-			ImGui::SliderFloat( "Palette Min##ground", &ChorizoConfig.groundPaletteMin, 0.0f, 1.0f );
-			ImGui::SliderFloat( "Palette Max##ground", &ChorizoConfig.groundPaletteMax, 0.0f, 1.0f );
-			ImGui::Unindent();
-
-
 
 			ImGui::SeparatorText( "Lights" );
 			ImGui::Text( " " );
@@ -828,7 +499,7 @@ public:
 	}
 
 	void DrawAPIGeometry () {
-		// ZoneScoped; scopedTimer Start( "API Geometry" );
+		ZoneScoped; scopedTimer Start( "API Geometry" );
 
 		{	ZoneScoped; scopedTimer Start( "Bounding Box Compute" );
 			// prepare the bounding boxes
@@ -836,7 +507,7 @@ public:
 			glUseProgram( shader );
 			const uint workgroupsRoundedUp = ( ChorizoConfig.numPrimitives + 63 ) / 64;
 			glDispatchCompute( 64, workgroupsRoundedUp / 64, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
 		{	ZoneScoped; scopedTimer Start( "Bounding Box Impostors" );
