@@ -187,8 +187,8 @@ struct daedalusConfig_t {
 		render.scene.maskedPlaneEnable = false;
 
 		// explicit primitive list
-		render.scene.explicitListEnable = false;
-		render.scene.numExplicitPrimitives = 100;
+		render.scene.explicitListEnable = true;
+		render.scene.numExplicitPrimitives = 1;
 
 		// sky config
 		render.scene.skyDims = uvec2( 4096, 2048 );

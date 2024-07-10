@@ -1673,8 +1673,8 @@ intersection_t ExplicitListIntersect( in ray_t ray ) {
 
 		// this will need to be handled in a way that can do multiple types of parameters - distance and normal are the outputs
 		const float currentNearestPositive =
-			// iSphereOffset( ray.origin, ray.direction, tempNormal, spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.xyz );
-			iBoxOffset( ray.origin, ray.direction, tempNormal, vec3( spheres[ i ].positionRadius.w ), spheres[ i ].positionRadius.xyz );
+			iSphereOffset( ray.origin, ray.direction, tempNormal, spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.xyz );
+			// iBoxOffset( ray.origin, ray.direction, tempNormal, vec3( spheres[ i ].positionRadius.w ), spheres[ i ].positionRadius.xyz );
 			// iTorusOffset( ray.origin, ray.direction, tempNormal, vec2( spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w / 5.0f ), spheres[ i ].positionRadius.xyz );
 			// iEllipsoidOffset( ray.origin, ray.direction, tempNormal, vec3( spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w * 3.0f ), spheres[ i ].positionRadius.xyz );
 			// iGoursat( ray.origin - spheres[ i ].positionRadius.xyz, ray.direction, tempNormal, 5.0f * 0.16f * spheres[ i ].positionRadius.w, spheres[ i ].positionRadius.w );
@@ -1691,8 +1691,7 @@ intersection_t ExplicitListIntersect( in ray_t ray ) {
 		result.dTravel = nearestOverallHit;
 		result.frontfaceHit = ( dot( ray.direction, currentNormal ) < 0.0f );
 		result.normal = currentNormal;
-		// result.materialID = int( spheres[ indexOfHit ].colorMaterial.w );
-		result.materialID = EMISSIVE;
+		result.materialID = int( spheres[ indexOfHit ].colorMaterial.w );
 		if ( result.materialID == REFRACTIVE && result.frontfaceHit == false ) {
 			result.materialID = REFRACTIVE_BACKFACE; // this needs to be more generalized
 			// result.normal = -result.normal; // this is already handled, for the sphere, at least...

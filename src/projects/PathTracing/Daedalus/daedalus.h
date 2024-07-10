@@ -37,10 +37,10 @@ public:
 			opts.height			= daedalusConfig.render.scene.skyDims.y;
 			textureManager.Add( "Sky Cache", opts );
 
-			// more to do on this, but... yeah, it'll work
+			// more to do on this, but... yeah, it'll work for now
 			glGenBuffers( 1, &daedalusConfig.render.scene.explicitPrimitiveSSBO );
 			PrepSphereBufferRandom();
-			RelaxSphereList();
+			// RelaxSphereList();
 			SendExplicitPrimitiveSSBO();
 
 			// prepare the glyph and DDA VAT buffers
