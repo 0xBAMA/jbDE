@@ -74,8 +74,8 @@ void main() {
 
 			// going to have to figure out what the transforms need to be, in order to intersect with the transformed primitve
 			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normal, scaleFactors, roundingFactor );
-			
-			// is it faster to do this, or to do the euler stuff, in inverse
+
+			// is it faster to do this, or to do the euler angle stuff, in inverse? need to profile, at scale
 			// const mat3 inverseTransform = ( Rotate3D( theta, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( phi, vec3( 1.0f, 0.0f, 0.0f ) ) );
 			const mat3 inverseTransform = inverse( transform );
 			normal = inverseTransform * normal;
@@ -84,7 +84,6 @@ void main() {
 		default:
 			break;
 	}
-
 
 	if ( result == MAX_DIST ) { // miss condition
 		#ifdef SHOWDISCARDS
