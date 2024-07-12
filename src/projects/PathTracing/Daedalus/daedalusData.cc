@@ -132,6 +132,16 @@ void Daedalus::SendBasePathtraceUniforms() {
 	glUniform1i( glGetUniformLocation( shader, "numExplicitPrimitives" ), daedalusConfig.render.scene.numExplicitPrimitives );
 	glUniform1i( glGetUniformLocation( shader, "explicitListEnable" ), daedalusConfig.render.scene.explicitListEnable );
 
+// quick experiment with motion blur
+
+	// rng positionJitter = rng( -0.15f, 0.15f );
+	// vec3 viewerPosition = mix( daedalusConfig.render.viewerPosition, daedalusConfig.render.viewerPosition + daedalusConfig.render.basisZ, positionJitter() );
+
+	// rng rotationJitter = rng( -0.05f, 0.05f );
+	// glm::quat rot = glm::angleAxis( rotationJitter(), daedalusConfig.render.basisZ );
+	// vec3 localX = ( rot * vec4( daedalusConfig.render.basisZ, 0.0f ) ).xyz();
+	// vec3 localY = ( rot * vec4( daedalusConfig.render.basisY, 0.0f ) ).xyz();
+
 	glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( daedalusConfig.render.viewerPosition ) );
 	glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( daedalusConfig.render.basisX ) );
 	glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( daedalusConfig.render.basisY ) );
