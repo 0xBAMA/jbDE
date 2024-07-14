@@ -12,12 +12,15 @@ uniform int wangSeed;
 
 uniform float scale;
 uniform vec2 offset;
+uniform float rotation;
 
 ivec2 map3DPointTo2D( vec3 p ) {
 	const ivec2 is = ivec2( imageSize( ifsAccumulator ).xy );
 	const float ratio = is.x / is.y;
-	p.xy += offset;
+	// want to probably pass in the trident matrix, here
+	p = Rotate3D( rotation, vec3( 0.0f, 0.0f, 1.0f ) ) * p;
 	p = p * scale;
+	p.xy += offset;
 	const ivec2 xyPos = ivec2(
 		RangeRemapValue( p.x, -ratio, ratio, 0.0f, float( is.x ) ),
 		RangeRemapValue( p.y, -1.0f, 1.0f, 0.0f, float( is.y ) ) );
