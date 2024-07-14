@@ -76,16 +76,28 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// // current state of the whole keyboard
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		// current state of the whole keyboard
+		const uint8_t * state = SDL_GetKeyboardState( NULL );
 
 		// // current state of the modifier keys
-		// const SDL_Keymod k	= SDL_GetModState();
-		// const bool shift		= ( k & KMOD_SHIFT );
+		const SDL_Keymod k	= SDL_GetModState();
+		const bool shift		= ( k & KMOD_SHIFT );
 		// const bool alt		= ( k & KMOD_ALT );
 		// const bool control	= ( k & KMOD_CTRL );
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
+
+		// rotation controls (CW)
+		if ( state[ SDL_SCANCODE_Q ] ) {
+			bufferNeedsReset = true;
+			rotation += shift ? 0.1f : 0.01f;
+		}
+
+		// rotation controls (CCW)
+		if ( state[ SDL_SCANCODE_E ] ) {
+			bufferNeedsReset = true;
+			rotation -= shift ? 0.1f : 0.01f;
+		}
 
 		ivec2 mouse;
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
@@ -93,8 +105,8 @@ public:
 			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 			ImGui::ResetMouseDragDelta();
 			const float aspectRatio = ( float ) config.height / ( float ) config.width;
-			offset.x += currentMouseDrag.x * aspectRatio * 0.001f / scale;
-			offset.y += currentMouseDrag.y * 0.001f / scale;
+			offset.x += currentMouseDrag.x * aspectRatio * 0.01f / scale;
+			offset.y += currentMouseDrag.y * 0.01f / scale;
 			bufferNeedsReset = true;
 		}
 	}
@@ -103,6 +115,8 @@ public:
 		ZoneScoped;
 	
 		ImGui::Begin( "Controls" );
+		ImGui::SliderFloat( "Rotation", &rotation, -10.0f, 10.0f );
+		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "X Offset", &offset.x, -100.0f, 100.0f );
@@ -189,6 +203,7 @@ public:
 		glUniform1i( glGetUniformLocation( shader, "wangSeed" ), wangSeeder() );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform2f( glGetUniformLocation( shader, "offset" ), offset.x, offset.y );
+		glUniform1f( glGetUniformLocation( shader, "rotation" ), rotation );
 		textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
