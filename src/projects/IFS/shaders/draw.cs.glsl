@@ -10,13 +10,15 @@ layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
 #include "colorRamps.glsl.h"
 #include "mathUtils.h"
 
+uniform float brightness;
+uniform int paletteSelect;
+
 void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
 	// opportunity here, to do some remapping
-	vec3 col = refPalette( float( imageLoad( ifsAccumulator, writeLoc ).r ) / float( maxCount ), MAGMA ).rgb;
-	// vec3 col = refPalette( saturate( float( imageLoad( ifsAccumulator, writeLoc ).r ) / 1000.0f ), MAGMA ).rgb;
+	vec3 col = refPalette( saturate( brightness * float( imageLoad( ifsAccumulator, writeLoc ).r ) / float( maxCount ) ), paletteSelect ).rgb;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );

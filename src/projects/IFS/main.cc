@@ -6,8 +6,16 @@ public:
 	~ifs () { Quit(); }
 
 	GLuint maxBuffer;
+
+	// IFS view parameters
 	float scale = 1.0f;
 	vec2 offset = vec2( 0.0f );
+
+	// output prep
+	float brightness = 1.0f;
+	int paletteSelect = 13;
+
+	// flag for field wipe (on zoom, drag, etc)
 	bool bufferNeedsReset = false;
 
 	void OnInit () {
@@ -95,12 +103,14 @@ public:
 		ZoneScoped;
 	
 		ImGui::Begin( "Controls" );
-		ImGui::SliderFloat( "Scale", &scale, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
-		ImGui::SliderFloat( "X Offset", &offset.x, -10.0f, 10.0f );
+		ImGui::SliderFloat( "X Offset", &offset.x, -100.0f, 100.0f );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
-		ImGui::SliderFloat( "Y Offset", &offset.y, -10.0f, 10.0f );
+		ImGui::SliderFloat( "Y Offset", &offset.y, -100.0f, 100.0f );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		ImGui::SliderFloat( "Brightness", &brightness, 0.0f,5000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderInt( "PaletteSelect", &paletteSelect, 0, 26 );
 		ImGui::End();
 
 		if ( tonemap.showTonemapWindow ) {
@@ -127,6 +137,8 @@ public:
 			bindSets[ "Drawing" ].apply();
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
+			glUniform1f( glGetUniformLocation( shader, "brightness" ), brightness );
+			glUniform1i( glGetUniformLocation( shader, "paletteSelect" ), paletteSelect );
 			textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
