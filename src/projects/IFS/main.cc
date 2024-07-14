@@ -34,18 +34,27 @@ public:
 			LoadShaders();
 
 			// texture to accumulate into
+			// textureOptions_t opts;
+			// opts.width = config.width;
+			// opts.height = config.height;
+			// opts.dataType = GL_R32UI;
+			// opts.textureType = GL_TEXTURE_2D;
+			// textureManager.Add( "IFS Accumulator", opts );
+
 			textureOptions_t opts;
 			opts.width = config.width;
 			opts.height = config.height;
 			opts.dataType = GL_R32UI;
 			opts.textureType = GL_TEXTURE_2D;
-			textureManager.Add( "IFS Accumulator", opts );
+			textureManager.Add( "IFS Accumulator R", opts );
+			textureManager.Add( "IFS Accumulator G", opts );
+			textureManager.Add( "IFS Accumulator B", opts );
 
 			// buffer holding the normalize factor
 			glGenBuffers( 1, &maxBuffer );
-			constexpr uint32_t countValue = 0;
+			constexpr uint32_t countValue[ 3 ] = { 0 };
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 12, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 		}
 	}
@@ -164,7 +173,13 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "brightness" ), brightness );
 			glUniform1f( glGetUniformLocation( shader, "brightnessPower" ), brightnessPower );
 			glUniform1i( glGetUniformLocation( shader, "paletteSelect" ), paletteSelect );
-			textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+
+			// textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+
+			textureManager.BindImageForShader( "IFS Accumulator R", "ifsAccumulatorR", shader, 2 );
+			textureManager.BindImageForShader( "IFS Accumulator G", "ifsAccumulatorG", shader, 3 );
+			textureManager.BindImageForShader( "IFS Accumulator B", "ifsAccumulatorB", shader, 4 );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -209,15 +224,21 @@ public:
 			bufferNeedsReset = false;
 
 			// reset the value tracking the max
-			constexpr uint32_t countValue = 0;
+			constexpr uint32_t countValue[ 3 ] = { 0 };
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 12, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 
 			// reset the accumulator
 			const GLuint shader = shaders[ "Clear" ];
 			glUseProgram( shader );
-			textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+
+			// textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+
+			textureManager.BindImageForShader( "IFS Accumulator R", "ifsAccumulatorR", shader, 2 );
+			textureManager.BindImageForShader( "IFS Accumulator G", "ifsAccumulatorG", shader, 3 );
+			textureManager.BindImageForShader( "IFS Accumulator B", "ifsAccumulatorB", shader, 4 );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
@@ -234,7 +255,11 @@ public:
 		mat3 tridentMatrix = mat3( trident.basisX, trident.basisY, trident.basisZ );
 		glUniformMatrix3fv( glGetUniformLocation( shader, "tridentMatrix" ), 1, GL_FALSE, glm::value_ptr( tridentMatrix ) );
 
-		textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+		// textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+
+		textureManager.BindImageForShader( "IFS Accumulator R", "ifsAccumulatorR", shader, 2 );
+		textureManager.BindImageForShader( "IFS Accumulator G", "ifsAccumulatorG", shader, 3 );
+		textureManager.BindImageForShader( "IFS Accumulator B", "ifsAccumulatorB", shader, 4 );
 
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

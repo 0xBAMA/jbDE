@@ -1,9 +1,13 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( binding = 2, r32ui ) uniform uimage2D ifsAccumulator;
+// layout( binding = 2, r32ui ) uniform uimage2D ifsAccumulator;
 
-layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
+layout( binding = 2, r32ui ) uniform uimage2D ifsAccumulatorR;
+layout( binding = 3, r32ui ) uniform uimage2D ifsAccumulatorG;
+layout( binding = 4, r32ui ) uniform uimage2D ifsAccumulatorB;
+
+layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount[ 3 ]; };
 
 #include "mathUtils.h"
 #include "random.h"
@@ -92,6 +96,12 @@ void main () {
 
 		// write the data to the image
 		ivec2 location = map3DPointTo2D( p );
-		atomicMax( maxCount, imageAtomicAdd( ifsAccumulator, location, 1 ) + 1 );
+
+		// atomicMax( maxCount[ 0 ], imageAtomicAdd( ifsAccumulator, location, 1 ) + 1 );
+
+		uvec3 amt = uvec3( 1 ); // todo, color bias
+		atomicMax( maxCount[ 0 ], imageAtomicAdd( ifsAccumulatorR, location, amt.r ) + amt.r );
+		atomicMax( maxCount[ 1 ], imageAtomicAdd( ifsAccumulatorG, location, amt.g ) + amt.g );
+		atomicMax( maxCount[ 2 ], imageAtomicAdd( ifsAccumulatorB, location, amt.b ) + amt.b );
 	}
 }
