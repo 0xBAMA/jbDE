@@ -1,19 +1,22 @@
-#include "../../../engine/engine.h"
+#include "../../engine/engine.h"
 
-class IFS2D final : public engineBase { // sample derived from base engine class
+class ifs final : public engineBase { // sample derived from base engine class
 public:
-	IFS2D () { Init(); OnInit(); PostInit(); }
-	~IFS2D () { Quit(); }
+	ifs () { Init(); OnInit(); PostInit(); }
+	~ifs () { Quit(); }
 
 	GLuint maxBuffer;
+	float scale = 1.0f;
+	vec2 offset = vec2( 0.0f );
+	bool bufferNeedsReset = false;
 
 	void OnInit () {
 		ZoneScoped;
 		{
 			Block Start( "Additional User Init" );
 
-			shaders[ "Draw" ] = computeShader( "./src/projects/IFS/2D/shaders/draw.cs.glsl" ).shaderHandle;
-			shaders[ "Update" ] = computeShader( "./src/projects/IFS/2D/shaders/update.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/IFS/shaders/update.cs.glsl" ).shaderHandle;
 
 			// texture to accumulate into
 			textureOptions_t opts;
@@ -24,8 +27,8 @@ public:
 			textureManager.Add( "IFS Accumulator", opts );
 
 			// buffer holding the normalize factor
-			constexpr uint32_t countValue = 0;
 			glGenBuffers( 1, &maxBuffer );
+			constexpr uint32_t countValue = 0;
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
@@ -51,6 +54,16 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
+	
+		ImGui::Begin( "Controls" );
+		ImGui::SliderFloat( "Scale", &scale, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		ImGui::SliderFloat( "X Offset", &offset.x, -10.0f, 10.0f );
+		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		ImGui::SliderFloat( "Y Offset", &offset.y, -10.0f, 10.0f );
+		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		ImGui::End();
+
 		if ( tonemap.showTonemapWindow ) {
 			TonemapControlsWindow();
 		}
@@ -100,11 +113,34 @@ public:
 	void OnUpdate () {
 		static rngi wangSeeder = rngi( 0, 10000000 );
 
+		// reset the buffer, when needed
+		if ( bufferNeedsReset == true ) {
+			bufferNeedsReset = false;
+
+			// reset the value tracking the max
+			cout << "resetting" << endl;
+			constexpr uint32_t countValue = 0;
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
+
+			// reset the accumulator
+			cout << "resetting" << endl;
+			uint32_t zeroes[ config.width * config.height ] = { 0 };
+			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "IFS Accumulator" ) );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zeroes[ 0 ] );
+
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+			cout << "done resetting" << endl;
+		}
+
 		// application-specific update code
 		ZoneScoped; scopedTimer Start( "Update" );
 		const GLuint shader = shaders[ "Update" ];
 		glUseProgram( shader );
 		glUniform1i( glGetUniformLocation( shader, "wangSeed" ), wangSeeder() );
+		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
+		glUniform2f( glGetUniformLocation( shader, "offset" ), offset.x, offset.y );
 		textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -142,7 +178,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	IFS2D engineInstance;
+	ifs engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
