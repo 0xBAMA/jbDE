@@ -453,3 +453,17 @@ target_link_libraries( Spectrogram
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# Messing with 2D IFS
+# https://flam3.com/flame_draves.pdf
+# https://www.cs.uaf.edu/~olawlor/papers/2011/ifs/lawlor_ifs_2011.pdf
+# =================================================================================================
+add_executable( ifs2D
+	src/projects/IFS/2D/main.cc
+)
+
+target_link_libraries( ifs2D
+	PUBLIC
+	engineBase
+)
