@@ -136,6 +136,10 @@ public:
 		return needsRedraw;
 	}
 
+	void ClearDirty () {
+		needsRedraw = false;
+	}
+
 private:
 	GLuint tridentImage;
 	GLuint generateShader;
