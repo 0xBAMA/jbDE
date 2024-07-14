@@ -71,6 +71,7 @@ public:
 				// float wheel_x = -event.wheel.x;
 				const float wheel_y = event.wheel.y;
 				scale *= ( wheel_y > 0.0f ) ? wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 1.01f : 1.1f ) : abs( wheel_y ) * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.99f : 0.9f );
+				brightness *= ( wheel_y > 0.0f ) ? wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 1.01f : 1.1f ) : abs( wheel_y ) * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.99f : 0.9f );
 				bufferNeedsReset = true;
 			}
 		}
