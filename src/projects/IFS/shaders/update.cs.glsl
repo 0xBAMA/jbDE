@@ -47,30 +47,30 @@ void main () {
 	// vec3 p = vec3( CircleOffset(), rand() * 10.0f );
 	// vec3 p = vec3( UniformSampleHexagon(), rand() * 10.0f );
 
-	// vec3 color = vec3( 1.0f );
-	vec3 color = p + vec3( 0.5f );
+	vec3 color = vec3( 1.0f );
+	// vec3 color = p + vec3( 0.5f );
 
 	for ( int i = 0; i < 30; i++ ) {
 		int pick = int( floor( 10.0f * NormalizedRandomFloat() ) );
 		switch ( pick ) {
 			case 0:
 				p.xy = cx_mobius( p.xy ) + vec2( 0.1f );
-				color *= vec3( 0.2f, 1.0f, 1.0f );
+				color *= vec3( 0.9f, 0.85f, 0.9f );
 			break;
 
 			case 1:
 				p.xy = cx_sin_of_one_over_z( p.zy ) + vec2( 0.2f );
-				color *= vec3( 1.0f, 0.2f, 0.2f );
+				color *= vec3( 0.9f, 0.75f, 0.6f );
 			break;
 
 			case 2:
 				p.xy = cx_z_plus_one_over_z( p.yz );
-				color *= vec3( 1.0f, 0.5f, 0.3f );
+				color *= vec3( 0.0f, 0.4f, 0.8f );
 			break;
 
 			case 3:
 				p.xy = cx_to_polar( p.yz );
-				color *= vec3( 0.6f, 0.9f, 0.7f );
+				color *= vec3( 0.9f, 0.4f, 0.7f );
 			break;
 
 			case 4:

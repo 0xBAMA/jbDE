@@ -26,10 +26,18 @@ void main () {
 	// opportunity here, to do some remapping
 	// vec3 col = refPalette( pow( saturate( brightness * float( imageLoad( ifsAccumulator, writeLoc ).r ) / float( maxCount[ 0 ] ) ), brightnessPower ), paletteSelect ).rgb;
 
+	uint normalizeFactor = max( max( maxCount[ 0 ], maxCount[ 1 ] ), maxCount[ 2 ] );
+
+	// vec3 loadedColor = vec3(
+	// 	float( imageLoad( ifsAccumulatorR, writeLoc ).r ) / float( maxCount[ 0 ] ),
+	// 	float( imageLoad( ifsAccumulatorG, writeLoc ).r ) / float( maxCount[ 1 ] ),
+	// 	float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / float( maxCount[ 2 ] )
+	// );
+
 	vec3 loadedColor = vec3(
-		float( imageLoad( ifsAccumulatorR, writeLoc ).r ) / float( maxCount[ 0 ] ),
-		float( imageLoad( ifsAccumulatorG, writeLoc ).r ) / float( maxCount[ 1 ] ),
-		float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / float( maxCount[ 2 ] )
+		float( imageLoad( ifsAccumulatorR, writeLoc ).r ) / float( normalizeFactor ),
+		float( imageLoad( ifsAccumulatorG, writeLoc ).r ) / float( normalizeFactor ),
+		float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / float( normalizeFactor )
 	);
 
 	vec3 col = pow( saturate( brightness * loadedColor ), vec3( brightnessPower ) );
