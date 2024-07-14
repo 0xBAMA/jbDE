@@ -14,21 +14,23 @@ layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount[ 3 ]; };
 #include "complexNumbers.glsl.h"
 uniform int wangSeed;
 
+uniform mat3 tridentMatrix;
 uniform float scale;
 uniform vec2 offset;
-uniform float rotation;
 
 ivec2 map3DPointTo2D( vec3 p ) {
-	const ivec2 is = ivec2( imageSize( ifsAccumulator ).xy );
+	// const ivec2 is = ivec2( imageSize( ifsAccumulator ).xy );
+	const ivec2 is = ivec2( imageSize( ifsAccumulatorR ).xy );
 	const float ratio = is.x / is.y;
-	// want to probably pass in the trident matrix, here
-	p = Rotate3D( rotation, vec3( 0.0f, 0.0f, 1.0f ) ) * p;
+	const mat3 invTridentMatrix = inverse( tridentMatrix );
+
+	// still need to figure out the particulars of the order of operations here
 	p = p * scale;
-	p.xy += offset;
-	const ivec2 xyPos = ivec2(
-		RangeRemapValue( p.x, -ratio, ratio, 0.0f, float( is.x ) ),
-		RangeRemapValue( p.y, -1.0f, 1.0f, 0.0f, float( is.y ) ) );
-	return xyPos;
+	// p.xy += ( invTridentMatrix * vec3( offset, 0.0f ) ).xy;
+	p = tridentMatrix * p;
+	return ivec2(
+		RangeRemapValue( p.x + offset.x * scale, -ratio, ratio, 0.0f, float( is.x ) ),
+		RangeRemapValue( p.y + offset.y * scale, -1.0f, 1.0f, 0.0f, float( is.y ) ) );
 }
 
 float rand() { return 2.0f * ( NormalizedRandomFloat() - 0.5f ); }
