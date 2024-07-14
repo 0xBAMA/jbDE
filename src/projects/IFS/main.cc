@@ -15,6 +15,7 @@ public:
 	float brightness = 100.0f;
 	float brightnessPower = 1.0f;
 	int paletteSelect = 2;
+	bool screenshotRequested = false;
 
 	// flag for field wipe (on zoom, drag, etc)
 	bool bufferNeedsReset = false;
@@ -122,6 +123,9 @@ public:
 		ZoneScoped;
 	
 		ImGui::Begin( "Controls" );
+		if ( ImGui::Button( "Capture" ) ) {
+			screenshotRequested = true;
+		}
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "X Offset", &offset.x, -100.0f, 100.0f );
@@ -172,6 +176,20 @@ public:
 			SendTonemappingParameters();
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+			if ( screenshotRequested ) {
+				screenshotRequested = false;
+				const GLuint tex = textureManager.Get( "Display Texture" );
+				uvec2 dims = textureManager.GetDimensions( "Display Texture" );
+				std::vector< float > imageBytesToSave;
+				imageBytesToSave.resize( dims.x * dims.y * sizeof( float ) * 4, 0 );
+				glBindTexture( GL_TEXTURE_2D, tex );
+				glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+				Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
+				screenshot.RGBtoSRGB();
+				const string filename = string( "ifs-" ) + timeDateString() + string( ".png" );
+				screenshot.Save( filename );
+			}
 		}
 
 		{ // text rendering timestamp - required texture binds are handled internally
