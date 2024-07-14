@@ -34,23 +34,56 @@ void main () {
 
 	seed = wangSeed + writeLoc.x * 42069 + writeLoc.y * 69420;
 
-	// vec3 p = Rotate3D( 0.5f, vec3( 1.0f ) ) * vec3( NormalizedRandomFloat() - 0.5f, NormalizedRandomFloat() - 0.5f, NormalizedRandomFloat() - 0.5f );
-
-	// float val = 5.0f * ( rand() );
-	// vec3 p = vec3( 0.1f * val, cos( val ), tan( val ) );
-	// p.xy += CircleOffset() * 0.1f * p.z;
+	vec3 p = Rotate3D( 0.5f, vec3( 1.0f ) ) * vec3( 3.0f * RingBokeh(), rand() );
 
 	// vec3 p = vec3( rand(), rand(), rand() * 10.0f );
 	// vec3 p = vec3( CircleOffset(), rand() * 10.0f );
-	vec3 p = vec3( UniformSampleHexagon(), rand() * 10.0f );
+	// vec3 p = vec3( UniformSampleHexagon(), rand() * 10.0f );
+
 	for ( int i = 0; i < 30; i++ ) {
-		p.xy = cx_mobius( p.xy );
-		p.xy = cx_z_squared_plus_c( p.xy, vec2( 0.2f, 0.1f * p.z ) );
-		p.xy = cx_z_plus_one_over_z( p.xy );
+		int pick = int( floor( 8.0f * NormalizedRandomFloat() ) );
+		switch ( pick ) {
+			case 0:
+				p.xy = cx_mobius( p.xy );
+			break;
+
+			case 1:
+				p.xy = cx_sin_of_one_over_z( p.zy );
+			break;
+
+			case 2:
+				p.xy = cx_z_plus_one_over_z( p.yz );
+			break;
+
+			case 3:
+				p.xy = cx_to_polar( p.xy );
+			break;
+
+			case 4:
+				p.xy = cx_log( p.xy );
+			break;
+
+			case 5:
+				p.xy = cx_tan( p.xy );
+			break;
+
+			case 6:
+				p.xy = cx_tan( p.zy );
+			break;
+
+			case 7:
+				p.xy = cx_tan( p.zx );
+			break;
+
+			default:
+			break;
+		}
+
+		// dof offset
+		// p.xy += 0.01f * UniformSampleHexagon() * ( p.z + 0.5f );
+
+		// write the data to the image
 		ivec2 location = map3DPointTo2D( p );
 		atomicMax( maxCount, imageAtomicAdd( ifsAccumulator, location, 1 ) + 1 );
 	}
-
-
-	// write the data to the image
 }
