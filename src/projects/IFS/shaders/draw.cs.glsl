@@ -11,6 +11,7 @@ layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
 #include "mathUtils.h"
 
 uniform float brightness;
+uniform float brightnessPower;
 uniform int paletteSelect;
 
 void main () {
@@ -18,7 +19,7 @@ void main () {
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
 	// opportunity here, to do some remapping
-	vec3 col = refPalette( saturate( brightness * float( imageLoad( ifsAccumulator, writeLoc ).r ) / float( maxCount ) ), paletteSelect ).rgb;
+	vec3 col = refPalette( pow( saturate( brightness * float( imageLoad( ifsAccumulator, writeLoc ).r ) / float( maxCount[ 0 ] ) ), brightnessPower ), paletteSelect ).rgb;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );

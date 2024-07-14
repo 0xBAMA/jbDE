@@ -12,7 +12,8 @@ public:
 	vec2 offset = vec2( 0.0f );
 
 	// output prep
-	float brightness = 1.0f;
+	float brightness = 100.0f;
+	float brightnessPower = 1.0f;
 	int paletteSelect = 2;
 
 	// flag for field wipe (on zoom, drag, etc)
@@ -127,7 +128,8 @@ public:
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Y Offset", &offset.y, -100.0f, 100.0f );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
-		ImGui::SliderFloat( "Brightness", &brightness, 0.0f,5000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Brightness", &brightness, 0.0f, 100000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
+		ImGui::SliderFloat( "Brightness Power", &brightnessPower, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderInt( "PaletteSelect", &paletteSelect, 0, 26 );
 		ImGui::End();
 
@@ -156,6 +158,7 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 			glUniform1f( glGetUniformLocation( shader, "brightness" ), brightness );
+			glUniform1f( glGetUniformLocation( shader, "brightnessPower" ), brightnessPower );
 			glUniform1i( glGetUniformLocation( shader, "paletteSelect" ), paletteSelect );
 			textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
