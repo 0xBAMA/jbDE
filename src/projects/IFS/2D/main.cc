@@ -5,6 +5,8 @@ public:
 	IFS2D () { Init(); OnInit(); PostInit(); }
 	~IFS2D () { Quit(); }
 
+	GLuint maxBuffer;
+
 	void OnInit () {
 		ZoneScoped;
 		{
@@ -20,6 +22,13 @@ public:
 			opts.dataType = GL_R32UI;
 			opts.textureType = GL_TEXTURE_2D;
 			textureManager.Add( "IFS Accumulator", opts );
+
+			// buffer holding the normalize factor
+			constexpr uint32_t countValue = 0;
+			glGenBuffers( 1, &maxBuffer );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 		}
 	}
 
@@ -79,12 +88,6 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
