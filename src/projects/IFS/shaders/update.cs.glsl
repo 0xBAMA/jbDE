@@ -41,14 +41,14 @@ void main () {
 	// vec3 p = vec3( UniformSampleHexagon(), rand() * 10.0f );
 
 	for ( int i = 0; i < 30; i++ ) {
-		int pick = int( floor( 8.0f * NormalizedRandomFloat() ) );
+		int pick = int( floor( 10.0f * NormalizedRandomFloat() ) );
 		switch ( pick ) {
 			case 0:
-				p.xy = cx_mobius( p.xy );
+				p.xy = cx_mobius( p.xy ) + vec2( 0.1f );
 			break;
 
 			case 1:
-				p.xy = cx_sin_of_one_over_z( p.zy );
+				p.xy = cx_sin_of_one_over_z( p.zy ) + vec2( 0.2f );
 			break;
 
 			case 2:
@@ -56,7 +56,7 @@ void main () {
 			break;
 
 			case 3:
-				p.xy = cx_to_polar( p.xy );
+				p.xy = cx_to_polar( p.yz );
 			break;
 
 			case 4:
@@ -64,7 +64,7 @@ void main () {
 			break;
 
 			case 5:
-				p.xy = cx_tan( p.xy );
+				p.xy = cx_tan( p.yz );
 			break;
 
 			case 6:
@@ -72,7 +72,15 @@ void main () {
 			break;
 
 			case 7:
-				p.xy = cx_tan( p.zx );
+				p.xy = cx_tan( p.zy );
+			break;
+
+			case 8:
+				p.yz = cx_sqrt( p.xy );
+			break;
+
+			case 9:
+				p.yx = cx_sqrt( p.zy );
 			break;
 
 			default:
