@@ -10,6 +10,7 @@ public:
 	// IFS view parameters
 	float scale = 1.0f;
 	vec2 offset = vec2( 0.0f );
+	float rotation = 0.0f;
 
 	// output prep
 	float brightness = 1.0f;
@@ -18,14 +19,18 @@ public:
 	// flag for field wipe (on zoom, drag, etc)
 	bool bufferNeedsReset = false;
 
+	void LoadShaders() {
+		shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
+		shaders[ "Update" ] = computeShader( "./src/projects/IFS/shaders/update.cs.glsl" ).shaderHandle;
+		shaders[ "Clear" ] = computeShader( "./src/projects/IFS/shaders/clear.cs.glsl" ).shaderHandle;
+	}
+
 	void OnInit () {
 		ZoneScoped;
 		{
 			Block Start( "Additional User Init" );
 
-			shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
-			shaders[ "Update" ] = computeShader( "./src/projects/IFS/shaders/update.cs.glsl" ).shaderHandle;
-			shaders[ "Clear" ] = computeShader( "./src/projects/IFS/shaders/clear.cs.glsl" ).shaderHandle;
+			LoadShaders();
 
 			// texture to accumulate into
 			textureOptions_t opts;
@@ -97,6 +102,11 @@ public:
 		if ( state[ SDL_SCANCODE_E ] ) {
 			bufferNeedsReset = true;
 			rotation -= shift ? 0.1f : 0.01f;
+		}
+
+		if ( state[ SDL_SCANCODE_Y ] && shift ) {
+			// reload shaders
+			LoadShaders();
 		}
 
 		ivec2 mouse;
