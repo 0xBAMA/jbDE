@@ -14,7 +14,7 @@ public:
 
 	// output prep
 	float brightness = 1.0f;
-	int paletteSelect = 13;
+	int paletteSelect = 2;
 
 	// flag for field wipe (on zoom, drag, etc)
 	bool bufferNeedsReset = false;
@@ -104,6 +104,14 @@ public:
 			rotation -= shift ? 0.1f : 0.01f;
 		}
 
+		if ( state[ SDL_SCANCODE_R ] && shift ) {
+			// reset
+			bufferNeedsReset = true;
+			scale = 1.0f;
+			offset = vec2( 0.0f );
+			rotation = 0.0f;
+		}
+
 		if ( state[ SDL_SCANCODE_Y ] && shift ) {
 			// reload shaders
 			LoadShaders();
@@ -115,8 +123,8 @@ public:
 			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
 			ImGui::ResetMouseDragDelta();
 			const float aspectRatio = ( float ) config.height / ( float ) config.width;
-			offset.x += currentMouseDrag.x * aspectRatio * 0.01f / scale;
-			offset.y += currentMouseDrag.y * 0.01f / scale;
+			offset.x += currentMouseDrag.x * aspectRatio * 0.002f / scale;
+			offset.y += currentMouseDrag.y * 0.002f / scale;
 			bufferNeedsReset = true;
 		}
 	}
