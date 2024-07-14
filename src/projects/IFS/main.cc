@@ -36,6 +36,34 @@ public:
 		}
 	}
 
+	void HandleQuitEvents () {
+		ZoneScoped;
+		//==============================================================================
+		// Need to keep this for pQuit handling ( force quit )
+		// In particular - checking for window close and the SDL_QUIT event can't really be determined
+		//  via the keyboard state, and then imgui needs it too, so can't completely kill the event
+		//  polling loop - maybe eventually I'll find a more complete solution for this
+		SDL_Event event;
+		SDL_PumpEvents();
+		while ( SDL_PollEvent( &event ) ) {
+			ImGui_ImplSDL2_ProcessEvent( &event ); // imgui event handling
+			pQuit = config.oneShot || // swap out the multiple if statements for a big chained boolean setting the value of pQuit
+				( event.type == SDL_QUIT ) ||
+				( event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID( window.window ) ) ||
+				( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT );
+			if ( ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE ) || ( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_X1 ) ) {
+				quitConfirm = !quitConfirm; // this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
+			}
+
+			if ( event.type == SDL_MOUSEWHEEL && !ImGui::GetIO().WantCaptureMouse ) {
+				// float wheel_x = -event.wheel.x;
+				const float wheel_y = event.wheel.y;
+				scale *= ( wheel_y > 0.0f ) ? wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 1.01f : 1.1f ) : abs( wheel_y ) * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.99f : 0.9f );
+				bufferNeedsReset = true;
+			}
+		}
+	}
+
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
@@ -51,6 +79,16 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
+		ivec2 mouse;
+		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
+		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
+			ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
+			ImGui::ResetMouseDragDelta();
+			const float aspectRatio = ( float ) config.height / ( float ) config.width;
+			offset.x += currentMouseDrag.x * aspectRatio * 0.001f / scale;
+			offset.y += currentMouseDrag.y * 0.001f / scale;
+			bufferNeedsReset = true;
+		}
 	}
 
 	void ImguiPass () {
