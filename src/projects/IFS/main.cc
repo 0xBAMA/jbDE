@@ -17,6 +17,7 @@ public:
 
 			shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
 			shaders[ "Update" ] = computeShader( "./src/projects/IFS/shaders/update.cs.glsl" ).shaderHandle;
+			shaders[ "Clear" ] = computeShader( "./src/projects/IFS/shaders/clear.cs.glsl" ).shaderHandle;
 
 			// texture to accumulate into
 			textureOptions_t opts;
@@ -118,20 +119,17 @@ public:
 			bufferNeedsReset = false;
 
 			// reset the value tracking the max
-			cout << "resetting" << endl;
 			constexpr uint32_t countValue = 0;
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 
 			// reset the accumulator
-			cout << "resetting" << endl;
-			uint32_t zeroes[ config.width * config.height ] = { 0 };
-			glBindTexture( GL_TEXTURE_2D, textureManager.Get( "IFS Accumulator" ) );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, config.width, config.height, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zeroes[ 0 ] );
-
+			const GLuint shader = shaders[ "Clear" ];
+			glUseProgram( shader );
+			textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
-			cout << "done resetting" << endl;
 		}
 
 		// application-specific update code
