@@ -40,29 +40,37 @@ void main () {
 
 	seed = wangSeed + writeLoc.x * 42069 + writeLoc.y * 69420;
 
-	vec3 p = Rotate3D( 0.5f, vec3( 1.0f ) ) * vec3( 3.0f * RingBokeh(), rand() );
+	// vec3 p = Rotate3D( 0.5f, vec3( 1.0f ) ) * vec3( rand(), rand(), rand() );
+	vec3 p = vec3( rand(), rand(), rand() );
 
 	// vec3 p = vec3( rand(), rand(), rand() * 10.0f );
 	// vec3 p = vec3( CircleOffset(), rand() * 10.0f );
 	// vec3 p = vec3( UniformSampleHexagon(), rand() * 10.0f );
+
+	// vec3 color = vec3( 1.0f );
+	vec3 color = p + vec3( 0.5f );
 
 	for ( int i = 0; i < 30; i++ ) {
 		int pick = int( floor( 10.0f * NormalizedRandomFloat() ) );
 		switch ( pick ) {
 			case 0:
 				p.xy = cx_mobius( p.xy ) + vec2( 0.1f );
+				color *= vec3( 0.2f, 1.0f, 1.0f );
 			break;
 
 			case 1:
 				p.xy = cx_sin_of_one_over_z( p.zy ) + vec2( 0.2f );
+				color *= vec3( 1.0f, 0.2f, 0.2f );
 			break;
 
 			case 2:
 				p.xy = cx_z_plus_one_over_z( p.yz );
+				color *= vec3( 1.0f, 0.5f, 0.3f );
 			break;
 
 			case 3:
 				p.xy = cx_to_polar( p.yz );
+				color *= vec3( 0.6f, 0.9f, 0.7f );
 			break;
 
 			case 4:
@@ -101,7 +109,8 @@ void main () {
 
 		// atomicMax( maxCount[ 0 ], imageAtomicAdd( ifsAccumulator, location, 1 ) + 1 );
 
-		uvec3 amt = uvec3( 1 ); // todo, color bias
+		// uvec3 amt = uvec3( 1 ); // todo, color bias
+		uvec3 amt = uvec3( 100.0f * color );
 		atomicMax( maxCount[ 0 ], imageAtomicAdd( ifsAccumulatorR, location, amt.r ) + amt.r );
 		atomicMax( maxCount[ 1 ], imageAtomicAdd( ifsAccumulatorG, location, amt.g ) + amt.g );
 		atomicMax( maxCount[ 2 ], imageAtomicAdd( ifsAccumulatorB, location, amt.b ) + amt.b );
