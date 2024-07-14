@@ -92,8 +92,8 @@ void engineBase::HandleTridentEvents () {
 		if ( state[ SDL_SCANCODE_S ] || state[ SDL_SCANCODE_DOWN ] ) {	trident.RotateX( shift ? -bigStep : -lilStep ); }
 		if ( state[ SDL_SCANCODE_A ] || state[ SDL_SCANCODE_LEFT ] ) {	trident.RotateY( shift ?  bigStep :  lilStep ); }
 		if ( state[ SDL_SCANCODE_D ] || state[ SDL_SCANCODE_RIGHT ] ) {	trident.RotateY( shift ? -bigStep : -lilStep ); }
-		if ( state[ SDL_SCANCODE_PAGEUP ] ) {							trident.RotateZ( shift ? -bigStep : -lilStep ); }
-		if ( state[ SDL_SCANCODE_PAGEDOWN ] ) {							trident.RotateZ( shift ?  bigStep :  lilStep ); }
+		if ( state[ SDL_SCANCODE_PAGEUP ] || state[ SDL_SCANCODE_Q ] ) {							trident.RotateZ( shift ? -bigStep : -lilStep ); }
+		if ( state[ SDL_SCANCODE_PAGEDOWN ] || state[ SDL_SCANCODE_E ] ) {							trident.RotateZ( shift ?  bigStep :  lilStep ); }
 
 		// snap to cardinal directions
 		if ( state[ SDL_SCANCODE_1 ] ) { trident.SetViewFront();}
