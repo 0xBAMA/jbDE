@@ -10,7 +10,6 @@ public:
 	// IFS view parameters
 	float scale = 1.0f;
 	vec2 offset = vec2( 0.0f );
-	float rotation = 0.0f;
 
 	// output prep
 	float brightness = 1.0f;
@@ -92,24 +91,12 @@ public:
 		// const bool caps		= ( k & KMOD_CAPS );
 		// const bool super		= ( k & KMOD_GUI );
 
-		// rotation controls (CW)
-		if ( state[ SDL_SCANCODE_Q ] ) {
-			bufferNeedsReset = true;
-			rotation += shift ? 0.1f : 0.01f;
-		}
-
-		// rotation controls (CCW)
-		if ( state[ SDL_SCANCODE_E ] ) {
-			bufferNeedsReset = true;
-			rotation -= shift ? 0.1f : 0.01f;
-		}
-
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			// reset
 			bufferNeedsReset = true;
 			scale = 1.0f;
 			offset = vec2( 0.0f );
-			rotation = 0.0f;
+			trident.InitBasis();
 		}
 
 		if ( state[ SDL_SCANCODE_Y ] && shift ) {
@@ -133,8 +120,6 @@ public:
 		ZoneScoped;
 	
 		ImGui::Begin( "Controls" );
-		ImGui::SliderFloat( "Rotation", &rotation, -10.0f, 10.0f );
-		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "X Offset", &offset.x, -100.0f, 100.0f );
@@ -194,7 +179,8 @@ public:
 	}
 
 	void OnUpdate () {
-		static rngi wangSeeder = rngi( 0, 10000000 );
+		// application-specific update code
+		ZoneScoped; scopedTimer Start( "Update" );
 
 		// reset the buffer, when needed
 		if ( bufferNeedsReset == true ) {
@@ -214,15 +200,20 @@ public:
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 		}
 
-		// application-specific update code
-		ZoneScoped; scopedTimer Start( "Update" );
 		const GLuint shader = shaders[ "Update" ];
 		glUseProgram( shader );
+
+		static rngi wangSeeder = rngi( 0, 10000000 );
 		glUniform1i( glGetUniformLocation( shader, "wangSeed" ), wangSeeder() );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform2f( glGetUniformLocation( shader, "offset" ), offset.x, offset.y );
-		glUniform1f( glGetUniformLocation( shader, "rotation" ), rotation );
+
+		// get the trident matrix
+		mat3 tridentMatrix = mat3( trident.basisX, trident.basisY, trident.basisZ );
+		glUniformMatrix3fv( glGetUniformLocation( shader, "tridentMatrix" ), 1, GL_FALSE, glm::value_ptr( tridentMatrix ) );
+
 		textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
+
 		glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 	}
@@ -247,6 +238,13 @@ public:
 		// event handling
 		HandleCustomEvents();
 		HandleQuitEvents();
+		// trident for orientation
+		HandleTridentEvents();
+		if ( trident.Dirty() ) {
+			bufferNeedsReset = true;
+			trident.ClearDirty();
+		}
+
 
 		// derived-class-specific functionality
 		OnUpdate();
