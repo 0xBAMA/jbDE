@@ -14,7 +14,6 @@ public:
 	// output prep
 	float brightness = 100.0f;
 	float brightnessPower = 1.0f;
-	int paletteSelect = 2;
 	bool screenshotRequested = false;
 
 	// flag for field wipe (on zoom, drag, etc)
@@ -32,14 +31,6 @@ public:
 			Block Start( "Additional User Init" );
 
 			LoadShaders();
-
-			// texture to accumulate into
-			// textureOptions_t opts;
-			// opts.width = config.width;
-			// opts.height = config.height;
-			// opts.dataType = GL_R32UI;
-			// opts.textureType = GL_TEXTURE_2D;
-			// textureManager.Add( "IFS Accumulator", opts );
 
 			textureOptions_t opts;
 			opts.width = config.width;
@@ -143,7 +134,6 @@ public:
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Brightness", &brightness, 0.0f, 100000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Brightness Power", &brightnessPower, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
-		ImGui::SliderInt( "PaletteSelect", &paletteSelect, 0, 26 );
 		ImGui::End();
 
 		if ( tonemap.showTonemapWindow ) {
@@ -172,9 +162,6 @@ public:
 			glUseProgram( shader );
 			glUniform1f( glGetUniformLocation( shader, "brightness" ), brightness );
 			glUniform1f( glGetUniformLocation( shader, "brightnessPower" ), brightnessPower );
-			glUniform1i( glGetUniformLocation( shader, "paletteSelect" ), paletteSelect );
-
-			// textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
 
 			textureManager.BindImageForShader( "IFS Accumulator R", "ifsAccumulatorR", shader, 2 );
 			textureManager.BindImageForShader( "IFS Accumulator G", "ifsAccumulatorG", shader, 3 );
@@ -233,8 +220,6 @@ public:
 			const GLuint shader = shaders[ "Clear" ];
 			glUseProgram( shader );
 
-			// textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
-
 			textureManager.BindImageForShader( "IFS Accumulator R", "ifsAccumulatorR", shader, 2 );
 			textureManager.BindImageForShader( "IFS Accumulator G", "ifsAccumulatorG", shader, 3 );
 			textureManager.BindImageForShader( "IFS Accumulator B", "ifsAccumulatorB", shader, 4 );
@@ -254,8 +239,6 @@ public:
 		// get the trident matrix
 		mat3 tridentMatrix = mat3( trident.basisX, trident.basisY, trident.basisZ );
 		glUniformMatrix3fv( glGetUniformLocation( shader, "tridentMatrix" ), 1, GL_FALSE, glm::value_ptr( tridentMatrix ) );
-
-		// textureManager.BindImageForShader( "IFS Accumulator", "ifsAccumulator", shader, 2 );
 
 		textureManager.BindImageForShader( "IFS Accumulator R", "ifsAccumulatorR", shader, 2 );
 		textureManager.BindImageForShader( "IFS Accumulator G", "ifsAccumulatorG", shader, 3 );
@@ -291,7 +274,6 @@ public:
 			bufferNeedsReset = true;
 			trident.ClearDirty();
 		}
-
 
 		// derived-class-specific functionality
 		OnUpdate();
