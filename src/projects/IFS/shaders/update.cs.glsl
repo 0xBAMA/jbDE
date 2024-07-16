@@ -5,7 +5,7 @@ layout( binding = 2, r32ui ) uniform uimage2D ifsAccumulatorR;
 layout( binding = 3, r32ui ) uniform uimage2D ifsAccumulatorG;
 layout( binding = 4, r32ui ) uniform uimage2D ifsAccumulatorB;
 
-layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount[ 3 ]; };
+layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
 
 #include "mathUtils.h"
 #include "random.h"
@@ -99,8 +99,8 @@ void main () {
 		ivec2 location = map3DPointTo2D( p );
 
 		uvec3 amt = uvec3( 100.0f * color );
-		atomicMax( maxCount[ 0 ], imageAtomicAdd( ifsAccumulatorR, location, amt.r ) + amt.r );
-		atomicMax( maxCount[ 1 ], imageAtomicAdd( ifsAccumulatorG, location, amt.g ) + amt.g );
-		atomicMax( maxCount[ 2 ], imageAtomicAdd( ifsAccumulatorB, location, amt.b ) + amt.b );
+		atomicMax( maxCount, imageAtomicAdd( ifsAccumulatorR, location, amt.r ) + amt.r );
+		atomicMax( maxCount, imageAtomicAdd( ifsAccumulatorG, location, amt.g ) + amt.g );
+		atomicMax( maxCount, imageAtomicAdd( ifsAccumulatorB, location, amt.b ) + amt.b );
 	}
 }

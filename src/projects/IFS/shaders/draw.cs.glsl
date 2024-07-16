@@ -8,7 +8,7 @@ layout( binding = 2, r32ui ) uniform uimage2D ifsAccumulatorR;
 layout( binding = 3, r32ui ) uniform uimage2D ifsAccumulatorG;
 layout( binding = 4, r32ui ) uniform uimage2D ifsAccumulatorB;
 
-layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount[ 3 ]; };
+layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
 
 #include "mathUtils.h"
 
@@ -19,18 +19,11 @@ void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	uint normalizeFactor = max( max( maxCount[ 0 ], maxCount[ 1 ] ), maxCount[ 2 ] );
-
-	// vec3 loadedColor = vec3(
-	// 	float( imageLoad( ifsAccumulatorR, writeLoc ).r ) / float( maxCount[ 0 ] ),
-	// 	float( imageLoad( ifsAccumulatorG, writeLoc ).r ) / float( maxCount[ 1 ] ),
-	// 	float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / float( maxCount[ 2 ] )
-	// );
-
+	float maxCountF = float( maxCount );
 	vec3 loadedColor = vec3(
-		float( imageLoad( ifsAccumulatorR, writeLoc ).r ) / float( normalizeFactor ),
-		float( imageLoad( ifsAccumulatorG, writeLoc ).r ) / float( normalizeFactor ),
-		float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / float( normalizeFactor )
+		float( imageLoad( ifsAccumulatorR, writeLoc ).r ) / maxCountF,
+		float( imageLoad( ifsAccumulatorG, writeLoc ).r ) / maxCountF,
+		float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / maxCountF
 	);
 
 	vec3 col = pow( saturate( brightness * loadedColor ), vec3( brightnessPower ) );

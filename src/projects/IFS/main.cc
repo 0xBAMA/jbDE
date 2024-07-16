@@ -43,9 +43,9 @@ public:
 
 			// buffer holding the normalize factor
 			glGenBuffers( 1, &maxBuffer );
-			constexpr uint32_t countValue[ 3 ] = { 0 };
+			constexpr uint32_t countValue = 0;
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, 12, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 		}
 	}
@@ -211,9 +211,9 @@ public:
 			bufferNeedsReset = false;
 
 			// reset the value tracking the max
-			constexpr uint32_t countValue[ 3 ] = { 0 };
+			constexpr uint32_t countValue = 0;
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, 12, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 
 			// reset the accumulator
