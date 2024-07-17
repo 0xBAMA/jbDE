@@ -6,6 +6,7 @@ public:
 	~ifs () { Quit(); }
 
 	GLuint maxBuffer;
+	GLuint colorBuffer;
 
 	// IFS view parameters
 	float scale = 1.0f;
@@ -47,7 +48,24 @@ public:
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, maxBuffer );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
+
+			glGenBuffers( 1, &colorBuffer );
+			GenColorList();
 		}
+	}
+
+	void GenColorList () {
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, colorBuffer );
+		std::vector< vec4 > colorList;
+
+		palette::PickRandomPalette( true );
+		rng pick = rng( 0.0f, 1.0f );
+		for ( int i = 0; i < 16; i++ ) {
+			colorList.push_back( vec4( palette::paletteRef( pick() ), 1.0f ) );
+		}
+
+		glBufferData( GL_SHADER_STORAGE_BUFFER, 4 * 4 * 16, ( GLvoid * ) &colorList[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, colorBuffer );
 	}
 
 	void HandleQuitEvents () {
@@ -125,6 +143,9 @@ public:
 		ImGui::Begin( "Controls" );
 		if ( ImGui::Button( "Capture" ) ) {
 			screenshotRequested = true;
+		}
+		if ( ImGui::Button( "New Palette" ) ) {
+			GenColorList();
 		}
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();

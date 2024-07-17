@@ -7,6 +7,8 @@ layout( binding = 4, r32ui ) uniform uimage2D ifsAccumulatorB;
 
 layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
 
+layout( binding = 1, std430 ) buffer colorBuffer { vec4 colors[]; };
+
 #include "mathUtils.h"
 #include "random.h"
 #include "complexNumbers.glsl.h"
@@ -37,7 +39,8 @@ void main () {
 
 	seed = wangSeed + writeLoc.x * 42069 + writeLoc.y * 69420;
 
-	vec3 p = vec3( rand(), rand(), rand() );
+	// vec3 p = vec3( rand(), rand(), rand() * 10.0f );
+	vec3 p = vec3( UniformSampleHexagon(), rand() * 4.0f );
 	vec3 color = vec3( 1.0f );
 
 	for ( int i = 0; i < 15; i++ ) {
@@ -46,34 +49,37 @@ void main () {
 		switch ( pick ) {
 			case 0:
 				p.xy = cx_mobius( p.zy ) + vec2( 0.1f );
-				color *= vec3( 0.9f, 0.85f, 0.9f );
+				color *= colors[ 0 ].xyz;
 			break;
 
 			case 1:
 				p.xy = cx_sin_of_one_over_z( p.zy ) + vec2( 0.2f );
-				color *= vec3( 0.9f, 0.75f, 0.6f );
+				color *= colors[ 1 ].xyz;
 			break;
 
 			case 2:
 				p.xy = cx_z_plus_one_over_z( p.yz );
-				color *= vec3( 0.0f, 0.4f, 0.8f );
+				color *= colors[ 2 ].xyz;
 			break;
 
 			case 3:
 				p.xy = cx_to_polar( p.yz );
-				color *= vec3( 0.9f, 0.4f, 0.7f );
+				color *= colors[ 3 ].xyz;
 			break;
 
 			case 4:
 				p.xy = cx_log( p.xy );
+				color *= colors[ 4 ].xyz;
 			break;
 
 			case 5:
 				p.xy = cx_tan( p.yz );
+				color *= colors[ 5 ].xyz;
 			break;
 
 			case 6:
 				p.xy = cx_tan( p.zy );
+				color *= colors[ 6 ].xyz;
 			break;
 
 			case 7:
