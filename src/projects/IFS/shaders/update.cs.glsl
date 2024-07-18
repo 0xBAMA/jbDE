@@ -28,8 +28,8 @@ ivec2 map3DPointTo2D( vec3 p ) {
 	// p.xy += ( invTridentMatrix * vec3( offset, 0.0f ) ).xy;
 	p = tridentMatrix * p;
 	return ivec2(
-		RangeRemapValue( p.x + offset.x * scale, -ratio, ratio, 0.0f, float( is.x ) ),
-		RangeRemapValue( p.y + offset.y * scale, -1.0f, 1.0f, 0.0f, float( is.y ) ) );
+		RangeRemapValue( p.x + offset.x * scale, -ratio, ratio, 0.0f, float( is.x ) ) + NormalizedRandomFloat(),
+		RangeRemapValue( p.y + offset.y * scale, -1.0f, 1.0f, 0.0f, float( is.y ) ) + NormalizedRandomFloat() );
 }
 
 float rand() { return 2.0f * ( NormalizedRandomFloat() - 0.5f ); }
