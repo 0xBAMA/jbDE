@@ -24,6 +24,10 @@ public:
 		shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
 		shaders[ "Update" ] = computeShader( "./src/projects/IFS/shaders/update.cs.glsl" ).shaderHandle;
 		shaders[ "Clear" ] = computeShader( "./src/projects/IFS/shaders/clear.cs.glsl" ).shaderHandle;
+
+		glObjectLabel( GL_PROGRAM, shaders[ "Draw" ], -1, string( "Draw" ).c_str() );
+		glObjectLabel( GL_PROGRAM, shaders[ "Update" ], -1, string( "Update" ).c_str() );
+		glObjectLabel( GL_PROGRAM, shaders[ "Clear" ], -1, string( "Clear" ).c_str() );
 	}
 
 	void OnInit () {

@@ -35,6 +35,8 @@ static string ProcessIncludeString ( string source ) {
 	return string( cstrCode );
 }
 
+// glObjectLabel() to label the resource, next time
+
 /*==============================================================================
 Take in a path to a file, read it - report with path if the load fails,
 otherwise return the loaded string
