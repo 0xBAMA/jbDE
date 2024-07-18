@@ -283,6 +283,9 @@ public:
 			break;
 		}
 
+		// add texture label
+		glObjectLabel( GL_TEXTURE, tex.textureHandle, -1, label.c_str() );
+
 		// data likely doesn't exist after initialization
 		tex.creationOptions.initialData = nullptr;
 
