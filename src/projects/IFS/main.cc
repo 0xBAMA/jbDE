@@ -19,10 +19,14 @@ public:
 	bool screenshotRequested = false;
 
 	// flag for field wipe (on zoom, drag, etc)
-	bool bufferNeedsReset = false;
+	bool RendererNeedsReset = false;
+
+	// flag for SSBO update
+	bool BufferNeedsReset = false;
 
 	// operations list
 	std::vector< operation_t > currentOperations;
+
 
 	void LoadShaders() {
 		shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
@@ -105,7 +109,7 @@ public:
 				const float wheel_y = event.wheel.y;
 				scale *= ( wheel_y > 0.0f ) ? wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 1.01f : 1.1f ) : abs( wheel_y ) * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.99f : 0.9f );
 				brightness *= ( wheel_y > 0.0f ) ? wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 1.01f : 1.1f ) : abs( wheel_y ) * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.99f : 0.9f );
-				bufferNeedsReset = true;
+				RendererNeedsReset = true;
 			}
 		}
 	}
@@ -127,7 +131,7 @@ public:
 
 		if ( state[ SDL_SCANCODE_R ] && shift ) {
 			// reset
-			bufferNeedsReset = true;
+			RendererNeedsReset = true;
 			scale = 1.0f;
 			offset = vec2( 0.0f );
 			trident.InitBasis();
@@ -146,7 +150,7 @@ public:
 			const float aspectRatio = ( float ) config.height / ( float ) config.width;
 			offset.x += currentMouseDrag.x * aspectRatio * 0.002f / scale;
 			offset.y += currentMouseDrag.y * 0.002f / scale;
-			bufferNeedsReset = true;
+			RendererNeedsReset = true;
 		}
 	}
 
@@ -161,11 +165,11 @@ public:
 			GenColorList();
 		}
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
-		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		RendererNeedsReset = RendererNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "X Offset", &offset.x, -100.0f, 100.0f );
-		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		RendererNeedsReset = RendererNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Y Offset", &offset.y, -100.0f, 100.0f );
-		bufferNeedsReset = bufferNeedsReset || ImGui::IsItemEdited();
+		RendererNeedsReset = RendererNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Brightness", &brightness, 0.0f, 100000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Brightness Power", &brightnessPower, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::End();
@@ -263,8 +267,8 @@ public:
 		ZoneScoped; scopedTimer Start( "Update" );
 
 		// reset the buffer, when needed
-		if ( bufferNeedsReset == true ) {
-			bufferNeedsReset = false;
+		if ( RendererNeedsReset == true ) {
+			RendererNeedsReset = false;
 
 			// reset the value tracking the max
 			constexpr uint32_t countValue = 0;
@@ -327,7 +331,7 @@ public:
 		// trident for orientation
 		HandleTridentEvents();
 		if ( trident.Dirty() ) {
-			bufferNeedsReset = true;
+			RendererNeedsReset = true;
 			trident.ClearDirty();
 		}
 
