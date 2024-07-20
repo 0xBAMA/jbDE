@@ -1,4 +1,5 @@
 #include "../../engine/engine.h"
+#include "operations.h"
 
 class ifs final : public engineBase { // sample derived from base engine class
 public:
@@ -19,6 +20,9 @@ public:
 
 	// flag for field wipe (on zoom, drag, etc)
 	bool bufferNeedsReset = false;
+
+	// operations list
+	std::vector< operation_t > currentOperations;
 
 	void LoadShaders() {
 		shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
@@ -55,6 +59,11 @@ public:
 
 			glGenBuffers( 1, &colorBuffer );
 			GenColorList();
+
+			// populate the current list of operations
+			for ( int i = 0; i < 3; i++ ) {
+				currentOperations.push_back( GetRandomOperation() );
+			}
 		}
 	}
 
@@ -160,6 +169,28 @@ public:
 		ImGui::SliderFloat( "Brightness", &brightness, 0.0f, 100000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Brightness Power", &brightnessPower, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::End();
+
+		// =================================
+		ImGui::Begin( "Operations" );
+		// showing current palette? not sure how I want to handle that
+		for ( uint i = 0; i < currentOperations.size(); i++ ) { // list out the current operations
+			string label = string( "Operation " ) + std::to_string( i );
+			ImGui::SeparatorText( label.c_str() );
+
+			// type of operation
+			ImGui::Text( "Type: %s", operationList[ currentOperations[ i ].index ].identifier.c_str() );
+
+			// input and output swizzles
+			ImGui::Text( "Input Swizzle: %s", GetStringForSwizzle( currentOperations[ i ].inputSwizzle ).c_str() );
+			ImGui::Text( "Output Swizzle: %s", GetStringForSwizzle( currentOperations[ i ].outputSwizzle ).c_str() );
+
+			// color
+			string colorLabel = string( "Color##" ) + std::to_string( i );
+			ImGui::ColorEdit3( colorLabel.c_str(), ( float * ) &currentOperations[ i ].color, ImGuiColorEditFlags_PickerHueWheel );
+		}
+		// button to add another one after the list
+		ImGui::End();
+		// =================================
 
 		if ( tonemap.showTonemapWindow ) {
 			TonemapControlsWindow();
