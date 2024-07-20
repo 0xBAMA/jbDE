@@ -185,17 +185,47 @@ public:
 		for ( uint i = 0; i < currentOperations.size(); i++ ) { // list out the current operations
 			string label = string( "Operation " ) + std::to_string( i );
 			ImGui::SeparatorText( label.c_str() );
+			ImGui::Indent();
 
-			// type of operation
-			ImGui::Text( "Type: %s", operationList[ currentOperations[ i ].index ].identifier.c_str() );
+			// type of operation specified
+			string typeLabel = string( "Type##" ) + std::to_string( i );
+			ImGui::Combo( typeLabel.c_str(), ( int * ) &currentOperations[ i ].index, operationLabels, NUM_OPERATIONS );
+			BufferNeedsReset |= ImGui::IsItemEdited();
 
-			// input and output swizzles
-			ImGui::Text( "Input Swizzle: %s", GetStringForSwizzle( currentOperations[ i ].inputSwizzle ).c_str() );
-			ImGui::Text( "Output Swizzle: %s", GetStringForSwizzle( currentOperations[ i ].outputSwizzle ).c_str() );
+			// input swizzle
+			int offset = 0; int count = 0;
+			switch ( operationList[ currentOperations[ i ].index ].inputSize ) {
+				case 1: offset =  1; count = 3; break;
+				case 2: offset =  4; count = 6; break;
+				case 3: offset = 10; count = 6; break;
+				default: break;
+			}
+			string inputSwizzleLabel = string( "Input Swizzle##" ) + std::to_string( i );
+			currentOperations[ i ].inputSwizzle = swizzle( int( currentOperations[ i ].inputSwizzle ) - offset );
+			ImGui::Combo( inputSwizzleLabel.c_str(), ( int * ) &currentOperations[ i ].inputSwizzle, swizzleLabels + offset, count );
+			currentOperations[ i ].inputSwizzle = swizzle( int( currentOperations[ i ].inputSwizzle ) + offset );
+			BufferNeedsReset |= ImGui::IsItemEdited();
 
-			// color
+			// output swizzle
+			offset = 0; count = 0;
+			switch ( operationList[ currentOperations[ i ].index ].outputSize ) {
+				case 1: offset =  1; count = 3; break;
+				case 2: offset =  4; count = 6; break;
+				case 3: offset = 10; count = 6; break;
+				default: break;
+			}
+			string outputSwizzleLabel = string( "Output Swizzle##" ) + std::to_string( i );
+			currentOperations[ i ].outputSwizzle = swizzle( int( currentOperations[ i ].outputSwizzle ) - offset );
+			ImGui::Combo( outputSwizzleLabel.c_str(), ( int * ) &currentOperations[ i ].outputSwizzle, swizzleLabels + offset, count );
+			currentOperations[ i ].outputSwizzle = swizzle( int( currentOperations[ i ].outputSwizzle ) + offset );
+			BufferNeedsReset |= ImGui::IsItemEdited();
+
+			// color for this operation
 			string colorLabel = string( "Color##" ) + std::to_string( i );
 			ImGui::ColorEdit3( colorLabel.c_str(), ( float * ) &currentOperations[ i ].color, ImGuiColorEditFlags_PickerHueWheel );
+			BufferNeedsReset |= ImGui::IsItemEdited();
+
+			ImGui::Unindent();
 		}
 		// button to add another one after the list
 		ImGui::End();
