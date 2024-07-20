@@ -64,10 +64,15 @@ public:
 			glGenBuffers( 1, &colorBuffer );
 			GenColorList();
 
+			// setup labels for imgui
+			PopulateLabels();
+
 			// populate the current list of operations
 			for ( int i = 0; i < 3; i++ ) {
 				currentOperations.push_back( GetRandomOperation() );
 			}
+
+			
 		}
 	}
 

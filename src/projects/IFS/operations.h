@@ -25,7 +25,10 @@ enum swizzle {
 	SWIZZLE_YZX = 12,
 	SWIZZLE_ZYX = 13,
 	SWIZZLE_XZY = 14,
-	SWIZZLE_ZXY = 15
+	SWIZZLE_ZXY = 15,
+
+	// how many
+	SWIZZLE_COUNT = 16
 };
 
 #define CX_MUL 0
@@ -172,4 +175,21 @@ operation_t GetRandomOperation () {
 	current.color = vec4( palette::paletteRef( colorInit() ), 1.0f );
 
 	return current;
+}
+
+static char * operationLabels[ NUM_OPERATIONS ];
+static char * swizzleLabels[ 16 ];
+
+void PopulateLabels () {
+	// get the labels
+	for ( int i = 0; i < NUM_OPERATIONS; i++ ) {
+		operationLabels[ i ] = ( char * ) malloc( 256 ); // whatever
+		sprintf( operationLabels[ i ], "%s", operationList[ i ].identifier.c_str() );
+	}
+
+	for ( int i = 1; i < SWIZZLE_COUNT; i++ ) {
+		string swizz = GetStringForSwizzle( swizzle( i ) );
+		swizzleLabels[ i ] = ( char * ) malloc( 256 ); // whatever
+		sprintf( swizzleLabels[ i ], "%s", swizz.c_str() );
+	}
 }
