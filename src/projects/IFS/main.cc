@@ -184,7 +184,13 @@ public:
 		// showing current palette? not sure how I want to handle that
 		for ( uint i = 0; i < currentOperations.size(); i++ ) { // list out the current operations
 			string label = string( "Operation " ) + std::to_string( i );
-			ImGui::SeparatorText( label.c_str() );
+			ImGui::Text( label.c_str() );
+			ImGui::SameLine();
+			if ( ImGui::Button( ( string( " Remove ##" + std::to_string( i ) ) ).c_str() ) ) {
+				currentOperations.erase( currentOperations.begin() + i );
+				BufferNeedsReset = true;
+			}
+			ImGui::Separator();
 			ImGui::Indent();
 
 			// type of operation specified
@@ -228,6 +234,11 @@ public:
 			ImGui::Unindent();
 		}
 		// button to add another one after the list
+		if ( ImGui::Button( " Add Random Operation " ) ) {
+			currentOperations.push_back( GetRandomOperation() );
+			BufferNeedsReset = true;
+		}
+
 		ImGui::End();
 		// =================================
 
