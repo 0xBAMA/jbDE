@@ -218,7 +218,16 @@ public:
 			if ( ImGui::Button( ( string( " Remove ##" + std::to_string( i ) ) ).c_str() ) ) {
 				currentOperations.erase( currentOperations.begin() + i );
 				BufferNeedsReset = true;
+				RendererNeedsReset = true;
 			}
+			ImGui::SameLine();
+			if ( ImGui::Button( ( string( " Randomize ##" + std::to_string( i ) ) ).c_str() ) ) {
+				currentOperations.erase( currentOperations.begin() + i );
+				currentOperations.insert( currentOperations.begin() + i, GetRandomOperation() );
+				BufferNeedsReset = true;
+				RendererNeedsReset = true;
+			}
+
 			ImGui::Separator();
 			ImGui::Indent();
 
@@ -284,6 +293,7 @@ public:
 		if ( ImGui::Button( " Add Random Operation " ) ) {
 			currentOperations.push_back( GetRandomOperation() );
 			BufferNeedsReset = true;
+			RendererNeedsReset = true;
 		}
 
 		ImGui::End();
