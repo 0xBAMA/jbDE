@@ -64,7 +64,7 @@ public:
 			PopulateLabels();
 
 			// populate the current list of operations
-			for ( int i = 0; i < 3; i++ ) {
+			for ( int i = 0; i < 6; i++ ) {
 				currentOperations.push_back( GetRandomOperation() );
 			}
 
@@ -191,7 +191,22 @@ public:
 			// for all operations
 
 		if ( ImGui::Button( "New Palette" ) ) {
+			rng colorInit = rng( 0.0f, 1.0f );
 			palette::PickRandomPalette( true );
+			for ( uint i = 0; i < currentOperations.size(); i++ ) {
+				currentOperations[ i ].color = vec4( palette::paletteRef( colorInit() ), 1.0f );
+			}
+			BufferNeedsReset = true;
+			RendererNeedsReset = true;
+		}
+
+		ImGui::SameLine();
+		if ( ImGui::Button( "Randomize All" ) ) {
+			for ( uint i = 0; i < currentOperations.size(); i++ ) {
+				currentOperations[ i ] = GetRandomOperation();
+			}
+			BufferNeedsReset = true;
+			RendererNeedsReset = true;
 		}
 
 		// showing palette contents, tbd
@@ -364,6 +379,11 @@ public:
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_ALL_BARRIER_BITS );
+		}
+
+		if ( BufferNeedsReset ) {
+			BufferNeedsReset = false;
+			PassOperationData();
 		}
 
 		const GLuint shader = shaders[ "Update" ];
