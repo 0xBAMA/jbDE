@@ -183,13 +183,13 @@ static char * swizzleLabels[ 16 ];
 void PopulateLabels () {
 	// get the labels
 	for ( int i = 0; i < NUM_OPERATIONS; i++ ) {
-		operationLabels[ i ] = ( char * ) malloc( 256 ); // whatever
+		operationLabels[ i ] = ( char * ) malloc( 64 ); // whatever
 		sprintf( operationLabels[ i ], "%s", operationList[ i ].identifier.c_str() );
 	}
 
 	for ( int i = 1; i < SWIZZLE_COUNT; i++ ) {
 		string swizz = GetStringForSwizzle( swizzle( i ) );
-		swizzleLabels[ i ] = ( char * ) malloc( 256 ); // whatever
+		swizzleLabels[ i ] = ( char * ) malloc( 16 ); // whatever
 		sprintf( swizzleLabels[ i ], "%s", swizz.c_str() );
 	}
 }
