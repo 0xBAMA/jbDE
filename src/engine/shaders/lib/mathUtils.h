@@ -23,6 +23,11 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 const float pi = 3.141592f;
 #endif
 
+mat2 Rotate2D ( in float a ) {
+	float c = cos( a ), s = sin( a );
+	return mat2( c, s, -s, c );
+}
+
 mat3 Rotate3D ( const float angle, const vec3 axis ) {
 	const vec3 a = normalize( axis );
 	const float s = sin( angle );
