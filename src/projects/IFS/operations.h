@@ -56,7 +56,8 @@ enum swizzle {
 #define SCALE1D 22
 #define SCALE2D 23
 #define SCALE3D 24
-#define NUM_OPERATIONS 25
+#define ROTATE2D 25
+#define NUM_OPERATIONS 26
 
 swizzle Get1DSwizzle () {
 	rngi pick = rngi( 1, 3 );
@@ -141,7 +142,8 @@ static const std::vector< operationTemplate_t > operationList = {
 	operationTemplate_t( "3D Offset", 3, 3, 3 ),
 	operationTemplate_t( "1D Scale", 1, 1, 1 ),
 	operationTemplate_t( "2D Scale", 2, 2, 2 ),
-	operationTemplate_t( "3D Scale", 3, 3, 3 )
+	operationTemplate_t( "3D Scale", 3, 3, 3 ),
+	operationTemplate_t( "2D Rotate", 2, 2, 1 )
 };
 
 operation_t GetRandomOperation () {

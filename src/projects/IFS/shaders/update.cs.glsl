@@ -132,6 +132,7 @@ vec3 OutputSwizzle3D ( vec3 p, vec3 val, int pick ) {
 #define SCALE1D 22
 #define SCALE2D 23
 #define SCALE3D 24
+#define ROTATE2D 25
 
 struct entry_t {
 	vec4 op;
@@ -352,6 +353,14 @@ vec3 ApplyTransform ( vec3 p, inout vec3 color ) {
 			vec3 temp = InputSwizzle3D( p, inputSwizzle );
 			temp = temp * selected.args.xyz;
 			p = OutputSwizzle3D( p, temp, outputSwizzle );
+			break;
+		}
+
+		case ROTATE2D: // 2 channel -> 2 channel, with 1 additional arguments
+		{
+			vec2 temp = InputSwizzle2D( p, inputSwizzle );
+			temp = Rotate2D( selected.args.x ) * temp;
+			p = OutputSwizzle2D( p, temp, outputSwizzle );
 			break;
 		}
 
