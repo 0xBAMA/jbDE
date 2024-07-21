@@ -7,7 +7,7 @@ public:
 	~ifs () { Quit(); }
 
 	GLuint maxBuffer;
-	GLuint colorBuffer;
+	GLuint dataBuffer;
 
 	// IFS view parameters
 	float scale = 1.0f;
@@ -26,7 +26,6 @@ public:
 
 	// operations list
 	std::vector< operation_t > currentOperations;
-
 
 	void LoadShaders() {
 		shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
@@ -61,9 +60,6 @@ public:
 			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
 			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, maxBuffer );
 
-			glGenBuffers( 1, &colorBuffer );
-			GenColorList();
-
 			// setup labels for imgui
 			PopulateLabels();
 
@@ -72,22 +68,29 @@ public:
 				currentOperations.push_back( GetRandomOperation() );
 			}
 
-			
+			glGenBuffers( 1, &dataBuffer );
+			PassOperationData();
 		}
 	}
 
-	void GenColorList () {
-		glBindBuffer( GL_SHADER_STORAGE_BUFFER, colorBuffer );
-		std::vector< vec4 > colorList;
+	void PassOperationData () {
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, dataBuffer );
+		std::vector< vec4 > data;
 
-		palette::PickRandomPalette( true );
-		rng pick = rng( 0.0f, 1.0f );
-		for ( int i = 0; i < 16; i++ ) {
-			colorList.push_back( vec4( palette::paletteRef( pick() ), 1.0f ) );
+		for ( uint i = 0; i < currentOperations.size(); i++ ) {
+			// operation information ( operation, input swizzle, output swizzle, unused )
+			data.push_back( vec4( currentOperations[ i ].index, currentOperations[ i ].inputSwizzle, currentOperations[ i ].outputSwizzle, 0.0f ) );
+			
+			// arguments ( x,y,z are used, selectively, by some operations, fourth is unused )
+			data.push_back( currentOperations[ i ].args );
+			
+			// color (r,g,b,unused alpha channel)
+			data.push_back( currentOperations[ i ].color );
 		}
 
-		glBufferData( GL_SHADER_STORAGE_BUFFER, 4 * 4 * 16, ( GLvoid * ) &colorList[ 0 ], GL_DYNAMIC_COPY );
-		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, colorBuffer );
+		size_t numBytes = sizeof( float ) * 4 * 3 * currentOperations.size();
+		glBufferData( GL_SHADER_STORAGE_BUFFER, numBytes, ( GLvoid * ) &data[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, dataBuffer );
 	}
 
 	void HandleQuitEvents () {
@@ -163,11 +166,12 @@ public:
 		ZoneScoped;
 	
 		ImGui::Begin( "Controls" );
-		if ( ImGui::Button( "Capture" ) ) {
+		if ( ImGui::Button( " Capture " ) ) {
 			screenshotRequested = true;
 		}
-		if ( ImGui::Button( "New Palette" ) ) {
-			GenColorList();
+		ImGui::SameLine();
+		if ( ImGui::Button( " Capture EXR " ) ) {
+			// todo - I want EXRs for HDRI usage
 		}
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		RendererNeedsReset = RendererNeedsReset || ImGui::IsItemEdited();
@@ -181,7 +185,17 @@ public:
 
 		// =================================
 		ImGui::Begin( "Operations" );
+
 		// showing current palette? not sure how I want to handle that
+			// I would like something like the old palette selector, and when the parameters change, generate new values
+			// for all operations
+
+		if ( ImGui::Button( "New Palette" ) ) {
+			palette::PickRandomPalette( true );
+		}
+
+		// showing palette contents, tbd
+
 		for ( uint i = 0; i < currentOperations.size(); i++ ) { // list out the current operations
 			string label = string( "Operation " ) + std::to_string( i );
 			ImGui::Text( label.c_str() );
@@ -359,6 +373,7 @@ public:
 		glUniform1i( glGetUniformLocation( shader, "wangSeed" ), wangSeeder() );
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform2f( glGetUniformLocation( shader, "offset" ), offset.x, offset.y );
+		glUniform1i( glGetUniformLocation( shader, "numTransforms" ), currentOperations.size() );
 
 		// get the trident matrix
 		mat3 tridentMatrix = mat3( trident.basisX, trident.basisY, trident.basisZ );

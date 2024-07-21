@@ -178,7 +178,7 @@ operation_t GetRandomOperation () {
 }
 
 static char * operationLabels[ NUM_OPERATIONS ];
-static char * swizzleLabels[ 16 ];
+static char * swizzleLabels[ SWIZZLE_COUNT ];
 
 void PopulateLabels () {
 	// get the labels
