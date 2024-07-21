@@ -199,32 +199,50 @@ public:
 			BufferNeedsReset |= ImGui::IsItemEdited();
 
 			// input swizzle
-			int offset = 0; int count = 0;
+			int dimensions = 0; int offset = 0; int count = 0;
 			switch ( operationList[ currentOperations[ i ].index ].inputSize ) {
-				case 1: offset =  1; count = 3; break;
-				case 2: offset =  4; count = 6; break;
-				case 3: offset = 10; count = 6; break;
+				case 1: dimensions = 1; offset =  1; count = 3; break;
+				case 2: dimensions = 2; offset =  4; count = 6; break;
+				case 3: dimensions = 3; offset = 10; count = 6; break;
 				default: break;
 			}
-			string inputSwizzleLabel = string( "Input Swizzle##" ) + std::to_string( i );
+			string inputSwizzleLabel = string( "Input Swizzle (" ) + std::to_string( dimensions ) + string( "D)##" ) + std::to_string( i );
 			currentOperations[ i ].inputSwizzle = swizzle( int( currentOperations[ i ].inputSwizzle ) - offset );
 			ImGui::Combo( inputSwizzleLabel.c_str(), ( int * ) &currentOperations[ i ].inputSwizzle, swizzleLabels + offset, count );
 			currentOperations[ i ].inputSwizzle = swizzle( int( currentOperations[ i ].inputSwizzle ) + offset );
 			BufferNeedsReset |= ImGui::IsItemEdited();
 
 			// output swizzle
-			offset = 0; count = 0;
+			dimensions = 0; offset = 0; count = 0;
 			switch ( operationList[ currentOperations[ i ].index ].outputSize ) {
-				case 1: offset =  1; count = 3; break;
-				case 2: offset =  4; count = 6; break;
-				case 3: offset = 10; count = 6; break;
+				case 1: dimensions = 1; offset =  1; count = 3; break;
+				case 2: dimensions = 2; offset =  4; count = 6; break;
+				case 3: dimensions = 3; offset = 10; count = 6; break;
 				default: break;
 			}
-			string outputSwizzleLabel = string( "Output Swizzle##" ) + std::to_string( i );
+			string outputSwizzleLabel = string( "Output Swizzle (" ) + std::to_string( dimensions ) + string( "D)##" ) + std::to_string( i );
 			currentOperations[ i ].outputSwizzle = swizzle( int( currentOperations[ i ].outputSwizzle ) - offset );
 			ImGui::Combo( outputSwizzleLabel.c_str(), ( int * ) &currentOperations[ i ].outputSwizzle, swizzleLabels + offset, count );
 			currentOperations[ i ].outputSwizzle = swizzle( int( currentOperations[ i ].outputSwizzle ) + offset );
 			BufferNeedsReset |= ImGui::IsItemEdited();
+
+			int numArgs = operationList[ currentOperations[ i ].index ].numArgs;
+			string args = string( "Arguments##" ) + std::to_string( i );
+			switch ( numArgs ) {
+				case 0: break; // no op
+				case 1:
+					ImGui::SliderFloat( args.c_str(), ( float * ) &currentOperations[ i ].args, -2.0f, 2.0f );
+					BufferNeedsReset |= ImGui::IsItemEdited();
+					break;
+				case 2:
+					ImGui::SliderFloat2( args.c_str(), ( float * ) &currentOperations[ i ].args, -2.0f, 2.0f );
+					BufferNeedsReset |= ImGui::IsItemEdited();
+					break;
+				case 3:
+					ImGui::SliderFloat3( args.c_str(), ( float * ) &currentOperations[ i ].args, -2.0f, 2.0f );
+					BufferNeedsReset |= ImGui::IsItemEdited();
+					break;
+			}
 
 			// color for this operation
 			string colorLabel = string( "Color##" ) + std::to_string( i );
