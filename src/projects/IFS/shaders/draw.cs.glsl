@@ -26,7 +26,7 @@ void main () {
 		float( imageLoad( ifsAccumulatorB, writeLoc ).r ) / maxCountF
 	);
 
-	vec3 col = pow( saturate( brightness * loadedColor ), vec3( brightnessPower ) );
+	vec3 col = pow( brightness * loadedColor, vec3( brightnessPower ) );
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
