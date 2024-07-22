@@ -65,6 +65,7 @@ public:
 			PopulateLabels();
 
 			// populate the current list of operations
+			palette::PickRandomPalette( true );
 			for ( int i = 0; i < 6; i++ ) {
 				currentOperations.push_back( GetRandomOperation() );
 			}
@@ -163,10 +164,72 @@ public:
 		}
 	}
 
+	bool ImGuiDrawPalette ( int &palette, string sublabel, float min = 0.0f, float max = 1.0f ) {
+		static std::vector< const char * > paletteLabels;
+		if ( paletteLabels.size() == 0 ) {
+			for ( auto& entry : palette::paletteListLocal ) {
+				// copy to a cstr for use by imgui
+				char * d = new char[ entry.label.length() + 1 ];
+				std::copy( entry.label.begin(), entry.label.end(), d );
+				d[ entry.label.length() ] = '\0';
+				paletteLabels.push_back( d );
+			}
+		}
+
+		ImGui::Combo( ( string( "Palette##" ) + sublabel ).c_str(), &palette, paletteLabels.data(), paletteLabels.size() );
+		bool isUpdated = ImGui::IsItemEdited();
+		const size_t paletteSize = palette::paletteListLocal[ palette ].colors.size();
+		ImGui::Text( "  Contains %.3lu colors:", palette::paletteListLocal[ palette::PaletteIndex ].colors.size() );
+		// handle max < min
+		float minVal = min;
+		float maxVal = max;
+		float realSelectedMin = std::min( minVal, maxVal );
+		float realSelectedMax = std::max( minVal, maxVal );
+		size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
+		size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
+
+		bool finished = false;
+		for ( int y = 0; y < 8; y++ ) {
+			if ( !finished ) {
+				ImGui::Text( " " );
+			}
+
+			for ( int x = 0; x < 32; x++ ) {
+
+				// terminate when you run out of colors
+				const uint index = x + 32 * y;
+				if ( index >= paletteSize ) {
+					finished = true;
+					// goto terminate;
+				}
+
+				// show color, or black if past the end of the list
+				ivec4 color = ivec4( 0 );
+				if ( !finished ) {
+					color = ivec4( palette::paletteListLocal[ palette ].colors[ index ], 255 );
+					// determine if it is in the active range
+					if ( index < minShownIdx || index > maxShownIdx ) {
+						color.a = 64; // dim inactive entries
+					}
+				} 
+				if ( color.a != 0 ) {
+					ImGui::SameLine();
+					ImGui::TextColored( ImVec4( color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f ), "@" );
+				}
+			}
+		}
+		return isUpdated;
+	}
+
 	void ImguiPass () {
 		ZoneScoped;
 	
-		ImGui::Begin( "Controls" );
+		// =================================
+		ImGui::Begin( "Operations" );
+
+		ImGui::Text( "Rendering" );
+		ImGui::Indent();
+		// =================================
 		if ( ImGui::Button( " Capture " ) ) {
 			screenshotRequested = true;
 		}
@@ -182,16 +245,16 @@ public:
 		RendererNeedsReset = RendererNeedsReset || ImGui::IsItemEdited();
 		ImGui::SliderFloat( "Brightness", &brightness, 0.0f, 100000.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		ImGui::SliderFloat( "Brightness Power", &brightnessPower, 0.0f, 10.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
-		ImGui::End();
-
+		ImGui::Unindent();
+		ImGui::Text( " " );
 		// =================================
-		ImGui::Begin( "Operations" );
-
-		// showing current palette? not sure how I want to handle that
-			// I would like something like the old palette selector, and when the parameters change, generate new values
-			// for all operations
-
-		if ( ImGui::Button( "New Palette" ) ) {
+		// selecting endpoints of the palette
+		static float paletteEndpoints[ 2 ] = { 0.0f, 1.0f };
+		ImGui::Text( "Palette" );
+		ImGui::Indent();
+		if ( ImGui::Button( " Pick Random Palette " ) ) {
+			paletteEndpoints[ 0 ] = 0.0f;
+			paletteEndpoints[ 1 ] = 1.0f;
 			rng colorInit = rng( 0.0f, 1.0f );
 			palette::PickRandomPalette( true );
 			for ( uint i = 0; i < currentOperations.size(); i++ ) {
@@ -200,7 +263,17 @@ public:
 			BufferNeedsReset = true;
 			RendererNeedsReset = true;
 		}
-
+		// showing palette contents
+		ImGui::SliderFloat2( "Palette Endpoints", paletteEndpoints, 0.0f, 1.0f );
+		if( ImGui::IsItemEdited() || ImGuiDrawPalette( palette::PaletteIndex, " ", paletteEndpoints[ 0 ], paletteEndpoints[ 1 ] ) ) {
+			rng colorInit = rng( paletteEndpoints[ 0 ], paletteEndpoints[ 1 ] );
+			for ( uint i = 0; i < currentOperations.size(); i++ ) {
+				currentOperations[ i ].color = vec4( palette::paletteRef( colorInit() ), 1.0f );
+			}
+			BufferNeedsReset = true;
+			RendererNeedsReset = true;
+		}
+		ImGui::Unindent();
 		// =================================
 		ImGui::Text( " " );
 		ImGui::Text( "Seeding" );
@@ -208,17 +281,17 @@ public:
 		ImGui::Combo( "Initial Point Distribution", &initMode, initializationLabels, INIT_MODES_COUNT );
 		ImGui::Unindent();
 		// =================================
+		ImGui::Text( " " );
+		ImGui::Text( "Operations" );
 		ImGui::SameLine();
-		if ( ImGui::Button( "Randomize All" ) ) {
+		if ( ImGui::Button( " Randomize All " ) ) {
 			for ( uint i = 0; i < currentOperations.size(); i++ ) {
 				currentOperations[ i ] = GetRandomOperation();
 			}
 			BufferNeedsReset = true;
 			RendererNeedsReset = true;
 		}
-
-		// showing palette contents, tbd
-
+		ImGui::Indent();
 		for ( uint i = 0; i < currentOperations.size(); i++ ) { // list out the current operations
 			string label = string( "Operation " ) + std::to_string( i );
 			ImGui::Text( label.c_str() );
@@ -303,6 +376,7 @@ public:
 			BufferNeedsReset = true;
 			RendererNeedsReset = true;
 		}
+		ImGui::Unindent();
 
 		ImGui::End();
 		// =================================
