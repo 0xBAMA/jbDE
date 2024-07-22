@@ -294,7 +294,7 @@ public:
 		ImGui::Indent();
 		for ( uint i = 0; i < currentOperations.size(); i++ ) { // list out the current operations
 			string label = string( "Operation " ) + std::to_string( i );
-			ImGui::Text( label.c_str() );
+			ImGui::Text( "%s", label.c_str() );
 			ImGui::SameLine();
 			if ( ImGui::Button( ( string( " Remove ##" + std::to_string( i ) ) ).c_str() ) ) {
 				currentOperations.erase( currentOperations.begin() + i );

@@ -183,7 +183,7 @@ static char * operationLabels[ NUM_OPERATIONS ];
 static char * swizzleLabels[ SWIZZLE_COUNT ];
 
 #define INIT_MODES_COUNT 5
-static char * initializationLabels[ INIT_MODES_COUNT ] = {
+static const char * initializationLabels[ INIT_MODES_COUNT ] = {
 	"Uniform Random in a Cube",
 	"Shaped Offset (Heart)",
 	"Spherical Shell",
