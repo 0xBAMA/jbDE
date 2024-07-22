@@ -426,21 +426,28 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 			if ( screenshotRequested != 0 ) {
-				const GLuint tex = textureManager.Get( "Display Texture" );
-				uvec2 dims = textureManager.GetDimensions( "Display Texture" );
-				std::vector< float > imageBytesToSave;
-				imageBytesToSave.resize( dims.x * dims.y * sizeof( float ) * 4, 0 );
-				glBindTexture( GL_TEXTURE_2D, tex );
-				glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
-				Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
-				screenshot.FlipVertical();
-				screenshot.RGBtoSRGB();
-				string filename;
 				if ( screenshotRequested == 1 ) {
-					filename = string( "ifs-" ) + timeDateString() + string( ".png" );
+					const GLuint tex = textureManager.Get( "Display Texture" );
+					uvec2 dims = textureManager.GetDimensions( "Display Texture" );
+					std::vector< float > imageBytesToSave;
+					imageBytesToSave.resize( dims.x * dims.y * sizeof( float ) * 4, 0 );
+					glBindTexture( GL_TEXTURE_2D, tex );
+					glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+					Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
+					screenshot.FlipVertical();
+					screenshot.RGBtoSRGB();
+					const string filename = string( "ifs-" ) + timeDateString() + string( ".png" );
 					screenshot.Save( filename );
 				} else if ( screenshotRequested == 2 ) {
-					filename = string( "ifs-" ) + timeDateString() + string( ".exr" );
+					// todo: what texture has the floating point version?
+					const GLuint tex = textureManager.Get( "Accumulator" );
+					uvec2 dims = textureManager.GetDimensions( "Accumulator" );
+					std::vector< float > imageBytesToSave;
+					imageBytesToSave.resize( dims.x * dims.y * sizeof( float ) * 4, 0 );
+					glBindTexture( GL_TEXTURE_2D, tex );
+					glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+					Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
+					const string filename = string( "ifs-" ) + timeDateString() + string( ".exr" );
 					screenshot.Save( filename, Image_4F::backend::TINYEXR );
 				}
 				screenshotRequested = 0;
