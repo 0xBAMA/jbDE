@@ -26,6 +26,7 @@ public:
 
 	// operations list
 	std::vector< operation_t > currentOperations;
+	int initMode = 0;
 
 	void LoadShaders() {
 		shaders[ "Draw" ] = computeShader( "./src/projects/IFS/shaders/draw.cs.glsl" ).shaderHandle;
@@ -200,6 +201,13 @@ public:
 			RendererNeedsReset = true;
 		}
 
+		// =================================
+		ImGui::Text( " " );
+		ImGui::Text( "Seeding" );
+		ImGui::Indent();
+		ImGui::Combo( "Initial Point Distribution", &initMode, initializationLabels, INIT_MODES_COUNT );
+		ImGui::Unindent();
+		// =================================
 		ImGui::SameLine();
 		if ( ImGui::Button( "Randomize All" ) ) {
 			for ( uint i = 0; i < currentOperations.size(); i++ ) {
@@ -404,6 +412,7 @@ public:
 		glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
 		glUniform2f( glGetUniformLocation( shader, "offset" ), offset.x, offset.y );
 		glUniform1i( glGetUniformLocation( shader, "numTransforms" ), currentOperations.size() );
+		glUniform1i( glGetUniformLocation( shader, "initMode" ), initMode );
 
 		// get the trident matrix
 		mat3 tridentMatrix = mat3( trident.basisX, trident.basisY, trident.basisZ );

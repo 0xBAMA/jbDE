@@ -12,6 +12,8 @@ layout( binding = 0, std430 ) buffer maxBuffer { uint maxCount; };
 #include "complexNumbers.glsl.h"
 uniform int wangSeed;
 
+float rand() { return 2.0f * ( NormalizedRandomFloat() - 0.5f ); }
+
 uniform mat3 tridentMatrix;
 uniform float scale;
 uniform vec2 offset;
@@ -142,6 +144,8 @@ struct entry_t {
 
 uniform int numTransforms;
 layout( binding = 1, std430 ) buffer dataBuffer { entry_t data[]; };
+
+// this could be done more efficiently via code gen, but I like how general this is
 
 vec3 ApplyTransform ( vec3 p, inout vec3 color ) {
 	// selecting a transform out of the buffer
@@ -385,15 +389,44 @@ ivec2 map3DPointTo2D( vec3 p ) {
 		RangeRemapValue( p.y + offset.y * scale, -1.0f, 1.0f, 0.0f, float( is.y ) ) + NormalizedRandomFloat() );
 }
 
-float rand() { return 2.0f * ( NormalizedRandomFloat() - 0.5f ); }
+uniform int initMode;
+vec3 GetInitialPointPosition () {
+	vec3 p = vec3( 0.0f );
+	switch ( initMode ) {
+		case 0: // uniform rectangular volume
+			p = vec3( rand() * 10.0f, rand() * 1.618f, rand() * 4.0f );
+		break;
+
+		case 1: // extruded 2d shape
+			p = vec3( HeartOffset() * rand(), cos( rand() ) );
+		break;
+
+		case 2: // spherical shell
+			p = RandomUnitVector() * ( NormalizedRandomFloat() + 0.5f );
+		break;
+
+		case 3: // grid of cubes
+			p = 3.0f * floor( 10.0f * vec3( rand(), rand(), rand() ) ) + 0.1f * vec3( rand(), rand(), rand() );
+		break;
+
+		case 4: // grid of spherical shells
+			p = 3.0f * floor( 10.0f * vec3( rand(), rand(), rand() ) ) + 0.1f * RandomUnitVector();
+		break;
+
+		default:
+		break;
+	}
+	return p;
+}
+
 void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
 	seed = wangSeed + writeLoc.x * 42069 + writeLoc.y * 69420;
 
-	// vec3 p = vec3( rand(), rand(), rand() * 10.0f );
-	vec3 p = vec3( UniformSampleHexagon(), rand() * 4.0f );
+	vec3 p = GetInitialPointPosition();
+
 	vec3 color = vec3( 1.0f );
 
 	for ( int i = 0; i < 30; i++ ) {

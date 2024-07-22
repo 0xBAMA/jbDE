@@ -182,6 +182,15 @@ operation_t GetRandomOperation () {
 static char * operationLabels[ NUM_OPERATIONS ];
 static char * swizzleLabels[ SWIZZLE_COUNT ];
 
+#define INIT_MODES_COUNT 5
+static char * initializationLabels[ INIT_MODES_COUNT ] = {
+	"Uniform Random in a Cube",
+	"Shaped Offset (Heart)",
+	"Spherical Shell",
+	"Grid Distributed Cubes",
+	"Grid Distributed Spherical Shells"
+};
+
 void PopulateLabels () {
 	// get the labels
 	for ( int i = 0; i < NUM_OPERATIONS; i++ ) {
