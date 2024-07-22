@@ -16,7 +16,7 @@ public:
 	// output prep
 	float brightness = 100.0f;
 	float brightnessPower = 1.0f;
-	bool screenshotRequested = false;
+	int screenshotRequested = 0;
 
 	// flag for field wipe (on zoom, drag, etc)
 	bool RendererNeedsReset = false;
@@ -231,11 +231,12 @@ public:
 		ImGui::Indent();
 		// =================================
 		if ( ImGui::Button( " Capture " ) ) {
-			screenshotRequested = true;
+			screenshotRequested = 1;
 		}
 		ImGui::SameLine();
 		if ( ImGui::Button( " Capture EXR " ) ) {
-			// todo - I want EXRs for HDRI usage
+			// I want EXRs for HDRI usage
+			screenshotRequested = 2;
 		}
 		ImGui::SliderFloat( "Scale", &scale, 0.0f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 		RendererNeedsReset = RendererNeedsReset || ImGui::IsItemEdited();
@@ -424,8 +425,7 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
-			if ( screenshotRequested ) {
-				screenshotRequested = false;
+			if ( screenshotRequested != 0 ) {
 				const GLuint tex = textureManager.Get( "Display Texture" );
 				uvec2 dims = textureManager.GetDimensions( "Display Texture" );
 				std::vector< float > imageBytesToSave;
@@ -433,9 +433,17 @@ public:
 				glBindTexture( GL_TEXTURE_2D, tex );
 				glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
 				Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
+				screenshot.FlipVertical();
 				screenshot.RGBtoSRGB();
-				const string filename = string( "ifs-" ) + timeDateString() + string( ".png" );
-				screenshot.Save( filename );
+				string filename;
+				if ( screenshotRequested == 1 ) {
+					filename = string( "ifs-" ) + timeDateString() + string( ".png" );
+					screenshot.Save( filename );
+				} else if ( screenshotRequested == 2 ) {
+					filename = string( "ifs-" ) + timeDateString() + string( ".exr" );
+					screenshot.Save( filename, Image_4F::backend::TINYEXR );
+				}
+				screenshotRequested = 0;
 			}
 		}
 
