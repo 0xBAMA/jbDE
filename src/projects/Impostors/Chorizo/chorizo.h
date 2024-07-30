@@ -1,6 +1,5 @@
 #include "../../../engine/engine.h"
 #include "generate.h"
-#include "model.h"
 
 namespace std {
 	template<> struct hash< glm::ivec3 > {
@@ -77,9 +76,6 @@ public:
 	~Chorizo () { Quit(); }
 
 	ChorizoConfig_t ChorizoConfig;
-
-	// SoftBody Simulation Model
-	model simulationModel;
 
 	void OnInit () {
 		ZoneScoped;
