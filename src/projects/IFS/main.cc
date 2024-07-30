@@ -188,6 +188,19 @@ public:
 		size_t minShownIdx = std::floor( realSelectedMin * ( paletteSize - 1 ) );
 		size_t maxShownIdx = std::ceil( realSelectedMax * ( paletteSize - 1 ) );
 
+	// I want to convert from using @ symbols, to these rounded edge boxes
+		// const ImVec2 p = ImGui::GetCursorScreenPos();
+		// ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		// // Square with all rounded corners
+		// ImVec4 colf = ImVec4(
+		// 	palette::paletteListLocal[ palette ].colors[ 0 ].x,
+		// 	palette::paletteListLocal[ palette ].colors[ 0 ].y,
+		// 	palette::paletteListLocal[ palette ].colors[ 0 ].z,
+		// 	1.0f
+		// );
+		// const ImU32 col = ImColor( colf );
+		// draw_list->AddRectFilled( ImVec2( p.x, p.y ), ImVec2( p.x + 16, p.y + 16 ), col, 3.0f );
+
 		bool finished = false;
 		for ( int y = 0; y < 8; y++ ) {
 			if ( !finished ) {
