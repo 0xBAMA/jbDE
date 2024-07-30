@@ -182,14 +182,16 @@ operation_t GetRandomOperation () {
 static char * operationLabels[ NUM_OPERATIONS ];
 static char * swizzleLabels[ SWIZZLE_COUNT ];
 
-#define INIT_MODES_COUNT 5
+#define INIT_MODES_COUNT 7
 static const char * initializationLabels[ INIT_MODES_COUNT ] = {
 // more? these are pretty boring, but they still create distinct and interesting behavior
 	"Uniform Random in a Cube",
 	"Shaped Offset (Heart)",
 	"Spherical Shell",
 	"Grid Distributed Cubes",
-	"Grid Distributed Spherical Shells"
+	"Grid Distributed Spherical Shells",
+	"Flat Disk",
+	"Flat Hexagon"
 };
 
 void PopulateLabels () {

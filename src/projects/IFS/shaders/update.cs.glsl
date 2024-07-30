@@ -402,7 +402,7 @@ vec3 GetInitialPointPosition () {
 		break;
 
 		case 2: // spherical shell
-			p = RandomUnitVector() * ( NormalizedRandomFloat() + 0.5f );
+			p = RandomUnitVector();
 		break;
 
 		case 3: // grid of cubes
@@ -411,6 +411,18 @@ vec3 GetInitialPointPosition () {
 
 		case 4: // grid of spherical shells
 			p = 3.0f * floor( 10.0f * vec3( rand(), rand(), rand() ) ) + 0.1f * RandomUnitVector();
+		break;
+
+		case 5: // flat disk
+			p = vec3( CircleOffset(), 0.0f );
+		break;
+
+		case 6: // flat hexagon
+			p = vec3( UniformSampleHexagon(), 0.0f );
+		break;
+
+		case 7: // between two speheres
+			p = RandomUnitVector() * ( NormalizedRandomFloat() + 0.5f );
 		break;
 
 		default:
