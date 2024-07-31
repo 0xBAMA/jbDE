@@ -165,7 +165,39 @@ void engineBase::PostProcessImguiMenu() {
 		ImGui::Text( " " );
 	}
 	if ( ImGui::CollapsingHeader( "Dithering" ) ) {
-		ImGui::Text( "todo" );
+		static bool enable = false;
+		static int modeSelect = 0;
+		const char* ditherModesList[] = { "Bitcrush", "Distance-Based Palette", "Optimized Distance-based", "Bluescreen's \"Palette Dither\"" };
+		ImGui::Checkbox( "Enable", &enable );
+		if ( enable == true ) {
+			ImGui::Combo( "Mode", &modeSelect, ditherModesList, IM_ARRAYSIZE( ditherModesList ) );
+			switch ( modeSelect ) {
+				case 0: // bitcrush mode
+					// parameterization from before:
+						// number of bits
+						// space to quantize in
+						// method for doing the quantization
+				break;
+
+				case 1: // distance mode
+					// This takes a palette, and maybe a colorspace to do the distance measurement in
+				break;
+
+				case 2: // distance mode, but cache results to 3D texture
+					// same as above, but maybe also specify the dimensions of the texture
+				break;
+
+				case 3: // bluescreen's "palette dither"
+					// I think this just takes a palette
+						// optimizing this may involve an SSBO with prefix summed list of cantidates
+						// because it ends up being like, sort by luma, pick out of the list by the dither pattern threshold value
+				break;
+
+				default:
+				break;
+			}
+		}
+
 		ImGui::Text( " " );
 	}
 
