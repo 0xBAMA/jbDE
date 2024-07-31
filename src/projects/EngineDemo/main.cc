@@ -20,8 +20,35 @@ public:
 				// could write temporary json file, call something that would parse it and apply operations to an image? could be cool
 				// something like bin/imageProcess <json path>, and have that json specify source file, a list of ops, and destination path
 
-			// Image_4F testImage;
-			// testImage.Load( "test.png" );
+			Image_4F testImage;
+			testImage.Load( "test.png" );
+
+			rngi pick = rngi( 0, 45 );
+
+			for ( size_t i = 0; i < testImage.GetData()->size(); i++ ) {
+				switch ( pick() ) {
+					case 1:
+						testImage.GetData()->insert( testImage.GetData()->begin() + i, 1, 0 );
+						testImage.GetData()->insert( testImage.GetData()->begin() + i, 1, 0 );
+						testImage.GetData()->insert( testImage.GetData()->begin() + i, 1, 0 );
+						break;
+					case 2:
+						testImage.GetData()->erase( testImage.GetData()->begin() + i );
+						testImage.GetData()->erase( testImage.GetData()->begin() + i );
+						testImage.GetData()->erase( testImage.GetData()->begin() + i );
+						break;
+					case 3:
+						( *testImage.GetData() )[ i ] *= rand();
+						( *testImage.GetData() )[ i + 1 ] *= rand();
+						( *testImage.GetData() )[ i + 2 ] *= rand();
+						break;
+					default:
+						break;
+				}
+			}
+
+			testImage.GetData()->resize( testImage.Width() * testImage.Height() * 4 );
+			testImage.Save( "out.png" );
 
 			// // extract the image's bytes out
 			// std::vector< unsigned char > bytes;
