@@ -1098,6 +1098,10 @@ public:
 	const imageType* GetImageDataBasePtr () const	{ return data.data(); }
 		imageType* GetImageDataBasePtr () 			{ return data.data(); }
 
+	std::vector< imageType >* GetData() {
+		return &data;
+	}
+
 private:
 
 //===== Internal Data =================================================================================================
