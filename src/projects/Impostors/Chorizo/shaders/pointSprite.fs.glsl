@@ -24,8 +24,7 @@ layout( binding = 2, std430 ) buffer parametersBuffer {
 };
 
 // out float gl_FragDepth;
-layout( location = 0 ) out vec4 normalResult;
-layout( location = 1 ) out uvec4 primitiveID;
+layout( location = 0 ) out uvec4 primitiveID;
 
 void main() {
 	vec4 position = vec4( parameters[ vofiIndex ].data[ 1 ], parameters[ vofiIndex ].data[ 2 ], parameters[ vofiIndex ].data[ 3 ], 1.0f );
@@ -48,5 +47,4 @@ void main() {
 	gl_FragDepth = ( projectedPosition.z / projectedPosition.w + 1.0f ) * 0.5f;
 
 	primitiveID = uvec4( 0, vofiIndex + 1, 0, 0 );
-	normalResult = vec4( normal, 1.0f );
 }

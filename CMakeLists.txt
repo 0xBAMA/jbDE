@@ -409,7 +409,6 @@ target_link_libraries( VertextureClassic
 # =================================================================================================
 add_executable( Chorizo
 	src/projects/Impostors/Chorizo/main.cc
-	src/projects/Impostors/Chorizo/model.cc
 )
 
 target_link_libraries( Chorizo

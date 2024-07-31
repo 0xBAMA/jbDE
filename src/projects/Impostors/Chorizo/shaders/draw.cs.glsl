@@ -9,14 +9,15 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 // rasterizer result
 uniform sampler2D depthTex;
 uniform sampler2D depthTexBack;
-uniform sampler2D normals;
-uniform sampler2D normalsBack;
 uniform usampler2D primitiveID;
 uniform usampler2D primitiveIDBack;
 
 // rng seeding
 #include "random.h"
 uniform int inSeed;
+
+#include "consistentPrimitives.glsl.h"
+#include "mathUtils.h"
 
 uniform vec3 eyePosition;	// location of the viewer
 
@@ -124,6 +125,10 @@ uniform float blendAmount;
 uniform float volumetricStrength;
 uniform vec3 volumetricColor;
 
+#define SPHERE 0
+#define CAPSULE 1
+#define ROUNDEDBOX 2
+
 void main () {
 	// pixel location + rng seeding
 	const ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
@@ -132,12 +137,16 @@ void main () {
 
 	// data from the framebuffer
 	const uvec2 idSample = texelFetch( primitiveID, writeLoc, 0 ).rg;
-	const vec3 normalSample = texelFetch( normals, writeLoc, 0 ).rgb;
 	const float linearZ = GetLinearZ( texture( depthTex, screenPos ).r );
 
 	// solved position
 	const vec3 worldPos = posFromTexcoord( screenPos );
 	vec3 color = vec3( 0.0f );
+
+	vec3 rayOrigin = eyePosition;
+	vec3 rayDirection = normalize( worldPos - eyePosition );
+
+	vec3 normalSample = -rayDirection;
 
 	bool drawing = false;
 	bool emissive = false;
@@ -149,15 +158,58 @@ void main () {
 
 		drawing = true;
 		const parameters_t parameters = parametersList[ idSample.x - 1 ];
-		// roughness = abs( parameters.data[ 15 ] );
 
+		float result = 0.0f;
+
+	// we now have to solve for the normal, knowing the eye position, fragment position, and primitive ID, we can intersect and get the normal
+		switch ( int( parameters.data[ 0 ] ) ) {
+			// case SPHERE: // tbd
+			// break;
+
+		case CAPSULE:
+			result = iCapsule( rayOrigin, rayDirection, normalSample,
+				vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] ), // point A
+				vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] ), // point B
+				parameters.data[ 4 ] ); // radius
+			break;
+
+		case ROUNDEDBOX:
+			const vec3 centerPoint = vec3( parameters.data[ 1 ], parameters.data[ 2 ], parameters.data[ 3 ] );
+			const float packedEuler = parameters.data[ 4 ];
+			const vec3 scaleFactors = vec3( parameters.data[ 5 ], parameters.data[ 6 ], parameters.data[ 7 ] );
+			const float roundingFactor = parameters.data[ 8 ];
+
+			const float theta = fract( packedEuler ) * 2.0f * pi;
+			const float phi = ( floor( packedEuler ) / 255.0f ) * ( pi / 2.0f );
+
+			const mat3 transform = ( Rotate3D( -phi, vec3( 1.0f, 0.0f, 0.0f ) ) * Rotate3D( -theta, vec3( 0.0f, 1.0f, 0.0f ) ) );
+			const vec3 rayDirectionAdjusted = ( transform * rayDirection );
+			const vec3 rayOriginAdjusted = transform * ( rayOrigin - centerPoint );
+
+			// going to have to figure out what the transforms need to be, in order to intersect with the transformed primitve
+			result = iRoundedBox( rayOriginAdjusted, rayDirectionAdjusted, normalSample, scaleFactors, roundingFactor );
+
+			// is it faster to do this, or to do the euler angle stuff, in inverse? need to profile, at scale
+			// const mat3 inverseTransform = ( Rotate3D( theta, vec3( 0.0f, 1.0f, 0.0f ) ) * Rotate3D( phi, vec3( 1.0f, 0.0f, 0.0f ) ) );
+			const mat3 inverseTransform = inverse( transform );
+			normalSample = inverseTransform * normalSample;
+			break;
+
+		default:
+			break;
+		}
+
+
+		// roughness = abs( parameters.data[ 15 ] );
 		if ( parameters.data[ 15 ] < 0.0f ) { // using the color out of the buffer
 			color = vec3( parameters.data[ 12 ], parameters.data[ 13 ], parameters.data[ 14 ] );
 		} else { // todo: should interpret the alpha channel as a palette key
 			color = vec3( parameters.data[ 15 ] ) * vec3( 0.6f, 0.1f, 0.0f );
 		}
 
-	} else if ( idSample.y != 0 ) { // using the second channel to signal
+	} else if ( idSample.y != 0 ) { // using the second channel to signal point sprites
+
+		// this will need to be revisited... I don't know how they will get normals back out - not critical, for now
 
 		drawing = true;
 		pointSpriteParameters_t parameters = pointSpriteParameters[ idSample.y - 1 ];
