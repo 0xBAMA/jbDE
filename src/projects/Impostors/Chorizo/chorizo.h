@@ -127,10 +127,6 @@ public:
 			opts.height = config.height;
 			textureManager.Add( "Framebuffer Depth 0", opts );
 			textureManager.Add( "Framebuffer Depth 1", opts );
-			// ==== Normal =======================
-			opts.dataType = GL_RGBA16F;
-			textureManager.Add( "Framebuffer Normal 0", opts );
-			textureManager.Add( "Framebuffer Normal 1", opts );
 			// ==== Primitive ID ==================
 			opts.dataType = GL_RG32UI;
 			textureManager.Add( "Framebuffer Primitive ID 0", opts );
@@ -139,15 +135,14 @@ public:
 
 			// setup the buffers for the rendering process - front and back framebuffers
 			glGenFramebuffers( 2, &ChorizoConfig.primaryFramebuffer[ 0 ] );
-			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 }; // both framebuffers have implicit depth + 2 color attachments
+			const GLenum bufs[] = { GL_COLOR_ATTACHMENT0 }; // both framebuffers have implicit depth + 1 color attachment
 
 			for ( int i = 0; i < 2; i++ ) {
 				// creating the actual framebuffers with their attachments
 				glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ i ] );
 				glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth " + std::to_string( i ) ), 0 );
-				glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal " + std::to_string( i ) ), 0 );
-				glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Primitive ID " + std::to_string( i ) ), 0 );
-				glDrawBuffers( 2, bufs ); // how many active attachments, and their attachment locations
+				glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Primitive ID " + std::to_string( i ) ), 0 );
+				glDrawBuffers( 1, bufs ); // how many active attachments, and their attachment locations
 				if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 					cout << newline << "framebuffer " << i << " creation successful" << newline;
 				}
@@ -155,9 +150,8 @@ public:
 
 			glBindFramebuffer( GL_FRAMEBUFFER, ChorizoConfig.primaryFramebuffer[ 1 ] );
 			glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureManager.Get( "Framebuffer Depth 1" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Normal 1" ), 0 );
-			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureManager.Get( "Framebuffer Primitive ID 1" ), 0 );
-			glDrawBuffers( 2, bufs );
+			glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureManager.Get( "Framebuffer Primitive ID 1" ), 0 );
+			glDrawBuffers( 1, bufs );
 			if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE ) {
 				cout << "back framebuffer creation successful" << newline << newline;
 			}
@@ -279,7 +273,6 @@ public:
 
 		ChorizoConfig.combinedTransform = ChorizoConfig.projTransform * ChorizoConfig.viewTransform;
 		ChorizoConfig.combinedTransformInverse = glm::inverse( ChorizoConfig.combinedTransform );
-
 	}
 
 	void HandleCustomEvents () {
@@ -486,7 +479,6 @@ public:
 			ImGui::SliderFloat( "Palette Min##lights", &ChorizoConfig.lightPaletteMin, 0.0f, 1.0f );
 			ImGui::SliderFloat( "Palette Max##lights", &ChorizoConfig.lightPaletteMax, 0.0f, 1.0f );
 			ImGui::Unindent();
-
 		}
 
 		ImGui::End();
@@ -561,10 +553,8 @@ public:
 			textureManager.BindImageForShader( "Accumulator", "accumulatorTexture", shader, 1 );
 			textureManager.BindTexForShader( "Framebuffer Depth " + index, "depthTex", shader, 2 );
 			textureManager.BindTexForShader( "Framebuffer Depth " + indexBack, "depthTexBack", shader, 3 );
-			textureManager.BindTexForShader( "Framebuffer Normal " + index, "normals", shader, 4 );
-			textureManager.BindTexForShader( "Framebuffer Normal " + indexBack, "normalsBack", shader, 5 );
-			textureManager.BindTexForShader( "Framebuffer Primitive ID " + index, "primitiveID", shader, 6 );
-			textureManager.BindTexForShader( "Framebuffer Primitive ID " + indexBack, "primitiveIDBack", shader, 7 );
+			textureManager.BindTexForShader( "Framebuffer Primitive ID " + index, "primitiveID", shader, 4 );
+			textureManager.BindTexForShader( "Framebuffer Primitive ID " + indexBack, "primitiveIDBack", shader, 5 );
 
 			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransform" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransform ) );
 			glUniformMatrix4fv( glGetUniformLocation( shader, "combinedTransformInverse" ), 1, GL_FALSE, glm::value_ptr( ChorizoConfig.combinedTransformInverse ) );

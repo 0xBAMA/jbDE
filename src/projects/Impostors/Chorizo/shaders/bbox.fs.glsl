@@ -26,8 +26,7 @@ layout( binding = 1, std430 ) buffer parametersBuffer {
 // https://sugulee.wordpress.com/2021/06/21/temporal-anti-aliasingtaa-tutorial/
 
 out float gl_FragDepth;
-layout( location = 0 ) out vec4 normalResult;
-layout( location = 1 ) out uvec4 primitiveID;
+layout( location = 0 ) out uvec4 primitiveID;
 
 // visalizing the fragments that get drawn
 // #define SHOWDISCARDS
@@ -100,7 +99,6 @@ void main() {
 
 		// rasterizer outputs
 		primitiveID = uvec4( vofiIndex + 1, 0, 0, 0 );
-		normalResult = vec4( normalize( normal ), 1.0f );
 
 		// writing correct depths
 		const vec4 projectedPosition = viewTransform * vec4( rayOrigin + result * rayDirection, 1.0f );
