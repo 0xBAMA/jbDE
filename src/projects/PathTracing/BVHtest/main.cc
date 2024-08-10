@@ -1,9 +1,12 @@
 #include "../../../engine/engine.h"
+#include "bvh.h"
 
 class BVHtest final : public engineBase { // sample derived from base engine class
 public:
 	BVHtest () { Init(); OnInit(); PostInit(); }
 	~BVHtest () { Quit(); }
+
+	testRenderer_t renderer;
 
 	void OnInit () {
 		ZoneScoped;
