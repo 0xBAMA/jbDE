@@ -178,6 +178,17 @@ target_link_libraries( Caustic
 	engineBase
 )
 
+# =================================================================================================
+# BVH construction/traversal experiment based on https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
+# =================================================================================================
+add_executable( BVHtest
+	src/projects/PathTracing/BVHtest/main.cc
+)
+
+target_link_libraries( BVHtest
+	PUBLIC
+	engineBase
+)
 
 # =================================================================================================
 # Cellular Automata with History
