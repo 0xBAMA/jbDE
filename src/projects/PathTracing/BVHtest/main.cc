@@ -11,11 +11,24 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/PathTracing/BVHtest/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ] = computeShader( "./src/projects/PathTracing/BVHtest/shaders/draw.cs.glsl" ).shaderHandle;
 
+			// get some random triangles
+			renderer.init();
 
+			// create the image buffer for GPU display
+			textureOptions_t opts;
+			opts.width			= renderer.imageBuffer.Width();
+			opts.height			= renderer.imageBuffer.Height();
+			opts.dataType		= GL_RGBA32F;
+			opts.minFilter		= GL_LINEAR;
+			opts.magFilter		= GL_LINEAR;
+			opts.textureType	= GL_TEXTURE_2D;
+			opts.wrap			= GL_CLAMP_TO_BORDER;
+			opts.pixelDataType	= GL_FLOAT;
+			opts.initialData	= ( void * ) renderer.imageBuffer.GetImageDataBasePtr();
+			textureManager.Add( "Image Buffer", opts );
 		}
-
 	}
 
 	void HandleCustomEvents () {
@@ -59,8 +72,10 @@ public:
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Dummy Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Dummy Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+			// glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
+			textureManager.BindImageForShader( "Image Buffer", "CPUTexture", shader, 2 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -87,7 +102,6 @@ public:
 		ZoneScoped; scopedTimer Start( "Update" );
 		// application-specific update code
 
-		// write to a texture, from the CPU, if needed
 	}
 
 	void OnRender () {
