@@ -346,10 +346,29 @@ struct testRenderer_t {
 	Image_4F imageBuffer;
 	bool imageBufferDirty; // does this image need to be resent to the GPU?
 
+	// setup the worker threads
+	static constexpr int NUM_THREADS = 16;
+	std::thread threads[ NUM_THREADS + 1 ];
+
+	static constexpr uint32_t REPORT_DELAY = 32; 				// reporter thread sleep duration, in ms
+	static constexpr uint32_t PROGRESS_INDICATOR_STOPS = 69; // cli spaces to take up
+
+	static constexpr uint32_t X_IMAGE_DIM = 600;
+	static constexpr uint32_t Y_IMAGE_DIM = 300;
+	static constexpr uint32_t TILESIZE_XY = 20;
+	static constexpr uint32_t NUM_SAMPLES = 3;
+
+	std::atomic< uint32_t > tileIndexCounter{ 0 };
+	std::atomic< uint32_t > tileFinishCounter{ 0 };
+	static constexpr uint32_t totalTileCount = std::ceil( X_IMAGE_DIM / TILESIZE_XY ) * ( std::ceil( Y_IMAGE_DIM / TILESIZE_XY ) + 1 );
+
+	// camera parameterization could use work
+	const vec3 eyeLocation = vec3( -100.0f, 600.0f, 0.0f );
+	rng jitter = rng( 0.0f, 1.0f );
+
 	void init () {
 		// create the preview image - probably use alpha channel to send traversal depth kind of stats
-		// imageBuffer = Image_4F( 720, 480 );
-		imageBuffer = Image_4F( 256, 128 );
+		imageBuffer = Image_4F( X_IMAGE_DIM, Y_IMAGE_DIM );
 		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
 			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
 				color_4F val;
@@ -359,7 +378,7 @@ struct testRenderer_t {
 			}
 		}
 
-		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() << " rays..." << endl;
+		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() * NUM_SAMPLES << " rays..." << endl;
 
 		// some initial data (meshes)
 		auto tStart = std::chrono::system_clock::now();
@@ -384,46 +403,108 @@ struct testRenderer_t {
 
 	// accelerated traversal, for comparison
 	void acceleratedTraversal () {
-		const mat3 viewTransform = mat3( glm::rotate( mat4( 1.0f ), -0.5f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
-		rng jitter = rng( 0.0f, 1.0f );
 
-		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
-			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
-				const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.0f, 1.0f );
-				const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -1.0f, 1.0f );
+		// so we are going to want to do some more setup for the camera, maybe
+		for ( int id = 0; id <= NUM_THREADS; id++ ) {
+			threads[ id ] = ( id == NUM_THREADS ) ? std::thread( // reporter thread
+				[ this, id ] () {
+					const auto tstart = std::chrono::system_clock::now();
+					while ( true ) { // report timing
+						// show status - break on 100% completion
+						cout << "\r\033[K";
+						cout << "["; //  [=====....................] where equals shows progress
+						const float frac = float( tileFinishCounter ) / float( totalTileCount );
+						int numFill = std::floor( PROGRESS_INDICATOR_STOPS * frac ) - 1;
+						for( int i = 0; i <= numFill; i++ ) cout << "=";
+						for( uint i = 0; i < PROGRESS_INDICATOR_STOPS - numFill; i++ ) cout << ".";
+						cout << "]" << std::flush;
+						cout << "[" << std::setw( 3 ) << 100.0 * frac << "% " << std::flush;
 
-				// test a ray against the triangles
-				ray_t ray;
-				ray.origin = viewTransform * 200.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f );
+						cout << std::setw( 7 ) << std::showpoint << std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::system_clock::now() - tstart ).count() / 1000.0 << " sec]" << std::flush;
 
-				ray.direction = viewTransform * vec3( 0.0f, 0.0f, -1.0f );
+						if( tileFinishCounter >= totalTileCount ){
+							const float seconds = std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::system_clock::now() - tstart ).count() / 1000.0;
+							cout << "\r\033[K[" << std::string( PROGRESS_INDICATOR_STOPS + 1, '=' ) << "] " << seconds << " sec"<< endl;
+							break;
+						}
 
-				accelerationStructure.RayComplexityCounterReset();
-				accelerationStructure.acceleratedTraversal( ray );
-				const float traversalCompexity = accelerationStructure.GetRayComplexityCounter();
-
-				vec3 color = vec3( 0.0f );
-				if ( ray.distance < MAX_DISTANCE ) {
-
-					triangle_t triangle = accelerationStructure.triangleList[ ray.triangleIdx ];
-					vec3 barycentricCoords = GetBarycentricCoords( triangle.vertex0, triangle.vertex1, triangle.vertex2, ray.origin + ray.distance * ray.direction );
-
-					vec2 interpolatedTC =
-						barycentricCoords.x * triangle.texcoord0.xy() +
-						barycentricCoords.y * triangle.texcoord1.xy() +
-						barycentricCoords.z * triangle.texcoord2.xy();
-
-					int texturePick = triangle.texcoord0.z * 2;
-					color = accelerationStructure.s.TexRef( interpolatedTC, texturePick );
+						// sleep for some amount of time before showing again
+						std::this_thread::sleep_for( std::chrono::milliseconds( REPORT_DELAY ) );
+					}
 				}
+			) : std::thread( // worker threads
+				[ this, id ] () {
+					// distribution of work is tile based
+					while ( true ) {
+						// solve for x and y from the index
+						unsigned long long index = tileIndexCounter.fetch_add( 1 );
+						if ( index >= totalTileCount ) break;
 
-				color_4F val;
-				val[ red ] = color.r;
-				val[ green ] = color.g;
-				val[ blue ] = color.b;
-				val[ alpha ] = traversalCompexity;
-				imageBuffer.SetAtXY( x, y, val );
-			}
+						constexpr int numTilesX = int( std::ceil( float( X_IMAGE_DIM ) / float( TILESIZE_XY ) ) );
+
+						const int tile_x_index = index % numTilesX;
+						const int tile_y_index = ( index / numTilesX );
+
+						const int tile_base_x = tile_x_index * TILESIZE_XY;
+						const int tile_base_y = tile_y_index * TILESIZE_XY;
+
+						for ( int y = tile_base_y; y < tile_base_y + TILESIZE_XY; y++ )
+						for ( int x = tile_base_x; x < tile_base_x + TILESIZE_XY; x++ ) {
+
+							const int numSamples = NUM_SAMPLES;
+							accelerationStructure.RayComplexityCounterReset();
+
+							vec3 color = vec3( 0.0f );
+							int hitSamples = 0;
+							float d = MAX_DISTANCE;
+
+							for ( int i = 0; i < numSamples; i++ ) {
+								// do the shit
+								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 10.0f, -10.0f );
+								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), 10.0f, -10.0f );
+
+								// test a ray against the triangles
+								ray_t ray;
+								// ray.origin = vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 1.0f );
+								// ray.direction = normalize( ray.origin - eyeLocation );
+								ray.origin = 100.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f ) + eyeLocation;
+								ray.direction = normalize( vec3( 1.0f, 0.0f, 0.25f ) );
+
+								accelerationStructure.acceleratedTraversal( ray );
+
+								if ( ray.distance < MAX_DISTANCE ) {
+									triangle_t triangle = accelerationStructure.triangleList[ ray.triangleIdx ];
+									vec3 barycentricCoords = GetBarycentricCoords( triangle.vertex0, triangle.vertex1, triangle.vertex2, ray.origin + ray.distance * ray.direction );
+
+									// going to have to move this into the traversal, if I want to support alpha testing
+									vec2 interpolatedTC =
+										barycentricCoords.x * triangle.texcoord0.xy() +
+										barycentricCoords.y * triangle.texcoord1.xy() +
+										barycentricCoords.z * triangle.texcoord2.xy();
+
+									int texturePick = triangle.texcoord0.z * 2;
+
+									// color = accelerationStructure.s.TexRef( glm::mod( vec2( interpolatedTC.x, 1.0f - interpolatedTC.y ), vec2( 1.0f ) ), texturePick ).rgb();
+									color += accelerationStructure.s.TexRef( glm::mod( interpolatedTC, vec2( 1.0f ) ), texturePick ).rgb() / float( numSamples );
+									d = ray.distance;
+								}
+							}
+
+							color_4F val;
+							val[ red ] = color.r;
+							val[ green ] = color.g;
+							val[ blue ] = color.b;
+							// val[ alpha ] = accelerationStructure.GetRayComplexityCounter() * ( hitSamples / numSamples );
+							val[ alpha ] = d;
+							imageBuffer.SetAtXY( x, y, val );
+						}
+						tileFinishCounter.fetch_add( 1 );
+					}
+				}
+			);
+		}
+		for ( int id = 0; id <= NUM_THREADS; id++ ) {
+			threads[ id ].join();
 		}
 	}
 };
