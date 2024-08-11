@@ -54,14 +54,14 @@ struct triangle_t {
 // bvh node class
 struct bvhNode_t {
 	vec3 aabbMin, aabbMax;
-	uint32_t leftChild, rightChild;
-	bool isLeaf;
-	uint32_t firstPrimitive, primitiveCount;
+	uint32_t leftChild, firstPrimitiveIdx, primitiveCount;
+	bool isLeaf() { return primitiveCount > 0; }
 };
 
 // top level bvh class
 struct bvh_t {
 	std::vector< triangle_t > triangleList;
+	std::vector< uint32_t > triangleIndices;
 
 	// load model triangles
 	void Load ( const string filename ) {
@@ -104,7 +104,7 @@ struct bvh_t {
 		node.aabbMin = vec3( 1e30f );
 		node.aabbMax = vec3( -1e30f );
 		for ( uint i = 0; i < node.primitiveCount; i++ ) {
-			triangle_t &leafTriangle = triangleList[ node.firstPrimitive + i ];
+			triangle_t &leafTriangle = triangleList[ triangleIndices[ node.firstPrimitiveIdx + i ] ];
 
 			// this is shorter with helper functions, but it's not that big a deal
 			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex0.x );
@@ -134,8 +134,13 @@ struct bvh_t {
 	}
 
 	void Subdivide ( uint32_t nodeIndex ) {
-		// pick the split plane axis ( longest axis of the node's bounding box )
+		// ref current node
 		bvhNode_t &currentNode = bvhNodes[ nodeIndex ];
+
+		// we can go ahead and kill it if we at a leaf node
+		if ( currentNode.primitiveCount <= 2 ) return;
+
+		// pick the split plane axis ( longest axis of the node's bounding box )
 		vec3 axisSpans = vec3(
 			abs( currentNode.aabbMin.x - currentNode.aabbMax.x ),
 			abs( currentNode.aabbMin.y - currentNode.aabbMax.y ),
@@ -145,42 +150,45 @@ struct bvh_t {
 		if ( axisSpans.y > axisSpans.x ) axis = 1; // we see y axis is larger than x: pick it, at least temporarily
 		if ( axisSpans.z > axisSpans[ axis ] ) axis = 2; // and again for the z axis, pick it, if larger
 
-		// this is the partition - it's halfway along this selected longest axis
+		// this is for the in-place partitioning - it's halfway along this selected longest axis
 		const float dividingLine = currentNode.aabbMin[ axis ]  + axisSpans[ axis ] * 0.5f;
 
 		// divide the group into two halves along this axis, partition by putting the split primitives at the end of the list
-		int i = currentNode.firstPrimitive;
+		int i = currentNode.firstPrimitiveIdx;
 		int j = i + currentNode.primitiveCount - 1;
 
 		// iterate through, and place triangles based on centroid position relative to the dividing line
 		while ( i <= j ) {
-			if ( triangleList[ i ].centroid[ axis ] < dividingLine ) {
+			if ( triangleList[ triangleIndices[ i ] ].centroid[ axis ] < dividingLine ) {
 				i++;
 			} else {
-				std::swap( triangleList[ i ], triangleList[ j-- ] );
+				std::swap( triangleIndices[ i ], triangleIndices[ j-- ] );
 			}
 		}
 
-		// where is the partition?
-		const uint32_t leftCount = i - currentNode.firstPrimitive;
+		// because these are child nodes, we know they are subsets of this parent node, interesting
+			// this enables that in-place partitioning, which is pretty cool
 
-		// some kind of early out, if we have.... on either side, degenerate partitions? seems like
-		if ( leftCount == 0 || leftCount == currentNode.primitiveCount ) return; // or this is a leaf node, I suppose
+		// where is the partition?
+		const uint32_t leftCount = i - currentNode.firstPrimitiveIdx;
+
+		// abort the split if either of the sides are empty
+		if ( leftCount == 0 || leftCount == currentNode.primitiveCount ) return;
 
 		// otherwise we're creating child nodes for each half
 		int leftChildIdx = nodesUsed++;
 		int rightChildIdx = nodesUsed++;
 
-		// ...so I guess you can always get the right child index back, by looking at idx + primitive count
-		currentNode.leftChild = leftChildIdx;
-		bvhNodes[ leftChildIdx ].firstPrimitive = currentNode.firstPrimitive;
+		// ...so I guess you can always get the right child index back, by looking at base idx + primitive count
+		bvhNodes[ leftChildIdx ].firstPrimitiveIdx = currentNode.firstPrimitiveIdx;
 		bvhNodes[ leftChildIdx ].primitiveCount = leftCount;
 
-		bvhNodes[ rightChildIdx ].firstPrimitive = i;
+		bvhNodes[ rightChildIdx ].firstPrimitiveIdx = i;
 		bvhNodes[ rightChildIdx ].primitiveCount = currentNode.primitiveCount - leftCount;
 
 		// not tracking the isLeaf bool, means primitiveCount has to be used to id leaves vs interior nodes
 		currentNode.primitiveCount = 0; // so setting this now interior node to zero to indicate this isn't a leaf
+		currentNode.leftChild = leftChildIdx; // and the child there - note that right child can always be recovered with +1
 
 		// update the bounds for the child nodes
 		UpdateNodeBounds( leftChildIdx );
@@ -201,10 +209,16 @@ struct bvh_t {
 			triangle.centroid = vec3( triangle.vertex0 + triangle.vertex1 + triangle.vertex2 ) / 3.0f;
 		}
 
+		// populate the index buffer, initially just in order
+		triangleIndices.resize( triangleList.size() );
+		for ( uint32_t i = 0; i < triangleIndices.size(); i++ ) {
+			triangleIndices[ i ] = i;
+		}
+
 		// not fully understanding this piece, yet
 		bvhNode_t &root = bvhNodes[ rootNodeIdx ];
-		root.leftChild = root.rightChild = 0;
-		root.firstPrimitive = 0;
+		root.leftChild = 0;
+		root.firstPrimitiveIdx = 0;
 		root.primitiveCount = triangleList.size();
 
 		// updating node bounds, for the root node - so it's the bounding box for entire model
