@@ -1,5 +1,8 @@
 #include "../../../engine/includes.h"
 
+// drawing heavily from:
+// https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
+
 const float MAX_DISTANCE = 10000000.0f;
 
 // representing a ray
@@ -50,7 +53,10 @@ struct triangle_t {
 
 // bvh node class
 struct bvhNode_t {
-
+	vec3 aabbMin, aabbMax;
+	uint32_t leftChild, rightChild;
+	bool isLeaf;
+	uint32_t firstPrimitive, primitiveCount;
 };
 
 // top level bvh class
@@ -69,8 +75,8 @@ struct bvh_t {
 		rng col = rng( 0.0f, 1.0f );
 		for ( int i = 0; i < 100; i++ ) {
 			vec3 r0 = vec3( val(), val(), val() );
-			vec3 r1 = vec3( val(), val(), val() );
-			vec3 r2 = vec3( val(), val(), val() );
+			vec3 r1 = vec3( val(), val(), val() ) * 2.0f;
+			vec3 r2 = vec3( val(), val(), val() ) * 2.0f;
 			triangle_t triangle;
 
 			triangle.vertex0 = 10.0f * r0;
@@ -88,18 +94,137 @@ struct bvh_t {
 	}
 
 	// create acceleration structure of bvh nodes, from the list of triangles
-	void BuildTree () {
-		// ... todo
+	std::vector< bvhNode_t > bvhNodes;
+	uint32_t rootNodeIdx = 0;
+	uint32_t nodesUsed = 1;
+
+	void UpdateNodeBounds ( uint32_t nodeIndex ) {
+		// calculate the bounds for a BVH node, based on contained primitives
+		bvhNode_t &node = bvhNodes[ nodeIndex ];
+		node.aabbMin = vec3( 1e30f );
+		node.aabbMax = vec3( -1e30f );
+		for ( uint i = 0; i < node.primitiveCount; i++ ) {
+			triangle_t &leafTriangle = triangleList[ node.firstPrimitive + i ];
+
+			// this is shorter with helper functions, but it's not that big a deal
+			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex0.x );
+			node.aabbMin.y = std::min( node.aabbMin.y, leafTriangle.vertex0.y );
+			node.aabbMin.z = std::min( node.aabbMin.z, leafTriangle.vertex0.z );
+
+			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex1.x );
+			node.aabbMin.y = std::min( node.aabbMin.y, leafTriangle.vertex1.y );
+			node.aabbMin.z = std::min( node.aabbMin.z, leafTriangle.vertex1.z );
+
+			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex2.x );
+			node.aabbMin.y = std::min( node.aabbMin.y, leafTriangle.vertex2.y );
+			node.aabbMin.z = std::min( node.aabbMin.z, leafTriangle.vertex2.z );
+
+			node.aabbMax.x = std::max( node.aabbMax.x, leafTriangle.vertex0.x );
+			node.aabbMax.y = std::max( node.aabbMax.y, leafTriangle.vertex0.y );
+			node.aabbMax.z = std::max( node.aabbMax.z, leafTriangle.vertex0.z );
+
+			node.aabbMax.x = std::max( node.aabbMax.x, leafTriangle.vertex1.x );
+			node.aabbMax.y = std::max( node.aabbMax.y, leafTriangle.vertex1.y );
+			node.aabbMax.z = std::max( node.aabbMax.z, leafTriangle.vertex1.z );
+
+			node.aabbMax.x = std::max( node.aabbMax.x, leafTriangle.vertex2.x );
+			node.aabbMax.y = std::max( node.aabbMax.y, leafTriangle.vertex2.y );
+			node.aabbMax.z = std::max( node.aabbMax.z, leafTriangle.vertex2.z );
+		}
 	}
 
-	// test ray against acceleration structure
-		// return information at hit location
+	void Subdivide ( uint32_t nodeIndex ) {
+		// pick the split plane axis ( longest axis of the node's bounding box )
+		bvhNode_t &currentNode = bvhNodes[ nodeIndex ];
+		vec3 axisSpans = vec3(
+			abs( currentNode.aabbMin.x - currentNode.aabbMax.x ),
+			abs( currentNode.aabbMin.y - currentNode.aabbMax.y ),
+			abs( currentNode.aabbMin.z - currentNode.aabbMax.z )
+		);
+		int axis = 0; // initially pick x axis
+		if ( axisSpans.y > axisSpans.x ) axis = 1; // we see y axis is larger than x: pick it, at least temporarily
+		if ( axisSpans.z > axisSpans[ axis ] ) axis = 2; // and again for the z axis, pick it, if larger
+
+		// this is the partition - it's halfway along this selected longest axis
+		const float dividingLine = currentNode.aabbMin[ axis ]  + axisSpans[ axis ] * 0.5f;
+
+		// divide the group into two halves along this axis, partition by putting the split primitives at the end of the list
+		int i = currentNode.firstPrimitive;
+		int j = i + currentNode.primitiveCount - 1;
+
+		// iterate through, and place triangles based on centroid position relative to the dividing line
+		while ( i <= j ) {
+			if ( triangleList[ i ].centroid[ axis ] < dividingLine ) {
+				i++;
+			} else {
+				std::swap( triangleList[ i ], triangleList[ j-- ] );
+			}
+		}
+
+		// where is the partition?
+		const uint32_t leftCount = i - currentNode.firstPrimitive;
+
+		// some kind of early out, if we have.... on either side, degenerate partitions? seems like
+		if ( leftCount == 0 || leftCount == currentNode.primitiveCount ) return; // or this is a leaf node, I suppose
+
+		// otherwise we're creating child nodes for each half
+		int leftChildIdx = nodesUsed++;
+		int rightChildIdx = nodesUsed++;
+
+		// ...so I guess you can always get the right child index back, by looking at idx + primitive count
+		currentNode.leftChild = leftChildIdx;
+		bvhNodes[ leftChildIdx ].firstPrimitive = currentNode.firstPrimitive;
+		bvhNodes[ leftChildIdx ].primitiveCount = leftCount;
+
+		bvhNodes[ rightChildIdx ].firstPrimitive = i;
+		bvhNodes[ rightChildIdx ].primitiveCount = currentNode.primitiveCount - leftCount;
+
+		// not tracking the isLeaf bool, means primitiveCount has to be used to id leaves vs interior nodes
+		currentNode.primitiveCount = 0; // so setting this now interior node to zero to indicate this isn't a leaf
+
+		// update the bounds for the child nodes
+		UpdateNodeBounds( leftChildIdx );
+		UpdateNodeBounds( rightChildIdx );
+
+		// recurse into each of the child nodes, from this
+		Subdivide( leftChildIdx );
+		Subdivide( rightChildIdx );
+	}
+
+	void BuildTree () {
+		// maximum possible size is 2N + 1 nodes, where N is the number of triangles
+			// ( N leaves have N/2 parents, N/4 granparents, etc... )
+		bvhNodes.resize( triangleList.size() * 2 - 1 );
+
+		// precompute the centroids of all the triangles
+		for ( auto& triangle : triangleList ) {
+			triangle.centroid = vec3( triangle.vertex0 + triangle.vertex1 + triangle.vertex2 ) / 3.0f;
+		}
+
+		// not fully understanding this piece, yet
+		bvhNode_t &root = bvhNodes[ rootNodeIdx ];
+		root.leftChild = root.rightChild = 0;
+		root.firstPrimitive = 0;
+		root.primitiveCount = triangleList.size();
+
+		// updating node bounds, for the root node - so it's the bounding box for entire model
+		UpdateNodeBounds( rootNodeIdx );
+
+		// subdivide from the root node, recursively
+		Subdivide( rootNodeIdx );
+	}
 
 	// naiive traversal for comparison
 	void naiiveTraversal ( ray_t &ray ) {
+		// return information at hit location
 		for ( uint i = 0; i < triangleList.size(); i++ ) {
 			triangleList[ i ].intersect( ray );
 		}
+	}
+
+	// test ray against acceleration structure
+	void acceleratedTraversal ( ray_t &ray ) {
+		// todo
 	}
 };
 
@@ -111,10 +236,10 @@ struct testRenderer_t {
 
 	// image data, to display
 	Image_4F imageBuffer;
-	bool imageBufferDirty; // does this need to be resent to the GPU?
+	bool imageBufferDirty; // does this image need to be resent to the GPU?
 
 	void init () {
-		// // create the preview image - probably use alpha channel to send traversal depth kind of stats
+		// create the preview image - probably use alpha channel to send traversal depth kind of stats
 		imageBuffer = Image_4F( 720, 480 );
 		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
 			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
@@ -133,28 +258,38 @@ struct testRenderer_t {
 
 	void naiiveTraversal () {
 		auto tStart = std::chrono::system_clock::now();
+		rng jitter = rng( 0.0f, 1.0f );
 		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
 			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
-				const float xRemap = RangeRemap( x, 0, imageBuffer.Width(), -1.0f, 1.0f );
-				const float yRemap = RangeRemap( y, 0, imageBuffer.Height(), -1.0f, 1.0f );
+				const int numSamples = 20;
+				vec3 colorAverage = vec3( 0.0f );
+				for ( int sample = 0; sample < 10; sample++ ) {
+					const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.0f, 1.0f );
+					const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -1.0f, 1.0f );
 
-				// test a ray against the triangles
-				ray_t ray;
-				ray.origin = 16.0f * vec3( xRemap, yRemap, 5.0f );
-				ray.direction = vec3( 0.0f, 0.0f, -1.0f );
+					// test a ray against the triangles
+					ray_t ray;
+					ray.origin = 16.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 5.0f );
+					ray.direction = vec3( 0.0f, 0.0f, -1.0f );
 
-				accelerationStructure.naiiveTraversal( ray );
+					accelerationStructure.naiiveTraversal( ray );
 
-				if ( ray.distance < MAX_DISTANCE ) {
-					color_4F val;
-					val[ red ] = val[ green ] = val[ blue ] = 1.0f / ray.distance;
-					// val[ red ] = val[ green ] = val[ blue ] = 1.0f;
-					val[ alpha ] = 1.0f;
-					imageBuffer.SetAtXY( x, y, val );
+					if ( ray.distance < MAX_DISTANCE ) {
+						colorAverage += vec3( ray.uv.x, ray.uv.y, 1.0f - ray.uv.x - ray.uv.y ); // barycentric colors;
+					}
 				}
+				colorAverage /= float( numSamples );
+				color_4F val;
+				val[ red ] = colorAverage.r;
+				val[ green ] = colorAverage.g;
+				val[ blue ] = colorAverage.b;
+				val[ alpha ] = 1.0f;
+				imageBuffer.SetAtXY( x, y, val );
 			}
 		}
 		auto tStop = std::chrono::system_clock::now();
 		cout << "Finished naiive traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
 	}
+
+	// accelerated traversal, for comparison
 };
