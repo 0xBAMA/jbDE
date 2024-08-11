@@ -12,10 +12,13 @@ struct ray_t {
 
 	float distance = MAX_DISTANCE;
 	vec2 uv = vec2( -1.0f );
+	uint32_t triangleIdx;
 };
 
 // triangle data class
 struct triangle_t {
+	int idx;
+
 	vec3 vertex0, vertex1, vertex2;
 	vec3 centroid;
 
@@ -46,6 +49,7 @@ struct triangle_t {
 			ray.distance = std::min( ray.distance, t ); // positive distance hit
 			if ( ray.distance == t ) { // if we updated the hit, update the corresponding uv
 				ray.uv = vec2( u, v );
+				ray.triangleIdx = idx;
 			}
 		}
 	}
@@ -61,6 +65,20 @@ static inline bool IntersectAABB ( const ray_t &ray, const vec3 bboxmin, const v
 	tmin = std::max( tmin, std::min( tz1, tz2 ) ), tmax = std::min( tmax, std::max( tz1, tz2 ) );
 	return tmax >= tmin && tmin < ray.distance && tmax > 0;
 }
+
+static inline const vec3 GetBarycentricCoords ( vec3 p0, vec3 p1, vec3 p2, vec3 P ) {
+	vec3 s[ 2 ];
+	for ( int i = 2; i--; ) {
+		s[ i ][ 0 ] = p2[ i ] - p0[ i ];
+		s[ i ][ 1 ] = p1[ i ] - p0[ i ];
+		s[ i ][ 2 ] = p0[ i ] - P[ i ];
+	}
+	vec3 u = glm::cross( s[ 0 ], s[ 1 ] );
+	if ( std::abs( u[ 2 ] ) > 1e-2f )	 	// If u[ 2 ] is zero then triangle ABC is degenerate
+		return vec3( 1.0f - ( u.x + u.y ) / u.z, u.y / u.z, u.x / u.z );
+	return vec3( -1.0f, 1.0f, 1.0f );	// in this case generate negative coordinates, it will be thrown away by the rasterizer
+}
+
 // bvh node class
 struct bvhNode_t {
 	vec3 aabbMin, aabbMax;
@@ -88,37 +106,63 @@ struct bvh_t {
 	}
 
 	// load model triangles
-	void Load ( const string filename ) {
-		// blah blah refer to old obj loading code
-			// they go into an indexed list? tbd - grass etc OBJs
-	}
+	SoftRast s;
+	void Load () {
+		s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
 
-	// before getting into loading models, specifically, let's do some placeholder geometry
-	void RandomTriangles ( int num ) {
+		// and then get the triangles from here
 		triangleList.resize( 0 );
 
-		rng val = rng( -1.0f, 1.0f );
-		rng col = rng( 0.0f, 1.0f );
-		for ( int i = 0; i < num; i++ ) {
-			vec3 r0 = vec3( val(), val(), val() );
-			vec3 r1 = vec3( val(), val(), val() );
-			vec3 r2 = vec3( val(), val(), val() );
-			triangle_t triangle;
+		for ( auto& triangle : s.triangles ) {
+			triangle_t loaded;
 
-			triangle.vertex0 = 10.0f * r0;
-			triangle.vertex1 = triangle.vertex0 + r1;
-			triangle.vertex2 = triangle.vertex1 + r2;
+			// vertex positions
+			loaded.vertex0 = triangle.p0;
+			loaded.vertex1 = triangle.p1;
+			loaded.vertex2 = triangle.p2;
 
-			triangle.color0 = vec3( col(), col(), col() );
-			triangle.color1 = vec3( col(), col(), col() );
-			triangle.color2 = vec3( col(), col(), col() );
+			// vertex texcoords
+			loaded.texcoord0 = triangle.t0;
+			loaded.texcoord1 = triangle.t1;
+			loaded.texcoord2 = triangle.t2;
 
-			triangleList.push_back( triangle );
+			// vertex normals in n0, n1, n2... not sure how to use that in a pathtracer
+
+			// need to know which index in the list this is
+			loaded.idx = triangleList.size();
+
+			// and push it onto the list
+			triangleList.push_back( loaded );
 		}
 
 		cout << newline << "Created " << triangleList.size() << " triangles" << newline;
 	}
 
+	// // before getting into loading models, specifically, let's do some placeholder geometry
+	// void RandomTriangles ( int num ) {
+	// 	triangleList.resize( 0 );
+
+	// 	rng val = rng( -1.0f, 1.0f );
+	// 	rng col = rng( 0.0f, 1.0f );
+	// 	for ( int i = 0; i < num; i++ ) {
+	// 		vec3 r0 = vec3( val(), val(), val() );
+	// 		vec3 r1 = vec3( val(), val(), val() );
+	// 		vec3 r2 = vec3( val(), val(), val() );
+	// 		triangle_t triangle;
+
+	// 		triangle.vertex0 = 10.0f * r0;
+	// 		triangle.vertex1 = triangle.vertex0 + r1;
+	// 		triangle.vertex2 = triangle.vertex1 + r2;
+
+	// 		triangle.color0 = vec3( col(), col(), col() );
+	// 		triangle.color1 = vec3( col(), col(), col() );
+	// 		triangle.color2 = vec3( col(), col(), col() );
+
+	// 		triangleList.push_back( triangle );
+	// 	}
+
+	// 	cout << newline << "Created " << triangleList.size() << " triangles" << newline;
+	// }
 
 	void UpdateNodeBounds ( uint32_t nodeIndex ) {
 		// calculate the bounds for a BVH node, based on contained primitives
@@ -222,8 +266,6 @@ struct bvh_t {
 	}
 
 	void BuildTree () {
-		auto tStart = std::chrono::system_clock::now();
-
 		// maximum possible size is 2N + 1 nodes, where N is the number of triangles
 			// ( N leaves have N/2 parents, N/4 granparents, etc... )
 		bvhNodes.resize( triangleList.size() * 2 - 1 );
@@ -250,9 +292,6 @@ struct bvh_t {
 
 		// subdivide from the root node, recursively
 		Subdivide( rootNodeIdx );
-
-		auto tStop = std::chrono::system_clock::now();
-		cout << "Finished acceleration structure build in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
 	}
 
 	// naiive traversal for comparison
@@ -309,7 +348,8 @@ struct testRenderer_t {
 
 	void init () {
 		// create the preview image - probably use alpha channel to send traversal depth kind of stats
-		imageBuffer = Image_4F( 720, 480 );
+		// imageBuffer = Image_4F( 720, 480 );
+		imageBuffer = Image_4F( 256, 128 );
 		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
 			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
 				color_4F val;
@@ -319,107 +359,71 @@ struct testRenderer_t {
 			}
 		}
 
-		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() * 10 << " rays..." << endl;
+		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() << " rays..." << endl;
 
-		int num = 256;
-		// for ( int i = 0; i < 5; i++, num *= 2 ) {
-			// some initial data (replace with meshes)
-			accelerationStructure.Init();
-			accelerationStructure.RandomTriangles( num );
-
-			// get the tree structure built, from the triangle soup
-			accelerationStructure.BuildTree();
-
-			// run the iterative traversal
-			// naiiveTraversal();
-
-			// run the accelerated traversal
-			acceleratedTraversal();
-			// imageBufferDirty = true;
-		// }
-	}
-
-	void naiiveTraversal () {
+		// some initial data (meshes)
 		auto tStart = std::chrono::system_clock::now();
-
-		const mat3 viewTransform = mat3( glm::rotate( mat4( 1.0f ), 0.5f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
-
-		rng jitter = rng( 0.0f, 1.0f );
-		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
-			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
-				const int numSamples = 20;
-				vec3 colorAverage = vec3( 0.0f );
-				for ( int sample = 0; sample < 10; sample++ ) {
-					const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.0f, 1.0f );
-					const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -1.0f, 1.0f );
-
-					// test a ray against the triangles
-					ray_t ray;
-					ray.origin = viewTransform * 16.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 5.0f );
-					ray.direction = viewTransform * vec3( 0.0f, 0.0f, -1.0f );
-
-					accelerationStructure.naiiveTraversal( ray );
-
-					if ( ray.distance < MAX_DISTANCE ) {
-						colorAverage += vec3( ray.uv.x, ray.uv.y, 1.0f - ray.uv.x - ray.uv.y ); // barycentric colors;
-					}
-				}
-				colorAverage /= float( numSamples );
-				color_4F val;
-				val[ red ] = colorAverage.r;
-				val[ green ] = colorAverage.g;
-				val[ blue ] = colorAverage.b;
-				val[ alpha ] = 1.0f;
-				imageBuffer.SetAtXY( x, y, val );
-			}
-		}
+		accelerationStructure.Init();
+		accelerationStructure.Load();
 		auto tStop = std::chrono::system_clock::now();
-		cout << "Finished naiive traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
+		cout << "Finished model loading in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
+
+		// get the tree structure built, from the triangle soup
+		tStart = std::chrono::system_clock::now();
+		accelerationStructure.BuildTree();
+		tStop = std::chrono::system_clock::now();
+		cout << "Finished acceleration structure building in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
+
+		// run the accelerated traversal
+		tStart = std::chrono::system_clock::now();
+		acceleratedTraversal();
+		tStop = std::chrono::system_clock::now();
+		cout << "Finished accelerated traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
+		// imageBufferDirty = true;
 	}
 
 	// accelerated traversal, for comparison
 	void acceleratedTraversal () {
-		auto tStart = std::chrono::system_clock::now();
-
-		palette::PickRandomPalette( true );
-
-		const mat3 viewTransform = mat3( glm::rotate( mat4( 1.0f ), 0.5f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
-
+		const mat3 viewTransform = mat3( glm::rotate( mat4( 1.0f ), -0.5f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
 		rng jitter = rng( 0.0f, 1.0f );
+
 		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
 			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
-				const int numSamples = 1;
-				vec3 colorAverage = vec3( 0.0f );
-				// for ( int sample = 0; sample < 10; sample++ ) {
-					const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.0f, 1.0f );
-					const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -1.0f, 1.0f );
+				const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.0f, 1.0f );
+				const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -1.0f, 1.0f );
 
-					// test a ray against the triangles
-					ray_t ray;
-					ray.origin = viewTransform * 16.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 5.0f );
+				// test a ray against the triangles
+				ray_t ray;
+				ray.origin = viewTransform * 200.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f );
 
-					ray.direction = viewTransform * vec3( 0.0f, 0.0f, -1.0f );
+				ray.direction = viewTransform * vec3( 0.0f, 0.0f, -1.0f );
 
-					accelerationStructure.RayComplexityCounterReset();
-					accelerationStructure.acceleratedTraversal( ray );
-					const float traversalCompexity = accelerationStructure.GetRayComplexityCounter();
+				accelerationStructure.RayComplexityCounterReset();
+				accelerationStructure.acceleratedTraversal( ray );
+				const float traversalCompexity = accelerationStructure.GetRayComplexityCounter();
 
-					if ( ray.distance < MAX_DISTANCE ) {
-						colorAverage += vec3( ray.uv.x, ray.uv.y, 1.0f - ray.uv.x - ray.uv.y ); // barycentric colors;
-						// colorAverage += palette::paletteRef( ( traversalCompexity + 1.0f ) / 64.0f );
-						// colorAverage += vec3( std::pow( traversalCompexity / 16.0f, 0.5f ) );
-					}
-				// }
-				colorAverage /= float( numSamples );
+				vec3 color = vec3( 0.0f );
+				if ( ray.distance < MAX_DISTANCE ) {
+
+					triangle_t triangle = accelerationStructure.triangleList[ ray.triangleIdx ];
+					vec3 barycentricCoords = GetBarycentricCoords( triangle.vertex0, triangle.vertex1, triangle.vertex2, ray.origin + ray.distance * ray.direction );
+
+					vec2 interpolatedTC =
+						barycentricCoords.x * triangle.texcoord0.xy() +
+						barycentricCoords.y * triangle.texcoord1.xy() +
+						barycentricCoords.z * triangle.texcoord2.xy();
+
+					int texturePick = triangle.texcoord0.z * 2;
+					color = accelerationStructure.s.TexRef( interpolatedTC, texturePick );
+				}
+
 				color_4F val;
-				val[ red ] = colorAverage.r;
-				val[ green ] = colorAverage.g;
-				val[ blue ] = colorAverage.b;
+				val[ red ] = color.r;
+				val[ green ] = color.g;
+				val[ blue ] = color.b;
 				val[ alpha ] = traversalCompexity;
 				imageBuffer.SetAtXY( x, y, val );
 			}
 		}
-		auto tStop = std::chrono::system_clock::now();
-		cout << "Finished accelerated traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
 	}
 };
