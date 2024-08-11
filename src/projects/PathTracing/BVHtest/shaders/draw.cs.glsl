@@ -17,8 +17,8 @@ void main () {
 	vec3 col = imageLoad( CPUTexture, ivec2( vec2(
 		writeLoc + vec2( 0.5f ) ) / imageSize( accumulatorTexture ).xy * imageSize( CPUTexture ).xy ) ).rgb;
 
-	col += inferno2( imageLoad( CPUTexture, ivec2( vec2(
-		writeLoc + vec2( 0.5f ) ) / imageSize( accumulatorTexture ).xy * imageSize( CPUTexture ).xy ) ).a / 200.0f ) / 5.0f;
+	// col += inferno2( imageLoad( CPUTexture, ivec2( vec2(
+	// 	writeLoc + vec2( 0.5f ) ) / imageSize( accumulatorTexture ).xy * imageSize( CPUTexture ).xy ) ).a / 200.0f ) / 5.0f;
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
