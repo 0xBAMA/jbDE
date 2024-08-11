@@ -130,7 +130,7 @@ public:
 	vec4 TexRef ( vec2 texCoord, int id ) {
 		uint32_t x = uint32_t( texCoord.x * float( texSet[ id ].Width() ) );
 		uint32_t y = uint32_t( texCoord.y * float( texSet[ id ].Height() ) );
-		color_4U val = texSet[ id ].GetAtXY( x, y );
+		color_4U val = texSet[ id ].GetAtXY( x, y ); // consider doing filtered reads
 		vec4 returnVal = vec4( val[ red ] / 255.0f, val[ green ] / 255.0f, val[ blue ] / 255.0f, val[ alpha ] / 255.0f );
 		// cout << returnVal.x << " " << returnVal.y << " " << returnVal.z << " " << returnVal.w << newline;
 		return returnVal;
