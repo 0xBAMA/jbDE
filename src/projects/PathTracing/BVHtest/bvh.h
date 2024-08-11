@@ -51,6 +51,16 @@ struct triangle_t {
 	}
 };
 
+// for bounding boxes
+static inline bool IntersectAABB ( const ray_t &ray, const vec3 bboxmin, const vec3 bboxmax ) {
+	float tx1 = ( bboxmin.x - ray.origin.x ) / ray.direction.x, tx2 = ( bboxmax.x - ray.origin.x ) / ray.direction.x;
+	float tmin = std::min( tx1, tx2 ), tmax = std::max( tx1, tx2 );
+	float ty1 = ( bboxmin.y - ray.origin.y) / ray.direction.y, ty2 = ( bboxmax.y - ray.origin.y ) / ray.direction.y;
+	tmin = std::max( tmin, std::min( ty1, ty2 ) ), tmax = std::min( tmax, std::max( ty1, ty2 ) );
+	float tz1 = ( bboxmin.z - ray.origin.z) / ray.direction.z, tz2 = ( bboxmax.z - ray.origin.z ) / ray.direction.z;
+	tmin = std::max( tmin, std::min( tz1, tz2 ) ), tmax = std::min( tmax, std::max( tz1, tz2 ) );
+	return tmax >= tmin && tmin < ray.distance && tmax > 0;
+}
 // bvh node class
 struct bvhNode_t {
 	vec3 aabbMin, aabbMax;
@@ -63,6 +73,20 @@ struct bvh_t {
 	std::vector< triangle_t > triangleList;
 	std::vector< uint32_t > triangleIndices;
 
+	// create acceleration structure of bvh nodes, from the list of triangles
+	std::vector< bvhNode_t > bvhNodes;
+	uint32_t rootNodeIdx = 0;
+	uint32_t nodesUsed = 1;
+
+	void Init () {
+		triangleList.resize( 0 );
+		triangleIndices.resize( 0 );
+
+		bvhNodes.resize( 0 );
+		rootNodeIdx = 0;
+		nodesUsed = 1;
+	}
+
 	// load model triangles
 	void Load ( const string filename ) {
 		// blah blah refer to old obj loading code
@@ -70,13 +94,15 @@ struct bvh_t {
 	}
 
 	// before getting into loading models, specifically, let's do some placeholder geometry
-	void RandomTriangles () {
+	void RandomTriangles ( int num ) {
+		triangleList.resize( 0 );
+
 		rng val = rng( -1.0f, 1.0f );
 		rng col = rng( 0.0f, 1.0f );
-		for ( int i = 0; i < 100; i++ ) {
+		for ( int i = 0; i < num; i++ ) {
 			vec3 r0 = vec3( val(), val(), val() );
-			vec3 r1 = vec3( val(), val(), val() ) * 2.0f;
-			vec3 r2 = vec3( val(), val(), val() ) * 2.0f;
+			vec3 r1 = vec3( val(), val(), val() );
+			vec3 r2 = vec3( val(), val(), val() );
 			triangle_t triangle;
 
 			triangle.vertex0 = 10.0f * r0;
@@ -93,10 +119,6 @@ struct bvh_t {
 		cout << newline << "Created " << triangleList.size() << " triangles" << newline;
 	}
 
-	// create acceleration structure of bvh nodes, from the list of triangles
-	std::vector< bvhNode_t > bvhNodes;
-	uint32_t rootNodeIdx = 0;
-	uint32_t nodesUsed = 1;
 
 	void UpdateNodeBounds ( uint32_t nodeIndex ) {
 		// calculate the bounds for a BVH node, based on contained primitives
@@ -175,7 +197,7 @@ struct bvh_t {
 		// abort the split if either of the sides are empty
 		if ( leftCount == 0 || leftCount == currentNode.primitiveCount ) return;
 
-		// otherwise we're creating child nodes for each half
+		// otherwise we're creating child nodes for each half ( note use of contiguous nodes, here )
 		int leftChildIdx = nodesUsed++;
 		int rightChildIdx = nodesUsed++;
 
@@ -188,7 +210,7 @@ struct bvh_t {
 
 		// not tracking the isLeaf bool, means primitiveCount has to be used to id leaves vs interior nodes
 		currentNode.primitiveCount = 0; // so setting this now interior node to zero to indicate this isn't a leaf
-		currentNode.leftChild = leftChildIdx; // and the child there - note that right child can always be recovered with +1
+		currentNode.leftChild = leftChildIdx; // and the child there - note that right child can always be recovered with +1 ( contiguous )
 
 		// update the bounds for the child nodes
 		UpdateNodeBounds( leftChildIdx );
@@ -200,6 +222,8 @@ struct bvh_t {
 	}
 
 	void BuildTree () {
+		auto tStart = std::chrono::system_clock::now();
+
 		// maximum possible size is 2N + 1 nodes, where N is the number of triangles
 			// ( N leaves have N/2 parents, N/4 granparents, etc... )
 		bvhNodes.resize( triangleList.size() * 2 - 1 );
@@ -226,6 +250,9 @@ struct bvh_t {
 
 		// subdivide from the root node, recursively
 		Subdivide( rootNodeIdx );
+
+		auto tStop = std::chrono::system_clock::now();
+		cout << "Finished acceleration structure build in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
 	}
 
 	// naiive traversal for comparison
@@ -236,9 +263,37 @@ struct bvh_t {
 		}
 	}
 
+	float rayComplexityCounter = 0.0f;
+	void RayComplexityCounterReset () {
+		rayComplexityCounter = 0.0f;
+	}
+	float GetRayComplexityCounter () {
+		return rayComplexityCounter;
+	}
+
+	void recursiveTraversal ( ray_t &ray, const uint nodeIdx ) {
+		bvhNode_t& node = bvhNodes[ nodeIdx ];
+		if ( !IntersectAABB( ray, node.aabbMin, node.aabbMax ) ) {
+			return; // bounds are not intersected, no further checking required on this branch
+		}
+
+		if ( node.isLeaf() ) {
+			// leaf nodes have one or more primitives to check against
+			for ( uint32_t i = 0; i < node.primitiveCount; i++ ) {
+				rayComplexityCounter++;
+				triangleList[ triangleIndices[ node.firstPrimitiveIdx + i ] ].intersect( ray );
+			}
+		} else {
+			rayComplexityCounter++;
+			// we need to recurse both of the child nodes
+			recursiveTraversal( ray, node.leftChild );
+			recursiveTraversal( ray, node.leftChild + 1 ); // making use of the contiguous nodes
+		}
+	}
+
 	// test ray against acceleration structure
 	void acceleratedTraversal ( ray_t &ray ) {
-		// todo
+		recursiveTraversal( ray, rootNodeIdx );
 	}
 };
 
@@ -264,14 +319,31 @@ struct testRenderer_t {
 			}
 		}
 
-		accelerationStructure.RandomTriangles();
-		accelerationStructure.BuildTree();
-		naiiveTraversal();
-		imageBufferDirty = true;
+		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() * 10 << " rays..." << endl;
+
+		int num = 256;
+		// for ( int i = 0; i < 5; i++, num *= 2 ) {
+			// some initial data (replace with meshes)
+			accelerationStructure.Init();
+			accelerationStructure.RandomTriangles( num );
+
+			// get the tree structure built, from the triangle soup
+			accelerationStructure.BuildTree();
+
+			// run the iterative traversal
+			// naiiveTraversal();
+
+			// run the accelerated traversal
+			acceleratedTraversal();
+			// imageBufferDirty = true;
+		// }
 	}
 
 	void naiiveTraversal () {
 		auto tStart = std::chrono::system_clock::now();
+
+		const mat3 viewTransform = mat3( glm::rotate( mat4( 1.0f ), 0.5f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
+
 		rng jitter = rng( 0.0f, 1.0f );
 		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
 			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
@@ -283,8 +355,8 @@ struct testRenderer_t {
 
 					// test a ray against the triangles
 					ray_t ray;
-					ray.origin = 16.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 5.0f );
-					ray.direction = vec3( 0.0f, 0.0f, -1.0f );
+					ray.origin = viewTransform * 16.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 5.0f );
+					ray.direction = viewTransform * vec3( 0.0f, 0.0f, -1.0f );
 
 					accelerationStructure.naiiveTraversal( ray );
 
@@ -306,4 +378,48 @@ struct testRenderer_t {
 	}
 
 	// accelerated traversal, for comparison
+	void acceleratedTraversal () {
+		auto tStart = std::chrono::system_clock::now();
+
+		palette::PickRandomPalette( true );
+
+		const mat3 viewTransform = mat3( glm::rotate( mat4( 1.0f ), 0.5f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
+
+		rng jitter = rng( 0.0f, 1.0f );
+		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
+			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
+				const int numSamples = 1;
+				vec3 colorAverage = vec3( 0.0f );
+				// for ( int sample = 0; sample < 10; sample++ ) {
+					const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.0f, 1.0f );
+					const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -1.0f, 1.0f );
+
+					// test a ray against the triangles
+					ray_t ray;
+					ray.origin = viewTransform * 16.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 5.0f );
+
+					ray.direction = viewTransform * vec3( 0.0f, 0.0f, -1.0f );
+
+					accelerationStructure.RayComplexityCounterReset();
+					accelerationStructure.acceleratedTraversal( ray );
+					const float traversalCompexity = accelerationStructure.GetRayComplexityCounter();
+
+					if ( ray.distance < MAX_DISTANCE ) {
+						colorAverage += vec3( ray.uv.x, ray.uv.y, 1.0f - ray.uv.x - ray.uv.y ); // barycentric colors;
+						// colorAverage += palette::paletteRef( ( traversalCompexity + 1.0f ) / 64.0f );
+						// colorAverage += vec3( std::pow( traversalCompexity / 16.0f, 0.5f ) );
+					}
+				// }
+				colorAverage /= float( numSamples );
+				color_4F val;
+				val[ red ] = colorAverage.r;
+				val[ green ] = colorAverage.g;
+				val[ blue ] = colorAverage.b;
+				val[ alpha ] = traversalCompexity;
+				imageBuffer.SetAtXY( x, y, val );
+			}
+		}
+		auto tStop = std::chrono::system_clock::now();
+		cout << "Finished accelerated traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
+	}
 };
