@@ -108,7 +108,8 @@ struct bvh_t {
 	// load model triangles
 	SoftRast s;
 	void Load () {
-		s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
+		// s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
+		s.LoadModel( "../San_Miguel/san-miguel-low-poly.obj", "../San_Miguel/" );
 
 		// and then get the triangles from here
 		triangleList.resize( 0 );
