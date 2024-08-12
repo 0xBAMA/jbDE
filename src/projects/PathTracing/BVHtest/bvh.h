@@ -399,6 +399,17 @@ struct testRenderer_t {
 		tStop = std::chrono::system_clock::now();
 		cout << "Finished accelerated traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
 		// imageBufferDirty = true;
+
+		if ( dumpOutput ) {
+			tStart = std::chrono::system_clock::now();
+			imageBuffer.SaturateAlpha();
+			imageBuffer.RGBtoSRGB();
+			// imageBuffer.RGBtoSRGB();
+			imageBuffer.Save( "test.png" );
+			// imageBuffer.SRGBtoRGB();
+			tStop = std::chrono::system_clock::now();
+			cout << "Finished image output in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
+		}
 	}
 
 	// accelerated traversal, for comparison
