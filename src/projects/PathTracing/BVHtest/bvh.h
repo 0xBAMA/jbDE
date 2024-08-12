@@ -21,6 +21,7 @@ struct triangle_t {
 
 	vec3 vertex0, vertex1, vertex2;
 	vec3 centroid;
+	vec3 normal;
 
 	// further data, vertex colors, texcoords, etc
 	vec3 color0, color1, color2;
@@ -128,6 +129,7 @@ struct bvh_t {
 			loaded.texcoord2 = triangle.t2;
 
 			// vertex normals in n0, n1, n2... not sure how to use that in a pathtracer
+			loaded.normal = normalize( triangle.n0 + triangle.n1 + triangle.n2 );
 
 			// need to know which index in the list this is
 			loaded.idx = triangleList.size();
@@ -348,16 +350,20 @@ struct testRenderer_t {
 	bool imageBufferDirty; // does this image need to be resent to the GPU?
 
 	// setup the worker threads
-	static constexpr int NUM_THREADS = 16;
+	static constexpr int NUM_THREADS = 8;
 	std::thread threads[ NUM_THREADS + 1 ];
 
 	static constexpr uint32_t REPORT_DELAY = 32; 				// reporter thread sleep duration, in ms
 	static constexpr uint32_t PROGRESS_INDICATOR_STOPS = 69; // cli spaces to take up
 
-	static constexpr uint32_t X_IMAGE_DIM = 600;
-	static constexpr uint32_t Y_IMAGE_DIM = 300;
-	static constexpr uint32_t TILESIZE_XY = 20;
-	static constexpr uint32_t NUM_SAMPLES = 3;
+	// static constexpr float scaleFactor = 0.618f;
+	// static constexpr float scaleFactor = 1.33f;
+	static constexpr float scaleFactor = 3.0f;
+	static constexpr uint32_t X_IMAGE_DIM = 300 * scaleFactor;
+	static constexpr uint32_t Y_IMAGE_DIM = 200 * scaleFactor;
+	static constexpr uint32_t TILESIZE_XY = 4;
+	static constexpr uint32_t NUM_SAMPLES = 1;
+	const bool dumpOutput = true;
 
 	std::atomic< uint32_t > tileIndexCounter{ 0 };
 	std::atomic< uint32_t > tileFinishCounter{ 0 };
@@ -366,6 +372,7 @@ struct testRenderer_t {
 	// camera parameterization could use work
 	const vec3 eyeLocation = vec3( -100.0f, 600.0f, 0.0f );
 	rng jitter = rng( 0.0f, 1.0f );
+	rng centeredJitter = rng( -1.0f, 1.0f );
 
 	void init () {
 		// create the preview image - probably use alpha channel to send traversal depth kind of stats
@@ -378,6 +385,8 @@ struct testRenderer_t {
 				imageBuffer.SetAtXY( x, y, val );
 			}
 		}
+
+		palette::PickRandomPalette( true );
 
 		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() * NUM_SAMPLES << " rays..." << endl;
 
@@ -460,33 +469,49 @@ struct testRenderer_t {
 						const int tile_base_x = tile_x_index * TILESIZE_XY;
 						const int tile_base_y = tile_y_index * TILESIZE_XY;
 
-						for ( int y = tile_base_y; y < tile_base_y + TILESIZE_XY; y++ )
-						for ( int x = tile_base_x; x < tile_base_x + TILESIZE_XY; x++ ) {
+						for ( uint y = tile_base_y; y < tile_base_y + TILESIZE_XY; y++ )
+						for ( uint x = tile_base_x; x < tile_base_x + TILESIZE_XY; x++ ) {
 
-							const int numSamples = NUM_SAMPLES;
+							const float numSamples = NUM_SAMPLES;
 							accelerationStructure.RayComplexityCounterReset();
 
 							vec3 color = vec3( 0.0f );
-							int hitSamples = 0;
 							float d = MAX_DISTANCE;
 
-							for ( int i = 0; i < numSamples; i++ ) {
+							for ( uint i = 0; i < NUM_SAMPLES; i++ ) {
 								// do the shit
-								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 10.0f, -10.0f );
-								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), 10.0f, -10.0f );
+								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 1.5f, 0.8f );
+								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -5.8f, -6.0f );
 
 								// test a ray against the triangles
 								ray_t ray;
-								// ray.origin = vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 1.0f );
-								// ray.direction = normalize( ray.origin - eyeLocation );
-								ray.origin = 100.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f ) + eyeLocation;
-								ray.direction = normalize( vec3( 1.0f, 0.0f, 0.25f ) );
+								ray.origin = 100.0f * vec3( xRemap, yRemap, 0.0f ) + eyeLocation;
+								ray.direction = normalize( vec3( 0.0f, 0.0f, 1.0f ) );
 
 								accelerationStructure.acceleratedTraversal( ray );
 
 								if ( ray.distance < MAX_DISTANCE ) {
 									triangle_t triangle = accelerationStructure.triangleList[ ray.triangleIdx ];
 									vec3 barycentricCoords = GetBarycentricCoords( triangle.vertex0, triangle.vertex1, triangle.vertex2, ray.origin + ray.distance * ray.direction );
+
+									// computing a lighting term
+									const vec3 lightSize = vec3( 1.0f, 1.0f, 1.0f );
+									const vec3 lightPosition = vec3( 0.0f + lightSize.x * centeredJitter(), 500.0f + lightSize.y * centeredJitter(), 0.0f + lightSize.z * centeredJitter() );
+									ray_t lightRay;
+									lightRay.origin = ray.origin + ray.distance * ray.direction + 0.01f * triangle.normal;
+									lightRay.direction = normalize( lightPosition - lightRay.origin );
+									vec3 lightTerm = vec3( 0.01f );
+
+									accelerationStructure.acceleratedTraversal( lightRay );
+									const float dLight = distance( lightRay.origin, lightPosition );
+									if ( lightRay.distance >= dLight ) {
+									// if ( lightRay.distance < 20.0f ) {
+									// if ( distance( lightRay.origin, vec3( 300.0f ) ) < 200.0f ) {
+
+										vec3 lightColor = palette::paletteRef( RemapRange( lightPosition.z, -lightSize.z, lightSize.z, 0.0f, 1.0f ) );
+										lightTerm = vec3( 100.0f / std::pow( dLight, 1.2f ) ) * lightColor;
+										// lightTerm = 1.0f;
+									}
 
 									// going to have to move this into the traversal, if I want to support alpha testing
 									vec2 interpolatedTC =
@@ -497,8 +522,13 @@ struct testRenderer_t {
 									int texturePick = triangle.texcoord0.z * 2;
 
 									// color = accelerationStructure.s.TexRef( glm::mod( vec2( interpolatedTC.x, 1.0f - interpolatedTC.y ), vec2( 1.0f ) ), texturePick ).rgb();
-									color += accelerationStructure.s.TexRef( glm::mod( interpolatedTC, vec2( 1.0f ) ), texturePick ).rgb() / float( numSamples );
+									color += lightTerm * accelerationStructure.s.TexRef( glm::mod( interpolatedTC, vec2( 1.0f ) ), texturePick ).rgb() / numSamples;
+									// color = triangle.normal;
+
 									d = ray.distance;
+									// d = dLight;
+
+									// color = ray.origin + ray.distance * ray.direction;
 								}
 							}
 
