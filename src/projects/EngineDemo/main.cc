@@ -105,17 +105,23 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// // current state of the whole keyboard
-		// const uint8_t * state = SDL_GetKeyboardState( NULL );
+		// current state of the whole keyboard
+		static inputHandler_t inputHandler;
 
-		// // current state of the modifier keys
-		// const SDL_Keymod k	= SDL_GetModState();
-		// const bool shift		= ( k & KMOD_SHIFT );
-		// const bool alt		= ( k & KMOD_ALT );
-		// const bool control	= ( k & KMOD_CTRL );
-		// const bool caps		= ( k & KMOD_CAPS );
-		// const bool super		= ( k & KMOD_GUI );
+		// new data into the input handler
+		inputHandler.update();
 
+	// testing usage:
+		// int state = inputHandler.getState4( KEY_SPACE );
+		// if ( state == KEYSTATE_OFF ) {
+		// 	cout << "space is OFF" << endl;
+		// } else if ( state == KEYSTATE_ON ) {
+		// 	cout << "space is ON" << endl;
+		// } else if ( state == KEYSTATE_RISING ) {
+		// 	cout << "RISING EDGE" << endl;
+		// } else if ( state == KEYSTATE_FALLING ) {
+		// 	cout << "FALLING EDGE" << endl;
+		// }
 	}
 
 	void ImguiPass () {

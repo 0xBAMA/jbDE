@@ -136,6 +136,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // simple std::chrono and OpenGL timer queries wrappers
 #include "./coreUtils/timer.h"
 
+// more polished input handling
+#include "./coreUtils/inputHandler.h"
+
 // orientation trident
 #include "../utils/trident/trident.h"
 
