@@ -111,17 +111,6 @@ public:
 		// new data into the input handler
 		inputHandler.update();
 
-	// testing usage:
-		// int state = inputHandler.getState4( KEY_SPACE );
-		// if ( state == KEYSTATE_OFF ) {
-		// 	cout << "space is OFF" << endl;
-		// } else if ( state == KEYSTATE_ON ) {
-		// 	cout << "space is ON" << endl;
-		// } else if ( state == KEYSTATE_RISING ) {
-		// 	cout << "RISING EDGE" << endl;
-		// } else if ( state == KEYSTATE_FALLING ) {
-		// 	cout << "FALLING EDGE" << endl;
-		// }
 	}
 
 	void ImguiPass () {
