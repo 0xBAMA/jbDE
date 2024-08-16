@@ -36,14 +36,20 @@ public:
 		// =============================================================
 		ImGui::Begin( "Window" );
 
-		ImGui::Text( "This is some text" );
-		ImGui::Text( "This is an int from the class: %d", spaceGameData.spaceGameInt );
+		ImGui::Text( "Total Stocks: %f", spaceGameData.totalProduce );
 
-		if ( ImGui::Button( "This is a button" ) ) {
-			cout << "it says the n word when you press it" << endl;
+		ImGui::Text( "Workers have produced:" );
+		ImGui::Indent();
+		for ( int i = 0; i < numWorkers; i++ ) {
+			ImGui::Text( "Worker %d has produced %f", i, spaceGameData.workers[ i ].lifetimeProduction );
+		}
+		ImGui::Unindent();
+
+		spaceGameData.update();
+		if ( ImGui::Button( "Reset" ) ) {
 
 			// but also you can call functions etc
-			spaceGameData.spaceGameFunction();
+			spaceGameData.reset();
 		}
 
 		ImGui::End();
