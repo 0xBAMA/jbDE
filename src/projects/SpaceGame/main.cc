@@ -1,9 +1,9 @@
 #include "../../engine/engine.h"
 
-class engineDemo final : public engineBase { // sample derived from base engine class
+class SpaceGame final : public engineBase { // sample derived from base engine class
 public:
-	engineDemo () { Init(); OnInit(); PostInit(); }
-	~engineDemo () { Quit(); }
+	SpaceGame () { Init(); OnInit(); PostInit(); }
+	~SpaceGame () { Quit(); }
 
 	void OnInit () {
 		ZoneScoped;
@@ -11,7 +11,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
-			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/EngineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
+			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/SpaceGame/shaders/draw.cs.glsl" ).shaderHandle;
 
 
 		}
@@ -145,7 +145,7 @@ public:
 };
 
 int main ( int argc, char *argv[] ) {
-	engineDemo engineInstance;
+	SpaceGame engineInstance;
 	while( !engineInstance.MainLoop() );
 	return 0;
 }
