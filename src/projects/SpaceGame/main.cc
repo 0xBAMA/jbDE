@@ -1,9 +1,12 @@
 #include "../../engine/engine.h"
+#include "sim.h"
 
 class SpaceGame final : public engineBase { // sample derived from base engine class
 public:
 	SpaceGame () { Init(); OnInit(); PostInit(); }
 	~SpaceGame () { Quit(); }
+
+	spaceGameData_t spaceGameData;
 
 	void OnInit () {
 		ZoneScoped;
@@ -35,9 +38,14 @@ public:
 		ImGui::Begin( "Window" );
 
 		ImGui::Text( "This is some text" );
+		ImGui::Text( "This is an int from the class: %d", spaceGameData.spaceGameInt );
 
 		if ( ImGui::Button( "This is a button" ) ) {
 			cout << "it says the n word when you press it" << endl;
+
+			// but also you can call functions etc
+			spaceGameData.spaceGameFunction();
+
 		}
 
 		ImGui::End();
