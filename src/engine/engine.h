@@ -10,6 +10,7 @@ protected:
 	layerManager textRenderer;			// text renderer framework
 	orientTrident trident;				// orientation gizmo from Voraldo13
 	textureManager_t textureManager;	// simplified texture interface
+	inputHandler_t inputHandler;		// improved input handling (rising, falling edge)
 
 	// shaderManager_t shaderManager;	// shader compilation + management of uniforms + texture/image bindings would be nice
 

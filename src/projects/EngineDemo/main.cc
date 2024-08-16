@@ -105,9 +105,6 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// current state of the whole keyboard
-		static inputHandler_t inputHandler;
-
 		// new data into the input handler
 		inputHandler.update();
 
