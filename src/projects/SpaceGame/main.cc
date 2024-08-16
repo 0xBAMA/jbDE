@@ -33,7 +33,6 @@ public:
 	void ImguiPass () {
 		ZoneScoped;
 
-
 		// =============================================================
 		ImGui::Begin( "Window" );
 
@@ -45,16 +44,10 @@ public:
 
 			// but also you can call functions etc
 			spaceGameData.spaceGameFunction();
-
 		}
 
 		ImGui::End();
 		// =============================================================
-
-
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
-		}
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
@@ -63,9 +56,7 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
-		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
-
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
+		// QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
 
 	void DrawAPIGeometry () {
