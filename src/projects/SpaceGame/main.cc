@@ -35,22 +35,55 @@ public:
 
 		// =============================================================
 		ImGui::Begin( "Window" );
-
-		ImGui::Text( "Total Stocks: %f", spaceGameData.totalProduce );
-
-		ImGui::Text( "Workers have produced:" );
+		// =============================================================
+		ImGui::Text( "Workers have resources:" );
 		ImGui::Indent();
-		for ( int i = 0; i < numWorkers; i++ ) {
-			ImGui::Text( "Worker %d has produced %f", i, spaceGameData.workers[ i ].lifetimeProduction );
+		for ( int i = 0; i < NUM_WORKERS; i++ ) {
+			std::stringstream ss;
+			if ( i < 10 ) ss << " ";
+			ss << "| ";
+			for ( int j = 0; j < NUM_RESOURCES; j++ ) {
+				// listen, I don't even want to hear about it
+				ss << std::setprecision( 2 ) << std::setw( 8 ) << std::setfill( '.' ) << std::fixed << spaceGameData.workers[ i ].ledger[ j ] << " | ";
+			}
+			ImGui::Text( "Worker %d has %s", i, ss.str().c_str() );
 		}
 		ImGui::Unindent();
-
-		spaceGameData.update();
-		if ( ImGui::Button( "Reset" ) ) {
-
-			// but also you can call functions etc
-			spaceGameData.reset();
+		// =============================================================
+		ImGui::Text( "Markets have resources:" );
+		ImGui::Indent();
+		for ( int i = 0; i < NUM_MARKETS; i++ ) {
+			std::stringstream ss;
+			if ( i < 10 ) ss << " ";
+			ss << "| ";
+			for ( int j = 0; j < NUM_RESOURCES; j++ ) {
+				// listen, I don't even want to hear about it
+				ss << std::setprecision( 2 ) << std::setw( 8 ) << std::setfill( '.' ) << std::fixed << spaceGameData.markets[ i ].ledger[ j ] << " | ";
+			}
+			ImGui::Text( "Market %d has %s", i, ss.str().c_str() );
 		}
+		ImGui::Unindent();
+		// =============================================================
+		ImGui::Text( "Sources have resources:" );
+		ImGui::Indent();
+		for ( int i = 0; i < NUM_SOURCES; i++ ) {
+			std::stringstream ss;
+			if ( i < 10 ) ss << " ";
+			ss << "| ";
+			for ( int j = 0; j < NUM_RESOURCES; j++ ) {
+				// listen, I don't even want to hear about it
+				ss << std::setprecision( 2 ) << std::setw( 8 ) << std::setfill( '.' ) << std::fixed << spaceGameData.sources[ i ].dropAmounts[ j ] << " | ";
+			}
+			ImGui::Text( "Source %d (%.2f remaining) gives %s", i, spaceGameData.sources[ i ].amountLeft, ss.str().c_str() );
+		}
+		ImGui::Unindent();
+		// =============================================================
+		spaceGameData.update();
+
+		// if ( ImGui::Button( "Reset" ) ) {
+			// but also you can call functions etc
+			// spaceGameData
+		// }
 
 		ImGui::End();
 		// =============================================================
