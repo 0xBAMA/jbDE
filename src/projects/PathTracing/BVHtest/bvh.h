@@ -56,6 +56,22 @@ struct triangle_t {
 	}
 };
 
+struct aabb_t {
+	vec3 mins = vec3(  1e30f );
+	vec3 maxs = vec3( -1e30f );
+
+	void growToInclude ( vec3 p ) {
+		// update bbox minimums, with this new point
+		mins.x = std::min( mins.x, p.x );
+		mins.y = std::min( mins.y, p.y );
+		mins.z = std::min( mins.z, p.z );
+		// and same for bbox maximums
+		maxs.x = std::max( maxs.x, p.x );
+		maxs.y = std::max( maxs.y, p.y );
+		maxs.z = std::max( maxs.z, p.z );
+	}
+};
+
 // for bounding boxes
 static inline bool IntersectAABB ( const ray_t &ray, const vec3 bboxmin, const vec3 bboxmax ) {
 	float tx1 = ( bboxmin.x - ray.origin.x ) / ray.direction.x, tx2 = ( bboxmax.x - ray.origin.x ) / ray.direction.x;
@@ -170,36 +186,18 @@ struct bvh_t {
 	void UpdateNodeBounds ( uint32_t nodeIndex ) {
 		// calculate the bounds for a BVH node, based on contained primitives
 		bvhNode_t &node = bvhNodes[ nodeIndex ];
-		node.aabbMin = vec3( 1e30f );
-		node.aabbMax = vec3( -1e30f );
+
+		aabb_t bbox;
 		for ( uint i = 0; i < node.primitiveCount; i++ ) {
 			triangle_t &leafTriangle = triangleList[ triangleIndices[ node.firstPrimitiveIdx + i ] ];
 
-			// this is shorter with helper functions, but it's not that big a deal
-			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex0.x );
-			node.aabbMin.y = std::min( node.aabbMin.y, leafTriangle.vertex0.y );
-			node.aabbMin.z = std::min( node.aabbMin.z, leafTriangle.vertex0.z );
-
-			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex1.x );
-			node.aabbMin.y = std::min( node.aabbMin.y, leafTriangle.vertex1.y );
-			node.aabbMin.z = std::min( node.aabbMin.z, leafTriangle.vertex1.z );
-
-			node.aabbMin.x = std::min( node.aabbMin.x, leafTriangle.vertex2.x );
-			node.aabbMin.y = std::min( node.aabbMin.y, leafTriangle.vertex2.y );
-			node.aabbMin.z = std::min( node.aabbMin.z, leafTriangle.vertex2.z );
-
-			node.aabbMax.x = std::max( node.aabbMax.x, leafTriangle.vertex0.x );
-			node.aabbMax.y = std::max( node.aabbMax.y, leafTriangle.vertex0.y );
-			node.aabbMax.z = std::max( node.aabbMax.z, leafTriangle.vertex0.z );
-
-			node.aabbMax.x = std::max( node.aabbMax.x, leafTriangle.vertex1.x );
-			node.aabbMax.y = std::max( node.aabbMax.y, leafTriangle.vertex1.y );
-			node.aabbMax.z = std::max( node.aabbMax.z, leafTriangle.vertex1.z );
-
-			node.aabbMax.x = std::max( node.aabbMax.x, leafTriangle.vertex2.x );
-			node.aabbMax.y = std::max( node.aabbMax.y, leafTriangle.vertex2.y );
-			node.aabbMax.z = std::max( node.aabbMax.z, leafTriangle.vertex2.z );
+			bbox.growToInclude( leafTriangle.vertex0 );
+			bbox.growToInclude( leafTriangle.vertex1 );
+			bbox.growToInclude( leafTriangle.vertex2 );
 		}
+
+		node.aabbMax = bbox.maxs;
+		node.aabbMin = bbox.mins;
 	}
 
 	void Subdivide ( uint32_t nodeIndex ) {
