@@ -126,7 +126,8 @@ struct bvh_t {
 	SoftRast s;
 	void Load () {
 		// s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
-		s.LoadModel( "../San_Miguel/san-miguel-low-poly.obj", "../San_Miguel/" );
+		// s.LoadModel( "../San_Miguel/san-miguel-low-poly.obj", "../San_Miguel/" );
+		s.LoadModel( "../birdOfPrey/birdOfPrey.obj", "../birdOfPrey/textures/" );
 
 		// and then get the triangles from here
 		triangleList.resize( 0 );
@@ -368,7 +369,7 @@ struct testRenderer_t {
 	static constexpr uint32_t totalTileCount = std::ceil( X_IMAGE_DIM / TILESIZE_XY ) * ( std::ceil( Y_IMAGE_DIM / TILESIZE_XY ) + 1 );
 
 	// camera parameterization could use work
-	const vec3 eyeLocation = vec3( -100.0f, 600.0f, 0.0f );
+	const vec3 eyeLocation = vec3( 0.0f, 2.0f, 0.0f );
 	rng jitter = rng( 0.0f, 1.0f );
 	rng centeredJitter = rng( -1.0f, 1.0f );
 
@@ -478,13 +479,13 @@ struct testRenderer_t {
 
 							for ( uint i = 0; i < NUM_SAMPLES; i++ ) {
 								// do the shit
-								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 1.5f, 0.8f );
-								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -5.8f, -6.0f );
+								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.5f, 1.5f );
+								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -2.0f, 2.0f );
 
 								// test a ray against the triangles
 								ray_t ray;
-								ray.origin = 100.0f * vec3( xRemap, yRemap, 0.0f ) + eyeLocation;
-								ray.direction = normalize( vec3( 0.0f, 0.0f, 1.0f ) );
+								ray.origin = vec3( xRemap, 0.0f, yRemap ) + eyeLocation;
+								ray.direction = normalize( vec3( 0.0f, -1.0f, 0.0f ) );
 
 								accelerationStructure.acceleratedTraversal( ray );
 
