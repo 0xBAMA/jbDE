@@ -173,33 +173,6 @@ struct bvh_t {
 		}
 	}
 
-
-	// // before getting into loading models, specifically, let's do some placeholder geometry
-	// void RandomTriangles ( int num ) {
-	// 	triangleList.resize( 0 );
-
-	// 	rng val = rng( -1.0f, 1.0f );
-	// 	rng col = rng( 0.0f, 1.0f );
-	// 	for ( int i = 0; i < num; i++ ) {
-	// 		vec3 r0 = vec3( val(), val(), val() );
-	// 		vec3 r1 = vec3( val(), val(), val() );
-	// 		vec3 r2 = vec3( val(), val(), val() );
-	// 		triangle_t triangle;
-
-	// 		triangle.vertex0 = 10.0f * r0;
-	// 		triangle.vertex1 = triangle.vertex0 + r1;
-	// 		triangle.vertex2 = triangle.vertex1 + r2;
-
-	// 		triangle.color0 = vec3( col(), col(), col() );
-	// 		triangle.color1 = vec3( col(), col(), col() );
-	// 		triangle.color2 = vec3( col(), col(), col() );
-
-	// 		triangleList.push_back( triangle );
-	// 	}
-
-	// 	cout << newline << "Created " << triangleList.size() << " triangles" << newline;
-	// }
-
 	void UpdateNodeBounds ( uint32_t nodeIndex ) {
 		// calculate the bounds for a BVH node, based on contained primitives
 		bvhNode_t &node = bvhNodes[ nodeIndex ];
@@ -230,6 +203,7 @@ struct bvh_t {
 			abs( currentNode.aabbMin.y - currentNode.aabbMax.y ),
 			abs( currentNode.aabbMin.z - currentNode.aabbMax.z )
 		);
+
 		int axis = 0; // initially pick x axis
 		if ( axisSpans.y > axisSpans.x ) axis = 1; // we see y axis is larger than x: pick it, at least temporarily
 		if ( axisSpans.z > axisSpans[ axis ] ) axis = 2; // and again for the z axis, pick it, if larger
