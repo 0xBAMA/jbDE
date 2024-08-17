@@ -132,6 +132,9 @@ struct bvh_t {
 		// and then get the triangles from here
 		triangleList.resize( 0 );
 
+		const bool reportbbox = true;
+		aabb_t modelbbox;
+
 		for ( auto& triangle : s.triangles ) {
 			triangle_t loaded;
 
@@ -139,6 +142,12 @@ struct bvh_t {
 			loaded.vertex0 = triangle.p0;
 			loaded.vertex1 = triangle.p1;
 			loaded.vertex2 = triangle.p2;
+
+			if ( reportbbox == true ) {
+				modelbbox.growToInclude( triangle.p0 );
+				modelbbox.growToInclude( triangle.p1 );
+				modelbbox.growToInclude( triangle.p2 );
+			}
 
 			// vertex texcoords
 			loaded.texcoord0 = triangle.t0;
@@ -156,7 +165,14 @@ struct bvh_t {
 		}
 
 		cout << newline << "Created " << triangleList.size() << " triangles" << newline;
+
+		if ( reportbbox == true ) {
+			cout << "x: " << modelbbox.mins.x << " " << modelbbox.maxs.x << newline;
+			cout << "y: " << modelbbox.mins.y << " " << modelbbox.maxs.y << newline;
+			cout << "z: " << modelbbox.mins.z << " " << modelbbox.maxs.z << newline;
+		}
 	}
+
 
 	// // before getting into loading models, specifically, let's do some placeholder geometry
 	// void RandomTriangles ( int num ) {
