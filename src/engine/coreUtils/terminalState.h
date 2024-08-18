@@ -21,13 +21,23 @@ struct command_t {
 };
 
 enum argType {
-	BOOL = 0, INT = 1 // ...
+	BOOL = 0,
+
+	INT = 1,
+	IVEC2 = 2,
+	IVEC3 = 3,
+	IVEC4 = 4,
+
+	FLOAT = 5,
+	VEC2 = 6,
+	VEC3 = 7,
+	VEC4 = 8
 };
 
 struct argStruct_t {
 	string label;
 	argType type;
-	vec4 data = vec4( 0.0f );
+	vec4 data;
 };
 
 struct argList_t {
@@ -256,6 +266,7 @@ struct terminalState_t {
 		cursorX = 0;
 
 		string commandName = commandString.substr( 0, commandString.find( " " ) );
+		commandString.erase( 0, commandName.length() + 1 );
 
 		// does this match any of the registered commands with no args
 		bool matchFound = false;
@@ -267,35 +278,148 @@ struct terminalState_t {
 		}
 
 		// how about registered commands with args
-		for ( size_t i = 0; i < commands.size(); i++ ) {
+		std::stringstream argstream( commandString );
+
+		cout << "parsing command \"" << commandName << "\" with arg string \"" << argstream.str() << "\"" << newline;
+
+		for ( size_t i = 0; i < commandsWithArgs.size(); i++ ) {
 			if ( commandsWithArgs[ i ].commandName == commandName ) {
 				matchFound = true;
 
 				// get the labels, types
 				argList_t args = commandsWithArgs[ i ].args;
 
-				for ( int i = 0; i < args.count(); i++ ) {
+				// for parsing
+				vec4 temp = vec4( 0.0f );
+				bool tempb = false;
+				int tempi = 0;
+				float tempf = 0.0f;
+
+				bool fail = false;
+				int count = 0;
+
+				for ( uint i = 0; i < args.count(); i++ ) {
 					switch ( args[ i ].type ) { // for each arg
 						case BOOL:
-							// read in a bool
-							// put it in args[ i ].data.x
+							// read in a bool, put it in args[ i ].data.x
+							if ( ( argstream >> std::boolalpha >> tempb ) ) {
+								temp[ 0 ] = tempb ? 1.0f : 0.0f;
+							} else {
+								argstream.clear();
+								fail = true;
+							}
 						break;
 
 						case INT:
-							// read in an int
-							// put it in args[ i ].data.x
+							// read in an int, put it in args[ i ].data.x
+							if ( ( argstream >> tempi ) ) {
+								temp[ 0 ] = tempi;
+							} else {
+								argstream.clear();
+								fail = true;
+							}
 						break;
 
-						// more
+						case IVEC2:
+							// read in two ints, put it in args[ i ].data.xy
+							for ( int j = 0; j < 2; j++ ) {
+								if ( ( argstream >> tempi ) ) {
+									temp[ j ] = tempi;
+								} else {
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
 
+						case IVEC3:
+							// read in three ints, put it in args[ i ].data.xyz
+							for ( int j = 0; j < 3; j++ ) {
+								if ( ( argstream >> tempi ) ) {
+									temp[ j ] = tempi;
+								} else {
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						case IVEC4:
+							// read in four ints, put it in args[ i ].data.xyzw
+							for ( int j = 0; j < 4; j++ ) {
+								if ( ( argstream >> tempi ) ) {
+									temp[ j ] = tempi;
+								} else {
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						case FLOAT:
+							// read in single float, put it in args[ i ].data.x
+							if ( ( argstream >> tempf ) ) {
+								temp[ 0 ] = tempf;
+							} else {
+								argstream.clear();
+								fail = true;
+							}
+						break;
+
+						case VEC2:
+							// read in two floats, put it in args[ i ].data.xy
+							for ( int j = 0; j < 2; j++ ) {
+								if ( ( argstream >> tempf ) ) {
+									temp[ j ] = tempf;
+								} else {
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						case VEC3:
+							// read in three floats, put it in args[ i ].data.xyz
+							for ( int j = 0; j < 3; j++ ) {
+								if ( ( argstream >> tempf ) ) {
+									temp[ j ] = tempf;
+								} else {
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						case VEC4:
+							// read in four floats, put it in args[ i ].data.xyzw
+							for ( int j = 0; j < 4; j++ ) {
+								if ( ( argstream >> tempf ) ) {
+									temp[ j ] = tempf;
+								} else {
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						default:
+						break;
 					}
 
-					// parse the arguments, into the struct
-						// input validation needs to happen here, too - report and break if failing
+					args[ i ].data = temp;
+
+					// parse results
+					std::stringstream ss;
+					ss << "  Parse Result for " << args[ i ].label << " " << temp[ 0 ] << " " << temp[ 1 ] << " " << temp[ 2 ] << " " << temp[ 3 ];
+					history.push_back( { ss.str(), "" } );
 				}
 
-				// commandsWithArgs[ i ].args = args;
-				commandsWithArgs[ i ].invoke();
+				if ( !fail ) {
+					commandsWithArgs[ i ].invoke( args );
+				} else {
+					history.push_back( { "  Command " + commandName + " argument parse error", "" } );
+					history.push_back( { "   expected " + commandsWithArgs[ i ].seqString(), "" } );
+				}
 			}
 		}
 
