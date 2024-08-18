@@ -322,92 +322,32 @@ struct terminalState_t {
 							}
 						break;
 
-						case INT:
-							// read in an int, put it in args[ i ].data.x
-							if ( ( argstream >> tempi ) ) {
-								temp[ 0 ] = tempi;
-							} else {
-								argstream.clear();
-								fail = true;
-							}
-						break;
-
-						case IVEC2:
-							// read in two ints, put it in args[ i ].data.xy
-							for ( int j = 0; j < 2; j++ ) {
+						case IVEC4:	count++;
+						case IVEC3:	count++;
+						case IVEC2:	count++;
+						case INT:	count++;
+							// read in up to four ints, put it in xyzw
+							for ( int k = 0; k < count; k++ ) {
 								if ( ( argstream >> tempi ) ) {
-									temp[ j ] = tempi;
+									temp[ k ] = tempi;
 								} else {
+									cout << "int parse error" << endl;
 									argstream.clear();
 									fail = true;
 								}
 							}
 						break;
 
-						case IVEC3:
-							// read in three ints, put it in args[ i ].data.xyz
-							for ( int j = 0; j < 3; j++ ) {
-								if ( ( argstream >> tempi ) ) {
-									temp[ j ] = tempi;
-								} else {
-									argstream.clear();
-									fail = true;
-								}
-							}
-						break;
-
-						case IVEC4:
-							// read in four ints, put it in args[ i ].data.xyzw
-							for ( int j = 0; j < 4; j++ ) {
-								if ( ( argstream >> tempi ) ) {
-									temp[ j ] = tempi;
-								} else {
-									argstream.clear();
-									fail = true;
-								}
-							}
-						break;
-
-						case FLOAT:
-							// read in single float, put it in args[ i ].data.x
-							if ( ( argstream >> tempf ) ) {
-								temp[ 0 ] = tempf;
-							} else {
-								argstream.clear();
-								fail = true;
-							}
-						break;
-
-						case VEC2:
-							// read in two floats, put it in args[ i ].data.xy
-							for ( int j = 0; j < 2; j++ ) {
+						case VEC4:	count++;
+						case VEC3:	count++;
+						case VEC2:	count++;
+						case FLOAT:	count++;
+							// read in up to four floats, put it in xyzw
+							for ( int k = 0; k < 4; k++ ) {
 								if ( ( argstream >> tempf ) ) {
-									temp[ j ] = tempf;
+									temp[ k ] = tempf;
 								} else {
-									argstream.clear();
-									fail = true;
-								}
-							}
-						break;
-
-						case VEC3:
-							// read in three floats, put it in args[ i ].data.xyz
-							for ( int j = 0; j < 3; j++ ) {
-								if ( ( argstream >> tempf ) ) {
-									temp[ j ] = tempf;
-								} else {
-									argstream.clear();
-									fail = true;
-								}
-							}
-						break;
-
-						case VEC4:
-							// read in four floats, put it in args[ i ].data.xyzw
-							for ( int j = 0; j < 4; j++ ) {
-								if ( ( argstream >> tempf ) ) {
-									temp[ j ] = tempf;
-								} else {
+									cout << "float parse error" << endl;
 									argstream.clear();
 									fail = true;
 								}
