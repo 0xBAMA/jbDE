@@ -27,13 +27,15 @@ enum argType {
 struct argStruct_t {
 	string label;
 	argType type;
-	// void * data; // todo... probably just allocate enough for a vec4 (16 bytes) during construction, deallocate during destruction
+	vec4 data = vec4( 0.0f );
 };
 
 struct argList_t {
 	std::vector< argStruct_t > args;
 	argList_t ( std::vector< argStruct_t > args_in ) :
 		args( args_in ) {}
+
+	size_t count () { return args.size(); }
 
 	argStruct_t operator [] ( string label ) {
 		for ( uint i = 0; i < args.size(); i++ ) {
@@ -42,6 +44,14 @@ struct argList_t {
 			}
 		}
 		return argStruct_t();
+	}
+
+	argStruct_t operator [] ( int idx ) {
+		if ( idx < count() ) {
+			return args[ idx ];
+		} else {
+			return argStruct_t();
+		}
 	}
 };
 
@@ -264,9 +274,25 @@ struct terminalState_t {
 				// get the labels, types
 				argList_t args = commandsWithArgs[ i ].args;
 
-				// for each arg
+				for ( int i = 0; i < args.count(); i++ ) {
+					switch ( args[ i ].type ) { // for each arg
+						case BOOL:
+							// read in a bool
+							// put it in args[ i ].data.x
+						break;
+
+						case INT:
+							// read in an int
+							// put it in args[ i ].data.x
+						break;
+
+						// more
+
+					}
+
 					// parse the arguments, into the struct
 						// input validation needs to happen here, too - report and break if failing
+				}
 
 				// commandsWithArgs[ i ].args = args;
 				commandsWithArgs[ i ].invoke();
