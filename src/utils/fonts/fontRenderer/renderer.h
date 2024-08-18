@@ -1,8 +1,6 @@
 #include "../../../engine/includes.h"
 #include "../../../data/colors.h"
 
-#include "terminalState.h"
-
 #ifndef FONTRENDERER_H
 #define FONTRENDERER_H
 

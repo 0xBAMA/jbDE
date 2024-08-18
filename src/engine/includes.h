@@ -142,6 +142,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // orientation trident
 #include "../utils/trident/trident.h"
 
+// terminal
+#include "./coreUtils/terminalState.h"
+
 // font rendering header
 #include "../utils/fonts/fontRenderer/renderer.h"
 
