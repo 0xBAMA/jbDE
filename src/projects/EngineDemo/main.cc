@@ -5,8 +5,6 @@ public:
 	engineDemo () { Init(); OnInit(); PostInit(); }
 	~engineDemo () { Quit(); }
 
-	bool terminalActive = true;
-
 	void OnInit () {
 		ZoneScoped;
 		{
@@ -111,7 +109,7 @@ public:
 		inputHandler.update();
 
 		// pass any signals into the terminal
-		if ( terminalActive == true ) {
+		if ( terminal.active == true ) {
 			terminal.update( inputHandler );
 		}
 	}
@@ -170,9 +168,9 @@ public:
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 
-			// show terminal
-			if ( terminalActive == true )
-				textRenderer.drawTerminal();
+			// show terminal, if active
+			if ( terminal.active == true )
+				textRenderer.drawTerminal( terminal );
 
 			// put the result on the display
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );

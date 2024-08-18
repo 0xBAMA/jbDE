@@ -9,6 +9,9 @@ struct historyItem_t {
 };
 
 struct terminalState_t {
+	// is this taking input, etc
+	bool active = true;
+
 	// display extents
 	const int baseX = 10;
 	const int baseY = 5;
