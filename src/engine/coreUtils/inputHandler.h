@@ -148,6 +148,11 @@ struct keyboardState_t {
 		ivec2 loc = getLocation( key );
 		return ( data[ loc.x ] >> loc.y ) & 1;
 	}
+
+	bool alphasActive () {
+		const uint32_t alphaMask = 0b0000'0111'1111'1111'1111'1111'1111'1110;
+		return data[ 0 ] & alphaMask;
+	}
 };
 
 #define KEYSTATE_ON			0
