@@ -101,6 +101,16 @@ public:
 				pQuit = true;
 			} } );
 
+			terminal.addCommand( { "list", [=] () {
+				terminal.history.push_back( { "Current Command List:", "" } );
+				for ( auto& command : terminal.commands ) {
+					terminal.history.push_back( { command.commandName, "  " } );
+				}
+				for ( auto& command : terminal.commandsWithArgs ) {
+					terminal.history.push_back( { command.commandName + ": " + command.seqString(), "  " } );
+				}
+			} } );
+
 			terminal.addCommand( { "report",
 				{ // parameters list
 					{ "boolParameter", BOOL },
@@ -108,9 +118,29 @@ public:
 				},
 				[=] ( argList_t args ) {
 					terminal.history.push_back( { "  Reporting:", "" } );
-					terminal.history.push_back( { "   " + to_string( args[ "boolParameter" ].type ), "" } );
+					terminal.history.push_back( { "   " + to_string( bool( args[ "boolParameter" ].data.x ) ), "" } );
 					terminal.history.push_back( { "   " + to_string( args[ "intParameter" ].type ), "" } );
 			} } );
+
+			terminal.addCommand( { "bg",
+				{ // parameters list
+					{ "color", IVEC3 }
+				},
+				[=] ( argList_t args ) {
+					cout << "Setting bg color: " << args[ "color" ].data.x << " " << args[ "color" ].data.y << " " << args[ "color" ].data.z << endl;
+					terminal.bgColor = ivec3( args[ "color" ].data.xyz() );
+			} } );
+
+			terminal.addCommand( { "fg",
+				{ // parameters list
+					{ "color", IVEC3 }
+				},
+				[=] ( argList_t args ) {
+					cout << "Setting fg color: " << args[ "color" ].data.x << " " << args[ "color" ].data.y << " " << args[ "color" ].data.z << endl;
+					terminal.fgColor = ivec3( args[ "color" ].data.xyz() );
+			} } );
+
+
 
 		}
 
