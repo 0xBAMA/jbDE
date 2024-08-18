@@ -32,15 +32,35 @@ enum argType {
 	FLOAT = 5,
 	VEC2 = 6,
 	VEC3 = 7,
-	VEC4 = 8
+	VEC4 = 8,
+
+	STRING = 9
 };
 
 struct argStruct_t {
 	string label;
 	argType type;
 	vec4 data;
+	string stringData;
 
-	// argStruct_t
+	string getStringRepresentation () {
+		switch ( type ) {
+			case BOOL: return ( data.x == 0.0f ) ? string( "false" ) : string( "true" ); break;
+
+			case INT: return to_string( int( data.x ) ); break;
+			case IVEC2: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ); break;
+			case IVEC3: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ); break;
+			case IVEC4: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ) + string( " " ) + to_string( int( data.w ) ); break;
+
+			case FLOAT: return to_string( data.x ); break;
+			case VEC2: return to_string( data.x ) + string( " " ) + to_string( data.y ); break;
+			case VEC3: return to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ); break;
+			case VEC4: return to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ) + string( " " ) + to_string( data.w ); break;
+
+			case STRING: return string( "\"" ) + stringData + string( "\"" ); break;
+			default: return string(); break;
+		}
+	}
 };
 
 struct argList_t {
@@ -312,6 +332,7 @@ struct terminalState_t {
 				bool tempb = false;
 				int tempi = 0;
 				float tempf = 0.0f;
+				string temps;
 
 				bool fail = false;
 
@@ -360,11 +381,19 @@ struct terminalState_t {
 							}
 						break;
 
+						case STRING:
+							if ( ( argstream >> temps ) ) { /* neat */ } else {
+								cout << "string parse error" << endl;
+								argstream.clear();
+								fail = true;
+							}
+						break;
+
 						default:
 						break;
 					}
 
-					args.args.push_back( { commandsWithArgs[ i ].args[ j ].label, commandsWithArgs[ i ].args[ j ].type, temp } );
+					args.args.push_back( { commandsWithArgs[ i ].args[ j ].label, commandsWithArgs[ i ].args[ j ].type, temp, temps } );
 				}
 
 				if ( !fail ) {
