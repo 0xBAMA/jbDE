@@ -524,8 +524,9 @@ public:
 			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp + ts.history[ line ].commandText, ts.fgColor );
 		}
 
-		// draw an underscore
-		layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( GOLD, '_' ) );
+		if ( ts.active ) { // draw an underscore at the cursor location
+			layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( ts.cuColor, '_' ) );
+		}
 	}
 };
 
