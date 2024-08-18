@@ -137,6 +137,13 @@ public:
 			if ( inputHandler.getState4( KEY_RIGHT ) == KEYSTATE_RISING ) {
 				textRenderer.ts.cursorRight( control );
 			}
+			if ( inputHandler.getState4( KEY_HOME ) == KEYSTATE_RISING ) {
+				textRenderer.ts.home();
+			}
+			if ( inputHandler.getState4( KEY_END ) == KEYSTATE_RISING ) {
+				textRenderer.ts.end();
+			}
+
 
 		// control inputs
 			if ( inputHandler.getState4( KEY_BACKSPACE ) == KEYSTATE_RISING ) {

@@ -81,6 +81,14 @@ struct terminalState_t {
 		}
 	}
 
+	void home () {
+		cursorX = 0;
+	}
+
+	void end () {
+		cursorX = currentLine.length();
+	}
+
 	void addChar ( char c ) {
 		// add this char at the cursor
 		currentLine.insert( currentLine.begin() + cursorX, c );
