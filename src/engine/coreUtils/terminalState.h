@@ -10,14 +10,41 @@ struct historyItem_t {
 
 struct command_t {
 	string commandName;
-	std::function<void()> func;
-	command_t ( string commandName_in, std::function<void()> func_in ) :
+	std::function< void() > func;
+
+	command_t ( string commandName_in, std::function< void() > func_in ) :
 		commandName( commandName_in ), func( func_in ) {}
 
 	void invoke () {
 		func();
 	}
 };
+
+enum argType {
+	BOOL = 0, INT = 1 // ...
+};
+
+struct argStruct_t {
+	string label;
+	argType type;
+	// void * data; // todo... probably just allocate enough for a vec4 (16 bytes) during construction, deallocate during destruction
+};
+
+struct argList_t {
+	std::vector< argStruct_t > args;
+	argList_t ( std::vector< argStruct_t > args_in ) :
+		args( args_in ) {}
+
+	argStruct_t operator [] ( string label ) {
+		for ( uint i = 0; i < args.size(); i++ ) {
+			if ( args[ i ].label == label ) {
+				return args[ i ];
+			}
+		}
+		return argStruct_t();
+	}
+};
+
 struct commandWithArgs_t {
 	string commandName;
 	argList_t args;
@@ -54,7 +81,7 @@ struct terminalState_t {
 	// command prompt presented to the user
 	string promptString = string( "> " );
 
-	// handling of commands
+	// handling of commands with no arguments
 	std::vector< command_t > commands;
 	void addCommand ( command_t command ) {
 		commands.push_back( command );
@@ -66,6 +93,7 @@ struct terminalState_t {
 		commandsWithArgs.push_back( command );
 	}
 
+	// init with a welcome message
 	terminalState_t () {
 		history.push_back( historyItem_t( "Welcome to jbDE", fixedWidthTimeString() + string( ": " ) ) );
 	}
