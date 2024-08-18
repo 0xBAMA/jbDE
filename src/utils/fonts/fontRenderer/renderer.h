@@ -521,7 +521,8 @@ public:
 		// show the lines of text in the history
 		const int sizeHistory = ts.history.size();
 		for ( int line = sizeHistory - 1; line >= std::max( sizeHistory - ts.height, 0 ); line-- ) {
-			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp + ts.history[ line ].commandText, ts.fgColor );
+			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp, ts.tsColor );
+			layers[ 1 ].WriteString( glm::uvec2( ts.baseX + ts.history[ line ].timestamp.length(), ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].commandText, ts.history[ line ].color );
 		}
 
 		if ( ts.active ) { // draw an underscore at the cursor location

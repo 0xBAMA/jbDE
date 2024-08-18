@@ -3,9 +3,10 @@
 struct historyItem_t {
 	string commandText;
 	string timestamp;
+	ivec3 color;
 
-	historyItem_t ( string commandText_in, string timestamp_in ) :
-		commandText( commandText_in ), timestamp( timestamp_in ) {}
+	historyItem_t ( string commandText_in, string timestamp_in, ivec3 color_in = ivec3( 137, 162, 87 ) ) :
+		commandText( commandText_in ), timestamp( timestamp_in ), color( color_in ) {}
 };
 
 struct command_t {
@@ -99,6 +100,7 @@ struct terminalState_t {
 
 	ivec3 bgColor = ivec3(  17,  35,  24 );
 	ivec3 fgColor = ivec3( 137, 162,  87 );
+	ivec3 tsColor = ivec3(  72, 120,  40 );
 
 	// display extents
 	const int baseX = 10;
