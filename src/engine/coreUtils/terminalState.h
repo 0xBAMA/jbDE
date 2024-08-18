@@ -56,7 +56,7 @@ struct argList_t {
 		return argStruct_t();
 	}
 
-	argStruct_t operator [] ( int idx ) {
+	argStruct_t operator [] ( uint idx ) {
 		if ( idx < count() ) {
 			return args[ idx ];
 		} else {
@@ -73,14 +73,26 @@ struct commandWithArgs_t {
 	commandWithArgs_t ( string commandName_in, std::vector< argStruct_t > args_in, std::function< void( argList_t ) > func_in ) :
 		commandName( commandName_in ), args( args_in ), func( func_in ) {}
 
-	void invoke () {
-		func( args );
+	void invoke ( argList_t args_exec ) {
+		func( args_exec );
+	}
+
+	string seqString () {
+		string labels[] = { "(bool) ", "(int) ", "(int2) ", "(int3) ", "(int4) ", "(float) ", "(vec2) ", "(vec3) ", "(vec4) " };
+		string temp;
+		for ( uint i = 0; i < args.count(); i++ ) {
+			temp += args[ i ].label + labels[ int( args[ i ].type ) ];
+		}
+		return temp;
 	}
 };
 
 struct terminalState_t {
 	// is this taking input, etc
 	bool active = true;
+
+	ivec3 bgColor = ivec3(  17,  35,  24 );
+	ivec3 fgColor = ivec3( 137, 162,  87 );
 
 	// display extents
 	const int baseX = 10;
