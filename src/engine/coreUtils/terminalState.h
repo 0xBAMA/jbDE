@@ -12,9 +12,10 @@ struct historyItem_t {
 struct command_t {
 	string commandName;
 	std::function< void() > func;
+	string description;
 
-	command_t ( string commandName_in, std::function< void() > func_in ) :
-		commandName( commandName_in ), func( func_in ) {}
+	command_t ( string commandName_in, std::function< void() > func_in, string description_in = string() ) :
+		commandName( commandName_in ), func( func_in ), description( description_in ) {}
 
 	void invoke () {
 		func();
@@ -93,16 +94,17 @@ struct commandWithArgs_t {
 	string commandName;
 	argList_t args;
 	std::function< void( argList_t ) > func;
+	string description;
 
-	commandWithArgs_t ( string commandName_in, std::vector< argStruct_t > args_in, std::function< void( argList_t ) > func_in ) :
-		commandName( commandName_in ), args( args_in ), func( func_in ) {}
+	commandWithArgs_t ( string commandName_in, std::vector< argStruct_t > args_in, std::function< void( argList_t ) > func_in, string description_in = string() ) :
+		commandName( commandName_in ), args( args_in ), func( func_in ), description( description_in ) {}
 
 	void invoke ( argList_t args_exec ) {
 		func( args_exec );
 	}
 
 	string seqString () {
-		string labels[] = { " (bool), ", " (int), ", " (int2), ", " (int3), ", "(int4) ", " (float), ", " (vec2), ", " (vec3), ", " (vec4), " };
+		string labels[] = { " (bool), ", " (int), ", " (int2), ", " (int3), ", "(int4) ", " (float), ", " (vec2), ", " (vec3), ", " (vec4), ", " (string), " };
 		string temp;
 		for ( uint i = 0; i < args.count(); i++ ) {
 			temp += args[ i ].label + labels[ int( args[ i ].type ) ];
@@ -147,12 +149,13 @@ struct terminalState_t {
 	ivec3 bgColor = ivec3(  17,  35,  24 );
 	ivec3 fgColor = ivec3( 137, 162,  87 );
 	ivec3 tsColor = ivec3(  72, 120,  40 );
+	ivec3 cuColor = ivec3( 191, 146,  23 );
 
 	// display extents
 	const int baseX = 10;
 	const int baseY = 5;
-	const int width = 160;
-	const int height = 75;
+	const int width = 120;
+	const int height = 42;
 
 	// input cursor - 2d would be interesting
 	int cursorX = 0;
