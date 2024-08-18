@@ -509,14 +509,14 @@ public:
 
 
 	void drawTerminal ( terminalState_t &ts ) {
-		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( TERMBG, FILL_100 ) );
+		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( ts.bgColor, FILL_100 ) );
 
 		// clear the area containing the text
 		layers[ 1 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 
 		// show the current text entry prompt
-		layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), ts.promptString + ts.currentLine, TERMFG );
+		layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), ts.promptString + ts.currentLine, ts.fgColor );
 
 		// show the lines of text in the history
 		const int sizeHistory = ts.history.size();
