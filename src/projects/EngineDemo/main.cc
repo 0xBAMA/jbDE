@@ -99,17 +99,25 @@ public:
 
 			terminal.addCommand( { "quit", [=] () {
 				pQuit = true;
-			} } );
+			}, "Quit the engine." } );
 
 			terminal.addCommand( { "list", [=] () {
 				terminal.history.push_back( { "Current Command List:", "" } );
 				for ( auto& command : terminal.commands ) {
 					terminal.history.push_back( { command.commandName, "  " } );
+					if ( command.description.length() > 1 ) { // if we have a nonzero length description, show it
+						terminal.history.push_back( { command.description, "    ", ivec3( 166 ) } );
+					}
+					terminal.history.push_back( { "", "" } ); // padding line
 				}
 				for ( auto& command : terminal.commandsWithArgs ) {
 					terminal.history.push_back( { command.commandName + ": " + command.seqString(), "  " } );
+					if ( command.description.length() > 1 ) {
+						terminal.history.push_back( { command.description, "    ", ivec3( 166 ) } );
+					}
+					terminal.history.push_back( { "", "" } );
 				}
-			} } );
+			}, "List all the active commands." } );
 
 			terminal.addCommand( { "report",
 				{ // parameters list
@@ -128,7 +136,7 @@ public:
 				},
 				[=] ( argList_t args ) {
 					terminal.bgColor = ivec3( args[ "color" ].data.xyz() );
-			} } );
+			}, "Set Background Color." } );
 
 			terminal.addCommand( { "fg",
 				{ // parameters list
@@ -136,8 +144,31 @@ public:
 				},
 				[=] ( argList_t args ) {
 					terminal.fgColor = ivec3( args[ "color" ].data.xyz() );
-			} } );
+			}, "Set Foreground Color." } );
 
+			terminal.addCommand( { "ts",
+				{ // parameters list
+					{ "color", IVEC3 }
+				},
+				[=] ( argList_t args ) {
+					terminal.tsColor = ivec3( args[ "color" ].data.xyz() );
+			}, "Set Timestamp Color." } );
+
+			terminal.addCommand( { "cu",
+				{ // parameters list
+					{ "color", IVEC3 }
+				},
+				[=] ( argList_t args ) {
+					terminal.cuColor = ivec3( args[ "color" ].data.xyz() );
+			}, "Set Cursor Color." } );
+
+			terminal.addCommand( { "echo",
+				{ // parameters list
+					{ "string", STRING }
+				},
+				[=] ( argList_t args ) {
+					terminal.history.push_back( { args[ "string" ].stringData, "", GOLD } );
+			}, "Report back the given string argument." } );
 
 
 		// testing some cvar stuff
