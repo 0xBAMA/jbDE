@@ -77,10 +77,6 @@ struct commandWithArgs_t {
 		commandName( commandName_in ), args( args_in ), func( func_in ) {}
 
 	void invoke ( argList_t args_exec ) {
-		cout << "calling with " << args_exec.count() << " args" << endl;
-		for ( uint i = 0; i < args_exec.count(); i++ ) {
-			cout << i << " " << args_exec[ i ].label << " " << args_exec[ i ].data.x << " " << args_exec[ i ].data.y << " " << args_exec[ i ].data.z << " " << args[ i ].data.w << endl;
-		}
 		func( args_exec );
 	}
 
@@ -302,8 +298,6 @@ struct terminalState_t {
 		// how about registered commands with args
 		std::stringstream argstream( commandString );
 
-		cout << "parsing command \"" << commandName << "\" with arg string \"" << argstream.str() << "\"" << newline;
-
 		for ( size_t i = 0; i < commandsWithArgs.size(); i++ ) {
 			if ( commandsWithArgs[ i ].commandName == commandName ) {
 				matchFound = true;
@@ -369,11 +363,6 @@ struct terminalState_t {
 					}
 
 					args.args.push_back( { commandsWithArgs[ i ].args[ j ].label, commandsWithArgs[ i ].args[ j ].type, temp } );
-
-					// parse results
-					std::stringstream ss;
-					ss << "  Parse Result for " << commandsWithArgs[ i ].args[ j ].label << " " << temp[ 0 ] << " " << temp[ 1 ] << " " << temp[ 2 ] << " " << temp[ 3 ];
-					history.push_back( { ss.str(), "" } );
 				}
 
 				if ( !fail ) {
