@@ -45,6 +45,10 @@
 #define GREY_DD	glm::ivec3(  50,  50,  50 )
 #define BLACK	glm::ivec3(  16,  16,  16 )
 
+// terminal colors
+#define TERMBG	glm::ivec3(  17,  35,  24 )
+#define TERMFG	glm::ivec3( 137, 162,  87 )
+
 struct cChar {
 	unsigned char data[ 4 ] = { 255, 255, 255, 0 };
 	cChar() {}
@@ -507,34 +511,24 @@ public:
 
 
 	terminalState_t ts;
-	void initTerminal () {
-		ts.history.push_back( "First thing that happened" );
-		ts.history.push_back( "Second thing that happened" );
-		ts.history.push_back( "Third thing that happened" );
-		ts.history.push_back( "Fourth thing that happened" );
-		ts.history.push_back( "Fifth thing that happened" );
-
-		ts.currentLine = string( "Current input line" );
-	}
-
 	void drawTerminal () {
-		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_100 ) );
+		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( TERMBG, FILL_100 ) );
 
 		// clear the area containing the text
 		layers[ 1 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 
 		// show the current text entry prompt
-		layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), ts.currentLine, BLUE );
+		layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), ts.promptString + ts.currentLine, TERMFG );
 
 		// show the lines of text in the history
 		const int sizeHistory = ts.history.size();
 		for ( int line = sizeHistory - 1; line >= 0 ; line-- ) {
-			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ], BLUE );
+			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp + ts.history[ line ].commandText, TERMFG );
 		}
 
 		// draw an underscore
-		layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX, ts.baseY ), cChar( GOLD, '_' ) );
+		layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( GOLD, '_' ) );
 	}
 };
 
