@@ -8,6 +8,17 @@ struct historyItem_t {
 		commandText( commandText_in ), timestamp( timestamp_in ) {}
 };
 
+struct command_t {
+	string commandName;
+	std::function<void()> func;
+	command_t ( string commandName_in, std::function<void()> func_in ) :
+		commandName( commandName_in ), func( func_in ) {}
+
+	void invoke () {
+		func();
+	}
+};
+
 struct terminalState_t {
 	// is this taking input, etc
 	bool active = true;
@@ -30,6 +41,13 @@ struct terminalState_t {
 
 	// command prompt presented to the user
 	string promptString = string( "> " );
+
+	// handling of commands
+	std::vector< command_t > commands;
+	void addCommand ( command_t command ) {
+		commands.push_back( command );
+		command.invoke();
+	}
 
 	terminalState_t () {
 		history.push_back( historyItem_t( "Welcome to jbDE", fixedWidthTimeString() + string( ": " ) ) );
@@ -173,11 +191,27 @@ struct terminalState_t {
 		// push this line onto the history
 		history.push_back( historyItem_t( currentLine, fixedWidthTimeString() + string( ": " ) ) );
 
-		// clear the intput line
+		// command string, as given
+		string commandString = currentLine;
+
+		// clear the input line
 		currentLine.clear();
 
 		// reset the cursor
 		cursorX = 0;
+
+		// does this match any of the registered
+		string commandName = commandString.substr( 0, commandString.find( " " ) );
+		bool matchFound = false;
+		for ( size_t i = 0; i < commands.size(); i++ ) {
+			if ( commands[ i ].commandName == commandName ) {
+				matchFound = true;
+				commands[ i ].invoke();
+			}
+		}
+		if ( !matchFound ) {
+			history.push_back( historyItem_t( "  Command " + commandName + " not found", "" ) );
+		}
 	}
 
 	void cursorLeft ( bool control ) {

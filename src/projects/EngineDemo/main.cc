@@ -97,6 +97,11 @@ public:
 			// ( quad must be at least as precise as double, double as precise as float - only guarantee in the spec )
 			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
 
+			terminal.addCommand( { "quit", [=] () {
+				// cout << "the function has been invoked" << newline;
+				pQuit = true;
+			} } );
+
 		}
 
 	}
