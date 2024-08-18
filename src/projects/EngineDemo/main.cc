@@ -127,7 +127,11 @@ public:
 					{ "color", IVEC3 }
 				},
 				[=] ( argList_t args ) {
-					cout << "Setting bg color: " << args[ "color" ].data.x << " " << args[ "color" ].data.y << " " << args[ "color" ].data.z << endl;
+					// cout << "Setting bg color: " << args[ "color" ].data.x << " " << args[ "color" ].data.y << " " << args[ "color" ].data.z << endl;
+					cout << "recieved " << args.count() << " args" << endl;
+					for ( uint i = 0; i < args.count(); i++ ) {
+						cout << i << " " << args[ i ].label << " " << args[ i ].data.x << " " << args[ i ].data.y << " " << args[ i ].data.z << " " << args[ i ].data.w << endl << endl;
+					}
 					terminal.bgColor = ivec3( args[ "color" ].data.xyz() );
 			} } );
 
@@ -136,10 +140,9 @@ public:
 					{ "color", IVEC3 }
 				},
 				[=] ( argList_t args ) {
-					cout << "Setting fg color: " << args[ "color" ].data.x << " " << args[ "color" ].data.y << " " << args[ "color" ].data.z << endl;
+					// cout << "Setting fg color: " << args[ "color" ].data.x << " " << args[ "color" ].data.y << " " << args[ "color" ].data.z << endl;
 					terminal.fgColor = ivec3( args[ "color" ].data.xyz() );
 			} } );
-
 
 
 		}

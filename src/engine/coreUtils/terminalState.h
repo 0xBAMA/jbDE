@@ -38,10 +38,13 @@ struct argStruct_t {
 	string label;
 	argType type;
 	vec4 data;
+
+	// argStruct_t
 };
 
 struct argList_t {
 	std::vector< argStruct_t > args;
+	argList_t () {}
 	argList_t ( std::vector< argStruct_t > args_in ) :
 		args( args_in ) {}
 
@@ -74,15 +77,22 @@ struct commandWithArgs_t {
 		commandName( commandName_in ), args( args_in ), func( func_in ) {}
 
 	void invoke ( argList_t args_exec ) {
+		cout << "calling with " << args_exec.count() << " args" << endl;
+		for ( uint i = 0; i < args_exec.count(); i++ ) {
+			cout << i << " " << args_exec[ i ].label << " " << args_exec[ i ].data.x << " " << args_exec[ i ].data.y << " " << args_exec[ i ].data.z << " " << args[ i ].data.w << endl;
+		}
 		func( args_exec );
 	}
 
 	string seqString () {
-		string labels[] = { "(bool) ", "(int) ", "(int2) ", "(int3) ", "(int4) ", "(float) ", "(vec2) ", "(vec3) ", "(vec4) " };
+		string labels[] = { " (bool), ", " (int), ", " (int2), ", " (int3), ", "(int4) ", " (float), ", " (vec2), ", " (vec3), ", " (vec4), " };
 		string temp;
 		for ( uint i = 0; i < args.count(); i++ ) {
 			temp += args[ i ].label + labels[ int( args[ i ].type ) ];
 		}
+		// get rid of trailing two chars: ", "
+		temp.pop_back();
+		temp.pop_back();
 		return temp;
 	}
 };
@@ -299,7 +309,7 @@ struct terminalState_t {
 				matchFound = true;
 
 				// get the labels, types
-				argList_t args = commandsWithArgs[ i ].args;
+				argList_t args;
 
 				// for parsing
 				vec4 temp = vec4( 0.0f );
@@ -308,12 +318,12 @@ struct terminalState_t {
 				float tempf = 0.0f;
 
 				bool fail = false;
-				int count = 0;
 
-				for ( uint i = 0; i < args.count(); i++ ) {
-					switch ( args[ i ].type ) { // for each arg
+				for ( uint j = 0; j < commandsWithArgs[ i ].args.count(); j++ ) {
+					int count = 0;
+					switch ( commandsWithArgs[ i ].args[ j ].type ) { // for each arg
 						case BOOL:
-							// read in a bool, put it in args[ i ].data.x
+							// read in a bool, put it in x
 							if ( ( argstream >> std::boolalpha >> tempb ) ) {
 								temp[ 0 ] = tempb ? 1.0f : 0.0f;
 							} else {
@@ -358,11 +368,11 @@ struct terminalState_t {
 						break;
 					}
 
-					args[ i ].data = temp;
+					args.args.push_back( { commandsWithArgs[ i ].args[ j ].label, commandsWithArgs[ i ].args[ j ].type, temp } );
 
 					// parse results
 					std::stringstream ss;
-					ss << "  Parse Result for " << args[ i ].label << " " << temp[ 0 ] << " " << temp[ 1 ] << " " << temp[ 2 ] << " " << temp[ 3 ];
+					ss << "  Parse Result for " << commandsWithArgs[ i ].args[ j ].label << " " << temp[ 0 ] << " " << temp[ 1 ] << " " << temp[ 2 ] << " " << temp[ 3 ];
 					history.push_back( { ss.str(), "" } );
 				}
 
