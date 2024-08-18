@@ -114,6 +114,32 @@ struct commandWithArgs_t {
 	}
 };
 
+struct cvar_t {
+	string label;
+	argType type;
+	vec4 data;
+	string stringData;
+
+	string getStringRepresentation () {
+		switch ( type ) {
+			case BOOL: return ( data.x == 0.0f ) ? string( "false" ) : string( "true" ); break;
+
+			case INT: return to_string( int( data.x ) ); break;
+			case IVEC2: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ); break;
+			case IVEC3: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ); break;
+			case IVEC4: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ) + string( " " ) + to_string( int( data.w ) ); break;
+
+			case FLOAT: return to_string( data.x ); break;
+			case VEC2: return to_string( data.x ) + string( " " ) + to_string( data.y ); break;
+			case VEC3: return to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ); break;
+			case VEC4: return to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ) + string( " " ) + to_string( data.w ); break;
+
+			case STRING: return string( "\"" ) + stringData + string( "\"" ); break;
+			default: return string(); break;
+		}
+	}
+};
+
 struct terminalState_t {
 	// is this taking input, etc
 	bool active = true;
@@ -151,6 +177,11 @@ struct terminalState_t {
 	std::vector< commandWithArgs_t > commandsWithArgs;
 	void addCommand ( commandWithArgs_t command ) {
 		commandsWithArgs.push_back( command );
+	}
+
+	std::vector< cvar_t > cvars;
+	void addCvar ( cvar_t cvar ) {
+		cvars.push_back( cvar );
 	}
 
 	// init with a welcome message

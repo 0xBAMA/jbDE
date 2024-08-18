@@ -139,6 +139,22 @@ public:
 			} } );
 
 
+
+		// testing some cvar stuff
+			terminal.addCvar(
+				{ "testCvarString", STRING, vec4( 0.0f ), "Nut" }
+			);
+
+			terminal.addCvar(
+				{ "testCvarFloat", FLOAT, vec4( 1.0f ), "" }
+			);
+
+			terminal.addCommand( { "cvars", [=] () {
+				string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
+				for ( uint i = 0; i < terminal.cvars.size(); i++ ) {
+					terminal.history.push_back( { terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation(), "  " } );
+				}
+			}, "List all the active cvars, as well as their types and values." } );
 		}
 
 	}
