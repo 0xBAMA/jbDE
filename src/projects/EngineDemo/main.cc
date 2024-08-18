@@ -98,8 +98,18 @@ public:
 			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
 
 			terminal.addCommand( { "quit", [=] () {
-				// cout << "the function has been invoked" << newline;
 				pQuit = true;
+			} } );
+
+			terminal.addCommand( { "report",
+				{ // parameters list
+					{ "boolParameter", BOOL },
+					{ "intParameter", INT }
+				},
+				[=] ( argList_t args ) {
+					terminal.history.push_back( { "  Reporting:", "" } );
+					terminal.history.push_back( { "   " + to_string( args[ "boolParameter" ].type ), "" } );
+					terminal.history.push_back( { "   " + to_string( args[ "intParameter" ].type ), "" } );
 			} } );
 
 		}
