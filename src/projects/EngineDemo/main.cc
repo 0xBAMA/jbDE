@@ -116,7 +116,7 @@ public:
 		// if ( inputHandler.getState4( KEY_F2 ) == KEYSTATE_RISING )
 			// terminalActive = true; // refinements tbd
 
-		// pass any signals into the terminal
+		// pass any signals into the terminal - move this somewhere nicer, soon
 		if ( terminalActive == true ) {
 
 		// navigation through history
@@ -164,18 +164,46 @@ public:
 
 		// numbers
 			string numberString = string( "0123456789" );
-			for ( int i = 27; i <= 37; i++ ) {
+			string shiftedString = string( ")!@#$%^&*(" );
+			for ( int i = 27; i < 37; i++ ) {
 				if ( inputHandler.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
-					textRenderer.ts.addChar( numberString[ i ] );
+					textRenderer.ts.addChar( shift ? shiftedString[ i - 27 ] : numberString[ i - 27 ] );
 				}
 			}
 
 		// punctuation and assorted other shit
 			if ( inputHandler.getState4( KEY_PERIOD ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( '.' );
+				textRenderer.ts.addChar( shift ? '>' : '.' );
 			}
 			if ( inputHandler.getState4( KEY_COMMA ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( ',' );
+				textRenderer.ts.addChar( shift ? '<': ',' );
+			}
+			if ( inputHandler.getState4( KEY_SLASH ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '?': '/' );
+			}
+			if ( inputHandler.getState4( KEY_SEMICOLON ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? ':': ';' );
+			}
+			if ( inputHandler.getState4( KEY_BACKSLASH ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '|' : '\\' );
+			}
+			if ( inputHandler.getState4( KEY_LEFT_BRACKET ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '{' : '[' );
+			}
+			if ( inputHandler.getState4( KEY_RIGHT_BRACKET ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '}' : ']' );
+			}
+			if ( inputHandler.getState4( KEY_APOSTROPHE ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '"' : '\'' );
+			}
+			if ( inputHandler.getState4( KEY_GRAVE ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '~' : '`' );
+			}
+			if ( inputHandler.getState4( KEY_MINUS ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '_' : '-' );
+			}
+			if ( inputHandler.getState4( KEY_EQUALS ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( shift ? '+' : '=' );
 			}
 		}
 	}

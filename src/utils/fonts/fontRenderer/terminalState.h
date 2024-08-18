@@ -46,7 +46,7 @@ struct terminalState_t {
 
 	void deleteKey () {
 		// remove the char at the cursor
-		if ( currentLine.length() > 0 )
+		if ( currentLine.length() > 0 && cursorX < int( currentLine.length() ) )
 			currentLine.erase( currentLine.begin() + cursorX );
 	}
 
