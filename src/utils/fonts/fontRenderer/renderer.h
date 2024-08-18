@@ -510,8 +510,7 @@ public:
 	}
 
 
-	terminalState_t ts;
-	void drawTerminal () {
+	void drawTerminal ( terminalState_t &ts ) {
 		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( TERMBG, FILL_100 ) );
 
 		// clear the area containing the text

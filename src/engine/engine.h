@@ -11,6 +11,7 @@ protected:
 	orientTrident trident;				// orientation gizmo from Voraldo13
 	textureManager_t textureManager;	// simplified texture interface
 	inputHandler_t inputHandler;		// improved input handling (rising, falling edge)
+	terminalState_t terminal;			// adding a basic CLI
 
 	// shaderManager_t shaderManager;	// shader compilation + management of uniforms + texture/image bindings would be nice
 
