@@ -107,108 +107,12 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// new data into the input handler
+		// get new data into the input handler
 		inputHandler.update();
 
-		// if ( inputHandler.getState4( KEY_F2 ) == KEYSTATE_RISING )
-			// terminalActive = true; // refinements tbd
-
-		// pass any signals into the terminal - move this somewhere nicer, soon
+		// pass any signals into the terminal
 		if ( terminalActive == true ) {
-
-		// navigation through history
-			// if ( inputHandler.getState( KEY_UP ) ) {
-				// textRenderer.ts.cursorY++;
-			// }
-			// if ( inputHandler.getState( KEY_DOWN ) ) {
-				// textRenderer.ts.cursorY--;
-			// }
-
-			const bool control = inputHandler.getState( KEY_LEFT_CTRL ) || inputHandler.getState( KEY_RIGHT_CTRL );
-			const bool shift = inputHandler.getState( KEY_LEFT_SHIFT ) || inputHandler.getState( KEY_RIGHT_SHIFT );
-
-		// navigation within line
-			if ( inputHandler.getState4( KEY_LEFT ) == KEYSTATE_RISING ) {
-				textRenderer.ts.cursorLeft( control );
-			}
-			if ( inputHandler.getState4( KEY_RIGHT ) == KEYSTATE_RISING ) {
-				textRenderer.ts.cursorRight( control );
-			}
-			if ( inputHandler.getState4( KEY_HOME ) == KEYSTATE_RISING ) {
-				textRenderer.ts.home();
-			}
-			if ( inputHandler.getState4( KEY_END ) == KEYSTATE_RISING ) {
-				textRenderer.ts.end();
-			}
-
-
-		// control inputs
-			if ( inputHandler.getState4( KEY_BACKSPACE ) == KEYSTATE_RISING ) {
-				textRenderer.ts.backspace( control );
-			}
-			if ( inputHandler.getState4( KEY_ENTER ) == KEYSTATE_RISING ) {
-				textRenderer.ts.enter();
-			}
-			if ( inputHandler.getState4( KEY_DELETE ) == KEYSTATE_RISING ) {
-				textRenderer.ts.deleteKey( control );
-			}
-			if ( inputHandler.getState4( KEY_SPACE ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( ' ' );
-			}
-
-		// char input
-			if ( inputHandler.stateBuffer[ inputHandler.currentOffset ].alphasActive() ) { // is this check useful?
-				string letterString = string( " abcdefghijklmnopqrstuvwxyz" );
-				for ( int i = 1; i <= 26; i++ ) {
-					if ( inputHandler.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
-						textRenderer.ts.addChar( shift ? toupper( letterString[ i ] ) : letterString[ i ] );
-					}
-				}
-			}
-
-		// numbers
-			string numberString = string( "0123456789" );
-			string shiftedString = string( ")!@#$%^&*(" );
-			for ( int i = 27; i < 37; i++ ) {
-				if ( inputHandler.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
-					textRenderer.ts.addChar( shift ? shiftedString[ i - 27 ] : numberString[ i - 27 ] );
-				}
-			}
-
-		// punctuation and assorted other shit
-			if ( inputHandler.getState4( KEY_PERIOD ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '>' : '.' );
-			}
-			if ( inputHandler.getState4( KEY_COMMA ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '<': ',' );
-			}
-			if ( inputHandler.getState4( KEY_SLASH ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '?': '/' );
-			}
-			if ( inputHandler.getState4( KEY_SEMICOLON ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? ':': ';' );
-			}
-			if ( inputHandler.getState4( KEY_BACKSLASH ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '|' : '\\' );
-			}
-			if ( inputHandler.getState4( KEY_LEFT_BRACKET ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '{' : '[' );
-			}
-			if ( inputHandler.getState4( KEY_RIGHT_BRACKET ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '}' : ']' );
-			}
-			if ( inputHandler.getState4( KEY_APOSTROPHE ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '"' : '\'' );
-			}
-			if ( inputHandler.getState4( KEY_GRAVE ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '~' : '`' );
-			}
-			if ( inputHandler.getState4( KEY_MINUS ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '_' : '-' );
-			}
-			if ( inputHandler.getState4( KEY_EQUALS ) == KEYSTATE_RISING ) {
-				textRenderer.ts.addChar( shift ? '+' : '=' );
-			}
+			terminal.update( inputHandler );
 		}
 	}
 

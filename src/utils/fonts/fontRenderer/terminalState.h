@@ -42,6 +42,103 @@ struct terminalState_t {
 		return false;
 	}
 
+	void update ( inputHandler_t &currentInputState ) {
+
+	// navigation through history
+		// if ( currentInputState.getState( KEY_UP ) ) {
+			// cursorY++;
+		// }
+		// if ( currentInputState.getState( KEY_DOWN ) ) {
+			// cursorY--;
+		// }
+
+		const bool control = currentInputState.getState( KEY_LEFT_CTRL ) || currentInputState.getState( KEY_RIGHT_CTRL );
+		const bool shift = currentInputState.getState( KEY_LEFT_SHIFT ) || currentInputState.getState( KEY_RIGHT_SHIFT );
+
+	// navigation within line
+		if ( currentInputState.getState4( KEY_LEFT ) == KEYSTATE_RISING ) {
+			cursorLeft( control );
+		}
+		if ( currentInputState.getState4( KEY_RIGHT ) == KEYSTATE_RISING ) {
+			cursorRight( control );
+		}
+		if ( currentInputState.getState4( KEY_HOME ) == KEYSTATE_RISING ) {
+			home();
+		}
+		if ( currentInputState.getState4( KEY_END ) == KEYSTATE_RISING ) {
+			end();
+		}
+
+
+	// control inputs
+		if ( currentInputState.getState4( KEY_BACKSPACE ) == KEYSTATE_RISING ) {
+			backspace( control );
+		}
+		if ( currentInputState.getState4( KEY_ENTER ) == KEYSTATE_RISING ) {
+			enter();
+		}
+		if ( currentInputState.getState4( KEY_DELETE ) == KEYSTATE_RISING ) {
+			deleteKey( control );
+		}
+		if ( currentInputState.getState4( KEY_SPACE ) == KEYSTATE_RISING ) {
+			addChar( ' ' );
+		}
+
+	// char input
+		if ( currentInputState.stateBuffer[ currentInputState.currentOffset ].alphasActive() ) { // is this check useful?
+			string letterString = string( " abcdefghijklmnopqrstuvwxyz" );
+			for ( int i = 1; i <= 26; i++ ) {
+				if ( currentInputState.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
+					addChar( shift ? toupper( letterString[ i ] ) : letterString[ i ] );
+				}
+			}
+		}
+
+	// numbers
+		string numberString = string( "0123456789" );
+		string shiftedString = string( ")!@#$%^&*(" );
+		for ( int i = 27; i < 37; i++ ) {
+			if ( currentInputState.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
+				addChar( shift ? shiftedString[ i - 27 ] : numberString[ i - 27 ] );
+			}
+		}
+
+	// punctuation and assorted other shit
+		if ( currentInputState.getState4( KEY_PERIOD ) == KEYSTATE_RISING ) {
+			addChar( shift ? '>' : '.' );
+		}
+		if ( currentInputState.getState4( KEY_COMMA ) == KEYSTATE_RISING ) {
+			addChar( shift ? '<': ',' );
+		}
+		if ( currentInputState.getState4( KEY_SLASH ) == KEYSTATE_RISING ) {
+			addChar( shift ? '?': '/' );
+		}
+		if ( currentInputState.getState4( KEY_SEMICOLON ) == KEYSTATE_RISING ) {
+			addChar( shift ? ':': ';' );
+		}
+		if ( currentInputState.getState4( KEY_BACKSLASH ) == KEYSTATE_RISING ) {
+			addChar( shift ? '|' : '\\' );
+		}
+		if ( currentInputState.getState4( KEY_LEFT_BRACKET ) == KEYSTATE_RISING ) {
+			addChar( shift ? '{' : '[' );
+		}
+		if ( currentInputState.getState4( KEY_RIGHT_BRACKET ) == KEYSTATE_RISING ) {
+			addChar( shift ? '}' : ']' );
+		}
+		if ( currentInputState.getState4( KEY_APOSTROPHE ) == KEYSTATE_RISING ) {
+			addChar( shift ? '"' : '\'' );
+		}
+		if ( currentInputState.getState4( KEY_GRAVE ) == KEYSTATE_RISING ) {
+			addChar( shift ? '~' : '`' );
+		}
+		if ( currentInputState.getState4( KEY_MINUS ) == KEYSTATE_RISING ) {
+			addChar( shift ? '_' : '-' );
+		}
+		if ( currentInputState.getState4( KEY_EQUALS ) == KEYSTATE_RISING ) {
+			addChar( shift ? '+' : '=' );
+		}
+	}
+
 	void backspace ( bool control ) {
 		if ( control ) {
 			do { // erase till you hit whitespace
