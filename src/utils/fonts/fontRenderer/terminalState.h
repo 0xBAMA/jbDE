@@ -1,6 +1,12 @@
-#include <vector>
-#include <string>
-#include <algorithm>
+#include "../../../engine/includes.h"
+
+struct historyItem_t {
+	string commandText;
+	string timestamp;
+
+	historyItem_t ( string commandText_in, string timestamp_in ) :
+		commandText( commandText_in ), timestamp( timestamp_in ) {}
+};
 
 struct terminalState_t {
 	// display extents
@@ -14,10 +20,17 @@ struct terminalState_t {
 	int cursorY = 0;
 
 	// lines of input history
-	std::vector< string > history;
+	std::vector< historyItem_t > history;
 
 	// the current input line
 	string currentLine;
+
+	// command prompt presented to the user
+	string promptString = string( "> " );
+
+	terminalState_t () {
+		history.push_back( historyItem_t( "Welcome to jbDE", fixedWidthTimeString() + string( ": " ) ) );
+	}
 
 	bool isDivider ( char c ) {
 		// tbd, which ones of these to use
@@ -44,7 +57,6 @@ struct terminalState_t {
 
 	void deleteKey ( bool control ) {
 		if ( control ) {
-			// todo
 			do {
 				if ( currentLine.length() > 0 && cursorX < int( currentLine.length() ) ) {
 					currentLine.erase( currentLine.begin() + cursorX );
@@ -59,7 +71,7 @@ struct terminalState_t {
 
 	void enter () {
 		// push this line onto the history
-		history.push_back( currentLine );
+		history.push_back( historyItem_t( currentLine, fixedWidthTimeString() + string( ": " ) ) );
 
 		// clear the intput line
 		currentLine.clear();
