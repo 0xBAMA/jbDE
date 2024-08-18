@@ -5,9 +5,9 @@
 struct terminalState_t {
 	// display extents
 	const int baseX = 10;
-	const int baseY = 10;
-	const int width = 120;
-	const int height = 60;
+	const int baseY = 5;
+	const int width = 160;
+	const int height = 75;
 
 	// input cursor - 2d would be interesting
 	int cursorX = 0;
@@ -20,8 +20,8 @@ struct terminalState_t {
 	string currentLine;
 
 	bool isDivider ( char c ) {
-		// tbd which ones of these we want to use
-		string dividers = string( " ,./\\'\"!@#$%^&*()_+{}[]" );
+		// tbd, which ones of these to use
+		string dividers = string( " ,./\\'\"!@#$%^&*()_+{}[]/?-=<>:;|`~" );
 		for ( auto& symbol : dividers )
 			if ( c == symbol )
 				return true;
@@ -31,23 +31,25 @@ struct terminalState_t {
 
 	void backspace ( bool control ) {
 		if ( control ) {
-			// erase till you hit whitespace
-			do {
+			do { // erase till you hit whitespace
 				cursorX = std::clamp( cursorX - 1, 0, int( currentLine.length() ) );
 				currentLine.erase( currentLine.begin() + cursorX );
 			} while ( !isDivider( currentLine[ cursorX - 1 ] ) && ( cursorX - 1 >= 0 ) );
-		} else {
-			// remove char before the cursor
+		} else { // remove char before the cursor
 			cursorX = std::clamp( cursorX - 1, 0, int( currentLine.length() ) );
 			if ( currentLine.length() > 0 )
 				currentLine.erase( currentLine.begin() + cursorX );
 		}
 	}
 
-	void deleteKey () {
-		// remove the char at the cursor
-		if ( currentLine.length() > 0 && cursorX < int( currentLine.length() ) )
-			currentLine.erase( currentLine.begin() + cursorX );
+	void deleteKey ( bool control ) {
+		if ( control ) {
+			// todo
+		} else {
+			// remove the char at the cursor
+			if ( currentLine.length() > 0 && cursorX < int( currentLine.length() ) )
+				currentLine.erase( currentLine.begin() + cursorX );
+		}
 	}
 
 	void enter () {

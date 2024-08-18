@@ -153,7 +153,7 @@ public:
 				textRenderer.ts.enter();
 			}
 			if ( inputHandler.getState4( KEY_DELETE ) == KEYSTATE_RISING ) {
-				textRenderer.ts.deleteKey();
+				textRenderer.ts.deleteKey( control );
 			}
 			if ( inputHandler.getState4( KEY_SPACE ) == KEYSTATE_RISING ) {
 				textRenderer.ts.addChar( ' ' );
