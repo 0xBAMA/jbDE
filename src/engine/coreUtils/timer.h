@@ -16,6 +16,14 @@ inline std::string timeDateString () {
 	return ssA.str();
 }
 
+inline std::string fixedWidthTimeString () {
+	auto now = std::chrono::system_clock::now();
+	auto inTime_t = std::chrono::system_clock::to_time_t( now );
+	std::stringstream ssA;
+	ssA << std::put_time( std::localtime( &inTime_t ), "[%H:%M:%S]" );
+	return ssA.str();
+}
+
 //=============================================================================
 //==== CLI Progress Bar Utility ===============================================
 //=============================================================================
