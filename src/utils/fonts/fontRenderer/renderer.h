@@ -521,7 +521,7 @@ public:
 		// show the lines of text in the history
 		const int sizeHistory = ts.history.size();
 		for ( int line = sizeHistory - 1; line >= std::max( sizeHistory - ts.height, 0 ); line-- ) {
-			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp + ts.history[ line ].commandText, TERMFG );
+			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp + ts.history[ line ].commandText, ts.fgColor );
 		}
 
 		// draw an underscore
