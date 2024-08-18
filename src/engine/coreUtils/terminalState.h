@@ -18,6 +18,18 @@ struct command_t {
 		func();
 	}
 };
+struct commandWithArgs_t {
+	string commandName;
+	argList_t args;
+	std::function< void( argList_t ) > func;
+
+	commandWithArgs_t ( string commandName_in, std::vector< argStruct_t > args_in, std::function< void( argList_t ) > func_in ) :
+		commandName( commandName_in ), args( args_in ), func( func_in ) {}
+
+	void invoke () {
+		func( args );
+	}
+};
 
 struct terminalState_t {
 	// is this taking input, etc
@@ -46,7 +58,12 @@ struct terminalState_t {
 	std::vector< command_t > commands;
 	void addCommand ( command_t command ) {
 		commands.push_back( command );
-		command.invoke();
+	}
+
+	// handling commands with arguments
+	std::vector< commandWithArgs_t > commandsWithArgs;
+	void addCommand ( commandWithArgs_t command ) {
+		commandsWithArgs.push_back( command );
 	}
 
 	terminalState_t () {
@@ -200,8 +217,9 @@ struct terminalState_t {
 		// reset the cursor
 		cursorX = 0;
 
-		// does this match any of the registered
 		string commandName = commandString.substr( 0, commandString.find( " " ) );
+
+		// does this match any of the registered commands with no args
 		bool matchFound = false;
 		for ( size_t i = 0; i < commands.size(); i++ ) {
 			if ( commands[ i ].commandName == commandName ) {
@@ -209,6 +227,25 @@ struct terminalState_t {
 				commands[ i ].invoke();
 			}
 		}
+
+		// how about registered commands with args
+		for ( size_t i = 0; i < commands.size(); i++ ) {
+			if ( commandsWithArgs[ i ].commandName == commandName ) {
+				matchFound = true;
+
+				// get the labels, types
+				argList_t args = commandsWithArgs[ i ].args;
+
+				// for each arg
+					// parse the arguments, into the struct
+						// input validation needs to happen here, too - report and break if failing
+
+				// commandsWithArgs[ i ].args = args;
+				commandsWithArgs[ i ].invoke();
+			}
+		}
+
+		// made it through the lists without finding a match... say so
 		if ( !matchFound ) {
 			history.push_back( historyItem_t( "  Command " + commandName + " not found", "" ) );
 		}
