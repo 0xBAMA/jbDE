@@ -368,7 +368,7 @@ struct terminalState_t {
 				if ( !fail ) {
 					commandsWithArgs[ i ].invoke( args );
 				} else {
-					history.push_back( { "  Command " + commandName + " argument parse error", "" } );
+					history.push_back( { "  Command \"" + commandName + "\" argument parse error", "" } );
 					history.push_back( { "   expected " + commandsWithArgs[ i ].seqString(), "" } );
 				}
 			}
