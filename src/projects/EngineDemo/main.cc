@@ -5,6 +5,8 @@ public:
 	engineDemo () { Init(); OnInit(); PostInit(); }
 	~engineDemo () { Quit(); }
 
+	bool terminalActive = true;
+
 	void OnInit () {
 		ZoneScoped;
 		{
@@ -97,6 +99,9 @@ public:
 			// ( quad must be at least as precise as double, double as precise as float - only guarantee in the spec )
 			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
 
+			// put some initial data in the terminal history
+			textRenderer.initTerminal();
+
 		}
 
 	}
@@ -108,6 +113,71 @@ public:
 		// new data into the input handler
 		inputHandler.update();
 
+		// if ( inputHandler.getState4( KEY_F2 ) == KEYSTATE_RISING )
+			// terminalActive = true; // refinements tbd
+
+		// pass any signals into the terminal
+		if ( terminalActive == true ) {
+
+		// navigation through history
+			// if ( inputHandler.getState( KEY_UP ) ) {
+				// textRenderer.ts.cursorY++;
+			// }
+			// if ( inputHandler.getState( KEY_DOWN ) ) {
+				// textRenderer.ts.cursorY--;
+			// }
+
+			const bool control = inputHandler.getState( KEY_LEFT_CTRL ) || inputHandler.getState( KEY_RIGHT_CTRL );
+			const bool shift = inputHandler.getState( KEY_LEFT_SHIFT ) || inputHandler.getState( KEY_RIGHT_SHIFT );
+
+		// navigation within line
+			if ( inputHandler.getState4( KEY_LEFT ) == KEYSTATE_RISING ) {
+				textRenderer.ts.cursorLeft( control );
+			}
+			if ( inputHandler.getState4( KEY_RIGHT ) == KEYSTATE_RISING ) {
+				textRenderer.ts.cursorRight( control );
+			}
+
+		// control inputs
+			if ( inputHandler.getState4( KEY_BACKSPACE ) == KEYSTATE_RISING ) {
+				textRenderer.ts.backspace( control );
+			}
+			if ( inputHandler.getState4( KEY_ENTER ) == KEYSTATE_RISING ) {
+				textRenderer.ts.enter();
+			}
+			if ( inputHandler.getState4( KEY_DELETE ) == KEYSTATE_RISING ) {
+				textRenderer.ts.deleteKey();
+			}
+			if ( inputHandler.getState4( KEY_SPACE ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( ' ' );
+			}
+
+		// char input
+			if ( inputHandler.stateBuffer[ inputHandler.currentOffset ].alphasActive() ) { // is this check useful?
+				string letterString = string( " abcdefghijklmnopqrstuvwxyz" );
+				for ( int i = 1; i <= 26; i++ ) {
+					if ( inputHandler.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
+						textRenderer.ts.addChar( shift ? toupper( letterString[ i ] ) : letterString[ i ] );
+					}
+				}
+			}
+
+		// numbers
+			string numberString = string( "0123456789" );
+			for ( int i = 27; i <= 37; i++ ) {
+				if ( inputHandler.getState4( ( keyName_t ) i ) == KEYSTATE_RISING ) {
+					textRenderer.ts.addChar( numberString[ i ] );
+				}
+			}
+
+		// punctuation and assorted other shit
+			if ( inputHandler.getState4( KEY_PERIOD ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( '.' );
+			}
+			if ( inputHandler.getState4( KEY_COMMA ) == KEYSTATE_RISING ) {
+				textRenderer.ts.addChar( ',' );
+			}
+		}
 	}
 
 	void ImguiPass () {
@@ -163,6 +233,12 @@ public:
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
+
+			// show terminal
+			if ( terminalActive == true )
+				textRenderer.drawTerminal();
+
+			// put the result on the display
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}

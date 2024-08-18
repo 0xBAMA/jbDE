@@ -1,6 +1,8 @@
 #include "../../../engine/includes.h"
 #include "../../../data/colors.h"
 
+#include "terminalState.h"
+
 #ifndef FONTRENDERER_H
 #define FONTRENDERER_H
 
@@ -40,6 +42,7 @@
 #define WHITE	glm::ivec3( 255, 255, 255 )
 #define GREY	glm::ivec3( 169, 169, 169 )
 #define GREY_D	glm::ivec3( 100, 100, 100 )
+#define GREY_DD	glm::ivec3(  50,  50,  50 )
 #define BLACK	glm::ivec3(  16,  16,  16 )
 
 struct cChar {
@@ -277,6 +280,9 @@ public:
 		// timestamp
 		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Background" ) );
 		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Foreground" ) );
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Highlight" ) );
+
+		cout << newline << "Text Renderer Created with Dimensions: " << numBinsWidth << " x " << numBinsHeight << newline;
 
 		// hexxDump
 		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
@@ -445,6 +451,8 @@ public:
 	void drawHexxLayer () {
 		// background layer
 		const int fieldWidth = 8 + 8 + ( 3 * 8 + 1 ) * numColumns + 3 + 8 * numColumns + 14;
+
+		// will need to revisit indexing next time I want to use this
 		layers[ 2 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( fieldWidth, height ), cChar( BLACK, FILL_100 ) );
 		layers[ 3 ].DrawRectConstant( glm::uvec2( 0, 0 ), glm::uvec2( fieldWidth, height ), cChar( BLACK, FILL_100 ) );
 
@@ -495,6 +503,38 @@ public:
 			// increment the pointer
 			offsetFromStart += 8 * numColumns;
 		}
+	}
+
+
+	terminalState_t ts;
+	void initTerminal () {
+		ts.history.push_back( "First thing that happened" );
+		ts.history.push_back( "Second thing that happened" );
+		ts.history.push_back( "Third thing that happened" );
+		ts.history.push_back( "Fourth thing that happened" );
+		ts.history.push_back( "Fifth thing that happened" );
+
+		ts.currentLine = string( "Current input line" );
+	}
+
+	void drawTerminal () {
+		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_100 ) );
+
+		// clear the area containing the text
+		layers[ 1 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
+		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
+
+		// show the current text entry prompt
+		layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), ts.currentLine, BLUE );
+
+		// show the lines of text in the history
+		const int sizeHistory = ts.history.size();
+		for ( int line = sizeHistory - 1; line >= 0 ; line-- ) {
+			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ], BLUE );
+		}
+
+		// draw an underscore
+		layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX, ts.baseY ), cChar( GOLD, '_' ) );
 	}
 };
 
