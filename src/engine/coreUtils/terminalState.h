@@ -109,9 +109,11 @@ struct commandWithArgs_t {
 		for ( uint i = 0; i < args.count(); i++ ) {
 			temp += args[ i ].label + labels[ int( args[ i ].type ) ];
 		}
-		// get rid of trailing two chars: ", "
-		temp.pop_back();
-		temp.pop_back();
+		// get rid of trailing two chars: ", ", if we added to this string
+		if ( args.count() ) {
+			temp.pop_back();
+			temp.pop_back();
+		}
 		return temp;
 	}
 };
@@ -170,8 +172,11 @@ struct terminalState_t {
 	int cursorX = 0;
 	int cursorY = 0;
 
-	// lines of input history
+	// display... wip, there will be changes here
 	std::vector< historyItem_t > history;
+
+	// lines of input history
+	std::vector< string > inputHistory;
 
 	// the current input line
 	string currentLine;
@@ -215,12 +220,13 @@ struct terminalState_t {
 	void update ( inputHandler_t &currentInputState ) {
 
 	// navigation through history
-		// if ( currentInputState.getState( KEY_UP ) ) {
-			// cursorY++;
-		// }
-		// if ( currentInputState.getState( KEY_DOWN ) ) {
-			// cursorY--;
-		// }
+		if ( currentInputState.getState4( KEY_UP ) == KEYSTATE_RISING ) {
+			cursorUp();
+		}
+
+		if ( currentInputState.getState4( KEY_DOWN ) == KEYSTATE_RISING ) {
+			cursorDown();
+		}
 
 		const bool control = currentInputState.getState( KEY_LEFT_CTRL ) || currentInputState.getState( KEY_RIGHT_CTRL );
 		const bool shift = currentInputState.getState( KEY_LEFT_SHIFT ) || currentInputState.getState( KEY_RIGHT_SHIFT );
@@ -342,6 +348,11 @@ struct terminalState_t {
 
 		// command string, as given
 		string commandString = currentLine;
+
+		// get the string as input, reset history browse state
+		inputHistory.push_back( currentLine );
+		tempHistoryPrompt = string();
+		historyCursor = 0;
 
 		// clear the input line
 		currentLine.clear();
@@ -472,6 +483,40 @@ struct terminalState_t {
 			} while ( !isDivider( currentLine[ cursorX + 1 ] ) && ( cursorX + 1 < int( currentLine.length() ) ) );
 		} else {
 			cursorX = std::clamp( cursorX + 1, 0, int( currentLine.length() ) );
+		}
+	}
+
+	// management of history
+	int historyCursor = 0;
+	string tempHistoryPrompt;
+
+	void cursorUp () {
+		// if there's existing history
+		if ( inputHistory.size() != 0 ) {
+			// go back one history element
+			if ( historyCursor == 0 ) { // we are back at the prompt before looking at the history
+				// cache this off to the temp string
+				tempHistoryPrompt = currentLine;
+			}
+			// get the last element from the history
+			historyCursor = std::clamp( historyCursor - 1, 0, int( inputHistory.size() - 1 ) );
+			cout << "history cursor up, now " << historyCursor << " (read at " << ( inputHistory.size() - historyCursor - 1 ) << ")" << endl;
+			cout << inputHistory.size() << " history elements"<< endl;
+			currentLine = inputHistory[ inputHistory.size() - historyCursor - 1 ];
+			cursorX = int( currentLine.length() );
+		}
+	}
+
+	void cursorDown () {
+		if ( historyCursor == 1 ) { // we are going back, restore cache
+			currentLine = tempHistoryPrompt;
+			cursorX = int( currentLine.length() );
+			tempHistoryPrompt = string();
+		} else {
+			historyCursor = std::clamp( historyCursor + 1, 0, int( inputHistory.size() - 1 ) );
+			cout << "history cursor up, now " << historyCursor << " (read at " << ( inputHistory.size() - historyCursor - 1 ) << ")" << newline;
+			currentLine = inputHistory[ inputHistory.size() - historyCursor - 1 ];
+			cursorX = int( currentLine.length() );
 		}
 	}
 

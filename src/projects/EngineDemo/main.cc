@@ -103,6 +103,8 @@ public:
 
 			terminal.addCommand( { "clear", [=] () {
 				terminal.history.clear();
+				// terminal.inputHistory.clear();
+				// terminal.tempHistoryPrompt = string();
 			}, "Clear the terminal history." } );
 
 			terminal.addCommand( { "list", [=] () {
