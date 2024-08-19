@@ -101,6 +101,10 @@ public:
 				pQuit = true;
 			}, "Quit the engine." } );
 
+			terminal.addCommand( { "clear", [=] () {
+				terminal.history.clear();
+			}, "Clear the terminal history." } );
+
 			terminal.addCommand( { "list", [=] () {
 				terminal.history.push_back( { "Current Command List:", "" } );
 				for ( auto& command : terminal.commands ) {
