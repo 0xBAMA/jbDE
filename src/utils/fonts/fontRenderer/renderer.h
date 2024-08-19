@@ -521,8 +521,28 @@ public:
 		// show the lines of text in the history
 		const int sizeHistory = ts.history.size();
 		for ( int line = sizeHistory - 1; line >= std::max( sizeHistory - ts.height, 0 ); line-- ) {
-			layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp, ts.tsColor );
+
+			if ( ts.history[ line ].timestamp.length() == 12 ) {
+				std::vector< cChar > timestampString;
+				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 0 ] ) );
+				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 1 ] ) );
+				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 2 ] ) );
+				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 3 ] ) );
+				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 4 ] ) );
+				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 5 ] ) );
+				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 6 ] ) );
+				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 7 ] ) );
+				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 8 ] ) );
+				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 9 ] ) );
+				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 10 ] ) );
+				layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), timestampString );
+			} else {
+				layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp, ts.tsColor );
+			}
+
+			// constant color... I'd like to be able to do per-char color
 			layers[ 1 ].WriteString( glm::uvec2( ts.baseX + ts.history[ line ].timestamp.length(), ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].commandText, ts.history[ line ].color );
+
 		}
 
 		if ( ts.active ) { // draw an underscore at the cursor location

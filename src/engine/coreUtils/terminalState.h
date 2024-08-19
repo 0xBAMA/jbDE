@@ -146,10 +146,45 @@ struct terminalState_t {
 	// is this taking input, etc
 	bool active = true;
 
-	ivec3 bgColor = ivec3(  17,  35,  24 );
-	ivec3 fgColor = ivec3( 137, 162,  87 );
-	ivec3 tsColor = ivec3(  72, 120,  40 );
-	ivec3 cuColor = ivec3( 191, 146,  23 );
+	ivec3 bgColor;
+	ivec3 fgColor;
+	ivec3 cuColor;
+	ivec3 tsColor;
+
+	void setColors ( int i ) {
+		switch ( i ) {
+			case 0: // green
+				bgColor = ivec3(  17,  35,  24 );
+				fgColor = ivec3( 137, 162,  87 );
+				cuColor = ivec3(  72, 120,  40 );
+				tsColor = ivec3( 191, 146,  23 );
+			break;
+
+			case 1: // hot
+				bgColor = ivec3(  58,   0,   0 );
+				fgColor = ivec3( 224,  66,  23 );
+				cuColor = ivec3( 124,   3,   0 );
+				tsColor = ivec3( 242, 109,  31 );
+			break;
+
+			case 2: // cool
+				bgColor = ivec3(   7,   8,  16 );
+				fgColor = ivec3(  82, 165, 222 );
+				cuColor = ivec3( 172, 214, 246 );
+				tsColor = ivec3( 235, 249, 255 );
+			break;
+
+			case 3: // pink
+				bgColor = ivec3( 19, 2, 8 );
+				fgColor = ivec3( 213, 60, 106 );
+				cuColor = ivec3( 255, 130, 116 );
+				tsColor = ivec3( 70, 14, 43 );
+			break;
+
+			default:
+			break;
+		}
+	}
 
 	// display extents
 	const int baseX = 10;
@@ -190,6 +225,7 @@ struct terminalState_t {
 	// init with a welcome message
 	terminalState_t () {
 		history.push_back( historyItem_t( "Welcome to jbDE", fixedWidthTimeString() + string( ": " ) ) );
+		setColors( 0 );
 	}
 
 	bool isDivider ( char c ) {

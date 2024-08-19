@@ -119,48 +119,27 @@ public:
 				}
 			}, "List all the active commands." } );
 
-			terminal.addCommand( { "report",
-				{ // parameters list
-					{ "boolParameter", BOOL },
-					{ "intParameter", INT }
-				},
-				[=] ( argList_t args ) {
-					terminal.history.push_back( { "  Reporting:", "" } );
-					terminal.history.push_back( { "   " + to_string( bool( args[ "boolParameter" ].data.x ) ), "" } );
-					terminal.history.push_back( { "   " + to_string( args[ "intParameter" ].type ), "" } );
-			} } );
+			// terminal.addCommand( { "customcolor",
+			// 	{ // parameters list
+			// 		{ "select", STRING },
+			// 		{ "color", IVEC3 }
+			// 	}, [=] ( argList_t args ) {
+			// 		if ( args[ "select" ].stringData == "bg" ) {
+			// 			terminal.bgColor = ivec3( args[ "color" ].data.xyz() );
+			// 		} else if ( args[ "select" ].stringData == "fg" ) {
+			// 			terminal.fgColor = ivec3( args[ "color" ].data.xyz() );
+			// 		} else if ( args[ "select" ].stringData == "ts" ) {
+			// 			terminal.tsColor = ivec3( args[ "color" ].data.xyz() );
+			// 		} else if ( args[ "select" ].stringData == "cu" ) {
+			// 			terminal.cuColor = ivec3( args[ "color" ].data.xyz() );
+			// 		}
+			// }, "Set Colors. Options are Background (\"bg\"), Foreground (\"fg\"), Timestamp (\"ts\"), Cursor (\"cu\")." } );
 
-			terminal.addCommand( { "bg",
-				{ // parameters list
-					{ "color", IVEC3 }
-				},
-				[=] ( argList_t args ) {
-					terminal.bgColor = ivec3( args[ "color" ].data.xyz() );
-			}, "Set Background Color." } );
-
-			terminal.addCommand( { "fg",
-				{ // parameters list
-					{ "color", IVEC3 }
-				},
-				[=] ( argList_t args ) {
-					terminal.fgColor = ivec3( args[ "color" ].data.xyz() );
-			}, "Set Foreground Color." } );
-
-			terminal.addCommand( { "ts",
-				{ // parameters list
-					{ "color", IVEC3 }
-				},
-				[=] ( argList_t args ) {
-					terminal.tsColor = ivec3( args[ "color" ].data.xyz() );
-			}, "Set Timestamp Color." } );
-
-			terminal.addCommand( { "cu",
-				{ // parameters list
-					{ "color", IVEC3 }
-				},
-				[=] ( argList_t args ) {
-					terminal.cuColor = ivec3( args[ "color" ].data.xyz() );
-			}, "Set Cursor Color." } );
+			terminal.addCommand( { "colorPreset", {
+					{ "select", INT }
+				}, [=] ( argList_t args ) {
+					terminal.setColors( int( args[ "select" ].data.x ) );
+			}, "Numbered presets (0-3)." } );
 
 			terminal.addCommand( { "echo",
 				{ // parameters list
@@ -172,13 +151,8 @@ public:
 
 
 		// testing some cvar stuff
-			terminal.addCvar(
-				{ "testCvarString", STRING, vec4( 0.0f ), "Nut" }
-			);
-
-			terminal.addCvar(
-				{ "testCvarFloat", FLOAT, vec4( 1.0f ), "" }
-			);
+			terminal.addCvar( { "testCvarString", STRING, vec4( 0.0f ), "Nut" } );
+			terminal.addCvar( { "testCvarFloat", FLOAT, vec4( 1.0f ), "" } );
 
 			terminal.addCommand( { "cvars", [=] () {
 				string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
