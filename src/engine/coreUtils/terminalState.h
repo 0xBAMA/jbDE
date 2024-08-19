@@ -22,7 +22,7 @@ struct command_t {
 	}
 };
 
-enum argType {
+enum varType {
 	BOOL = 0,
 
 	INT = 1,
@@ -38,9 +38,9 @@ enum argType {
 	STRING = 9
 };
 
-struct argStruct_t {
+struct varStruct_t {
 	string label;
-	argType type;
+	varType type;
 	vec4 data;
 	string stringData;
 
@@ -65,27 +65,27 @@ struct argStruct_t {
 };
 
 struct argList_t {
-	std::vector< argStruct_t > args;
+	std::vector< varStruct_t > args;
 	argList_t () {}
-	argList_t ( std::vector< argStruct_t > args_in ) :
+	argList_t ( std::vector< varStruct_t > args_in ) :
 		args( args_in ) {}
 
 	size_t count () { return args.size(); }
 
-	argStruct_t operator [] ( string label ) {
+	varStruct_t operator [] ( string label ) {
 		for ( uint i = 0; i < args.size(); i++ ) {
 			if ( args[ i ].label == label ) {
 				return args[ i ];
 			}
 		}
-		return argStruct_t();
+		return varStruct_t();
 	}
 
-	argStruct_t operator [] ( uint idx ) {
+	varStruct_t operator [] ( uint idx ) {
 		if ( idx < count() ) {
 			return args[ idx ];
 		} else {
-			return argStruct_t();
+			return varStruct_t();
 		}
 	}
 };
@@ -96,7 +96,7 @@ struct commandWithArgs_t {
 	std::function< void( argList_t ) > func;
 	string description;
 
-	commandWithArgs_t ( string commandName_in, std::vector< argStruct_t > args_in, std::function< void( argList_t ) > func_in, string description_in = string() ) :
+	commandWithArgs_t ( string commandName_in, std::vector< varStruct_t > args_in, std::function< void( argList_t ) > func_in, string description_in = string() ) :
 		commandName( commandName_in ), args( args_in ), func( func_in ), description( description_in ) {}
 
 	void invoke ( argList_t args_exec ) {
@@ -113,32 +113,6 @@ struct commandWithArgs_t {
 		temp.pop_back();
 		temp.pop_back();
 		return temp;
-	}
-};
-
-struct cvar_t {
-	string label;
-	argType type;
-	vec4 data;
-	string stringData;
-
-	string getStringRepresentation () {
-		switch ( type ) {
-			case BOOL: return ( data.x == 0.0f ) ? string( "false" ) : string( "true" ); break;
-
-			case INT: return to_string( int( data.x ) ); break;
-			case IVEC2: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ); break;
-			case IVEC3: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ); break;
-			case IVEC4: return to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ) + string( " " ) + to_string( int( data.w ) ); break;
-
-			case FLOAT: return to_string( data.x ); break;
-			case VEC2: return to_string( data.x ) + string( " " ) + to_string( data.y ); break;
-			case VEC3: return to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ); break;
-			case VEC4: return to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ) + string( " " ) + to_string( data.w ); break;
-
-			case STRING: return string( "\"" ) + stringData + string( "\"" ); break;
-			default: return string(); break;
-		}
 	}
 };
 
@@ -217,8 +191,8 @@ struct terminalState_t {
 		commandsWithArgs.push_back( command );
 	}
 
-	std::vector< cvar_t > cvars;
-	void addCvar ( cvar_t cvar ) {
+	std::vector< varStruct_t > cvars;
+	void addCvar ( varStruct_t cvar ) {
 		cvars.push_back( cvar );
 	}
 
