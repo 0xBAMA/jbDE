@@ -97,76 +97,80 @@ public:
 			// ( quad must be at least as precise as double, double as precise as float - only guarantee in the spec )
 			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
 
-			terminal.addCommand( { "quit", [=] () {
-				pQuit = true;
-			}, "Quit the engine." } );
 
-			terminal.addCommand( { "clear", [=] () {
-				terminal.history.clear();
-				// terminal.inputHistory.clear();
-				// terminal.tempHistoryPrompt = string();
-			}, "Clear the terminal history." } );
 
-			terminal.addCommand( { "list", [=] () {
-				cCharString temp;
-				temp.append( "Current Command List:" );
-				terminal.history.push_back( temp );
-				temp.reset();
-				for ( auto& command : terminal.commands ) {
-					temp.append( "  " );
-					temp.append( command.commandName );
-					terminal.history.push_back( temp );
-					temp.reset();
-					if ( command.description.length() > 1 ) { // if we have a nonzero length description, show it
-						temp.append( "    " );
-						temp.append( command.description, 4 );
-						terminal.history.push_back( temp );
-						temp.reset();
-					}
-					terminal.history.push_back( temp ); // padding line
-				}
-				for ( auto& command : terminal.commandsWithArgs ) {
-					temp.append( "  " +command.commandName + ": " + command.seqString() );
-					terminal.history.push_back( temp );
-					temp.reset();
-					if ( command.description.length() > 1 ) {
-						temp.append( "    " + command.description, 4 );
-						terminal.history.push_back( temp );
-						temp.reset();
-					}
-					terminal.history.push_back( temp );
-				}
-			}, "List all the active commands." } );
+	// // adding commands: wip
 
-			// terminal.addCommand( { "colorPreset", {
-			// 		{ "select", INT }
-			// 	}, [=] ( argList_t args ) {
-			//		// some things are going to have to change with this, not sure exactly what that looks like yet...
-			// 		terminal.setColors( int( args[ "select" ].data.x ) );
-			// }, "Numbered presets (0-3)." } );
+	// 		terminal.addCommand( { "quit", [=] () {
+	// 			pQuit = true;
+	// 		}, "Quit the engine." } );
 
-			terminal.addCommand( { "echo",
-				{ // parameters list
-					{ "string", STRING }
-				},
-				[=] ( argList_t args ) {
-					cCharString temp;
-					temp.append( args[ "string" ].stringData, GOLD );
-					terminal.history.push_back( temp );
-			}, "Report back the given string argument." } );
+	// 		terminal.addCommand( { "clear", [=] () {
+	// 			terminal.history.clear();
+	// 			// terminal.inputHistory.clear();
+	// 			// terminal.tempHistoryPrompt = string();
+	// 		}, "Clear the terminal history." } );
 
-		// testing some cvar stuff
-			terminal.addCvar( { "testCvarString", STRING, vec4( 0.0f ), "Nut" } );
-			terminal.addCvar( { "testCvarFloat", FLOAT, vec4( 1.0f ), "" } );
+	// 		terminal.addCommand( { "list", [=] () {
+	// 			cCharString temp;
+	// 			temp.append( "Current Command List:" );
+	// 			terminal.history.push_back( temp );
+	// 			temp.reset();
+	// 			for ( auto& command : terminal.commands ) {
+	// 				temp.append( "  " );
+	// 				temp.append( command.commandName );
+	// 				terminal.history.push_back( temp );
+	// 				temp.reset();
+	// 				if ( command.description.length() > 1 ) { // if we have a nonzero length description, show it
+	// 					temp.append( "    " );
+	// 					temp.append( command.description, 4 );
+	// 					terminal.history.push_back( temp );
+	// 					temp.reset();
+	// 				}
+	// 				terminal.history.push_back( temp ); // padding line
+	// 			}
+	// 			for ( auto& command : terminal.commandsWithArgs ) {
+	// 				temp.append( "  " +command.commandName + ": " + command.seqString() );
+	// 				terminal.history.push_back( temp );
+	// 				temp.reset();
+	// 				if ( command.description.length() > 1 ) {
+	// 					temp.append( "    " + command.description, 4 );
+	// 					terminal.history.push_back( temp );
+	// 					temp.reset();
+	// 				}
+	// 				terminal.history.push_back( temp );
+	// 			}
+	// 		}, "List all the active commands." } );
 
-			terminal.addCommand( { "cvars", [=] () {
-				string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
-				for ( uint i = 0; i < terminal.cvars.size(); i++ ) {
-					cCharString temp;
-					temp.append( "  " + terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation() + " " );
-					terminal.history.push_back( temp );
-				}
-			}, "List all the active cvars, as well as their types and values." } );
+	// 		// terminal.addCommand( { "colorPreset", {
+	// 		// 		{ "select", INT }
+	// 		// 	}, [=] ( argList_t args ) {
+	// 		//		// some things are going to have to change with this, not sure exactly what that looks like yet...
+	// 		// 		terminal.setColors( int( args[ "select" ].data.x ) );
+	// 		// }, "Numbered presets (0-3)." } );
+
+	// 		terminal.addCommand( { "echo",
+	// 			{ // parameters list
+	// 				{ "string", STRING }
+	// 			},
+	// 			[=] ( argList_t args ) {
+	// 				cCharString temp;
+	// 				temp.append( args[ "string" ].stringData, GOLD );
+	// 				terminal.history.push_back( temp );
+	// 		}, "Report back the given string argument." } );
+
+	// 	// testing some cvar stuff
+	// 		terminal.addCvar( { "testCvarString", STRING, vec4( 0.0f ), "Nut" } );
+	// 		terminal.addCvar( { "testCvarFloat", FLOAT, vec4( 1.0f ), "" } );
+
+	// 		terminal.addCommand( { "cvars", [=] () {
+	// 			string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
+	// 			for ( uint i = 0; i < terminal.cvars.size(); i++ ) {
+	// 				cCharString temp;
+	// 				temp.append( "  " + terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation() + " " );
+	// 				terminal.history.push_back( temp );
+	// 			}
+	// 		}, "List all the active cvars, as well as their types and values." } );
 		}
 
 	}

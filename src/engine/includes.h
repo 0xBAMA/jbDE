@@ -143,7 +143,7 @@ using XMLDocument = tinyxml2::XMLDocument;
 #include "../utils/trident/trident.h"
 
 // terminal
-#include "./coreUtils/terminalState.h"
+#include "./coreUtils/terminal.h"
 
 // font rendering header
 #include "../utils/fonts/fontRenderer/renderer.h"

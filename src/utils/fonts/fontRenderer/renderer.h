@@ -149,7 +149,7 @@ public:
 			} else if ( vec[ i ].data[ 4 ] == '\n' ) {
 				cursor.y++;
 				cursor.x = min.x;
-				if ( cursor.y >= max.y ) {
+				if ( cursor.y > max.y ) {
 					break;
 				}
 			} else if ( vec[ i ].data[ 4 ] == 0 ) { // special no-write character
@@ -158,10 +158,10 @@ public:
 				WriteCharAt( cursor, vec[ i ] );
 				cursor.x++;
 			}
-			if ( cursor.x >= max.x ) {
+			if ( cursor.x > max.x ) {
 				cursor.y++;
 				cursor.x = min.x;
-				if ( cursor.y >= max.y ) {
+				if ( cursor.y > max.y ) {
 					break;
 				}
 			}
@@ -493,29 +493,32 @@ public:
 		}
 	}
 
+	void drawTerminal ( terminal_t &t ) {
+		// draw frame
+		// layers[ 2 ].DrawSingleFrame( t.basePt - uvec2( 1 ), t.basePt + t.dims + uvec2( 1 ), ivec3( 35 ) );
 
-	void drawTerminal ( terminalState_t &ts ) {
-		cCharString currentLine;
-		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( currentLine.colorsets[ selectedPalette ][ 0 ], FILL_100 ) );
+	// is it easier to just memset or something
 
-		// clear the area containing the text ( foreground + cursor layer )
-		layers[ 1 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
-		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
-
-		// show the current text entry prompt
-		currentLine.append( ts.promptString, currentLine.colorsets[ selectedPalette ][ 2 ] );
-		currentLine.append( ts.currentLine, ivec3( 166 ) );
-		layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), currentLine.data );
+		// clear the area containing the text ( background, then foreground, then cursor layer )
+		layers[ 0 ].DrawRectConstant( t.basePt, t.basePt + t.dims, cChar( t.csb.colorsets[ t.csb.selectedPalette ][ 0 ], FILL_100 ) );
+		layers[ 1 ].DrawRectConstant( t.basePt, t.basePt + t.dims, cChar( BLACK, FILL_0 ) );
+		layers[ 2 ].DrawRectConstant( t.basePt, t.basePt + t.dims, cChar( BLACK, FILL_0 ) );
 
 		// show the lines of text in the history
-		const int sizeHistory = ts.history.size();
-		for ( int line = sizeHistory - 1; line >= std::max( sizeHistory - ts.height, 0 ); line-- ) {
-			layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ),
-				ts.history[ line ].data );
+		const int sizeHistory = t.history.size();
+		for ( int line = sizeHistory - 1; line >= std::max( int( sizeHistory - t.dims.y ), 0 ); line-- ) {
+			layers[ 1 ].WriteCCharVector( t.basePt + uvec2( 0, -line + sizeHistory ), t.basePt + uvec2( t.dims.x, -line + sizeHistory ),
+				t.history[ line ] );
 		}
 
-		if ( ts.active ) { // draw an underscore at the cursor location
-			layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( currentLine.colorsets[ selectedPalette ][ 3 ], '_' ) );
+		// writing text prompt
+		layers[ 1 ].WriteCCharVector( t.basePt, t.basePt + uvec2( t.dims.x, 0 ),
+			t.csb.timestamp().append( " " ).append( t.currentLine, 4 ).flush() );
+
+		if ( t.active ) {
+			// writing cursor
+			float blink = std::abs( std::sin( SDL_GetTicks() / 1000.0f ) );
+			layers[ 2 ].WriteCharAt( t.basePt + uvec2( t.cursorX + 11, 0 ), cChar( ivec3( vec3( t.csb.colorsets[ t.csb.selectedPalette ][ 3 ] ) * blink ), '_' ) );
 		}
 	}
 };
