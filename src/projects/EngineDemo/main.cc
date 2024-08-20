@@ -108,51 +108,51 @@ public:
 			}, "Clear the terminal history." } );
 
 			terminal.addCommand( { "list", [=] () {
-				terminal.history.push_back( { "Current Command List:", "" } );
+				cCharString temp;
+				temp.append( "Current Command List:" );
+				terminal.history.push_back( temp );
+				temp.reset();
 				for ( auto& command : terminal.commands ) {
-					terminal.history.push_back( { command.commandName, "  " } );
+					temp.append( "  " );
+					temp.append( command.commandName + " " );
+					terminal.history.push_back( temp );
+					temp.reset();
 					if ( command.description.length() > 1 ) { // if we have a nonzero length description, show it
-						terminal.history.push_back( { command.description, "    ", ivec3( 166 ) } );
+						temp.append( "    " );
+						temp.append( command.description + " ", 4 );
+						terminal.history.push_back( temp );
+						temp.reset();
 					}
-					terminal.history.push_back( { "", "" } ); // padding line
+					terminal.history.push_back( temp ); // padding line
 				}
 				for ( auto& command : terminal.commandsWithArgs ) {
-					terminal.history.push_back( { command.commandName + ": " + command.seqString(), "  " } );
+					temp.append( "  " +command.commandName + ": " + command.seqString() + " " );
+					terminal.history.push_back( temp );
+					temp.reset();
 					if ( command.description.length() > 1 ) {
-						terminal.history.push_back( { command.description, "    ", ivec3( 166 ) } );
+						temp.append( "    " + command.description + " ", 4 );
+						terminal.history.push_back( temp );
+						temp.reset();
 					}
-					terminal.history.push_back( { "", "" } );
+					terminal.history.push_back( temp );
 				}
 			}, "List all the active commands." } );
 
-			// terminal.addCommand( { "customcolor",
-			// 	{ // parameters list
-			// 		{ "select", STRING },
-			// 		{ "color", IVEC3 }
+			// terminal.addCommand( { "colorPreset", {
+			// 		{ "select", INT }
 			// 	}, [=] ( argList_t args ) {
-			// 		if ( args[ "select" ].stringData == "bg" ) {
-			// 			terminal.bgColor = ivec3( args[ "color" ].data.xyz() );
-			// 		} else if ( args[ "select" ].stringData == "fg" ) {
-			// 			terminal.fgColor = ivec3( args[ "color" ].data.xyz() );
-			// 		} else if ( args[ "select" ].stringData == "ts" ) {
-			// 			terminal.tsColor = ivec3( args[ "color" ].data.xyz() );
-			// 		} else if ( args[ "select" ].stringData == "cu" ) {
-			// 			terminal.cuColor = ivec3( args[ "color" ].data.xyz() );
-			// 		}
-			// }, "Set Colors. Options are Background (\"bg\"), Foreground (\"fg\"), Timestamp (\"ts\"), Cursor (\"cu\")." } );
-
-			terminal.addCommand( { "colorPreset", {
-					{ "select", INT }
-				}, [=] ( argList_t args ) {
-					terminal.setColors( int( args[ "select" ].data.x ) );
-			}, "Numbered presets (0-3)." } );
+			//		// some things are going to have to change with this, not sure exactly what that looks like yet...
+			// 		terminal.setColors( int( args[ "select" ].data.x ) );
+			// }, "Numbered presets (0-3)." } );
 
 			terminal.addCommand( { "echo",
 				{ // parameters list
 					{ "string", STRING }
 				},
 				[=] ( argList_t args ) {
-					terminal.history.push_back( { args[ "string" ].stringData, "", GOLD } );
+					cCharString temp;
+					temp.append( args[ "string" ].stringData, GOLD );
+					terminal.history.push_back( temp );
 			}, "Report back the given string argument." } );
 
 		// testing some cvar stuff
@@ -162,7 +162,9 @@ public:
 			terminal.addCommand( { "cvars", [=] () {
 				string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
 				for ( uint i = 0; i < terminal.cvars.size(); i++ ) {
-					terminal.history.push_back( { terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation(), "  " } );
+					cCharString temp;
+					temp.append( "  " + terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation() + " " );
+					terminal.history.push_back( temp );
 				}
 			}, "List all the active cvars, as well as their types and values." } );
 		}
