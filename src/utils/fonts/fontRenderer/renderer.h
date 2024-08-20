@@ -495,44 +495,27 @@ public:
 
 
 	void drawTerminal ( terminalState_t &ts ) {
-		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( ts.bgColor, FILL_100 ) );
+		cCharString currentLine;
+		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( currentLine.colorsets[ currentLine.selectedPalette ][ 0 ], FILL_100 ) );
 
-		// clear the area containing the text
+		// clear the area containing the text ( foreground + cursor layer )
 		layers[ 1 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 
 		// show the current text entry prompt
-		layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), ts.promptString + ts.currentLine, ts.fgColor );
+		currentLine.append( ts.promptString, currentLine.colorsets[ currentLine.selectedPalette ][ 3 ] );
+		currentLine.append( ts.currentLine + " ", ivec3( 166 ) );
+		layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), currentLine.data );
 
 		// show the lines of text in the history
 		const int sizeHistory = ts.history.size();
 		for ( int line = sizeHistory - 1; line >= std::max( sizeHistory - ts.height, 0 ); line-- ) {
-
-			if ( ts.history[ line ].timestamp.length() == 12 ) {
-				std::vector< cChar > timestampString;
-				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 0 ] ) );
-				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 1 ] ) );
-				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 2 ] ) );
-				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 3 ] ) );
-				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 4 ] ) );
-				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 5 ] ) );
-				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 6 ] ) );
-				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 7 ] ) );
-				timestampString.push_back( cChar( ts.tsColor, ts.history[ line ].timestamp[ 8 ] ) );
-				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 9 ] ) );
-				timestampString.push_back( cChar( ts.cuColor, ts.history[ line ].timestamp[ 10 ] ) );
-				layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), timestampString );
-			} else {
-				layers[ 1 ].WriteString( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].timestamp, ts.tsColor );
-			}
-
-			// constant color... I'd like to be able to do per-char color
-			layers[ 1 ].WriteString( glm::uvec2( ts.baseX + ts.history[ line ].timestamp.length(), ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ), ts.history[ line ].commandText, ts.history[ line ].color );
-
+			layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY - line + sizeHistory ), glm::uvec2( ts.baseX + ts.width, ts.baseY - line + sizeHistory ),
+				ts.history[ line ].data );
 		}
 
 		if ( ts.active ) { // draw an underscore at the cursor location
-			layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( ts.cuColor, '_' ) );
+			layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( currentLine.colorsets[ currentLine.selectedPalette ][ 3 ], '_' ) );
 		}
 	}
 };

@@ -13,6 +13,79 @@ struct cChar {
 		data[ 3 ] = c;
 	}
 };
+
+struct cCharString {
+	std::vector< cChar > data;
+
+	static const int selectedPalette = 0; // tbd
+	static constexpr ivec3 colorsets[ 4 ][ 5 ] = {
+	{ // ===================
+		{  17,  35,  24 },
+		{  72, 120,  40 },
+		{ 137, 162,  87 },
+		{ 191, 146,  23 },
+		{ 166, 166, 166 } },
+	{ // ===================
+		{  58,   0,   0 },
+		{ 124,   3,   0 },
+		{ 224,  66,  23 },
+		{ 242, 109,  31 },
+		{ 166, 166, 166 } },
+	{ // ===================
+		{   7,   8,  16 },
+		{  82, 165, 222 },
+		{ 172, 214, 246 },
+		{ 235, 249, 255 },
+		{ 166, 166, 166 } },
+	{ // ===================
+		{  19,   2,   8 },
+		{  70,  14,  43 },
+		{ 213,  60, 106 },
+		{ 255, 130, 116 },
+		{ 166, 166, 166 } } };
+
+	// clear out the data
+	void reset () { data.clear(); }
+
+	// operate in cChars directly
+	void append ( cChar val ) {
+		data.push_back( val );
+	}
+
+	// pre-formatted colored timestamp string
+	void appendTimestampString () {
+		string timestamp = fixedWidthTimeString();
+		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 0 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 1 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 2 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 3 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 4 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 5 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 6 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 7 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 8 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 9 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 10 ] ) );
+	}
+
+	// basic addition function
+	void append ( string str, ivec3 color = colorsets[ selectedPalette ][ 1 ] ) {
+		// create a sequence of cChars that represents this string
+		for ( auto c : str ) {
+			cChar val = cChar( color, c );
+			data.push_back( val );
+		}
+	}
+
+	// referring to the table above
+	void append ( string str, int paletteEntry ) {
+		append( str, colorsets[ selectedPalette ][ paletteEntry ] );
+	}
+
+	void append ( string str, int palette, int paletteEntry ) {
+		append( str, colorsets[ palette ][ paletteEntry ] );
+	}
+
 };
 
 struct command_t {
@@ -76,8 +149,10 @@ struct argList_t {
 	argList_t ( std::vector< varStruct_t > args_in ) :
 		args( args_in ) {}
 
+	// how many
 	size_t count () { return args.size(); }
 
+	// array indexing (by string label if found, else empty varStruct_t)
 	varStruct_t operator [] ( string label ) {
 		for ( uint i = 0; i < args.size(); i++ ) {
 			if ( args[ i ].label == label ) {
@@ -87,6 +162,7 @@ struct argList_t {
 		return varStruct_t();
 	}
 
+	// array indexing (by index)
 	varStruct_t operator [] ( uint idx ) {
 		if ( idx < count() ) {
 			return args[ idx ];
@@ -128,46 +204,6 @@ struct terminalState_t {
 	// is this taking input, etc
 	bool active = true;
 
-	ivec3 bgColor;
-	ivec3 fgColor;
-	ivec3 cuColor;
-	ivec3 tsColor;
-
-	void setColors ( int i ) {
-		switch ( i ) {
-			case 0: // green
-				bgColor = ivec3(  17,  35,  24 );
-				fgColor = ivec3( 137, 162,  87 );
-				cuColor = ivec3(  72, 120,  40 );
-				tsColor = ivec3( 191, 146,  23 );
-			break;
-
-			case 1: // hot
-				bgColor = ivec3(  58,   0,   0 );
-				fgColor = ivec3( 224,  66,  23 );
-				cuColor = ivec3( 124,   3,   0 );
-				tsColor = ivec3( 242, 109,  31 );
-			break;
-
-			case 2: // cool
-				bgColor = ivec3(   7,   8,  16 );
-				fgColor = ivec3(  82, 165, 222 );
-				cuColor = ivec3( 172, 214, 246 );
-				tsColor = ivec3( 235, 249, 255 );
-			break;
-
-			case 3: // pink
-				bgColor = ivec3( 19, 2, 8 );
-				fgColor = ivec3( 213, 60, 106 );
-				cuColor = ivec3( 255, 130, 116 );
-				tsColor = ivec3( 70, 14, 43 );
-			break;
-
-			default:
-			break;
-		}
-	}
-
 	// display extents
 	const int baseX = 10;
 	const int baseY = 5;
@@ -179,7 +215,7 @@ struct terminalState_t {
 	int cursorY = 0;
 
 	// display... wip, there will be changes here
-	std::vector< historyItem_t > history;
+	std::vector< cCharString > history;
 
 	// lines of input history
 	std::vector< string > inputHistory;
@@ -187,7 +223,7 @@ struct terminalState_t {
 	// the current input line
 	string currentLine;
 
-	// command prompt presented to the user
+	// command prompt presented to the user - I think it'd be cool to have a live updating clock in the prompt
 	string promptString = string( "> " );
 
 	// handling of commands with no arguments
@@ -209,8 +245,10 @@ struct terminalState_t {
 
 	// init with a welcome message
 	terminalState_t () {
-		history.push_back( historyItem_t( "Welcome to jbDE", fixedWidthTimeString() + string( ": " ) ) );
-		setColors( 0 );
+		cCharString temp;
+		temp.appendTimestampString();
+		temp.append( "Welcome to jbDE" );
+		history.push_back( temp );
 	}
 
 	bool isDivider ( char c ) {
@@ -329,8 +367,9 @@ struct terminalState_t {
 			} while ( !isDivider( currentLine[ cursorX - 1 ] ) && ( cursorX - 1 >= 0 ) );
 		} else { // remove char before the cursor
 			cursorX = std::clamp( cursorX - 1, 0, int( currentLine.length() ) );
-			if ( currentLine.length() > 0 )
+			if ( currentLine.length() > 0 ) {
 				currentLine.erase( currentLine.begin() + cursorX );
+			}
 		}
 	}
 
@@ -343,14 +382,19 @@ struct terminalState_t {
 			} while ( !isDivider( currentLine[ cursorX ] ) && cursorX < int( currentLine.length() ) );
 		} else {
 			// remove the char at the cursor
-			if ( currentLine.length() > 0 && cursorX < int( currentLine.length() ) )
+			if ( currentLine.length() > 0 && cursorX < int( currentLine.length() ) ) {
 				currentLine.erase( currentLine.begin() + cursorX );
+			}
 		}
 	}
 
 	void enter () {
 		// push this line onto the history
-		history.push_back( historyItem_t( currentLine, fixedWidthTimeString() + string( ": " ) ) );
+		cCharString temp;
+		temp.appendTimestampString();
+		temp.append( ": " );
+		temp.append( currentLine + " " );
+		history.push_back( temp );
 
 		// command string, as given
 		string commandString = currentLine;
@@ -458,17 +502,29 @@ struct terminalState_t {
 				}
 
 				if ( !fail ) {
+
+					// invoke the lambda
 					commandsWithArgs[ i ].invoke( args );
+
 				} else {
-					history.push_back( { "  Command \"" + commandName + "\" argument parse error", "" } );
-					history.push_back( { "   expected " + commandsWithArgs[ i ].seqString(), "" } );
+
+					// this needs more details
+					cCharString temp;
+					temp.append( "  Command \"" + commandName + "\" argument parse error" );
+					history.push_back( temp );
+
+					temp.reset();
+					temp.append( "   expected " + commandsWithArgs[ i ].seqString() );
+					history.push_back( temp );
 				}
 			}
 		}
 
 		// made it through the lists without finding a match... say so
 		if ( !matchFound ) {
-			history.push_back( historyItem_t( "  Command " + commandName + " not found", "" ) );
+			cCharString temp;
+			temp.append( "  Command " + commandName + " not found" );
+			history.push_back( temp );
 		}
 	}
 
