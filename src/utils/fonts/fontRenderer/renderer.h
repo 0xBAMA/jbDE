@@ -496,14 +496,14 @@ public:
 
 	void drawTerminal ( terminalState_t &ts ) {
 		cCharString currentLine;
-		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( currentLine.colorsets[ currentLine.selectedPalette ][ 0 ], FILL_100 ) );
+		layers[ 0 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( currentLine.colorsets[ selectedPalette ][ 0 ], FILL_100 ) );
 
 		// clear the area containing the text ( foreground + cursor layer )
 		layers[ 1 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 
 		// show the current text entry prompt
-		currentLine.append( ts.promptString, currentLine.colorsets[ currentLine.selectedPalette ][ 3 ] );
+		currentLine.append( ts.promptString, currentLine.colorsets[ selectedPalette ][ 3 ] );
 		currentLine.append( ts.currentLine + " ", ivec3( 166 ) );
 		layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), currentLine.data );
 
@@ -515,7 +515,7 @@ public:
 		}
 
 		if ( ts.active ) { // draw an underscore at the cursor location
-			layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( currentLine.colorsets[ currentLine.selectedPalette ][ 3 ], '_' ) );
+			layers[ 2 ].WriteCharAt( glm::uvec2( ts.baseX + ts.cursorX + ts.promptString.length(), ts.baseY ), cChar( currentLine.colorsets[ selectedPalette ][ 3 ], '_' ) );
 		}
 	}
 };

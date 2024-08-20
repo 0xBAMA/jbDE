@@ -14,10 +14,10 @@ struct cChar {
 	}
 };
 
+static inline int selectedPalette = 0;
 struct cCharString {
 	std::vector< cChar > data;
 
-	static const int selectedPalette = 0; // tbd
 	static constexpr ivec3 colorsets[ 4 ][ 5 ] = {
 	{ // ===================
 		{  17,  35,  24 },
@@ -65,7 +65,6 @@ struct cCharString {
 		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 7 ] ) );
 		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 8 ] ) );
 		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 9 ] ) );
-		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 10 ] ) );
 	}
 
 	// basic addition function
@@ -73,15 +72,16 @@ struct cCharString {
 		// create a sequence of cChars that represents this string
 		for ( auto c : str ) {
 			cChar val = cChar( color, c );
-			data.push_back( val );
+			append( val );
 		}
 	}
 
-	// referring to the table above
+	// referring to the selected palette above
 	void append ( string str, int paletteEntry ) {
 		append( str, colorsets[ selectedPalette ][ paletteEntry ] );
 	}
 
+	// referring to an arbitrary one of the palettes from above
 	void append ( string str, int palette, int paletteEntry ) {
 		append( str, colorsets[ palette ][ paletteEntry ] );
 	}
@@ -246,8 +246,10 @@ struct terminalState_t {
 	// init with a welcome message
 	terminalState_t () {
 		cCharString temp;
+		selectedPalette = 1;
+
 		temp.appendTimestampString();
-		temp.append( "Welcome to jbDE" );
+		temp.append( " Welcome to jbDE " );
 		history.push_back( temp );
 	}
 

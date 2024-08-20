@@ -114,23 +114,23 @@ public:
 				temp.reset();
 				for ( auto& command : terminal.commands ) {
 					temp.append( "  " );
-					temp.append( command.commandName + " " );
+					temp.append( command.commandName );
 					terminal.history.push_back( temp );
 					temp.reset();
 					if ( command.description.length() > 1 ) { // if we have a nonzero length description, show it
 						temp.append( "    " );
-						temp.append( command.description + " ", 4 );
+						temp.append( command.description, 4 );
 						terminal.history.push_back( temp );
 						temp.reset();
 					}
 					terminal.history.push_back( temp ); // padding line
 				}
 				for ( auto& command : terminal.commandsWithArgs ) {
-					temp.append( "  " +command.commandName + ": " + command.seqString() + " " );
+					temp.append( "  " +command.commandName + ": " + command.seqString() );
 					terminal.history.push_back( temp );
 					temp.reset();
 					if ( command.description.length() > 1 ) {
-						temp.append( "    " + command.description + " ", 4 );
+						temp.append( "    " + command.description, 4 );
 						terminal.history.push_back( temp );
 						temp.reset();
 					}
