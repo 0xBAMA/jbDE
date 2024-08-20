@@ -503,8 +503,8 @@ public:
 		layers[ 2 ].DrawRectConstant( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY + ts.height ), cChar( BLACK, FILL_0 ) );
 
 		// show the current text entry prompt
-		currentLine.append( ts.promptString, currentLine.colorsets[ selectedPalette ][ 3 ] );
-		currentLine.append( ts.currentLine + " ", ivec3( 166 ) );
+		currentLine.append( ts.promptString, currentLine.colorsets[ selectedPalette ][ 2 ] );
+		currentLine.append( ts.currentLine, ivec3( 166 ) );
 		layers[ 1 ].WriteCCharVector( glm::uvec2( ts.baseX, ts.baseY ), glm::uvec2( ts.baseX + ts.width, ts.baseY ), currentLine.data );
 
 		// show the lines of text in the history
