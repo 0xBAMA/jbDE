@@ -1,12 +1,18 @@
 #include "../includes.h"
 
-struct historyItem_t {
-	string commandText;
-	string timestamp;
-	ivec3 color;
-
-	historyItem_t ( string commandText_in, string timestamp_in, ivec3 color_in = ivec3( 137, 162, 87 ) ) :
-		commandText( commandText_in ), timestamp( timestamp_in ), color( color_in ) {}
+struct cChar {
+	unsigned char data[ 4 ] = { 255, 255, 255, 0 };
+	cChar() {}
+	cChar( unsigned char c ) {
+		data[ 3 ] = c;
+	}
+	cChar( glm::ivec3 color, unsigned char c ) {
+		data[ 0 ] = color.x;
+		data[ 1 ] = color.y;
+		data[ 2 ] = color.z;
+		data[ 3 ] = c;
+	}
+};
 };
 
 struct command_t {
