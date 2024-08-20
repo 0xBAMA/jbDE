@@ -356,9 +356,9 @@ struct terminalState_t {
 		string commandString = currentLine;
 
 		// get the string as input, reset history browse state
-		inputHistory.push_back( currentLine );
-		tempHistoryPrompt = string();
-		historyCursor = 0;
+		// inputHistory.push_back( currentLine );
+		// tempHistoryPrompt = string();
+		// historyCursor = 0;
 
 		// clear the input line
 		currentLine.clear();
@@ -492,38 +492,40 @@ struct terminalState_t {
 		}
 	}
 
-	// management of history
-	int historyCursor = 0;
-	string tempHistoryPrompt;
+	// history stuff needs work
+
+	// // management of history
+	// int historyCursor = 0;
+	// string tempHistoryPrompt;
 
 	void cursorUp () {
-		// if there's existing history
-		if ( inputHistory.size() != 0 ) {
-			// go back one history element
-			if ( historyCursor == 0 ) { // we are back at the prompt before looking at the history
-				// cache this off to the temp string
-				tempHistoryPrompt = currentLine;
-			}
-			// get the last element from the history
-			historyCursor = std::clamp( historyCursor - 1, 0, int( inputHistory.size() - 1 ) );
-			cout << "history cursor up, now " << historyCursor << " (read at " << ( inputHistory.size() - historyCursor - 1 ) << ")" << endl;
-			cout << inputHistory.size() << " history elements"<< endl;
-			currentLine = inputHistory[ inputHistory.size() - historyCursor - 1 ];
-			cursorX = int( currentLine.length() );
-		}
+		// // if there's existing history
+		// if ( inputHistory.size() != 0 ) {
+		// 	// go back one history element
+		// 	if ( historyCursor == 0 ) { // we are back at the prompt before looking at the history
+		// 		// cache this off to the temp string
+		// 		tempHistoryPrompt = currentLine;
+		// 	}
+		// 	// get the last element from the history
+		// 	historyCursor = std::clamp( historyCursor - 1, 0, int( inputHistory.size() - 1 ) );
+		// 	cout << "history cursor up, now " << historyCursor << " (read at " << ( inputHistory.size() - historyCursor - 1 ) << ")" << endl;
+		// 	cout << inputHistory.size() << " history elements"<< endl;
+		// 	currentLine = inputHistory[ inputHistory.size() - historyCursor - 1 ];
+		// 	cursorX = int( currentLine.length() );
+		// }
 	}
 
 	void cursorDown () {
-		if ( historyCursor == 1 ) { // we are going back, restore cache
-			currentLine = tempHistoryPrompt;
-			cursorX = int( currentLine.length() );
-			tempHistoryPrompt = string();
-		} else {
-			historyCursor = std::clamp( historyCursor + 1, 0, int( inputHistory.size() - 1 ) );
-			cout << "history cursor up, now " << historyCursor << " (read at " << ( inputHistory.size() - historyCursor - 1 ) << ")" << newline;
-			currentLine = inputHistory[ inputHistory.size() - historyCursor - 1 ];
-			cursorX = int( currentLine.length() );
-		}
+		// if ( historyCursor == 1 ) { // we are going back, restore cache
+		// 	currentLine = tempHistoryPrompt;
+		// 	cursorX = int( currentLine.length() );
+		// 	tempHistoryPrompt = string();
+		// } else {
+		// 	historyCursor = std::clamp( historyCursor + 1, 0, int( inputHistory.size() - 1 ) );
+		// 	cout << "history cursor up, now " << historyCursor << " (read at " << ( inputHistory.size() - historyCursor - 1 ) << ")" << newline;
+		// 	currentLine = inputHistory[ inputHistory.size() - historyCursor - 1 ];
+		// 	cursorX = int( currentLine.length() );
+		// }
 	}
 
 	void home () {

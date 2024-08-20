@@ -155,7 +155,6 @@ public:
 					terminal.history.push_back( { args[ "string" ].stringData, "", GOLD } );
 			}, "Report back the given string argument." } );
 
-
 		// testing some cvar stuff
 			terminal.addCvar( { "testCvarString", STRING, vec4( 0.0f ), "Nut" } );
 			terminal.addCvar( { "testCvarFloat", FLOAT, vec4( 1.0f ), "" } );
