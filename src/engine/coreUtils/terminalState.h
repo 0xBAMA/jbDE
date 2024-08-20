@@ -65,6 +65,7 @@ struct cCharString {
 		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 7 ] ) );
 		append( cChar( colorsets[ selectedPalette ][ 3 ], timestamp[ 8 ] ) );
 		append( cChar( colorsets[ selectedPalette ][ 1 ], timestamp[ 9 ] ) );
+		append( cChar( colorsets[ selectedPalette ][ 1 ], ':' ) );
 	}
 
 	// basic addition function
@@ -394,8 +395,7 @@ struct terminalState_t {
 		// push this line onto the history
 		cCharString temp;
 		temp.appendTimestampString();
-		temp.append( ": " );
-		temp.append( currentLine + " " );
+		temp.append( currentLine );
 		history.push_back( temp );
 
 		// command string, as given
