@@ -190,7 +190,7 @@ struct terminal_t {
 		uvec2 basePt = uvec2( 10, 5 );
 
 		// size in glyphs
-		uvec2 dims = uvec2( 120, 42 );
+		uvec2 dims = uvec2( 300, 80 );
 
 		// is this terminal active
 		bool active = true;
@@ -294,7 +294,7 @@ struct terminal_t {
 			},
 			[=] ( std::vector< var_t > arguments ) {
 				// if this function did anything, it would be here
-			}, "I am a test command and I don't do a whole hell of a lot." );
+			}, "I am a test command and I don't do a whole lot." );
 
 		// clearing history
 		addCommand( { "clear" }, {},
@@ -495,39 +495,39 @@ struct terminal_t {
 		return false;
 	}
 
-	// cursor keys - up/down history navigation wip
+	// cursor keys - up/down history navigation
 	int historyOffset = 0;
-	bool historyBrowseAtCurrent = true;
-	void resetInputHistoryBrowse() { historyOffset = 0; historyBrowseAtCurrent = true; }
+	string clicache;
 	std::vector< string > userInputs;
-	string tempHistoryPrompt;
+
+	void resetInputHistoryBrowse() {
+		// whatever needs to happen to reset
+		historyOffset = 0; // this is probably it...
+	}
 
 	void cursorUp () {
-		// if there's existing history
-		if ( userInputs.size() != 0 ) {
-			// go back one history element
-			if ( historyBrowseAtCurrent ) { // we are back at the prompt before looking at the history
-				// cache this off to the temp string
-				tempHistoryPrompt = currentLine;
-				historyBrowseAtCurrent = false;
-			}
-			// get the last element from the history
-			historyOffset = std::clamp( historyOffset + 1, 0, int( userInputs.size() ) );
-			currentLine = userInputs[ userInputs.size() - historyOffset ];
-			cursorX = int( currentLine.length() );
+		if ( userInputs.empty() ) return; // no history, nothing to navigate
+		if ( historyOffset == 0 ) { // you are at the original prompt
+			clicache = currentLine; // so you need to cache before proceeding
 		}
+		// offset, clamp, and update currentLine
+		historyOffset++;
+		historyOffset = std::clamp( historyOffset, 0, int( userInputs.size() ) );
+		currentLine = userInputs[ userInputs.size() - historyOffset ];
 	}
 
 	void cursorDown () {
-		if ( historyBrowseAtCurrent ) return; // nothing to do here
-		if ( historyOffset == 1 ) { // we are going back, restore cache
-			currentLine = tempHistoryPrompt;
-			cursorX = int( currentLine.length() );
-			tempHistoryPrompt = string();
+		if ( userInputs.empty() ) return; // no history, no op
+		if ( historyOffset == 0 ) return; // at the prompt, this is not meaningful
+		if ( historyOffset == 1 ) {	// if we are one above the prompt
+			// restoring cached line
+			currentLine = clicache;
+			historyOffset = 0;
 		} else {
-			historyOffset = std::clamp( historyOffset - 1, 0, int( userInputs.size() ) );
+			// offset, clamp, and update currentLine
+			historyOffset--;
+			historyOffset = std::clamp( historyOffset, 0, int( userInputs.size() ) );
 			currentLine = userInputs[ userInputs.size() - historyOffset ];
-			cursorX = int( currentLine.length() );
 		}
 	}
 
@@ -610,7 +610,6 @@ struct terminal_t {
 
 		// reset input history browsing state, as well
 		resetInputHistoryBrowse();
-		tempHistoryPrompt = string();
 
 		// nonzero length
 		if ( userInputString.length() ) {
