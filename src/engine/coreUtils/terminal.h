@@ -114,9 +114,72 @@ struct coloredStringBuilder {
 	}
 };
 
-// variable definition
+// variable/type definition
+enum type_e {
+	BOOL = 0,
+
+	INT = 1,
+	IVEC2 = 2,
+	IVEC3 = 3,
+	IVEC4 = 4,
+
+	FLOAT = 5,
+	VEC2 = 6,
+	VEC3 = 7,
+	VEC4 = 8,
+
+	STRING = 9
+};
+
+const static inline string getStringForType ( type_e type_in ) {
+	const string typeStrings[] = { "bool", "int", "int2", "int3", "int4", "float", "vec2", "vec3", "vec4", "string" };
+	return typeStrings[ int( type_in ) ];
+}
+
+struct var_t {
+	string label;
+	type_e type;
+	vec4 data = vec4( 0.0f );
+	string stringData;
+	string description;
+
+	var_t( string label_in, type_e type_in, string description_in ) :
+		label( label_in ), type( type_in ), description( description_in ) {}
+};
 
 // command definition
+struct command_t {
+	std::vector< string > labelAndAliases;
+	std::vector< var_t > arguments;
+	std::function< void( std::vector< var_t > arguments ) > func;
+	string description;
+
+	// does the input string match this command or any of its aliases?
+	bool commandStringMatch ( string commandString ) {
+		for ( auto& cantidate : labelAndAliases ) {
+			if ( commandString == cantidate ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	string getAliasString () {
+		string value;
+		// we have one or more aliases
+		for ( uint i = 0; i < labelAndAliases.size(); i++ ) {
+			value += labelAndAliases[ i ] + ", ";
+		}
+		// last ", " needs to come off
+		value.pop_back();
+		value.pop_back();
+		return value;
+	}
+
+	void invoke ( std::vector< var_t > arguments_in ) { // use the local arguments?
+		func( arguments_in );
+	}
+};
 
 struct terminal_t {
 
@@ -152,18 +215,202 @@ struct terminal_t {
 		history.push_back( line );
 	}
 
+	void addLineBreak () {
+		addHistoryLine( csb.flush() );
+	}
+
+	// cvars stuff...
+		// from before:
+
+	// 	// testing some cvar stuff
+	// 		terminal.addCvar( { "testCvarString", STRING, vec4( 0.0f ), "Nut" } );
+	// 		terminal.addCvar( { "testCvarFloat", FLOAT, vec4( 1.0f ), "" } );
+
+	// 		terminal.addCommand( { "cvars", [=] () {
+	// 			string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
+	// 			for ( uint i = 0; i < terminal.cvars.size(); i++ ) {
+	// 				cCharString temp;
+	// 				temp.append( "  " + terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation() + " " );
+	// 				terminal.history.push_back( temp );
+	// 			}
+	// 		}, "List all the active cvars, as well as their types and values." } );
+
+	std::vector< command_t > commands;
+	void addCommand ( std::vector< string > commandAndOptionalAliases_in,
+		std::vector< var_t > argumentList_in,
+		std::function< void( std::vector< var_t > arguments ) > func_in,
+		string description_in ) {
+
+			// fill out the struct
+			command_t command;
+			command.labelAndAliases = commandAndOptionalAliases_in;
+			command.arguments = argumentList_in;
+			command.func = func_in;
+			command.description = description_in;
+
+			commands.push_back( command );
+	}
+
+	// adding some default set of commands
+	void addTerminalLocalCommands () {
+
+		// cannot do e.g. quit here, because of lack of access to pQuit
+			// will need to add another step to init, where engine commands are added
+
+		addCommand(
+			{ "list", "ls" }, {}, // command and aliases, arguments ( if any, none here )
+			[=] ( std::vector< var_t > arguments ) {
+				addLineBreak();
+				for ( uint i = 0; i < commands.size(); i++ ) {
+					addHistoryLine( csb.append( "  ============================================" ).flush() );
+					addHistoryLine( csb.append( "  > Command Aliases: " ).append( commands[ i ].getAliasString(), 1 ).flush() );
+					addHistoryLine( csb.append( "    Description: " ).append( commands[ i ].description, 1 ).flush() );
+					addHistoryLine( csb.append( "    Arguments:" ).flush() );
+					if ( commands[ i ].arguments.size() > 0 ) {
+						for ( auto& var : commands[ i ].arguments ) {
+							addHistoryLine( csb.append( "      " + var.label + " ( ", 2 ).append( getStringForType( var.type ), 1 ).append( " ): ", 2 ).append( var.description, 1 ).flush() );
+						}
+						addLineBreak();
+					} else {
+						addHistoryLine( csb.append( "    None", 1 ).flush() );
+						addLineBreak();
+					}
+				}
+			}, "List all the active commands in this terminal." );
+
+		// test with several different arguments
+		addCommand(
+			{ "test", "ts", "ts1" },
+			{ // arguments
+				var_t( "arg1", BOOL, "This is a first test bool." ),
+				var_t( "arg2", BOOL, "This is a second test bool." ),
+				var_t( "arg3", BOOL, "This is a third test bool." ),
+				var_t( "arg4", BOOL, "This is a fourth test bool." )
+			},
+			[=] ( std::vector< var_t > arguments ) {
+				// if this function did anything, it would be here
+			}, "I am a test command and I don't do a whole hell of a lot." );
+
+		// clearing history
+		addCommand( { "clear" }, {},
+			[=] ( std::vector< var_t > arguments ) {
+				history.clear();
+			}, "Clear the terminal history." );
+
+		// setting color presets
+		addCommand( { "colorPreset" }, {
+				{ "select", INT, "Which palette you want to use." }
+			}, [=] ( std::vector< var_t > arguments ) {
+				// I would like to have the string indexing back...
+				csb.selectedPalette = int( arguments[ 0 ].data.x );
+			}, "Numbered presets (0-3)." );
+
+		addCommand( { "echo" },
+			{ // parameters list
+				{ "string", STRING, "The string in question." }
+			},
+			[=] ( std::vector< var_t > arguments ) {
+				history.push_back( csb.append( arguments[ 0 ].stringData, 4 ).flush() );
+			}, "Report back the given string argument." );
+	}
+
+	// is this valid input for this command
+	bool parseForCommand ( int commandIdx, string argumentString ) {
+
+		// so we have matched with command number commandIdx
+
+		// we need to see if we can parse its arguments
+		std::stringstream argstream( argumentString );
+		bool fail = false;
+
+		// for each argument
+		for ( uint i = 0; i < commands[ commandIdx ].arguments.size() && !fail; i++ ) {
+
+			// temp buffers to read into
+			bool tempb = false;
+			int tempi = 0;
+			float tempf = 0.0f;
+			string temps;
+
+			int count = 0;
+			switch ( commands[ commandIdx ].arguments[ i ].type ) { // for each arg
+				case BOOL:
+					// read in a bool, put it in x
+					if ( ( argstream >> std::boolalpha >> tempb ) ) {
+						commands[ commandIdx ].arguments[ i ].data[ 0 ] = tempb ? 1.0f : 0.0f;
+					} else {
+						argstream.clear();
+						fail = true;
+					}
+				break;
+
+				case IVEC4:	count++;
+				case IVEC3:	count++;
+				case IVEC2:	count++;
+				case INT:	count++;
+					// read in up to four ints, put it in xyzw
+					for ( int j = 0; j < count; j++ ) {
+						if ( ( argstream >> tempi ) ) {
+							commands[ commandIdx ].arguments[ i ].data[ j ] = tempi;
+						} else {
+							cout << "int parse error" << endl;
+							argstream.clear();
+							fail = true;
+						}
+					}
+				break;
+
+				case VEC4:	count++;
+				case VEC3:	count++;
+				case VEC2:	count++;
+				case FLOAT:	count++;
+					// read in up to four floats, put it in xyzw
+					for ( int j = 0; j < 4; j++ ) {
+						if ( ( argstream >> tempf ) ) {
+							commands[ commandIdx ].arguments[ i ].data[ j ] = tempf;
+						} else {
+							cout << "float parse error" << endl;
+							argstream.clear();
+							fail = true;
+						}
+					}
+				break;
+
+				case STRING:
+					if ( ( argstream >> temps ) ) { /* neat */ } else {
+						cout << "string parse error" << endl;
+						argstream.clear();
+						fail = true;
+					}
+				break;
+
+				default:
+				break;
+			}
+		}
+
+		if ( fail ) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	// init with startup message
 	terminal_t () {
-		csb.selectedPalette = 0;
+		// some initial setup - set color palette to be used
+		csb.selectedPalette = 2;
+
+		// output welcome string
 		addHistoryLine( csb.timestamp().append( " Welcome to jbDE", 4 ).flush() );
 
 		// add terminal-local commands and cvars
 			// manipulating base point, width, height, etc
+		addTerminalLocalCommands();
 
 		// some of these things changing will involve clearing the entire buffer in the text renderer
 			// so either: signal that... or be clearing every time already anyways because it's not a major perf hit
 	}
-
 
 	// handle input, etc
 	void update ( inputHandler_t &currentInputState ) {
@@ -317,18 +564,50 @@ struct terminal_t {
 		currentLine.clear();
 		cursorX = 0;
 
-		// now breaking this up a little bit - we consider this sequence up to the first space as the command
-		string commandText = userInputString.substr( 0, userInputString.find( " " ) );
-		string argumentText = userInputString.erase( 0, commandText.length() + 1 );
+		if ( userInputString.length() ) {
 
-		// debug currently
-		addHistoryLine( csb.append( "  recognized command:" ).append( commandText ).flush() );
-		addHistoryLine( csb.append( "  recognized args:" ).append( argumentText ).flush() );
+			// now breaking this up a little bit - we consider this sequence up to the first space as the command
+			string commandText = userInputString.substr( 0, userInputString.find( " " ) );
+			string argumentText = userInputString.erase( 0, commandText.length() + 1 );
 
-		// try to match a cvar
-			// if you do, report the type and value of that cvar
+			// todo - try to match a cvar
+				// if you do, report the type and value of that cvar
 
-		// try to match a command
-			// if you do, try to parse the rest of the input string for the arguments to that command
+			// try to match a command
+			bool commandFound = false;
+			for ( uint i = 0; i < commands.size(); i++ ) {
+				// if you do, try to parse the rest of the input string for the arguments to that command
+				if ( commands[ i ].commandStringMatch( commandText ) ) {
+					commandFound = true;
+					if ( parseForCommand( i, argumentText ) ) {
+
+						// we successfully parsed the arguments for the command, so we can go ahead and run it
+						commands[ i ].invoke( commands[ i ].arguments );
+
+					} else {
+
+						// do the full report...
+						addLineBreak();
+						addHistoryLine( csb.append( "  Error: ", 4 ).append( "command \"" + commandText + "\" argument parse failed...", 3 ).flush() );
+						addLineBreak();
+						if ( !commands[ i ].arguments.empty() ) {
+							addHistoryLine( csb.append( "  Command Aliases: " ).append( commands[ i ].getAliasString(), 1 ).flush() );
+							addHistoryLine( csb.append( "  Description: " ).append( commands[ i ].description, 1 ).flush() );
+							addHistoryLine( csb.append( "  Arguments:" ).flush() );
+							for ( auto& var : commands[ i ].arguments ) {
+								addHistoryLine( csb.append( "    " + var.label + " ( ", 2 ).append( getStringForType( var.type ), 1 ).append( " ): ", 2 ).append( var.description, 1 ).flush() );
+							}
+							addLineBreak();
+						} else {
+							// with no arguments... should not be possible to fail this way
+						}
+
+					}
+				}
+			}
+			if ( !commandFound ) {
+				addHistoryLine( csb.append( "Error: ", 4 ).append( "command " + commandText + " not found", 3 ).flush() );
+			}
+		}
 	}
 };
