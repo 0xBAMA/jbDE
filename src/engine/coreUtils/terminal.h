@@ -479,6 +479,7 @@ struct terminal_t {
 
 	void addChar ( char c ) {
 		// add this char at the cursor
+		resetInputHistoryBrowse();
 		currentLine.insert( currentLine.begin() + cursorX, c );
 		cursorX++;
 	}
@@ -496,12 +497,38 @@ struct terminal_t {
 
 	// cursor keys - up/down history navigation wip
 	int historyOffset = 0;
+	bool historyBrowseAtCurrent = true;
+	void resetInputHistoryBrowse() { historyOffset = 0; historyBrowseAtCurrent = true; }
 	std::vector< string > userInputs;
+	string tempHistoryPrompt;
+
 	void cursorUp () {
-
+		// if there's existing history
+		if ( userInputs.size() != 0 ) {
+			// go back one history element
+			if ( historyBrowseAtCurrent ) { // we are back at the prompt before looking at the history
+				// cache this off to the temp string
+				tempHistoryPrompt = currentLine;
+				historyBrowseAtCurrent = false;
+			}
+			// get the last element from the history
+			historyOffset = std::clamp( historyOffset + 1, 0, int( userInputs.size() ) );
+			currentLine = userInputs[ userInputs.size() - historyOffset ];
+			cursorX = int( currentLine.length() );
+		}
 	}
-	void cursorDown () {
 
+	void cursorDown () {
+		if ( historyBrowseAtCurrent ) return; // nothing to do here
+		if ( historyOffset == 1 ) { // we are going back, restore cache
+			currentLine = tempHistoryPrompt;
+			cursorX = int( currentLine.length() );
+			tempHistoryPrompt = string();
+		} else {
+			historyOffset = std::clamp( historyOffset - 1, 0, int( userInputs.size() ) );
+			currentLine = userInputs[ userInputs.size() - historyOffset ];
+			cursorX = int( currentLine.length() );
+		}
 	}
 
 	void cursorLeft ( bool control ) {
@@ -535,6 +562,7 @@ struct terminal_t {
 
 	// further manipulation of current input line
 	void backspace ( bool control ) {
+		resetInputHistoryBrowse();
 		if ( control ) {
 			if ( currentLine.length() > 0 ) {
 				do { // erase till you hit whitespace
@@ -551,6 +579,7 @@ struct terminal_t {
 	}
 
 	void deleteKey ( bool control ) {
+		resetInputHistoryBrowse();
 		if ( control ) {
 			if ( currentLine.length() > 0 ) {
 				do {
@@ -579,7 +608,15 @@ struct terminal_t {
 		cursorX = 0;
 		scrollOffset = 0;
 
+		// reset input history browsing state, as well
+		resetInputHistoryBrowse();
+		tempHistoryPrompt = string();
+
+		// nonzero length
 		if ( userInputString.length() ) {
+
+			// add this to the input history
+			userInputs.push_back( userInputString );
 
 			// now breaking this up a little bit - we consider this sequence up to the first space as the command
 			string commandText = userInputString.substr( 0, userInputString.find( " " ) );
