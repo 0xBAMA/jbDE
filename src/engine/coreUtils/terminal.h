@@ -423,6 +423,10 @@ struct terminal_t {
 		if ( currentInputState.getState4( KEY_UP ) == KEYSTATE_RISING ) { cursorUp(); }
 		if ( currentInputState.getState4( KEY_DOWN ) == KEYSTATE_RISING ) { cursorDown(); }
 
+	// scrolling
+		if ( currentInputState.getState4( KEY_PAGEUP ) == KEYSTATE_RISING ) { pageup(); }
+		if ( currentInputState.getState4( KEY_PAGEDOWN ) == KEYSTATE_RISING ) { pagedown(); }
+
 	// navigation within line
 		if ( currentInputState.getState4( KEY_LEFT ) == KEYSTATE_RISING ) { cursorLeft( control ); }
 		if ( currentInputState.getState4( KEY_RIGHT ) == KEYSTATE_RISING ) { cursorRight( control ); }
@@ -515,6 +519,11 @@ struct terminal_t {
 		}
 	}
 
+	// scrolling the output up and down, to see further back in time
+	int scrollOffset = 0;
+	void pageup () { scrollOffset++; }
+	void pagedown () { scrollOffset--; }
+
 	// more navigation
 	void home () { cursorX = 0; }
 	void end () { cursorX = currentLine.length(); }
@@ -560,9 +569,10 @@ struct terminal_t {
 		// cache the current input line as a string
 		string userInputString = currentLine;
 
-		// clear the input, reset cursor
+		// clear the input, reset cursor, scroll offset
 		currentLine.clear();
 		cursorX = 0;
+		scrollOffset = 0;
 
 		if ( userInputString.length() ) {
 

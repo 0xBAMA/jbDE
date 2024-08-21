@@ -506,9 +506,11 @@ public:
 
 		// show the lines of text in the history
 		const int sizeHistory = t.history.size();
-		for ( int line = sizeHistory - 1; line >= std::max( int( sizeHistory - t.dims.y ), 0 ); line-- ) {
+		for ( int line = sizeHistory - 1 + t.scrollOffset; line >= std::max( int( sizeHistory - t.dims.y ), 0 ); line-- ) {
+			if ( ( line - t.scrollOffset ) != std::clamp( line - t.scrollOffset, 0, int( t.history.size() - 1 ) ) ) continue; // no oob reads
+			if ( ( -line + sizeHistory ) < 1 ) continue; // don't step on the prompt ( or continue below the prompt )
 			layers[ 1 ].WriteCCharVector( t.basePt + uvec2( 0, -line + sizeHistory ), t.basePt + uvec2( t.dims.x, -line + sizeHistory ),
-				t.history[ line ] );
+				t.history[ line - t.scrollOffset ] );
 		}
 
 		// writing text prompt
