@@ -219,6 +219,11 @@ struct terminal_t {
 		addHistoryLine( csb.flush() );
 	}
 
+	std::vector< var_t > cvars;
+	void addCvar ( string label, type_e type, string description ) {
+		cvars.push_back( var_t( label, type, description ) );
+	}
+
 	// cvars stuff...
 		// from before:
 
@@ -399,7 +404,7 @@ struct terminal_t {
 	// init with startup message
 	terminal_t () {
 		// some initial setup - set color palette to be used
-		csb.selectedPalette = 2;
+		csb.selectedPalette = 0;
 
 		// output welcome string
 		addHistoryLine( csb.timestamp().append( " Welcome to jbDE", 4 ).flush() );
