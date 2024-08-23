@@ -2,6 +2,8 @@
 #include <queue>
 #include <stack>
 
+#include <iostream>
+
 using namespace std;
 
 /* Create a new Dictionary that uses a Trie back end */
@@ -15,120 +17,114 @@ DictionaryTrie::DictionaryTrie(){
  * Return true if the word was inserted, and false if it
  * was not (i.e. it was already in the dictionary or it was
  * invalid (empty string) */
-bool DictionaryTrie::insert(std::string word, unsigned int freq)
-{
-    int wordSize = word.size(); // get the length of the word
+bool DictionaryTrie::insert(std::string word, unsigned int freq) {
+	int wordSize = word.size(); // get the length of the word
 
-    // if the input string is invalid, return false
-    if(wordSize == 0) {
-        return false;
-    }
+	// if the input string is invalid, return false
+	if ( wordSize == 0 ) {
+		return false;
+	}
 
-    MTNode* currNode = root;
-    int i = 0;
+	MTNode* currNode = root;
+	int i = 0;
 
-    // loop from the root to the last internal node
-    while(i<wordSize){
+	// loop from the root to the last internal node
+	while ( i < wordSize ) {
 
-        // update all of parent node of current node
+		// update all of parent node of current node
 
-        char currChar = word[i]; // get the current char i in the word
+		char currChar = word[ i ]; // get the current char i in the word
+		cout << "processing \"" << currChar << "\"" << endl;
 
-        // check if the currChar is a space, then we set the currChar to the
-        // ASCII char after 'z'
-        if((int)currChar == 32){
-            currChar = (char)123;
-        }
+		// check if the currChar is a space, then we set the currChar to the
+		// ASCII char after 'z'
+		if ( ( int ) currChar == 32 ) {
+			currChar = (char)123;
+		}
 
-        // if the target position already have a node, then we follow it
-        // else we create a new node and update currNode
-        if (currNode->arr[(int)currChar-97] != 0)
-        {
-            currNode = currNode->arr[(int)currChar-97];
-        }
-        else {
-            currNode->arr[(int)currChar-97] = new MTNode(0);
-            MTNode* temp = currNode; 
-            currNode = currNode->arr[(int)currChar-97];
-            currNode->parent = temp;
-        }
+		// if the target position already have a node, then we follow it
+		// else we create a new node and update currNode
+		if ( currNode->arr[ ( int ) currChar - 97 ] != 0 ) {
+			currNode = currNode->arr[ ( int ) currChar - 97 ];
+		} else {
+			currNode->arr[ ( int ) currChar - 97 ] = new MTNode( 0 );
+			MTNode* temp = currNode;
+			currNode = currNode->arr[ ( int ) currChar - 97 ];
+			currNode->parent = temp;
+		}
 
 
-        // update the maxCount and numMax while inserting the new node
-        if(freq == currNode->parent->maxCount){
-            currNode->parent->numMax++;
-        }	
-        else if (freq > currNode->parent->maxCount){
-            currNode->parent->numMax = 1;
-            currNode->parent->maxCount = freq;
-        }
+		// update the maxCount and numMax while inserting the new node
+		if( freq == currNode->parent->maxCount ){
+			currNode->parent->numMax++;
+		} else if ( freq > currNode->parent->maxCount ){
+			currNode->parent->numMax = 1;
+			currNode->parent->maxCount = freq;
+		}
 
-        // when inserting the last character node, we check if the node already
-        // exist, then return false, else update all the fields.
-        if(i == wordSize-1){
-            if(currNode->isKey == true){  
-                return false;
-            }
-            currNode->freq = freq;
-            currNode->isKey = true;
-            currNode->str = word;
+		// when inserting the last character node, we check if the node already
+		// exist, then return false, else update all the fields.
+		if ( i == wordSize - 1 ) {
+			if ( currNode->isKey == true ) {
+				return false;
+			}
+			currNode->freq = freq;
+			currNode->isKey = true;
+			currNode->str = word;
 
-            // if the maxCount of currNode is equal to freq, then we increment
-            // numMax else, we set the maxCount to count
-            if(currNode->maxCount == freq)
-                currNode->numMax++;
-            else if(currNode->maxCount < freq)
-                currNode->maxCount = freq;
-        }
-        i++;
-    }	
-    count++;  // increment the count 
-    return true; 
+			// if the maxCount of currNode is equal to freq, then we increment
+			// numMax else, we set the maxCount to count
+			if ( currNode->maxCount == freq )
+				currNode->numMax++;
+			else if ( currNode->maxCount < freq )
+				currNode->maxCount = freq;
+		}
+		i++;
+	}
+	count++;  // increment the count
+	return true;
 }
 
 /* Return true if word is in the dictionary, and false otherwise */
-bool DictionaryTrie::find(std::string word) const
-{
-    // initialize the root and get wordSize
-    MTNode* currNode = root;
-    int wordSize = word.size();
+bool DictionaryTrie::find( std::string word ) const {
+	// initialize the root and get wordSize
+	MTNode* currNode = root;
+	int wordSize = word.size();
 
-    // if the input string is invalid, return false
-    if(wordSize == 0) {
-        return false;
-    }
-    int i = 0;
+	// if the input string is invalid, return false
+	if ( wordSize == 0 ) {
+		return false;
+	}
+	int i = 0;
 
-    // use while loop to iterate from the root to the last word node, if exist
-    while(i<wordSize){
+	// use while loop to iterate from the root to the last word node, if exist
+	while( i < wordSize ) {
 
-        char currChar = word[i]; // get the current char i in the word
+		char currChar = word[ i ]; // get the current char i in the word
 
-        // check if the currChar is a space, then we set the currChar to the
-        // ASCII char after 'z'
-        if((int)currChar == 32){
-            currChar = (char)123;
-        }
+		// check if the currChar is a space, then we set the currChar to the
+		// ASCII char after 'z'
+		if( ( int ) currChar == 32 ){
+			currChar = ( char ) 123;
+		}
 
-        // if there is a non-zero pointer to next node, then we go down to the 
-        // next node, else return false
-        if (currNode->arr[(int)currChar-97] != 0)
-        {
-            currNode = currNode->arr[(int)currChar-97];
-        }
-        else {
-            return false;
-        }
-        i++;
-    }
+		// if there is a non-zero pointer to next node, then we go down to the 
+		// next node, else return false
+		if ( currNode->arr[ ( int ) currChar - 97 ] != 0 ) {
+			currNode = currNode->arr[ ( int ) currChar - 97 ];
+		}
+		else {
+			return false;
+		}
+		i++;
+	}
 
-    // if the currNode is a key node, then return true, else return false
-    if(currNode->isKey){
-        return true;
-    }
-    else{
-        return false;
-    }
+	// if the currNode is a key node, then return true, else return false
+	if ( currNode->isKey ) {
+		return true;
+	} else{
+		return false;
+	}
 }
 
 /* Return up to num_completions of the most frequent completions
