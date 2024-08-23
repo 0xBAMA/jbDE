@@ -2,8 +2,6 @@
 #include <queue>
 #include <stack>
 
-#include <iostream>
-
 using namespace std;
 
 /* Create a new Dictionary that uses a Trie back end */
@@ -33,7 +31,6 @@ bool DictionaryTrie::insert(std::string word, unsigned int freq) {
 		// update all of parent node of current node
 
 		char currChar = word[ i ]; // get the current char i in the word
-		cout << "processing \"" << currChar << "\"" << endl;
 
 		// check if the currChar is a space, then we set the currChar to the
 		// ASCII char after 'z'
