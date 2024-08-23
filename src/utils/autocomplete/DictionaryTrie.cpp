@@ -8,9 +8,8 @@ using namespace std;
 
 /* Create a new Dictionary that uses a Trie back end */
 DictionaryTrie::DictionaryTrie(){
-
-    root = new MTNode(0);     // create a Trie with one MTNode
-    count = 0;                // and count as 0
+	root = new MTNode( 0 );     // create a Trie with one MTNode
+	count = 0;                // and count as 0
 }
 
 /* Insert a word with its frequency into the dictionary.
@@ -39,17 +38,17 @@ bool DictionaryTrie::insert(std::string word, unsigned int freq) {
 		// check if the currChar is a space, then we set the currChar to the
 		// ASCII char after 'z'
 		if ( ( int ) currChar == 32 ) {
-			currChar = (char)123;
+			currChar = ( char ) 123;
 		}
 
 		// if the target position already have a node, then we follow it
 		// else we create a new node and update currNode
-		if ( currNode->arr[ ( int ) currChar - 97 ] != 0 ) {
-			currNode = currNode->arr[ ( int ) currChar - 97 ];
+		if ( currNode->arr[ ( int ) currChar - 48 ] != 0 ) {
+			currNode = currNode->arr[ ( int ) currChar - 48 ];
 		} else {
-			currNode->arr[ ( int ) currChar - 97 ] = new MTNode( 0 );
+			currNode->arr[ ( int ) currChar - 48 ] = new MTNode( 0 );
 			MTNode* temp = currNode;
-			currNode = currNode->arr[ ( int ) currChar - 97 ];
+			currNode = currNode->arr[ ( int ) currChar - 48 ];
 			currNode->parent = temp;
 		}
 
@@ -110,8 +109,8 @@ bool DictionaryTrie::find( std::string word ) const {
 
 		// if there is a non-zero pointer to next node, then we go down to the 
 		// next node, else return false
-		if ( currNode->arr[ ( int ) currChar - 97 ] != 0 ) {
-			currNode = currNode->arr[ ( int ) currChar - 97 ];
+		if ( currNode->arr[ ( int ) currChar - 48 ] != 0 ) {
+			currNode = currNode->arr[ ( int ) currChar - 48 ];
 		}
 		else {
 			return false;
@@ -163,7 +162,7 @@ std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix,
     for(int i = 0; i < wordSize; i++){
 
         // check for invalid prefix input
-        if(!((prefix[i] >= 97 && prefix[i] <= 122)||(prefix[i] == 32))){
+        if(!((prefix[i] >= 48 && prefix[i] <= 122)||(prefix[i] == 32))){
             return words;
         } 
 
@@ -172,7 +171,7 @@ std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix,
             index = 26;
         }
         else {
-            index = prefix[i]-97;
+            index = prefix[i]-48;
         }
 
         // update the current Node to iterate to go to the prefix root
@@ -223,7 +222,7 @@ std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix,
         // the toVisit list
         if(currNode == start) {
 
-            for(int i = 0; i < 27; i++){
+            for(int i = 0; i < 128; i++){
                 if(currNode->arr[i] != 0) {
                     toVisit.push(currNode->arr[i]);
                 }
@@ -247,16 +246,15 @@ std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix,
         // if the currNode is a key and the currNode is hidden
         if(currNode->isKey && (currNode->freq != currNode->maxCount)) {
 
-
             auto node = new MTNode(currNode);
-            toDelete.push_back(node); 
+            toDelete.push_back(node);
             node->maxCount = currNode->freq;
             toVisit.push(node);
 
             // if the currNode is hidden, then we use a for loop to add all
             // its children into the toVisit
-            if(isSame) {
-                for(int i = 0; i < 27; i++){
+            if ( isSame ) {
+                for(int i = 0; i < 128; i++){
                     if(currNode->arr[i] != 0) {
                         toVisit.push(currNode->arr[i]);
                     }
@@ -282,7 +280,7 @@ std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix,
                 continue;
 
             // use a for loop to push all children the currNode into toVisit
-            for(int i = 0; i < 27; i++){
+            for(int i = 0; i < 128; i++){
                 if(currNode->arr[i] != 0) {
                     toVisit.push(currNode->arr[i]);
                 }
@@ -295,12 +293,12 @@ std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix,
                         && currNode->maxCount == currNode->freq))) {
 
             // use a for loop to add all of its children into the toVisit
-            for(int i = 0; i < 27; i++){
+            for(int i = 0; i < 128; i++){
                 if(currNode->arr[i] != 0) {
                     toVisit.push(currNode->arr[i]);
                 }
             }
-        }    
+        }
     }
 
     std::string currString;
@@ -343,7 +341,7 @@ void DictionaryTrie::deleteAll(MTNode* n) {
 
     // use a for loop to go throught each array element and call deleteAll
     // and then delete the current node after deleting all its children
-    for(int i = 0; i < 27; i++){
+    for(int i = 0; i < 128; i++){
         MTNode* curr = n->arr[i];
         deleteAll(curr);
     }
@@ -356,15 +354,15 @@ void DictionaryTrie::deleteAll(MTNode* n) {
  * with arr initialize as all null pointers, isKey to false and freq
  * to zero
  */
-MTNode::MTNode(int freq) {                                                         
+MTNode::MTNode(int freq) {
 
-    this->isKey = false; // by default the node is not a ket                         
-    this->freq = freq; // set the freq to freq and initialize the pointer array            
-    this->arr = vector<MTNode*>(27, (MTNode*) 0);                                 
+    this->isKey = false; // by default the node is not a ket
+    this->freq = freq; // set the freq to freq and initialize the pointer array
+    this->arr = vector<MTNode*>(128, (MTNode*) 0);
 
     // initialize the fields of MTNode
-    this->isVisited = false;  
-    this->str = "";   
+    this->isVisited = false;
+    this->str = "";
     this->numMax = 1;
     this->parent = 0;
     this->maxCount=0;
@@ -469,9 +467,8 @@ std::vector<std::string> DictionaryTrie::findString(
                 break;
             }	
 
-            // then use a for loop to add all its children into stack if its
-            // children is not 0
-            for(int i = 0; i < 27; i++) {
+            // then use a for loop to add all its children into stack if its children is not 0
+            for(int i = 0; i < 128; i++) {
                 if((curr->arr[i] != 0) &&
                         (curr->arr[i]->maxCount >= curr->maxCount))
                     stk->push(curr->arr[i]);
