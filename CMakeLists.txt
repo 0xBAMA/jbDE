@@ -59,6 +59,10 @@ add_library( imgui
 	src/utils/ImGUI/TextEditor/LanguageDefinitions.cc
 )
 
+add_library( autocomplete
+	src/utils/autocomplete/DictionaryTrie.cpp
+)
+
 target_link_libraries( imgui PUBLIC sdl2 opengl )
 
 target_compile_options( imgui PUBLIC -I/usr/include/SDL2 )
@@ -107,6 +111,7 @@ target_link_libraries(
 	tinyXML2
 	opengl
 	sdl2
+	autocomplete
 	STB_ImageUtilsWrapper
 	stdc++fs
 	FastNoise
