@@ -429,8 +429,9 @@ struct terminal_t {
 		if ( currentInputState.getState4( KEY_DOWN ) == KEYSTATE_RISING ) { cursorDown(); }
 
 	// scrolling
-		if ( currentInputState.getState4( KEY_PAGEUP ) == KEYSTATE_RISING ) { pageup(); }
-		if ( currentInputState.getState4( KEY_PAGEDOWN ) == KEYSTATE_RISING ) { pagedown(); }
+		if ( currentInputState.getState4( KEY_PAGEUP ) == KEYSTATE_RISING ) { pageup( shift ); }
+		if ( currentInputState.getState4( KEY_PAGEDOWN ) == KEYSTATE_RISING ) { pagedown( shift ); }
+		if ( currentInputState.getState4( KEY_TAB ) == KEYSTATE_RISING ) { tab(); };
 
 	// navigation within line
 		if ( currentInputState.getState4( KEY_LEFT ) == KEYSTATE_RISING ) { cursorLeft( control ); }
@@ -553,8 +554,8 @@ struct terminal_t {
 
 	// scrolling the output up and down, to see further back in time
 	int scrollOffset = 0;
-	void pageup () { scrollOffset++; }
-	void pagedown () { scrollOffset--; }
+	void pageup ( bool shift ) { scrollOffset += shift ? 10 : 1; }
+	void pagedown ( bool shift ) { scrollOffset -= shift ? 10 : 1; if ( scrollOffset < 0 ) scrollOffset = 0; }
 
 	// more navigation
 	void home () { cursorX = 0; }
