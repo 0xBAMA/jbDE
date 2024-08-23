@@ -204,6 +204,12 @@ struct terminal_t {
 	// formatting utility
 	coloredStringBuilder csb;
 
+	// tracking if we need to rebuild the list of strings for tab completion
+	DictionaryTrie * trie = new DictionaryTrie();
+
+	// corresponding flat vector, all the strings that got added to that acceleration structure
+	std::vector< string > allStrings;
+
 	// lines of history, renderered directly
 	std::vector< std::vector< cChar > > history;
 
@@ -254,6 +260,21 @@ struct terminal_t {
 			command.description = description_in;
 
 			commands.push_back( command );
+
+			// attempt
+			cout << "adding commands" << endl;
+
+			// randomized importance value
+			static rngi imp = rngi( 100, 1000 );
+
+			// add command names
+			for ( uint i = 0; i < commandAndOptionalAliases_in.size(); i++ ) {
+				cout << " \"" << commandAndOptionalAliases_in[ i ] << "\"" << endl;
+				trie->insert( commandAndOptionalAliases_in[ i ], imp() );
+				allStrings.push_back( commandAndOptionalAliases_in[ i ] );
+			}
+
+			cout << "leaving function" << endl;
 	}
 
 	// adding some default set of commands
@@ -261,6 +282,28 @@ struct terminal_t {
 
 		// cannot do e.g. quit here, because of lack of access to pQuit
 			// will need to add another step to init, where engine commands are added
+
+		// setting color presets
+		addCommand( { "colorPreset" }, {
+				{ "select", INT, "Which palette you want to use." }
+			}, [=] ( std::vector< var_t > arguments ) {
+				// I would like to have the string indexing back...
+				csb.selectedPalette = int( arguments[ 0 ].data.x );
+			}, "Numbered presets (0-3)." );
+
+		addCommand( { "echo" },
+			{ // parameters list
+				{ "string", STRING, "The string in question." }
+			},
+			[=] ( std::vector< var_t > arguments ) {
+				history.push_back( csb.append( arguments[ 0 ].stringData, 4 ).flush() );
+			}, "Report back the given string argument." );
+
+		// clearing history
+		addCommand( { "clear" }, {},
+			[=] ( std::vector< var_t > arguments ) {
+				history.clear();
+			}, "Clear the terminal history." );
 
 		addCommand(
 			{ "list", "ls" }, {}, // command and aliases, arguments ( if any, none here )
@@ -285,7 +328,7 @@ struct terminal_t {
 
 		// test with several different arguments
 		addCommand(
-			{ "test", "ts", "ts1" },
+			{ "test", "ts", "tggG1" },
 			{ // arguments
 				var_t( "arg1", BOOL, "This is a first test bool." ),
 				var_t( "arg2", BOOL, "This is a second test bool." ),
@@ -295,28 +338,6 @@ struct terminal_t {
 			[=] ( std::vector< var_t > arguments ) {
 				// if this function did anything, it would be here
 			}, "I am a test command and I don't do a whole lot." );
-
-		// clearing history
-		addCommand( { "clear" }, {},
-			[=] ( std::vector< var_t > arguments ) {
-				history.clear();
-			}, "Clear the terminal history." );
-
-		// setting color presets
-		addCommand( { "colorPreset" }, {
-				{ "select", INT, "Which palette you want to use." }
-			}, [=] ( std::vector< var_t > arguments ) {
-				// I would like to have the string indexing back...
-				csb.selectedPalette = int( arguments[ 0 ].data.x );
-			}, "Numbered presets (0-3)." );
-
-		addCommand( { "echo" },
-			{ // parameters list
-				{ "string", STRING, "The string in question." }
-			},
-			[=] ( std::vector< var_t > arguments ) {
-				history.push_back( csb.append( arguments[ 0 ].stringData, 4 ).flush() );
-			}, "Report back the given string argument." );
 	}
 
 	// is this valid input for this command
@@ -431,6 +452,8 @@ struct terminal_t {
 	// scrolling
 		if ( currentInputState.getState4( KEY_PAGEUP ) == KEYSTATE_RISING ) { pageup( shift ); }
 		if ( currentInputState.getState4( KEY_PAGEDOWN ) == KEYSTATE_RISING ) { pagedown( shift ); }
+
+	// tab
 		if ( currentInputState.getState4( KEY_TAB ) == KEYSTATE_RISING ) { tab(); };
 
 	// navigation within line
@@ -492,8 +515,18 @@ struct terminal_t {
 		for ( auto& symbol : dividers )
 			if ( c == symbol )
 				return true;
-
 		return false;
+	}
+
+	// helper function for tab complete
+	string getLastToken ( string str ) {
+		while ( !str.empty() && std::isspace( str.back() ) )
+			str.pop_back() ; // remove trailing white space
+
+		const auto pos = str.find_last_of( " \t\n" ) ; // locate the last white space
+
+		// if not found, return the entire string else return the tail after the space
+		return pos == std::string::npos ? str : str.substr( pos + 1 ) ;
 	}
 
 	// cursor keys - up/down history navigation
@@ -595,6 +628,31 @@ struct terminal_t {
 				currentLine.erase( currentLine.begin() + cursorX );
 			}
 		}
+	}
+
+	std::vector < string > tabCompletionList;
+	void tab () {
+		// now, we have a list to look at, make a copy
+		std::vector< string > eliminationList = tabCompletionList;
+
+		// get the last token from the current input + report all strings matching the current token
+		std::stringstream ss;
+		string lastToken = getLastToken( currentLine );
+		std::vector< string > output = trie->predictCompletions( lastToken, 16 );
+		int count = 0;
+		for ( auto& s : output ) {
+			count++;
+			ss << s << " ";
+		}
+
+		// handles empty prompt
+		if ( count == 0 && lastToken.length() == 0 ) {
+			for ( auto& s : allStrings ) {
+				ss << s << " ";
+			}
+		}
+
+		addHistoryLine( csb.append( ss.str() ).flush() );
 	}
 
 	void enter () {

@@ -108,6 +108,9 @@ using json = nlohmann::json;
 #include "../utils/Serialization/tinyXML2/tinyxml2.h"
 using XMLDocument = tinyxml2::XMLDocument;
 
+// autocomplete stuff
+#include "../utils/autocomplete/DictionaryTrie.hpp"
+
 //==== My Stuff ===============================================================
 // string insert thousands separator
 #include "../utils/thousands.h"
