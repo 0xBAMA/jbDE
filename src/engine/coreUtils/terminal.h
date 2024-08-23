@@ -650,7 +650,7 @@ struct terminal_t {
 			}
 		}
 
-		addHistoryLine( csb.append( ss.str() ).flush() );
+		addHistoryLine( csb.append( ss.str(), 2 ).flush() );
 	}
 
 	void enter () {
