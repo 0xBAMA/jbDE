@@ -289,7 +289,7 @@ struct terminal_t {
 				csb.selectedPalette = int( arguments[ 0 ].data.x );
 			}, "Numbered presets (0-3)." );
 
-		addCommand( { "echo" },
+		addCommand( { "echo", "e" },
 			{ // parameters list
 				{ "string", STRING, "The string in question." }
 			},
@@ -326,7 +326,7 @@ struct terminal_t {
 
 		// test with several different arguments
 		addCommand(
-			{ "test", "ts", "tggG1" },
+			{ "test", "ts", "tggG1", "hna", "ahsdhfa", "afsdf", "asdfas", "asdf", "asdfasdfwe" },
 			{ // arguments
 				var_t( "arg1", BOOL, "This is a first test bool." ),
 				var_t( "arg2", BOOL, "This is a second test bool." ),
@@ -641,13 +641,25 @@ struct terminal_t {
 		for ( auto& s : output ) {
 			count++;
 			ss << s << " ";
+			if ( count > 10 ) {
+				break;
+			}
 		}
 
 		// handles empty prompt
 		if ( count == 0 && lastToken.length() == 0 ) {
 			for ( auto& s : allStrings ) {
+				count++;
 				ss << s << " ";
+				if ( count > 10 ) {
+					break;
+				}
 			}
+		}
+
+		// if we had more than 10 strings match
+		if ( count > 10 ) {
+			ss << "... ";
 		}
 
 		addHistoryLine( csb.append( ss.str(), 2 ).flush() );
