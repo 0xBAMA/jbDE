@@ -128,6 +128,10 @@ enum keyName_t {
 
 // keeping the bits for the state
 struct keyboardState_t {
+
+	// when did this happen
+	std::chrono::time_point<std::chrono::system_clock> timestamp;
+
 	uint32_t data[ 4 ] = { 0 };
 
 	void reset () {
@@ -338,6 +342,11 @@ struct inputHandler_t {
 		return avg / float( numStateBuffers );
 	}
 
+	float millisecondsSinceLastUpdate () {
+		auto tStart = stateBuffer[ getBufferOffsetFromCurrent( -1 ) ].timestamp;
+		auto tEnd = stateBuffer[ getBufferOffsetFromCurrent( 0 ) ].timestamp;
+		return std::chrono::duration_cast< std::chrono::microseconds >( tEnd - tStart ).count() / 1000.0f;
+	}
 };
 
 #endif
