@@ -42,6 +42,7 @@ protected:
 	void SetupVertexData();
 	void SetupTextureData();
 	void ShaderCompile();
+	void TerminalSetup();
 	void LoadData();
 	void ImguiSetup();
 	void InitialClear();

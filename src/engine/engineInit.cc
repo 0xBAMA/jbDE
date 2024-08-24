@@ -326,6 +326,22 @@ void engineBase::LoadData () {
 	}
 }
 
+void engineBase::TerminalSetup () {
+	ZoneScoped;
+	{
+		Block Start( "Terminal Setup" );
+
+	// this is where system commands live... quit is the big one, but maybe also eventually screenshots by string label
+		terminal.addCommand( { "quit" }, {},
+			[=] ( std::vector< var_t > arguments ) {
+				pQuit = true;
+			}, "Quit the engine." );
+
+		// more...?
+
+	}
+}
+
 void engineBase::ShaderCompile () {
 	ZoneScoped;
 

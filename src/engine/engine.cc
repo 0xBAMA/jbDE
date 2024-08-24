@@ -7,6 +7,7 @@ void engineBase::Init () {
 	LoadConfig();
 	CreateWindowAndContext();
 	DisplaySetup();
+	TerminalSetup();
 	ShaderCompile();
 	SetupVertexData();
 	SetupTextureData();

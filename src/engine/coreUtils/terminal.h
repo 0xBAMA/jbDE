@@ -266,7 +266,7 @@ struct terminal_t {
 
 			// add command names
 			for ( uint i = 0; i < commandAndOptionalAliases_in.size(); i++ ) {
-				cout << " \"" << commandAndOptionalAliases_in[ i ] << "\"" << endl;
+				// cout << " \"" << commandAndOptionalAliases_in[ i ] << "\"" << endl;
 				trie->insert( commandAndOptionalAliases_in[ i ], imp() );
 
 				// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
