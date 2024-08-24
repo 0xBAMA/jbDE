@@ -122,16 +122,27 @@ enum keyName_t {
 	KEY_RIGHT_ALT = 99,
 	KEY_RIGHT_SUPER = 100,
 
+	// 5 mouse buttons
+	MOUSE_BUTTON_LEFT = 101,
+	MOUSE_BUTTON_MIDDLE = 102,
+	MOUSE_BUTTON_RIGHT = 103,
+	MOUSE_BUTTON_X1 = 104,
+	MOUSE_BUTTON_X2 = 105,
+
 	// count
-	NUM_KEYS = 101
+	NUM_INPUTS = 106
 };
 
-// keeping the bits for the state
+// keeping the bits for the state of keyboard and mouse
 struct keyboardState_t {
 
 	// when did this happen
 	std::chrono::time_point<std::chrono::system_clock> timestamp;
 
+	// where was the mouse when it happened
+	ivec2 mousePosition = ivec2( 0.0f );
+
+	// keyboard + mouse state
 	uint32_t data[ 4 ] = { 0 };
 
 	void reset () {
@@ -307,6 +318,21 @@ struct inputHandler_t {
 		if ( state[ SDL_SCANCODE_RSHIFT ] ) stateBuffer[ currentOffset ].setState( KEY_RIGHT_SHIFT );
 		if ( state[ SDL_SCANCODE_RALT ] ) stateBuffer[ currentOffset ].setState( KEY_RIGHT_ALT );
 		if ( state[ SDL_SCANCODE_RGUI ] ) stateBuffer[ currentOffset ].setState( KEY_RIGHT_SUPER );
+
+		// update mouse
+		ivec2 mouseLoc;
+		uint32_t mouseState = SDL_GetMouseState( &mouseLoc.x, &mouseLoc.y );
+		stateBuffer[ currentOffset ].mousePosition = mouseLoc;
+
+		// mouse buttons
+		if ( mouseState & SDL_BUTTON_LMASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_LEFT );
+		if ( mouseState & SDL_BUTTON_MMASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_MIDDLE );
+		if ( mouseState & SDL_BUTTON_RMASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_RIGHT );
+		if ( mouseState & SDL_BUTTON_X1MASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_X1 );
+		if ( mouseState & SDL_BUTTON_X2MASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_X2 );
+
+		// update the timestamp
+		stateBuffer[ currentOffset ].timestamp =  std::chrono::system_clock::now();
 	}
 
 	// get instant state
