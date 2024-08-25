@@ -431,11 +431,13 @@ struct terminal_t {
 		addCvar( "testCvarString", STRING, "This is a test cvar, it's a string." );
 		addCvar( "testCvarFloat", FLOAT, "This is a test cvar, it's a float." );
 		addCvar( "testCvarBool", BOOL, "This is a test cvar, it's a bool." );
+		addCvar( "testCvarInt", INT, "This is a test cvar, it's an int." );
 
 		// setting the values of these test cvars
 		cvars[ "testCvarString" ].stringData = string( "testCvarStringValue" );
 		cvars[ "testCvarFloat" ].data.x = 1.0f;
 		cvars[ "testCvarBool" ].data.x = 0.0f;
+		cvars[ "testCvarInt" ].data.x = -1;
 
 		addCommand( { "cvars" }, {}, [=] ( args_t args ) {
 			addHistoryLine( csb.flush() );
@@ -449,6 +451,8 @@ struct terminal_t {
 
 		// so, looking at the way the call to parseForCommand works, I think we can actually have overloads... as long as one works
 			// but it will just pick the first one that works... but I think that's ok because we have type matching and stuff, now
+
+		// == BOOL ===================================================================================================
 		addCommand(
 			{ "assign" },
 			{
@@ -463,7 +467,6 @@ struct terminal_t {
 				// check for validity
 				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
 					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						addHistoryLine( csb.append( "Found, matching type, now setting: " + to_string( args[ "value" ].data.x ) ).flush() );
 						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
 					} else {
 						// report failure ( type does not match )
@@ -475,6 +478,34 @@ struct terminal_t {
 				}
 			}, "Cvar assignment function for bool."
 		);
+
+		// == INT ===================================================================================================
+		addCommand(
+			{ "assign" },
+			{
+				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+				var_t( "value", INT, "The value to assign." )
+			},
+			[=] ( args_t args ) {
+				// trim the dollar signed bit off, so we can consider this a regular cvar label
+				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
+					args[ "cvar" ].stringData.erase( 0, 1 );
+				}
+				// check for validity
+				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
+					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
+						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
+					} else {
+						// report failure ( type does not match )
+						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
+					}
+				} else {
+					// report failure ( cvar not found )
+					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
+				}
+			}, "Cvar assignment function for int."
+		);
+
 	}
 
 	// is this valid input for this command
