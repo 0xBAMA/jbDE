@@ -324,13 +324,9 @@ struct terminal_t {
 
 			commands.push_back( command );
 
-			// randomized importance value
-			static rngi imp = rngi( 100, 1000 );
-
 			// add command names
 			for ( uint i = 0; i < commandAndOptionalAliases_in.size(); i++ ) {
-				// cout << " \"" << commandAndOptionalAliases_in[ i ] << "\"" << endl;
-				trie->insert( commandAndOptionalAliases_in[ i ], imp() );
+				trie->insert( commandAndOptionalAliases_in[ i ], 100 );
 
 				// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
 				allStrings.push_back( commandAndOptionalAliases_in[ i ] );
