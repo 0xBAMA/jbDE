@@ -446,6 +446,35 @@ struct terminal_t {
 				addHistoryLine( csb.flush() );
 			}
 		}, "List all the active cvars, as well as their types and values." );
+
+		// so, looking at the way the call to parseForCommand works, I think we can actually have overloads... as long as one works
+			// but it will just pick the first one that works... but I think that's ok because we have type matching and stuff, now
+		addCommand(
+			{ "assign" },
+			{
+				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+				var_t( "value", BOOL, "The value to assign." )
+			},
+			[=] ( args_t args ) {
+				// trim the dollar signed bit off, so we can consider this a regular cvar label
+				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
+					args[ "cvar" ].stringData.erase( 0, 1 );
+				}
+				// check for validity
+				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
+					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
+						addHistoryLine( csb.append( "Found, matching type, now setting: " + to_string( args[ "value" ].data.x ) ).flush() );
+						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
+					} else {
+						// report failure ( type does not match )
+						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
+					}
+				} else {
+					// report failure ( cvar not found )
+					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
+				}
+			}, "Cvar assignment function for bool."
+		);
 	}
 
 	// is this valid input for this command
