@@ -385,7 +385,7 @@ struct terminal_t {
 
 		// test with several different arguments
 		addCommand(
-			{ "test", "ts", "tggG1", "hna", "ahsdhfa", "afsdf", "asdfas", "asdf", "asdfasdfwe" },
+			{ "test", "ts" },
 			{ // arguments
 				var_t( "arg1", BOOL, "This is a first test bool." ),
 				var_t( "arg2", BOOL, "This is a second test bool." ),
@@ -395,6 +395,24 @@ struct terminal_t {
 			[=] ( std::vector< var_t > arguments ) {
 				// if this function did anything, it would be here
 			}, "I am a test command and I don't do a whole lot." );
+
+		// testing some cvar stuff
+		addCvar( "testCvarString", STRING, "This is a test cvar, it's a string." );
+		addCvar( "testCvarFloat", FLOAT, "This is a test cvar, it's a float." );
+
+		// setting the values of these test cvars
+		cvars[ "testCvarString" ].stringData = string( "testCvarStringValue" );
+		cvars[ "testCvarFloat" ].data.x = 1.0f;
+
+		addCommand( { "cvars" }, {}, [=] ( std::vector< var_t > arguments ) {
+			addHistoryLine( csb.flush() );
+			for ( uint i = 0; i < cvars.count(); i++ ) {
+				addHistoryLine( csb.append( "  " + cvars[ i ].label + " ( ", 2 ).append( getStringForType( cvars[ i ].type ), 1 ).append( " )", 2 ).flush() );
+				addHistoryLine( csb.append( "    Description: ", 4 ).append( cvars[ i ].description, 1 ).flush() );
+				addHistoryLine( csb.append( "    Value: ", 4 ).append( cvars[ i ].getStringRepresentation(), 3 ).flush() );
+				addHistoryLine( csb.flush() );
+			}
+		}, "List all the active cvars, as well as their types and values." );
 	}
 
 	// is this valid input for this command
