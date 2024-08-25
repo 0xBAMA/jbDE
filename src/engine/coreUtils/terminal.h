@@ -602,7 +602,7 @@ struct terminal_t {
 						case VEC2:	count++;
 						case FLOAT:	count++;
 							// read in up to four floats, put it in xyzw
-							for ( int j = 0; j < 4; j++ ) {
+							for ( int j = 0; j < count; j++ ) {
 								if ( ( argstream >> tempf ) ) {
 									commands[ commandIdx ].args[ i ].data[ j ] = tempf;
 								} else {
