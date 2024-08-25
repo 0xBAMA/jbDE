@@ -128,11 +128,12 @@ enum type_e {
 	VEC3 = 7,
 	VEC4 = 8,
 
-	STRING = 9
+	STRING = 9,
+	CVAR_NAME = 10
 };
 
 const static inline string getStringForType ( type_e type_in ) {
-	const string typeStrings[] = { "bool", "int", "int2", "int3", "int4", "float", "vec2", "vec3", "vec4", "string" };
+	const string typeStrings[] = { "bool", "int", "int2", "int3", "int4", "float", "vec2", "vec3", "vec4", "string", "cvar_name" };
 	return typeStrings[ int( type_in ) ];
 }
 
