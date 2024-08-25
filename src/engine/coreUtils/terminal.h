@@ -143,8 +143,28 @@ struct var_t {
 	string stringData;
 	string description;
 
+	var_t() {}
 	var_t( string label_in, type_e type_in, string description_in ) :
 		label( label_in ), type( type_in ), description( description_in ) {}
+
+	string getStringRepresentation () {
+		switch ( type ) {
+			case BOOL: return ( data.x == 0.0f ) ? string( "false" ) : string( "true" ); break;
+
+			case INT: return to_string( int( data.x ) ); break;
+			case IVEC2: return string( "(" ) + to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( ")" ); break;
+			case IVEC3: return string( "(" ) + to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ) + string( ")" ); break;
+			case IVEC4: return string( "(" ) + to_string( int( data.x ) ) + string( " " ) + to_string( int( data.y ) ) + string( " " ) + to_string( int( data.z ) ) + string( " " ) + to_string( int( data.w ) ) + string( ")" ); break;
+
+			case FLOAT: return to_string( data.x ); break;
+			case VEC2: return string( "(" ) + to_string( data.x ) + string( " " ) + to_string( data.y ) + string( ")" ); break;
+			case VEC3: return string( "(" ) + to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ) + string( ")" ); break;
+			case VEC4: return string( "(" ) + to_string( data.x ) + string( " " ) + to_string( data.y ) + string( " " ) + to_string( data.z ) + string( " " ) + to_string( data.w ) + string( ")" ); break;
+
+			case STRING: return stringData; break;
+			default: return string(); break;
+		}
+	}
 };
 
 // command definition
