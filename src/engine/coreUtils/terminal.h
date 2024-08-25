@@ -433,60 +433,90 @@ struct terminal_t {
 			float tempf = 0.0f;
 			string temps;
 
-			int count = 0;
-			switch ( commands[ commandIdx ].arguments[ i ].type ) { // for each arg
-				case BOOL:
-					// read in a bool, put it in x
-					if ( ( argstream >> std::boolalpha >> tempb ) ) {
-						commands[ commandIdx ].arguments[ i ].data[ 0 ] = tempb ? 1.0f : 0.0f;
+			// signalling value for a cvar
+			if ( argstream.peek() == '$' ) {
+
+				// read in the string, including this signalling character
+				string cantidateString;
+				argstream >> cantidateString;
+
+				// get rid of '$'
+				cantidateString.erase( 0, 1 );
+
+				// so we want to see that it's an existing cvar
+				if ( cvars.isValid( cantidateString ) ) {
+					// check for matching type
+					if ( commands[ commandIdx ].arguments[ i ].type == cvars[ cantidateString ].type ) {
+						// then copy the value(s) from the cvar
+						commands[ commandIdx ].arguments[ i ].data = cvars[ cantidateString ].data;
+						commands[ commandIdx ].arguments[ i ].stringData = cvars[ cantidateString ].stringData;
 					} else {
+						// types do not match
 						argstream.clear();
 						fail = true;
 					}
-				break;
+				} else {
+					// we had some issue, this isn't a valid cvar
+					argstream.clear();
+					fail = true;
+				}
 
-				case IVEC4:	count++;
-				case IVEC3:	count++;
-				case IVEC2:	count++;
-				case INT:	count++;
-					// read in up to four ints, put it in xyzw
-					for ( int j = 0; j < count; j++ ) {
-						if ( ( argstream >> tempi ) ) {
-							commands[ commandIdx ].arguments[ i ].data[ j ] = tempi;
+			} else {
+				int count = 0;
+				switch ( commands[ commandIdx ].arguments[ i ].type ) { // for each arg
+					case BOOL:
+						// read in a bool, put it in x
+						if ( ( argstream >> std::boolalpha >> tempb ) ) {
+							commands[ commandIdx ].arguments[ i ].data[ 0 ] = tempb ? 1.0f : 0.0f;
 						} else {
-							cout << "int parse error" << endl;
 							argstream.clear();
 							fail = true;
 						}
-					}
-				break;
+					break;
 
-				case VEC4:	count++;
-				case VEC3:	count++;
-				case VEC2:	count++;
-				case FLOAT:	count++;
-					// read in up to four floats, put it in xyzw
-					for ( int j = 0; j < 4; j++ ) {
-						if ( ( argstream >> tempf ) ) {
-							commands[ commandIdx ].arguments[ i ].data[ j ] = tempf;
-						} else {
-							cout << "float parse error" << endl;
+					case IVEC4:	count++;
+					case IVEC3:	count++;
+					case IVEC2:	count++;
+					case INT:	count++;
+						// read in up to four ints, put it in xyzw
+						for ( int j = 0; j < count; j++ ) {
+							if ( ( argstream >> tempi ) ) {
+								commands[ commandIdx ].arguments[ i ].data[ j ] = tempi;
+							} else {
+								cout << "int parse error" << endl;
+								argstream.clear();
+								fail = true;
+							}
+						}
+					break;
+
+					case VEC4:	count++;
+					case VEC3:	count++;
+					case VEC2:	count++;
+					case FLOAT:	count++;
+						// read in up to four floats, put it in xyzw
+						for ( int j = 0; j < 4; j++ ) {
+							if ( ( argstream >> tempf ) ) {
+								commands[ commandIdx ].arguments[ i ].data[ j ] = tempf;
+							} else {
+								cout << "float parse error" << endl;
+								argstream.clear();
+								fail = true;
+							}
+						}
+					break;
+
+					case STRING:
+						if ( ( argstream >> temps ) ) { /* neat */ } else {
+							cout << "string parse error" << endl;
 							argstream.clear();
 							fail = true;
 						}
-					}
-				break;
+					break;
 
-				case STRING:
-					if ( ( argstream >> temps ) ) { /* neat */ } else {
-						cout << "string parse error" << endl;
-						argstream.clear();
-						fail = true;
-					}
-				break;
-
-				default:
-				break;
+					default:
+					break;
+				}
 			}
 		}
 
