@@ -735,41 +735,92 @@ struct terminal_t {
 		}
 	}
 
-	std::vector < string > tabCompletionList;
 	void tab () {
-		// now, we have a list to look at, make a copy
-		std::vector< string > eliminationList = tabCompletionList;
+
+		// couple cases need to be handled:
+
+		// done:
+			// empty prompt, gives all strings
+			// partial word, give trie completions
+
+		// todo:
+			// input prompt ends in " " -> show cvar list
+			// input prompt's last token begins with "$" -> show cvar list matching
+			// ...
 
 		// get the last token from the current input + report all strings matching the current token
+		int count = 0;
 		std::stringstream ss;
 		string lastToken = getLastToken( currentLine );
-		std::vector< string > output = trie->predictCompletions( lastToken, 16 );
-		int count = 0;
-		for ( auto& s : output ) {
-			count++;
-			ss << s << " ";
-			if ( count > 10 ) {
-				break;
-			}
-		}
 
-		// handles empty prompt
-		if ( count == 0 && lastToken.length() == 0 ) {
-			for ( auto& s : allStrings ) {
+		bool didTrimWhitespace = ( lastToken[ lastToken.length() - 1 ] != currentLine[ currentLine.length() - 1 ] );
+		bool lastTokenMarkedCvar = ( lastToken[ 0 ] == '$' );
+
+		// we trimmed whitespace... or the lastToken is marked with the leading "$", in either case list cvars
+		if ( didTrimWhitespace || lastTokenMarkedCvar ) {
+
+			// holding the list of cvars
+			std::vector< string > output;
+
+			// list matching cvars, assuming we have at least one character after the "$"
+			if ( lastTokenMarkedCvar && ( lastToken.length() > 1 ) ) {
+				// match the partial string
+				output = trieCvar->predictCompletions( lastToken.substr( 1 ), 16 );
+			}
+
+			// we didn't get any best matches... and we did trim whitespace, which means we are operating from no data
+			// or, we have just a "$" at the prompt right now...
+			// both cases, we just want to output all the cvars ( as many as are available )
+			if ( ( output.empty() && didTrimWhitespace ) || lastToken == string( "$" ) ) {
+				for ( uint i = 0; i < cvars.count(); i++ ) {
+					output.push_back( cvars[ i ].label );
+				}
+			}
+
+			// output the list of all the cvars, with leading dollar signs
+			for ( uint i = 0; i < output.size(); i++ ) {
+				count++;
+				if ( count < 10 ) { // we only want to show a maximum of 10
+					csb.append( string( "$" ), 2 ).append( output[ i ] + " ", 4 );
+				} else if ( count < 11 ) { // append an elipsis if we have a list that would be continuing past 10
+					csb.append( "...", 4 );
+				}
+			}
+
+			// if we added any to the list, go ahead and show them
+			if ( output.size() > 0 ) {
+				addHistoryLine( csb.flush() );
+			}
+
+		} else {
+			// we want to consider all possible matching completions, not just matching cvars
+			std::vector< string > output = trie->predictCompletions( lastToken, 16 );
+			for ( auto& s : output ) {
 				count++;
 				ss << s << " ";
 				if ( count > 10 ) {
 					break;
 				}
 			}
-		}
 
-		// if we had more than 10 strings match
-		if ( count > 10 ) {
-			ss << "... ";
-		}
+			// handles empty prompt
+			if ( currentLine.size() == 0 ) {
+				for ( auto& s : allStrings ) {
+					count++;
+					ss << s << " ";
+					if ( count > 10 ) {
+						break;
+					}
+				}
+			}
 
-		addHistoryLine( csb.append( ss.str(), 2 ).flush() );
+			// if we had more than 10 strings match, indicate this
+			if ( count > 10 ) {
+				ss << "... ";
+			}
+
+			addHistoryLine( csb.append( ss.str(), 2 ).flush() );
+		}
 	}
 
 	void enter () {
