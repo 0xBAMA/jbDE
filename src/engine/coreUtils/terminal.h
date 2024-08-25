@@ -201,6 +201,45 @@ struct command_t {
 	}
 };
 
+struct cvarManager_t {
+	var_t dummyVar;
+	std::vector< var_t > vars;
+
+	void add ( var_t var ) {
+		vars.push_back( var );
+	}
+
+	// operator to get by string
+	var_t& operator[] ( string label ) {
+		for ( uint i = 0; i < vars.size(); i++ ) {
+			if ( vars[ i ].label == label ) {
+				return vars[ i ];
+			}
+		}
+		// mostly just for warning supression...
+		return dummyVar;
+	}
+
+	// operator to get by index
+	var_t& operator[] ( int i ) {
+		return vars[ i ];
+	}
+
+	size_t count () {
+		return vars.size();
+	}
+
+	// does this string refer to a valid cvar?
+	bool isValid ( string label ) {
+		for ( uint i = 0; i < vars.size(); i++ ) {
+			if ( vars[ i ].label == label ) {
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
 struct terminal_t {
 
 	// eventually move this stuff onto a struct:
