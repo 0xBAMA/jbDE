@@ -336,7 +336,7 @@ void engineBase::TerminalSetup () {
 	// this is where system commands live... quit is the big one, but maybe also eventually screenshots by string label
 
 		terminal.addCommand( { "quit" }, {},
-			[=] ( std::vector< var_t > arguments ) {
+			[=] ( args_t args ) {
 				pQuit = true;
 			}, "Quit the engine." );
 

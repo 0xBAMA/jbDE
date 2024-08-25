@@ -168,11 +168,41 @@ struct var_t {
 	}
 };
 
+struct args_t {
+	// list of arguments
+	std::vector< var_t > args;
+
+	// construct from vector of var_t's
+	args_t () {}
+	args_t ( std::vector< var_t > args_in ) : args( args_in ) {}
+
+	// operator to get by string
+	var_t dummyVar;
+	var_t& operator[] ( string label ) {
+		for ( uint i = 0; i < args.size(); i++ ) {
+			if ( args[ i ].label == label ) {
+				return args[ i ];
+			}
+		}
+		// mostly just for warning supression...
+		return dummyVar;
+	}
+
+	// by index
+	var_t& operator[] ( int i ) {
+		return args[ i ];
+	}
+
+	size_t count () {
+		return args.size();
+	}
+};
+
 // command definition
 struct command_t {
 	std::vector< string > labelAndAliases;
-	std::vector< var_t > arguments;
-	std::function< void( std::vector< var_t > arguments ) > func;
+	args_t args;
+	std::function< void( args_t args ) > func;
 	string description;
 
 	// does the input string match this command or any of its aliases?
@@ -197,8 +227,8 @@ struct command_t {
 		return value;
 	}
 
-	void invoke ( std::vector< var_t > arguments_in ) { // use the local arguments?
-		func( arguments_in );
+	void invoke ( args_t args_in ) { // use the local arguments?
+		func( args_in );
 	}
 };
 
@@ -313,19 +343,19 @@ struct terminal_t {
 	std::vector< command_t > commands;
 	void addCommand ( std::vector< string > commandAndOptionalAliases_in,
 		std::vector< var_t > argumentList_in,
-		std::function< void( std::vector< var_t > arguments ) > func_in,
+		std::function< void( args_t args ) > func_in,
 		string description_in ) {
 
 			// fill out the struct
 			command_t command;
 			command.labelAndAliases = commandAndOptionalAliases_in;
-			command.arguments = argumentList_in;
+			command.args = args_t( argumentList_in );
 			command.func = func_in;
 			command.description = description_in;
 
 			commands.push_back( command );
 
-			// add command names
+			// add command names - I think, for the report, at least, we want to deduplicate these... if you encounter it already in the list, skip adding it again
 			for ( uint i = 0; i < commandAndOptionalAliases_in.size(); i++ ) {
 				trie->insert( commandAndOptionalAliases_in[ i ], 100 );
 
@@ -344,36 +374,36 @@ struct terminal_t {
 		// setting color presets
 		addCommand( { "colorPreset" }, {
 				{ "select", INT, "Which palette you want to use." }
-			}, [=] ( std::vector< var_t > arguments ) {
+			}, [=] ( args_t args ) {
 				// I would like to have the string indexing back...
-				csb.selectedPalette = int( arguments[ 0 ].data.x );
+				csb.selectedPalette = int( args[ "select" ].data.x );
 			}, "Numbered presets (0-3)." );
 
 		addCommand( { "echo", "e" },
 			{ // parameters list
 				{ "string", STRING, "The string in question." }
 			},
-			[=] ( std::vector< var_t > arguments ) {
-				history.push_back( csb.append( arguments[ 0 ].stringData, 4 ).flush() );
+			[=] ( args_t args ) {
+				history.push_back( csb.append( args[ "string" ].stringData, 4 ).flush() );
 			}, "Report back the given string argument." );
 
 		// clearing history
 		addCommand( { "clear" }, {},
-			[=] ( std::vector< var_t > arguments ) {
+			[=] ( args_t args ) {
 				history.clear();
 			}, "Clear the terminal history." );
 
 		addCommand(
 			{ "list", "ls" }, {}, // command and aliases, arguments ( if any, none here )
-			[=] ( std::vector< var_t > arguments ) {
+			[=] ( args_t args ) {
 				addLineBreak();
 				for ( uint i = 0; i < commands.size(); i++ ) {
 					addHistoryLine( csb.append( "  ============================================" ).flush() );
 					addHistoryLine( csb.append( "  > Command Aliases: " ).append( commands[ i ].getAliasString(), 1 ).flush() );
 					addHistoryLine( csb.append( "    Description: " ).append( commands[ i ].description, 1 ).flush() );
 					addHistoryLine( csb.append( "    Arguments:" ).flush() );
-					if ( commands[ i ].arguments.size() > 0 ) {
-						for ( auto& var : commands[ i ].arguments ) {
+					if ( commands[ i ].args.count() > 0 ) {
+						for ( auto& var : commands[ i ].args.args ) {
 							addHistoryLine( csb.append( "      " + var.label + " ( ", 2 ).append( getStringForType( var.type ), 1 ).append( " ): ", 2 ).append( var.description, 1 ).flush() );
 						}
 						addLineBreak();
@@ -393,19 +423,21 @@ struct terminal_t {
 				var_t( "arg3", BOOL, "This is a third test bool." ),
 				var_t( "arg4", BOOL, "This is a fourth test bool." )
 			},
-			[=] ( std::vector< var_t > arguments ) {
+			[=] ( args_t args ) {
 				// if this function did anything, it would be here
 			}, "I am a test command and I don't do a whole lot." );
 
 		// testing some cvar stuff
 		addCvar( "testCvarString", STRING, "This is a test cvar, it's a string." );
 		addCvar( "testCvarFloat", FLOAT, "This is a test cvar, it's a float." );
+		addCvar( "testCvarBool", BOOL, "This is a test cvar, it's a bool." );
 
 		// setting the values of these test cvars
 		cvars[ "testCvarString" ].stringData = string( "testCvarStringValue" );
 		cvars[ "testCvarFloat" ].data.x = 1.0f;
+		cvars[ "testCvarBool" ].data.x = 0.0f;
 
-		addCommand( { "cvars" }, {}, [=] ( std::vector< var_t > arguments ) {
+		addCommand( { "cvars" }, {}, [=] ( args_t args ) {
 			addHistoryLine( csb.flush() );
 			for ( uint i = 0; i < cvars.count(); i++ ) {
 				addHistoryLine( csb.append( "  " + cvars[ i ].label + " ( ", 2 ).append( getStringForType( cvars[ i ].type ), 1 ).append( " )", 2 ).flush() );
@@ -426,7 +458,7 @@ struct terminal_t {
 		bool fail = false;
 
 		// for each argument
-		for ( uint i = 0; i < commands[ commandIdx ].arguments.size() && !fail; i++ ) {
+		for ( uint i = 0; i < commands[ commandIdx ].args.count() && !fail; i++ ) {
 
 			// temp buffers to read into
 			bool tempb = false;
@@ -434,89 +466,106 @@ struct terminal_t {
 			float tempf = 0.0f;
 			string temps;
 
-			// signalling value for a cvar
-			if ( argstream.peek() == '$' ) {
+			if ( commands[ commandIdx ].args[ i ].type == CVAR_NAME ) {
 
-				// read in the string, including this signalling character
-				string cantidateString;
-				argstream >> cantidateString;
-
-				// get rid of '$'
-				cantidateString.erase( 0, 1 );
-
-				// so we want to see that it's an existing cvar
-				if ( cvars.isValid( cantidateString ) ) {
-					// check for matching type
-					if ( commands[ commandIdx ].arguments[ i ].type == cvars[ cantidateString ].type ) {
-						// then copy the value(s) from the cvar
-						commands[ commandIdx ].arguments[ i ].data = cvars[ cantidateString ].data;
-						commands[ commandIdx ].arguments[ i ].stringData = cvars[ cantidateString ].stringData;
-					} else {
-						// types do not match
-						argstream.clear();
-						fail = true;
-					}
+				// we want to read in just a string, we aren't going to dereference the cvar value
+				if ( ( argstream >> temps ) ) {
+					commands[ commandIdx ].args[ i ].stringData = temps;
 				} else {
-					// we had some issue, this isn't a valid cvar
+					cout << "cvar name parse error" << endl;
 					argstream.clear();
 					fail = true;
 				}
 
 			} else {
-				int count = 0;
-				switch ( commands[ commandIdx ].arguments[ i ].type ) { // for each arg
-					case BOOL:
-						// read in a bool, put it in x
-						if ( ( argstream >> std::boolalpha >> tempb ) ) {
-							commands[ commandIdx ].arguments[ i ].data[ 0 ] = tempb ? 1.0f : 0.0f;
+
+				// signalling value for a cvar
+				if ( argstream.peek() == '$' ) {
+
+					// read in the string, including this signalling character
+					string cantidateString;
+					argstream >> cantidateString;
+
+					// get rid of '$'
+					cantidateString.erase( 0, 1 );
+
+					// so we want to see that it's an existing cvar
+					if ( cvars.isValid( cantidateString ) ) {
+						// check for matching type
+						if ( commands[ commandIdx ].args[ i ].type == cvars[ cantidateString ].type ) {
+							// then copy the value(s) from the cvar
+							commands[ commandIdx ].args[ i ].data = cvars[ cantidateString ].data;
+							commands[ commandIdx ].args[ i ].stringData = cvars[ cantidateString ].stringData;
 						} else {
+							// types do not match
 							argstream.clear();
 							fail = true;
 						}
-					break;
+					} else {
+						// we had some issue, this isn't a valid cvar
+						argstream.clear();
+						fail = true;
+					}
 
-					case IVEC4:	count++;
-					case IVEC3:	count++;
-					case IVEC2:	count++;
-					case INT:	count++;
-						// read in up to four ints, put it in xyzw
-						for ( int j = 0; j < count; j++ ) {
-							if ( ( argstream >> tempi ) ) {
-								commands[ commandIdx ].arguments[ i ].data[ j ] = tempi;
+				} else {
+
+					int count = 0;
+					switch ( commands[ commandIdx ].args[ i ].type ) { // for each arg
+						case BOOL:
+							// read in a bool, put it in x
+							if ( ( argstream >> std::boolalpha >> tempb ) ) {
+								commands[ commandIdx ].args[ i ].data[ 0 ] = tempb ? 1.0f : 0.0f;
 							} else {
-								cout << "int parse error" << endl;
 								argstream.clear();
 								fail = true;
 							}
-						}
-					break;
+						break;
 
-					case VEC4:	count++;
-					case VEC3:	count++;
-					case VEC2:	count++;
-					case FLOAT:	count++;
-						// read in up to four floats, put it in xyzw
-						for ( int j = 0; j < 4; j++ ) {
-							if ( ( argstream >> tempf ) ) {
-								commands[ commandIdx ].arguments[ i ].data[ j ] = tempf;
+						case IVEC4:	count++;
+						case IVEC3:	count++;
+						case IVEC2:	count++;
+						case INT:	count++;
+							// read in up to four ints, put it in xyzw
+							for ( int j = 0; j < count; j++ ) {
+								if ( ( argstream >> tempi ) ) {
+									commands[ commandIdx ].args[ i ].data[ j ] = tempi;
+								} else {
+									cout << "int parse error" << endl;
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						case VEC4:	count++;
+						case VEC3:	count++;
+						case VEC2:	count++;
+						case FLOAT:	count++;
+							// read in up to four floats, put it in xyzw
+							for ( int j = 0; j < 4; j++ ) {
+								if ( ( argstream >> tempf ) ) {
+									commands[ commandIdx ].args[ i ].data[ j ] = tempf;
+								} else {
+									cout << "float parse error" << endl;
+									argstream.clear();
+									fail = true;
+								}
+							}
+						break;
+
+						case STRING:
+							if ( ( argstream >> temps ) ) {
+								commands[ commandIdx ].args[ i ].stringData = temps;
 							} else {
-								cout << "float parse error" << endl;
+								cout << "string parse error" << endl;
 								argstream.clear();
 								fail = true;
 							}
-						}
-					break;
+						break;
 
-					case STRING:
-						if ( ( argstream >> temps ) ) { /* neat */ } else {
-							cout << "string parse error" << endl;
-							argstream.clear();
-							fail = true;
-						}
-					break;
-
-					default:
-					break;
+						default:
+						break;
+					}
 				}
 			}
 		}
@@ -850,7 +899,7 @@ struct terminal_t {
 			string argumentText = userInputString.erase( 0, commandText.length() + 1 );
 
 			// todo - try to match a cvar
-				// if you do, report the type and value of that cvar
+				// if you do, report the type and value of that cvar - require "$"?
 
 			// try to match a command
 			bool commandFound = false;
@@ -858,10 +907,11 @@ struct terminal_t {
 				// if you do, try to parse the rest of the input string for the arguments to that command
 				if ( commands[ i ].commandStringMatch( commandText ) ) {
 					commandFound = true;
+
 					if ( parseForCommand( i, argumentText ) ) {
 
 						// we successfully parsed the arguments for the command, so we can go ahead and run it
-						commands[ i ].invoke( commands[ i ].arguments );
+						commands[ i ].invoke( commands[ i ].args );
 
 					} else {
 
@@ -869,11 +919,11 @@ struct terminal_t {
 						addLineBreak();
 						addHistoryLine( csb.append( "  Error: ", 4 ).append( "command \"" + commandText + "\" argument parse failed...", 3 ).flush() );
 						addLineBreak();
-						if ( !commands[ i ].arguments.empty() ) {
+						if ( commands[ i ].args.count() != 0 ) {
 							addHistoryLine( csb.append( "  Command Aliases: " ).append( commands[ i ].getAliasString(), 1 ).flush() );
 							addHistoryLine( csb.append( "  Description: " ).append( commands[ i ].description, 1 ).flush() );
 							addHistoryLine( csb.append( "  Arguments:" ).flush() );
-							for ( auto& var : commands[ i ].arguments ) {
+							for ( auto& var : commands[ i ].args.args ) {
 								addHistoryLine( csb.append( "    " + var.label + " ( ", 2 ).append( getStringForType( var.type ), 1 ).append( " ): ", 2 ).append( var.description, 1 ).flush() );
 							}
 							addLineBreak();
