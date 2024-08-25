@@ -265,6 +265,7 @@ struct terminal_t {
 
 	// tracking if we need to rebuild the list of strings for tab completion
 	DictionaryTrie * trie = new DictionaryTrie();
+	DictionaryTrie * trieCvar = new DictionaryTrie();
 
 	// corresponding flat vector, all the strings that got added to that acceleration structure
 	std::vector< string > allStrings;
@@ -284,26 +285,29 @@ struct terminal_t {
 		addHistoryLine( csb.flush() );
 	}
 
-	std::vector< var_t > cvars;
+	cvarManager_t cvars;
 	void addCvar ( string label, type_e type, string description ) {
-		cvars.push_back( var_t( label, type, description ) );
+		cvars.add( var_t( label, type, description ) );
+
+		// insert into the main list, and also a second list, for autocompleting arguments
+		trie->insert( label, 100 );
+		trieCvar->insert( label, 100 );
+
+		// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
+		// allStrings.push_back( string( "$" ) + label );
+		allStrings.push_back( label );
+		sort( allStrings.begin(), allStrings.end() );
 	}
 
-	// cvars stuff...
-		// from before:
+	// how do we want to expose:
 
-	// 	// testing some cvar stuff
-	// 		terminal.addCvar( { "testCvarString", STRING, vec4( 0.0f ), "Nut" } );
-	// 		terminal.addCvar( { "testCvarFloat", FLOAT, vec4( 1.0f ), "" } );
+		// assignment of value (handling of different types?)
+			// assignment specialization for every type, I guess...
 
-	// 		terminal.addCommand( { "cvars", [=] () {
-	// 			string labels[] = { "(bool)", "(int)", "(int2)", "(int3)", "(int4) ", "(float)", "(vec2)", "(vec3)", "(vec4)", "(string)" };
-	// 			for ( uint i = 0; i < terminal.cvars.size(); i++ ) {
-	// 				cCharString temp;
-	// 				temp.append( "  " + terminal.cvars[ i ].label + " " + labels[ terminal.cvars[ i ].type ] + " " + terminal.cvars[ i ].getStringRepresentation() + " " );
-	// 				terminal.history.push_back( temp );
-	// 			}
-	// 		}, "List all the active cvars, as well as their types and values." } );
+		// retrieval of value
+			// this should return a copy of the var_t struct, I think
+
+		// ...
 
 	std::vector< command_t > commands;
 	void addCommand ( std::vector< string > commandAndOptionalAliases_in,
