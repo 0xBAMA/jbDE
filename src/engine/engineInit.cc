@@ -99,6 +99,8 @@ void engineBase::CreateWindowAndContext () {
 void engineBase::DisplaySetup () {
 	ZoneScoped;
 
+	// I want to save some of this information off to a struct on the terminal, maybe add this same report to the terminal startup message
+
 	// some info on your current platform
 	if ( config.reportPlatformInfo ) {
 		// report current platform
@@ -332,10 +334,13 @@ void engineBase::TerminalSetup () {
 		Block Start( "Terminal Setup" );
 
 	// this is where system commands live... quit is the big one, but maybe also eventually screenshots by string label
+
 		terminal.addCommand( { "quit" }, {},
 			[=] ( std::vector< var_t > arguments ) {
 				pQuit = true;
 			}, "Quit the engine." );
+
+		// screenshots? not sure what exactly that's going to look like
 
 		// more...?
 
