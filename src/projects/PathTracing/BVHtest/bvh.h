@@ -3,7 +3,7 @@
 // drawing heavily from:
 // https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
 
-const float MAX_DISTANCE = 10000000.0f;
+const float MAX_DISTANCE = 1e30f;
 
 // representing a ray
 struct ray_t {
@@ -78,7 +78,8 @@ struct aabb_t {
 	}
 };
 
-// for bounding boxes
+// for bounding box intersections
+// this is used for the recursive version
 static inline bool IntersectAABB ( const ray_t &ray, const vec3 bboxmin, const vec3 bboxmax ) {
 	float tx1 = ( bboxmin.x - ray.origin.x ) / ray.direction.x, tx2 = ( bboxmax.x - ray.origin.x ) / ray.direction.x;
 	float tmin = std::min( tx1, tx2 ), tmax = std::max( tx1, tx2 );
@@ -86,7 +87,22 @@ static inline bool IntersectAABB ( const ray_t &ray, const vec3 bboxmin, const v
 	tmin = std::max( tmin, std::min( ty1, ty2 ) ), tmax = std::min( tmax, std::max( ty1, ty2 ) );
 	float tz1 = ( bboxmin.z - ray.origin.z) / ray.direction.z, tz2 = ( bboxmax.z - ray.origin.z ) / ray.direction.z;
 	tmin = std::max( tmin, std::min( tz1, tz2 ) ), tmax = std::min( tmax, std::max( tz1, tz2 ) );
-	return tmax >= tmin && tmin < ray.distance && tmax > 0;
+	return tmax >= tmin && tmin < ray.distance && tmax > 0.0f;
+}
+
+// this is used for the iterative version
+static inline float IntersectAABB_i ( const ray_t& ray, const vec3 bboxmin, const vec3 bboxmax ) {
+	float tx1 = ( bboxmin.x - ray.origin.x ) / ray.direction.x, tx2 = ( bboxmax.x - ray.origin.x ) / ray.direction.x;
+	float tmin = std::min( tx1, tx2 ), tmax = std::max( tx1, tx2 );
+	float ty1 = ( bboxmin.y - ray.origin.y ) / ray.direction.y, ty2 = ( bboxmax.y - ray.origin.y ) / ray.direction.y;
+	tmin = std::max( tmin, std::min( ty1, ty2 ) ), tmax = std::min( tmax, std::max( ty1, ty2 ) );
+	float tz1 = ( bboxmin.z - ray.origin.z ) / ray.direction.z, tz2 = ( bboxmax.z - ray.origin.z ) / ray.direction.z;
+	tmin = std::max( tmin, std::min( tz1, tz2 ) ), tmax = std::min( tmax, std::max( tz1, tz2 ) );
+	if ( tmax >= tmin && tmin < ray.distance && tmax > 0.0f ) {
+		return tmin;
+	} else {
+		return MAX_DISTANCE;
+	}
 }
 
 static inline const vec3 GetBarycentricCoords ( vec3 p0, vec3 p1, vec3 p2, vec3 P ) {
@@ -104,8 +120,10 @@ static inline const vec3 GetBarycentricCoords ( vec3 p0, vec3 p1, vec3 p2, vec3 
 
 // bvh node class
 struct bvhNode_t {
-	vec3 aabbMin, aabbMax;
-	uint32_t leftChild, firstPrimitiveIdx, primitiveCount;
+	vec3 aabbMin;
+	uint32_t leftChild;
+	vec3 aabbMax;
+	uint32_t primitiveCount;
 	bool isLeaf() { return primitiveCount > 0; }
 };
 
@@ -185,7 +203,7 @@ struct bvh_t {
 
 		aabb_t bbox;
 		for ( uint i = 0; i < node.primitiveCount; i++ ) {
-			triangle_t &leafTriangle = triangleList[ triangleIndices[ node.firstPrimitiveIdx + i ] ];
+			triangle_t &leafTriangle = triangleList[ triangleIndices[ node.leftChild + i ] ];
 
 			bbox.growToInclude( leafTriangle.vertex0 );
 			bbox.growToInclude( leafTriangle.vertex1 );
@@ -201,7 +219,7 @@ struct bvh_t {
 		aabb_t leftBox, rightBox;
 		int leftCount = 0, rightCount = 0;
 		for( uint i = 0; i < node.primitiveCount; i++ ) {
-			triangle_t& triangle = triangleList[ triangleIndices[ node.firstPrimitiveIdx + i ] ];
+			triangle_t& triangle = triangleList[ triangleIndices[ node.leftChild + i ] ];
 			if ( triangle.centroid[ axis ] < pos ) {
 				leftCount++;
 				leftBox.growToInclude( triangle.vertex0 );
@@ -252,13 +270,13 @@ struct bvh_t {
 
 	// surface area heuristic to pick the split axis and the position
 		int bestAxis = -1;
-		float bestPos = 0;
+		float bestPos = 0.0f;
 		float bestCost = 1e30f;
 
 		// for each axis, for each triangle - consider this centroid as the partition
 		for( int axis = 0; axis < 3; axis++ ) {
 			for( uint i = 0; i < currentNode.primitiveCount; i++ ){
-				triangle_t& triangle = triangleList[ triangleIndices[ currentNode.firstPrimitiveIdx + i ] ];
+				triangle_t& triangle = triangleList[ triangleIndices[ currentNode.leftChild + i ] ];
 				float candidatePos = triangle.centroid[ axis ];
 				float cost = EvaluateSAH( currentNode, axis, candidatePos );
 				if ( cost < bestCost ) {
@@ -280,7 +298,7 @@ struct bvh_t {
 	#endif
 
 		// divide the group into two halves along this axis, partition by putting the split primitives at the end of the list
-		int i = currentNode.firstPrimitiveIdx;
+		int i = currentNode.leftChild;
 		int j = i + currentNode.primitiveCount - 1;
 
 		// iterate through, and place triangles based on centroid position relative to the dividing line
@@ -296,7 +314,7 @@ struct bvh_t {
 			// this enables that in-place partitioning, which is pretty cool
 
 		// where is the partition?
-		const uint32_t leftCount = i - currentNode.firstPrimitiveIdx;
+		const uint32_t leftCount = i - currentNode.leftChild;
 
 		// abort the split if either of the sides are empty
 		if ( leftCount == 0 || leftCount == currentNode.primitiveCount ) return;
@@ -306,10 +324,10 @@ struct bvh_t {
 		int rightChildIdx = nodesUsed++;
 
 		// ...so I guess you can always get the right child index back, by looking at base idx + primitive count
-		bvhNodes[ leftChildIdx ].firstPrimitiveIdx = currentNode.firstPrimitiveIdx;
+		bvhNodes[ leftChildIdx ].leftChild = currentNode.leftChild;
 		bvhNodes[ leftChildIdx ].primitiveCount = leftCount;
 
-		bvhNodes[ rightChildIdx ].firstPrimitiveIdx = i;
+		bvhNodes[ rightChildIdx ].leftChild = i;
 		bvhNodes[ rightChildIdx ].primitiveCount = currentNode.primitiveCount - leftCount;
 
 		// not tracking the isLeaf bool, means primitiveCount has to be used to id leaves vs interior nodes
@@ -344,7 +362,6 @@ struct bvh_t {
 		// not fully understanding this piece, yet
 		bvhNode_t &root = bvhNodes[ rootNodeIdx ];
 		root.leftChild = 0;
-		root.firstPrimitiveIdx = 0;
 		root.primitiveCount = triangleList.size();
 
 		// updating node bounds, for the root node - so it's the bounding box for entire model
@@ -380,7 +397,7 @@ struct bvh_t {
 			// leaf nodes have one or more primitives to check against
 			for ( uint32_t i = 0; i < node.primitiveCount; i++ ) {
 				rayComplexityCounter++;
-				triangleList[ triangleIndices[ node.firstPrimitiveIdx + i ] ].intersect( ray );
+				triangleList[ triangleIndices[ node.leftChild + i ] ].intersect( ray );
 			}
 		} else {
 			rayComplexityCounter++;
@@ -390,9 +407,38 @@ struct bvh_t {
 		}
 	}
 
+	void iterativeTraversal ( ray_t& ray ) {
+		bvhNode_t* node = &bvhNodes[ rootNodeIdx ], *stack[ 64 ];
+		uint stackPtr = 0;
+		while ( 1 ) {
+			if ( node->isLeaf() ) {
+				for ( uint i = 0; i < node->primitiveCount; i++ )
+					triangleList[ triangleIndices[ node->leftChild + i ] ].intersect( ray );
+				if ( stackPtr == 0 ) break; else node = stack[ --stackPtr ];
+				continue;
+			}
+			bvhNode_t* child1 = &bvhNodes[ node->leftChild ];
+			bvhNode_t* child2 = &bvhNodes[ node->leftChild + 1 ];
+			float dist1 = IntersectAABB_i( ray, child1->aabbMin, child1->aabbMax );
+			float dist2 = IntersectAABB_i( ray, child2->aabbMin, child2->aabbMax );
+			if ( dist1 > dist2 ) { std::swap( dist1, dist2 ); std::swap( child1, child2 ); }
+			if ( dist1 == MAX_DISTANCE ) {
+				if ( stackPtr == 0 ) {
+					break;
+				} else {
+					node = stack[ --stackPtr ];
+				}
+			} else {
+				node = child1;
+				if ( dist2 != MAX_DISTANCE ) stack[ stackPtr++ ] = child2;
+			}
+		}
+	}
+
 	// test ray against acceleration structure
 	void acceleratedTraversal ( ray_t &ray ) {
-		recursiveTraversal( ray, rootNodeIdx );
+		// recursiveTraversal( ray, rootNodeIdx );
+		iterativeTraversal( ray );
 	}
 };
 
@@ -407,7 +453,7 @@ struct testRenderer_t {
 	bool imageBufferDirty; // does this image need to be resent to the GPU?
 
 	// setup the worker threads
-	static constexpr int NUM_THREADS = 8;
+	static constexpr int NUM_THREADS = 1;
 	std::thread threads[ NUM_THREADS + 1 ];
 
 	static constexpr uint32_t REPORT_DELAY = 32; 				// reporter thread sleep duration, in ms
@@ -421,13 +467,14 @@ struct testRenderer_t {
 	static constexpr uint32_t TILESIZE_XY = 4;
 	static constexpr uint32_t NUM_SAMPLES = 1;
 	const bool dumpOutput = true;
+	// bool threadsShouldDie = false;
 
 	std::atomic< uint32_t > tileIndexCounter{ 0 };
 	std::atomic< uint32_t > tileFinishCounter{ 0 };
 	static constexpr uint32_t totalTileCount = std::ceil( X_IMAGE_DIM / TILESIZE_XY ) * ( std::ceil( Y_IMAGE_DIM / TILESIZE_XY ) + 1 );
 
 	// camera parameterization could use work
-	const vec3 eyeLocation = vec3( 0.0f, 2.0f, 0.0f );
+	const vec3 eyeLocation = vec3( -100.0f, 600.0f, 0.0f );
 	rng jitter = rng( 0.0f, 1.0f );
 	rng centeredJitter = rng( -1.0f, 1.0f );
 
@@ -537,13 +584,16 @@ struct testRenderer_t {
 
 							for ( uint i = 0; i < NUM_SAMPLES; i++ ) {
 								// do the shit
-								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.5f, 1.5f );
-								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -2.0f, 2.0f );
+								// const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.5f, 1.5f );
+								// const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -2.0f, 2.0f );
+								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 1.5f, 0.8f );
+								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -5.8f, -6.0f );
 
 								// test a ray against the triangles
 								ray_t ray;
-								ray.origin = vec3( xRemap, 0.0f, yRemap ) + eyeLocation;
-								ray.direction = normalize( vec3( 0.0f, -1.0f, 0.0f ) );
+								// ray.origin = vec3( xRemap, 0.0f, yRemap ) + eyeLocation;
+								ray.origin = 100.0f * vec3( xRemap, 0.0f, yRemap ) + eyeLocation;
+								ray.direction = normalize( vec3( 0.0f, 0.0f, 1.0f ) );
 
 								accelerationStructure.acceleratedTraversal( ray );
 
