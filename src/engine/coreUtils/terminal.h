@@ -975,6 +975,12 @@ struct terminal_t {
 
 					} else {
 
+
+					// this shouldn't happen immediately..
+						// I only want the report, once I have established that there are no matching functions... not once there is a single function that doesn't match...
+						// so we can do it like, go through the list, as long as we have one that passes, we skip the report. We didn't find one, we get the report.
+
+
 						// do the full report...
 						addLineBreak();
 						addHistoryLine( csb.append( "  Error: ", 4 ).append( "command \"" + commandText + "\" argument parse failed...", 3 ).flush() );
