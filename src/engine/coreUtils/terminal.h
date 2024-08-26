@@ -672,29 +672,20 @@ struct terminal_t {
 							// read in up to four ints, put it in xyzw
 							for ( int j = 0; j < count; j++ ) {
 								if ( ( argstream >> temps ) ) {
-									// // now the string, temps has the cantidate int
-									// size_t pos;
-									// tempi = stoi( temps, &pos );
 
-									// // stoi reads an integer out of that string
-									// 	// we can see if pos<temps.length() it will only have partially read a float constant, which is not acceptable input
+									if ( isFloat( temps.c_str() ) && !isInt( temps.c_str() ) ) {
+										failureMode = 5; // float encountered when expecting int
+										fail = true;
+										argstream.clear();
+									}
 
-									// // if we see that we read this entire string in to populate that int
-									// if ( pos == temps.length() ) { // we can say, good, this is an int constant
-									// 	commands[ commandIdx ].args[ i ].data[ j ] = tempi;
-									// } else {
-									// 	failureMode = 4; // float-as-int failure mode;
-									// 	fail = true;
-									// 	argstream.clear();
-									// }
-
+									// then read in an int and assign it
 									if ( isInt( temps.c_str() ) ) {
-										// then read in an int and assign it
 										size_t pos;
 										tempi = stoi( temps, &pos );
 										commands[ commandIdx ].args[ i ].data[ j ] = tempi;
 									} else {
-										failureMode = 4; // float-as-int failure mode;
+										failureMode = 5; // int failure mode
 										fail = true;
 										argstream.clear();
 									}
@@ -714,36 +705,15 @@ struct terminal_t {
 							for ( int j = 0; j < count; j++ ) {
 								if ( ( argstream >> temps ) ) {
 
-									// if ( !isdigit( temps[ 0 ] ) ) {
-									// 	failureMode = 7; // float failure mode, if there's alphas here
-									// 	argstream.clear();
-									// 	fail = true;
-									// 	break;
-									// }
-
-									// // we read in a string, and then interpret it as both int and float
-									// size_t posf, posi;
-									// tempi = stoi( temps, &posi );
-									// tempf = stof( temps, &posf );
-
-									// // if we read in the same number of chars from the string in both cases, we have an int
-									// if ( posi == posf ) {
-									// 	fail = true;
-									// 	failureMode = 6; // int-as-float failure mode
-									// 	argstream.clear();
-									// }
-
-									// if ( posf != 0 ) { // we read something for the float
-									// 	commands[ commandIdx ].args[ i ].data[ j ] = tempf;
-									// }
-
-									if ( isInt( temps.c_str() ) && !isFloat( temps.c_str() ) ) {
-										fail = true;
+									// if it's an int, not a float, when we expect a float
+									if ( isInt( temps.c_str() ) ) {
 										failureMode = 6; // int-as-float failure mode
 										argstream.clear();
+										fail = true;
 									}
 
-									if ( isFloat( temps.c_str() ) ) { // we read something for the float
+									// we need to read in this float, if it's judged valid
+									if ( isFloat( temps.c_str() ) ) {
 										size_t posf;
 										tempf = stof( temps, &posf );
 										commands[ commandIdx ].args[ i ].data[ j ] = tempf;
