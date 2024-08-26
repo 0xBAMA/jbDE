@@ -482,87 +482,67 @@ struct terminal_t {
 		};
 
 		// == BOOL ===================================================================================================
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", BOOL, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for bool."
 		);
 
 		// == INT ====================================================================================================
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", INT, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for int."
 		);
 
 		// == INT VECTORS ============================================================================================
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", IVEC2, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for 2-componenent int vectors."
 		);
 
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", IVEC3, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for 3-componenent int vectors."
 		);
 
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", IVEC4, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for 4-componenent int vectors."
 		);
 
 		// == FLOAT ==================================================================================================
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", FLOAT, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for float."
 		);
 
 		// == FLOAT VECTORS ==========================================================================================
-				addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", VEC2, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for 2-componenent float vectors."
 		);
 
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", VEC3, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for 3-componenent float vectors."
 		);
 
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", VEC4, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for 4-componenent float vectors."
 		);
 
 		// == STRING =================================================================================================
-		addCommand(
-			{ "assign" },
-			{
-				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
+		addCommand( { "assign" },
+			{	var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", STRING, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for strings."
 		);
