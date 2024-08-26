@@ -931,6 +931,7 @@ struct terminal_t {
 		historyOffset++;
 		historyOffset = std::clamp( historyOffset, 0, int( userInputs.size() ) );
 		currentLine = userInputs[ userInputs.size() - historyOffset ];
+		end(); // go to end of line
 	}
 
 	void cursorDown () {
@@ -946,6 +947,7 @@ struct terminal_t {
 			historyOffset = std::clamp( historyOffset, 0, int( userInputs.size() ) );
 			currentLine = userInputs[ userInputs.size() - historyOffset ];
 		}
+		end(); // go to end of line
 	}
 
 	void cursorLeft ( bool control ) {
