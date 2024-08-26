@@ -506,6 +506,43 @@ struct terminal_t {
 			}, "Cvar assignment function for int."
 		);
 
+	int isInt ( const char a[] ) {
+		int len = strlen( a );
+		int minus = 0;
+		int dsum = 0;
+		for ( int i = 0; i < len; i++ ) {
+			if ( isdigit( a[ i ] ) != 0 ) {
+				dsum++;
+			} else if ( a[ i ] == '-' ) {
+				minus++;
+			}
+		}
+		if ( dsum + minus == len ) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
+	int isFloat ( const char a[] ) {
+		int len = strlen( a );
+		int dsum = 0;
+		int dot = 0;
+		int minus = 0;
+		for ( int i = 0; i < len; i++ ) {
+			if ( isdigit( a[ i ] ) != 0 ) {
+				dsum++;
+			} else if ( a[ i ] == '.' ) {
+				dot++;
+			} else if ( a[ i ] == '-' ) {
+				minus++;
+			}
+		}
+		if ( dsum + dot + minus == len ) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 
 	// is this valid input for this command
