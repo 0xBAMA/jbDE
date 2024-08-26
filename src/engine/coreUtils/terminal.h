@@ -289,6 +289,8 @@ struct terminal_t {
 		int cursorX = 0;
 		int cursorY = 0;
 
+		bool transparentBackground = true;
+
 	// =========================================
 
 	// formatting utility
