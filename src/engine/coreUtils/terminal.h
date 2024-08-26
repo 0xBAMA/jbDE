@@ -289,8 +289,6 @@ struct terminal_t {
 		int cursorX = 0;
 		int cursorY = 0;
 
-		bool transparentBackground = true;
-
 	// =========================================
 
 	// formatting utility
@@ -367,6 +365,11 @@ struct terminal_t {
 			}
 	}
 
+	// transparent background toggle on a cvar...
+	bool transparentBackground () {
+		return !( cvars[ "transparentTerminalBackground" ].data.x == 0.0f );
+	}
+
 	// adding some default set of commands
 	void addTerminalLocalCommands () {
 
@@ -428,6 +431,9 @@ struct terminal_t {
 			[=] ( args_t args ) {
 				// if this function did anything, it would be here
 			}, "I am a test command and I don't do a whole lot." );
+
+		addCvar( "transparentTerminalBackground", BOOL, "Whether to draw transparent or solid color for the background when displaying." );
+		cvars[ "transparentTerminalBackground" ].data.x = 1.0f; // would like a "setTrue"... function, maybe?
 
 		// testing some cvar stuff
 		addCvar( "testCvarString", STRING, "This is a test cvar, it's a string." );

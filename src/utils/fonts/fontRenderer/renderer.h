@@ -503,8 +503,9 @@ public:
 		// draw terminal state, if active
 		if ( t.active ) {
 			// clear the area containing the text ( background, then foreground, then cursor layer )
-			if ( !t.transparentBackground )
+			if ( !t.transparentBackground() ) {
 				layers[ 0 ].DrawRectConstant( t.basePt, t.basePt + t.dims, cChar( t.csb.colorsets[ t.csb.selectedPalette ][ 0 ], FILL_100 ) );
+			}
 
 			// show the lines of text in the history
 			const int sizeHistory = t.history.size();
