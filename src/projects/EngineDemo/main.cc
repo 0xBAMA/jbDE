@@ -109,9 +109,7 @@ public:
 		inputHandler.update();
 
 		// pass any signals into the terminal
-		if ( terminal.active == true ) {
-			terminal.update( inputHandler );
-		}
+		terminal.update( inputHandler );
 	}
 
 	void ImguiPass () {

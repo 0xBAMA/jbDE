@@ -875,6 +875,8 @@ struct terminal_t {
 
 		}
 
+		// want to toggle the currently active state, when we hit f10 - but that has to happen, even if the terminal is not active
+		if ( currentInputState.getState4( KEY_F10 ) == KEYSTATE_RISING ) { active = !active; }
 	}
 
 	void addChar ( char c ) {
