@@ -567,10 +567,10 @@ struct terminal_t {
 		}
 	}
 
-	int isFloat ( const char a[] ) {
+	int isFloat ( const char a[], bool requireDot = false ) {
 		int len = strlen( a );
 		int dsum = 0;
-		int dot = 0;
+		int dot = requireDot ? -1 : 0;
 		int minus = 0;
 		for ( int i = 0; i < len; i++ ) {
 			if ( isdigit( a[ i ] ) != 0 ) {
