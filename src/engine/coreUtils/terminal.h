@@ -1123,6 +1123,13 @@ struct terminal_t {
 				if ( commands[ i ].commandStringMatch( commandText ) ) {
 					commandFound = true;
 
+				// // debug
+				// 	addHistoryLine( csb.append( "Found matching command " + commandText ).flush() );
+				// 	addHistoryLine( csb.append( "  Arguments:" ).flush() );
+				// 	for ( auto& var : commands[ i ].args.args ) {
+				// 		addHistoryLine( csb.append( "    " + var.label + " ( ", 2 ).append( getStringForType( var.type ), 1 ).append( " ): ", 2 ).append( var.description, 1 ).flush() );
+				// 	}
+
 					if ( parseForCommand( i, argumentText ) ) {
 						// we successfully parsed the arguments for the command, so we can go ahead and run it
 						commands[ i ].invoke( commands[ i ].args );
