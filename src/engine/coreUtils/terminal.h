@@ -457,31 +457,37 @@ struct terminal_t {
 		// so, looking at the way the call to parseForCommand works, I think we can actually have overloads... as long as one works
 			// but it will just pick the first one that works... but I think that's ok because we have type matching and stuff, now
 
+		// because the underlying representation is all the same, we can generalize the lambda for all of these out
+		auto assignLambda = [=] ( args_t args ) {
+			// trim the dollar signed bit off, so we can consider this a regular cvar label
+			if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
+				args[ "cvar" ].stringData.erase( 0, 1 );
+			}
+			// check for validity
+			if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
+				if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
+					cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
+					cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
+					cvars[ args[ "cvar" ].stringData ].data.z = args[ "value" ].data.z;
+					cvars[ args[ "cvar" ].stringData ].data.w = args[ "value" ].data.w;
+					cvars[ args[ "cvar" ].stringData ].stringData = args[ "value" ].stringData;
+				} else {
+					// report failure ( type does not match )
+					addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
+				}
+			} else {
+				// report failure ( cvar not found )
+				addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
+			}
+		};
+
 		// == BOOL ===================================================================================================
 		addCommand(
 			{ "assign" },
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", BOOL, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for bool."
+			}, assignLambda, "Cvar assignment function for bool."
 		);
 
 		// == INT ====================================================================================================
@@ -490,25 +496,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", INT, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for int."
+			}, assignLambda, "Cvar assignment function for int."
 		);
 
 		// == INT VECTORS ============================================================================================
@@ -517,26 +505,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", IVEC2, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-						cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for 2-componenent int vectors."
+			}, assignLambda, "Cvar assignment function for 2-componenent int vectors."
 		);
 
 		addCommand(
@@ -544,27 +513,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", IVEC3, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-						cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
-						cvars[ args[ "cvar" ].stringData ].data.z = args[ "value" ].data.z;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for 3-componenent int vectors."
+			}, assignLambda, "Cvar assignment function for 3-componenent int vectors."
 		);
 
 		addCommand(
@@ -572,28 +521,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", IVEC4, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-						cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
-						cvars[ args[ "cvar" ].stringData ].data.z = args[ "value" ].data.z;
-						cvars[ args[ "cvar" ].stringData ].data.w = args[ "value" ].data.w;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for 4-componenent int vectors."
+			}, assignLambda, "Cvar assignment function for 4-componenent int vectors."
 		);
 
 		// == FLOAT ==================================================================================================
@@ -602,25 +530,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", FLOAT, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for float."
+			}, assignLambda, "Cvar assignment function for float."
 		);
 
 		// == FLOAT VECTORS ==========================================================================================
@@ -629,26 +539,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", VEC2, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-						cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for 2-componenent float vectors."
+			}, assignLambda, "Cvar assignment function for 2-componenent float vectors."
 		);
 
 		addCommand(
@@ -656,27 +547,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", VEC3, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-						cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
-						cvars[ args[ "cvar" ].stringData ].data.z = args[ "value" ].data.z;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for 3-componenent float vectors."
+			}, assignLambda, "Cvar assignment function for 3-componenent float vectors."
 		);
 
 		addCommand(
@@ -684,28 +555,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", VEC4, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].data.x = args[ "value" ].data.x;
-						cvars[ args[ "cvar" ].stringData ].data.y = args[ "value" ].data.y;
-						cvars[ args[ "cvar" ].stringData ].data.z = args[ "value" ].data.z;
-						cvars[ args[ "cvar" ].stringData ].data.w = args[ "value" ].data.w;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for 4-componenent float vectors."
+			}, assignLambda, "Cvar assignment function for 4-componenent float vectors."
 		);
 
 		// == STRING =================================================================================================
@@ -714,25 +564,7 @@ struct terminal_t {
 			{
 				var_t( "cvar", CVAR_NAME, "The name of the cvar to assign to." ),
 				var_t( "value", STRING, "The value to assign." )
-			},
-			[=] ( args_t args ) {
-				// trim the dollar signed bit off, so we can consider this a regular cvar label
-				if ( args[ "cvar" ].stringData[ 0 ] == '$' ) {
-					args[ "cvar" ].stringData.erase( 0, 1 );
-				}
-				// check for validity
-				if ( cvars.isValid( args[ "cvar" ].stringData ) ) {
-					if ( args[ "value" ].type == cvars[ args[ "cvar" ].stringData ].type ) {
-						cvars[ args[ "cvar" ].stringData ].stringData = args[ "value" ].stringData;
-					} else {
-						// report failure ( type does not match )
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "assignment type mismatch", 3 ).flush() );
-					}
-				} else {
-					// report failure ( cvar not found )
-					addHistoryLine( csb.append( "  Error: ", 4 ).append( "cvar \"" + args[ "cvar" ].stringData + "\" not found during assignment", 3 ).flush() );
-				}
-			}, "Cvar assignment function for strings."
+			}, assignLambda, "Cvar assignment function for strings."
 		);
 
 	}
