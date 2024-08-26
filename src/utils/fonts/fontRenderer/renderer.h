@@ -494,26 +494,25 @@ public:
 	}
 
 	void drawTerminal ( terminal_t &t ) {
-		// draw frame
-		// layers[ 2 ].DrawSingleFrame( t.basePt - uvec2( 1 ), t.basePt + t.dims + uvec2( 1 ), ivec3( 35 ) );
-
+		// draw terminal state, if active
+		if ( t.active ) {
+			// clear the area containing the text ( background, then foreground, then cursor layer )
 			if ( !t.transparentBackground )
 				layers[ 0 ].DrawRectConstant( t.basePt, t.basePt + t.dims, cChar( t.csb.colorsets[ t.csb.selectedPalette ][ 0 ], FILL_100 ) );
 
-		// show the lines of text in the history
-		const int sizeHistory = t.history.size();
-		for ( int line = sizeHistory - 1 + t.scrollOffset; line >= std::max( int( sizeHistory - t.dims.y ), 0 ); line-- ) {
-			if ( ( line - t.scrollOffset ) != std::clamp( line - t.scrollOffset, 0, int( t.history.size() - 1 ) ) ) continue; // no oob reads
-			if ( ( -line + sizeHistory ) < 1 ) continue; // don't step on the prompt ( or continue below the prompt )
-			layers[ 1 ].WriteCCharVector( t.basePt + uvec2( 0, -line + sizeHistory ), t.basePt + uvec2( t.dims.x, -line + sizeHistory ),
-				t.history[ line - t.scrollOffset ] );
-		}
+			// show the lines of text in the history
+			const int sizeHistory = t.history.size();
+			for ( int line = sizeHistory - 1 + t.scrollOffset; line >= std::max( int( sizeHistory - t.dims.y ), 0 ); line-- ) {
+				if ( ( line - t.scrollOffset ) != std::clamp( line - t.scrollOffset, 0, int( t.history.size() - 1 ) ) ) continue; // no oob reads
+				if ( ( -line + sizeHistory ) < 1 ) continue; // don't step on the prompt ( or continue below the prompt )
+				layers[ 1 ].WriteCCharVector( t.basePt + uvec2( 0, -line + sizeHistory ), t.basePt + uvec2( t.dims.x, -line + sizeHistory ),
+					t.history[ line - t.scrollOffset ] );
+			}
 
-		// writing text prompt
-		layers[ 1 ].WriteCCharVector( t.basePt, t.basePt + uvec2( t.dims.x, 0 ),
-			t.csb.timestamp().append( " " ).append( t.currentLine, 4 ).flush() );
+			// writing text prompt
+			layers[ 1 ].WriteCCharVector( t.basePt, t.basePt + uvec2( t.dims.x, 0 ),
+				t.csb.timestamp().append( " " ).append( t.currentLine, 4 ).flush() );
 
-		if ( t.active ) {
 			// writing cursor
 			float blink = std::abs( std::sin( SDL_GetTicks() / 1000.0f ) );
 			layers[ 2 ].WriteCharAt( t.basePt + uvec2( t.cursorX + 11, 0 ), cChar( ivec3( vec3( t.csb.colorsets[ t.csb.selectedPalette ][ 3 ] ) * blink ), '_' ) );
