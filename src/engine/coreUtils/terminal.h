@@ -546,13 +546,14 @@ struct terminal_t {
 	}
 
 	// is this valid input for this command
-	bool parseForCommand ( int commandIdx, string argumentString ) {
+	bool parseForCommand ( int commandIdx, string argumentString, bool verbose = false ) {
 
 		// so we have matched with command number commandIdx
 
 		// we need to see if we can parse its arguments
 		std::stringstream argstream( argumentString );
 		bool fail = false;
+		int failureMode = -1;
 
 		// for each argument
 		for ( uint i = 0; i < commands[ commandIdx ].args.count() && !fail; i++ ) {
@@ -569,7 +570,7 @@ struct terminal_t {
 				if ( ( argstream >> temps ) ) {
 					commands[ commandIdx ].args[ i ].stringData = temps;
 				} else {
-					cout << "cvar name parse error" << endl;
+					failureMode = 0; // cvar name parse error
 					argstream.clear();
 					fail = true;
 				}
@@ -595,11 +596,13 @@ struct terminal_t {
 							commands[ commandIdx ].args[ i ].stringData = cvars[ cantidateString ].stringData;
 						} else {
 							// types do not match
+							failureMode = 1; // cvar types do not match
 							argstream.clear();
 							fail = true;
 						}
 					} else {
 						// we had some issue, this isn't a valid cvar
+						failureMode = 2;
 						argstream.clear();
 						fail = true;
 					}
@@ -613,6 +616,7 @@ struct terminal_t {
 							if ( ( argstream >> std::boolalpha >> tempb ) ) {
 								commands[ commandIdx ].args[ i ].data[ 0 ] = tempb ? 1.0f : 0.0f;
 							} else {
+								failureMode = 3; // bool failure
 								argstream.clear();
 								fail = true;
 							}
@@ -654,7 +658,7 @@ struct terminal_t {
 							if ( ( argstream >> temps ) ) {
 								commands[ commandIdx ].args[ i ].stringData = temps;
 							} else {
-								cout << "string parse error" << endl;
+								failureMode = 8; // string failure mode
 								argstream.clear();
 								fail = true;
 							}
@@ -667,7 +671,28 @@ struct terminal_t {
 			}
 		}
 
-		if ( fail ) {
+		if ( argstream.tellp() != std::streampos( 0 ) ) { // if there is input remaining, when we have finished the loop
+			// stray characters at end of input failure mode
+			failureMode = 9;
+			fail = true;
+		}
+
+		if ( fail || failureMode != -1 ) {
+			if ( verbose ) {
+				const string errorList[] = {
+					"cvar name parse error",
+					"cvar types do not match",
+					"cvar invalid",
+					"bool parse error",
+					"float encountered when expecting int",
+					"int parse error",
+					"int encountered when expecting float",
+					"float parse error",
+					"string parse error",
+					"stray characters at end of input"
+				};
+				addHistoryLine( csb.append( errorList[ failureMode ] ).flush() );
+			}
 			return false;
 		} else {
 			return true;
