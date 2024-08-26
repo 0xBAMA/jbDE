@@ -762,7 +762,19 @@ struct terminal_t {
 
 						case STRING:
 							if ( ( argstream >> temps ) ) {
-								commands[ commandIdx ].args[ i ].stringData = temps;
+								if ( isFloat( temps.c_str() ) || isInt( temps.c_str() ) ) {
+								// if this string is a number, we don't want to accept it
+									failureMode = 9; // recieved numbers instead
+									argstream.clear();
+									fail = true;
+								} else if ( temps == string( "true" ) || temps == string( "false" ) ) {
+								// if this string is "true" or "false", we also don't want to accept it
+									failureMode = 10; // recieved bool instead
+									argstream.clear();
+									fail = true;
+								} else {
+									commands[ commandIdx ].args[ i ].stringData = temps;
+								}
 							} else {
 								failureMode = 8; // string failure mode
 								argstream.clear();
@@ -795,6 +807,8 @@ struct terminal_t {
 					"int encountered when expecting float",
 					"float parse error",
 					"string parse error",
+					"number passed as string argument",
+					"bool passed as string argument",
 					"stray characters at end of input"
 				};
 				addHistoryLine( csb.append( errorList[ failureMode ] ).flush() );
