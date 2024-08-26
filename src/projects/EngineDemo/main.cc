@@ -167,9 +167,8 @@ public:
 			textRenderer.Clear();
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 
-			// show terminal, if active
-			if ( terminal.active == true )
-				textRenderer.drawTerminal( terminal );
+			// show terminal, if active - check happens inside
+			textRenderer.drawTerminal( terminal );
 
 			// put the result on the display
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
