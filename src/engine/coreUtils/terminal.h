@@ -1025,29 +1025,31 @@ struct terminal_t {
 
 			// try to match a command
 			bool commandFound = false;
+			bool commandInvoked = false;
 			for ( uint i = 0; i < commands.size(); i++ ) {
 				// if you do, try to parse the rest of the input string for the arguments to that command
 				if ( commands[ i ].commandStringMatch( commandText ) ) {
 					commandFound = true;
 
 					if ( parseForCommand( i, argumentText ) ) {
-
 						// we successfully parsed the arguments for the command, so we can go ahead and run it
 						commands[ i ].invoke( commands[ i ].args );
+						commandInvoked = true;
+					}
+				}
+			}
 
-					} else {
+			if ( commandFound && !commandInvoked ) {
 
-
-					// this shouldn't happen immediately..
-						// I only want the report, once I have established that there are no matching functions... not once there is a single function that doesn't match...
-						// so we can do it like, go through the list, as long as we have one that passes, we skip the report. We didn't find one, we get the report.
-
-
-						// do the full report...
-						addLineBreak();
-						addHistoryLine( csb.append( "  Error: ", 4 ).append( "command \"" + commandText + "\" argument parse failed...", 3 ).flush() );
-						addLineBreak();
+				// do the full report...
+				addLineBreak();
+				addHistoryLine( csb.append( "  Error: ", 4 ).append( "command \"" + commandText + "\" argument parse failed...", 3 ).flush() );
+				addLineBreak();
+				addHistoryLine( csb.append( "  Cantidates:" ).flush() );
+				for ( uint i = 0; i < commands.size(); i++ ) {
+					if ( commands[ i ].commandStringMatch( commandText ) ) {
 						if ( commands[ i ].args.count() != 0 ) {
+							addLineBreak();
 							addHistoryLine( csb.append( "  Command Aliases: " ).append( commands[ i ].getAliasString(), 1 ).flush() );
 							addHistoryLine( csb.append( "  Description: " ).append( commands[ i ].description, 1 ).flush() );
 							addHistoryLine( csb.append( "  Arguments:" ).flush() );
@@ -1055,13 +1057,11 @@ struct terminal_t {
 								addHistoryLine( csb.append( "    " + var.label + " ( ", 2 ).append( getStringForType( var.type ), 1 ).append( " ): ", 2 ).append( var.description, 1 ).flush() );
 							}
 							addLineBreak();
-						} else {
-							// with no arguments... should not be possible to fail this way
 						}
-
 					}
 				}
 			}
+
 			if ( !commandFound ) {
 				addHistoryLine( csb.append( "Error: ", 4 ).append( "command " + commandText + " not found", 3 ).flush() );
 			}
