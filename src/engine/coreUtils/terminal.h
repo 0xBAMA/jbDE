@@ -759,10 +759,13 @@ struct terminal_t {
 			}
 		}
 
-		if ( argstream.tellp() != std::streampos( 0 ) ) { // if there is input remaining, when we have finished the loop
-			// stray characters at end of input failure mode
-			failureMode = 9;
-			fail = true;
+		if ( !fail ) { // most cases, if we failed, we already .clear()'ed the string
+			string temps;
+			if ( ( argstream >> temps ) ) { // if there is input remaining, when we have finished the loop
+				// stray characters at end of input failure mode
+				failureMode = 11;
+				fail = true;
+			}
 		}
 
 		if ( fail || failureMode != -1 ) {
