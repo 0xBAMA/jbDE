@@ -346,6 +346,12 @@ public:
 		layers[ 1 ].WriteString( glm::uvec2( layers[ 1 ].width - w, offset ), glm::uvec2( layers[ 1 ].width, offset ), s, ivec3( color * 255.0f ) );
 	}
 
+	void Clear () {
+		for ( auto& layer : layers ) {
+			layer.ClearBuffer();
+		}
+	}
+
 	void Update ( float seconds ) {
 		// std::string fps( "60.00 fps " );
 		// std::string ms( "16.666 ms " );

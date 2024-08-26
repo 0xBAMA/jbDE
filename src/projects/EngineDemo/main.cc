@@ -164,6 +164,7 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
+			textRenderer.Clear();
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 
 			// show terminal, if active
