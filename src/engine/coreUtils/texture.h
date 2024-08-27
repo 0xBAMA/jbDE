@@ -377,6 +377,11 @@ public:
 			maxWidth = std::max( maxWidth, int( GetWithThousandsSeparator( tex.textureSize ).length() ) );
 		}
 
+	// I want more info here:
+		// dimensions
+		// number of channels
+		// data type + number of bits
+
 		const int reportWidth = 48;
 		cout << "  Textures :" << endl;
 		for ( auto& tex : textures ) {

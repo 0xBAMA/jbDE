@@ -340,7 +340,68 @@ void engineBase::TerminalSetup () {
 				pQuit = true;
 			}, "Quit the engine." );
 
-		// screenshots? not sure what exactly that's going to look like
+
+		// texture usage report, with some extras that I wanted anyways
+		terminal.addCommand( { "textureManagerReport" }, {},
+		[=] ( args_t args ) {
+			
+
+		// reporting the number of active textures, as well as the total number of bytes used
+
+		// then we want to give a list like this one...
+
+			// I want more info here:
+				// dimensions
+				// number of channels
+				// data type + number of bits
+
+			// precompute layout constants
+			int maxWidth = 0;
+			for ( auto& tex : textureManager.textures ) {
+				maxWidth = std::max( maxWidth, int( GetWithThousandsSeparator( tex.textureSize ).length() ) );
+			}
+			// also consider the total
+			maxWidth = std::max( maxWidth, int( GetWithThousandsSeparator( textureManager.TotalSize() ).length() ) );
+
+			// give overal usage stats
+			const size_t bytes = textureManager.TotalSize();
+			stringstream byteString;
+			if ( bytes < ( 1u << 30 ) ) { // less than 1 billion bytes
+				byteString << std::setprecision( 4 ) << float( bytes ) / float( 1u << 20 ) << "MB";
+			} else { // otherwise we are into gigabytes
+				byteString << std::setprecision( 4 ) << float( bytes ) / float( 1u << 30 ) << "GB";
+			}
+
+			terminal.addLineBreak();
+			terminal.addHistoryLine( terminal.csb.append( "Texture Manager", 3 ).flush() );
+			
+			terminal.addHistoryLine( terminal.csb.append( "[ ", 3 ).append( byteString.str() ).append( " total", 2 ).append( " ]", 3 ).flush() );
+			terminal.addHistoryLine( terminal.csb.append( "[ ", 3 ).append( to_string( textureManager.Count() ) ).append( " textures ", 2 ).append( " ]", 3 ).flush() );
+			terminal.addLineBreak();
+			for ( auto& tex : textureManager.textures ) { // the report for each one should only take up one line....
+
+				// adding the texture handle
+				terminal.csb.append( "  " + fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( ": ", 3 );
+
+				// appending the texture label, and the trailing
+				stringstream ss;
+				ss << tex.label;
+				string fill = string( 50 - ss.str().length(), '.' );
+				terminal.csb.append( ss.str(), 2 ).append( fill, 3 );
+
+				// now the number of bytes taken up by this texture
+				fill = string( maxWidth - GetWithThousandsSeparator( tex.textureSize ).length(), '.' );
+
+				terminal.csb.append( fill, 3 ).append( GetWithThousandsSeparator( tex.textureSize ) ).append( " bytes", 2 );
+				terminal.addHistoryLine( terminal.csb.flush() );
+			}
+			// output the line with the total...
+			terminal.addHistoryLine( terminal.csb.append( string( 49, ' ' ) ).append( "Total:  " ).append( GetWithThousandsSeparator( bytes ) ).append( " bytes", 2 ).flush() );
+
+			terminal.addLineBreak();
+		}, "Give the texture manager usage report." );
+
+		// screenshots? not sure what exactly that's going to look like yet
 
 		// more...?
 
