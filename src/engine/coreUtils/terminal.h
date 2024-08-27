@@ -280,7 +280,7 @@ struct terminal_t {
 		uvec2 basePt = uvec2( 2, 2 );
 
 		// size in glyphs
-		uvec2 dims = uvec2( 86, 26 );
+		uvec2 dims = uvec2( 156, 41 );
 
 		// is this terminal active
 		bool active = true;
@@ -786,6 +786,12 @@ struct terminal_t {
 	terminal_t () {
 		// some initial setup - set color palette to be used
 		csb.selectedPalette = 0;
+
+		// for autofilling true and false
+		trie->insert( "true", 100 );
+		trie->insert( "false", 100 );
+		trieCvar->insert( "true", 100 );
+		trieCvar->insert( "false", 100 );
 
 		// output welcome string - want to do this up a bit
 		addHistoryLine( csb.append( " jbDE - the jb Demo Engine", 4 ).flush() );
