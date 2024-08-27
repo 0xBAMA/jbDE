@@ -58,7 +58,7 @@ public:
 		textureOptions_t opts;
 		opts.width = w;
 		opts.height = h;
-		opts.dataType = GL_RGBA8;
+		opts.dataType = GL_RGBA8UI;
 		opts.pixelDataType = GL_UNSIGNED_BYTE;
 		opts.textureType = GL_TEXTURE_2D;
 		textureManager_local->Add( label, opts );
@@ -76,7 +76,7 @@ public:
 		glActiveTexture( GL_TEXTURE2 );
 		glBindTexture( GL_TEXTURE_2D, textureManager_local->Get( layerLabel ) );
 		if ( bufferDirty ) {
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bufferBase );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8UI, width, height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, bufferBase );
 			bufferDirty = false;
 		}
 	}
