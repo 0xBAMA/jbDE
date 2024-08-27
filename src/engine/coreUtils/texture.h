@@ -134,9 +134,9 @@ inline string getTypeString ( GLint internalFormat ) {
 
 	// three-channel formats
 	case GL_RGB5:
-		value = "5-bit"; break;
+		value = " 5-bit"; break;
 	case GL_SRGB8:
-		value = "8-bit sRGB"; break;
+		value = " 8-bit sRGB"; break;
 	case GL_R11F_G11F_B10F:
 		value = "r11g11b10f"; break;
 	case GL_RGB9_E5:
@@ -144,15 +144,15 @@ inline string getTypeString ( GLint internalFormat ) {
 
 	// four-channel formats
 	case GL_RGBA2:
-		value = "2-bit"; break;
+		value = " 2-bit"; break;
 	case GL_RGB4:
 	case GL_RGBA4:
-		value = "4-bit"; break;
+		value = " 4-bit"; break;
 	case GL_R8:
 	case GL_RG8:
 	case GL_RGB8:
 	case GL_RGBA8:
-		value = "8-bit norm"; break;
+		value = " 8-bit norm"; break;
 	case GL_RGB12:
 	case GL_RGBA12:
 		value = "12-bit"; break;
@@ -184,12 +184,12 @@ inline string getTypeString ( GLint internalFormat ) {
 	case GL_RG8I:
 	case GL_RGB8I:
 	case GL_RGBA8I:
-		value = "8-bit int"; break;
+		value = " 8-bit int"; break;
 	case GL_R8UI:
 	case GL_RG8UI:
 	case GL_RGB8UI:
 	case GL_RGBA8UI:
-		value = "8-bit uint"; break;
+		value = " 8-bit uint"; break;
 	case GL_R16I:
 	case GL_RG16I:
 	case GL_RGB16I:
