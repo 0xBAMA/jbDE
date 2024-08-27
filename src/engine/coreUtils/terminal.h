@@ -318,16 +318,20 @@ struct terminal_t {
 
 	cvarManager_t cvars;
 	void addCvar ( string label, type_e type, string description ) {
-		cvars.add( var_t( label, type, description ) );
+		// if we haven't seen this one before...
+		if ( !cvars.isValid( label ) ) {
+			// add it
+			cvars.add( var_t( label, type, description ) );
 
-		// insert into the main list, and also a second list, for autocompleting arguments
-		trie->insert( label, 100 );
-		trieCvar->insert( label, 100 );
+			// insert into the main list, and also a second list, for autocompleting arguments
+			trie->insert( label, 100 );
+			trieCvar->insert( label, 100 );
 
-		// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
-		// allStrings.push_back( string( "$" ) + label );
-		allStrings.push_back( label );
-		sort( allStrings.begin(), allStrings.end() );
+			// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
+			// allStrings.push_back( string( "$" ) + label );
+			allStrings.push_back( label );
+			sort( allStrings.begin(), allStrings.end() );
+		}
 	}
 
 	// how do we want to expose:
@@ -357,17 +361,26 @@ struct terminal_t {
 
 			// add command names - I think, for the report, at least, we want to deduplicate these... if you encounter it already in the list, skip adding it again
 			for ( uint i = 0; i < commandAndOptionalAliases_in.size(); i++ ) {
-				trie->insert( commandAndOptionalAliases_in[ i ], 100 );
 
-				// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
-				allStrings.push_back( commandAndOptionalAliases_in[ i ] );
-				sort( allStrings.begin(), allStrings.end() );
+				bool foundAlreadyInList = false;
+				for ( auto& s : allStrings )
+					if ( s == commandAndOptionalAliases_in[ i ] )
+						foundAlreadyInList = true;
+
+				if ( !foundAlreadyInList ) {
+					// add it to the autocomplete list
+					trie->insert( commandAndOptionalAliases_in[ i ], 100 );
+
+					// add this also to the list of all strings, and alphabetize (for reporting on tab complete with empty input prompt)
+					allStrings.push_back( commandAndOptionalAliases_in[ i ] );
+					sort( allStrings.begin(), allStrings.end() );
+				}
 			}
 	}
 
 	// transparent background toggle on a cvar...
 	bool transparentBackground () {
-		return !( cvars[ "transparentTerminalBackground" ].data.x == 0.0f );
+		return !( cvars[ "terminalTransparent" ].data.x == 0.0f );
 	}
 
 	// adding some default set of commands
