@@ -265,10 +265,10 @@ public:
 		numBinsHeight = std::floor( height / 16 );
 
 	// Initialize Layers
-		// timestamp
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Background" ) );
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Foreground" ) );
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Timestamp Highlight" ) );
+		// terminal background, foreground, highlight
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Background" ) );
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Foreground" ) );
+		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Highlight" ) );
 
 		cout << newline << "Text Renderer Created with Dimensions: " << numBinsWidth << " x " << numBinsHeight << newline;
 
