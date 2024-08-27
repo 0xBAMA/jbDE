@@ -277,10 +277,10 @@ struct terminal_t {
 	// =========================================
 
 		// location of lower left corner
-		uvec2 basePt = uvec2( 10, 5 );
+		uvec2 basePt = uvec2( 2, 2 );
 
 		// size in glyphs
-		uvec2 dims = uvec2( 300, 80 );
+		uvec2 dims = uvec2( 86, 26 );
 
 		// is this terminal active
 		bool active = true;
@@ -787,8 +787,12 @@ struct terminal_t {
 		// some initial setup - set color palette to be used
 		csb.selectedPalette = 0;
 
-		// output welcome string
-		addHistoryLine( csb.timestamp().append( " Welcome to jbDE", 4 ).flush() );
+		// output welcome string - want to do this up a bit
+		addHistoryLine( csb.append( " jbDE - the jb Demo Engine", 4 ).flush() );
+		addHistoryLine( csb.append( "By Jon Baker ( 2020 - 2024 )", 4 ).flush() );
+		addHistoryLine( csb.append( " https://jbaker.graphics/" ).flush() );
+		addLineBreak();
+		addHistoryLine( csb.timestamp().append( " Welcome to jbDE" ).flush() );
 
 		// add terminal-local commands and cvars
 			// manipulating base point, width, height, etc
