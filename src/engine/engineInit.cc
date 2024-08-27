@@ -374,12 +374,13 @@ void engineBase::TerminalSetup () {
 			}
 
 			terminal.addLineBreak();
-			terminal.addHistoryLine( terminal.csb.append( "Texture Manager [ ", 3 ).append( to_string( textureManager.Count() ) ).append( " textures in ", 2 ).append( byteString.str() ).append( " total", 2 ).append( " ]", 3 ).flush() );
+			terminal.addHistoryLine( terminal.csb.append( "Texture Manager Report", 3 ).flush() );
+			terminal.addHistoryLine( terminal.csb.append( "[ ", 3 ).append( to_string( textureManager.Count() ) ).append( " textures in ", 2 ).append( byteString.str() ).append( " total", 2 ).append( " ]", 3 ).flush() );
 			terminal.addLineBreak();
 			for ( auto& tex : textureManager.textures ) { // the report for each one should only take up one line....
 
 				// adding the texture handle
-				terminal.csb.append( "  " + fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( ": ", 3 );
+				terminal.csb.append( " [", GREY_DD ).append( fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( " " );
 
 				// two characters indicating the type of texture
 				string typeString;
@@ -424,14 +425,13 @@ void engineBase::TerminalSetup () {
 
 				string dataTypeString = getTypeString( tex.creationOptions.dataType );
 
-				terminal.csb.append( "[", GREY_DD )
-					.append( typeString + " " )
+				terminal.csb.append( typeString + " " )
 					.append( "R", flags.r ? RED : GREY_DD )
 					.append( "G", flags.g ? GREEN : GREY_DD )
 					.append( "B", flags.b ? BLUE : GREY_DD )
 					.append( "A ", flags.a ? WHITE : GREY_DD )
 					.append( dataTypeString + string( dataWidth - dataTypeString.length(), ' ' ) )
-					.append( " ] ", GREY_DD );
+					.append( "]", GREY_DD ).append( ": ", 3 );
 
 				// appending the texture label, and the trailing
 				stringstream ss;
