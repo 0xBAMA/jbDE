@@ -537,7 +537,6 @@ struct terminal_t {
 				var_t( "value", STRING, "The value to assign." )
 			}, assignLambda, "Cvar assignment function for strings."
 		);
-
 	}
 
 	int isInt ( const char a[] ) {
@@ -1003,17 +1002,6 @@ struct terminal_t {
 
 	void tab () {
 
-		// couple cases need to be handled:
-
-		// done:
-			// empty prompt, gives all strings
-			// partial word, give trie completions
-
-		// todo:
-			// input prompt ends in " " -> show cvar list
-			// input prompt's last token begins with "$" -> show cvar list matching
-			// ...
-
 		// get the last token from the current input + report all strings matching the current token
 		int count = 0;
 		std::stringstream ss;
@@ -1032,6 +1020,16 @@ struct terminal_t {
 			if ( lastTokenMarkedCvar && ( lastToken.length() > 1 ) ) {
 				// match the partial string
 				output = trieCvar->predictCompletions( lastToken.substr( 1 ), 16 );
+
+				if ( output.size() == 1 ) { // if we only got one completion back, I want to say, ok, you asked for that one
+					if ( currentLine.length() == lastToken.length() ) { // the last token is the whole line, just replace
+						currentLine = output[ 0 ];
+					} else { // if this last token is only part of the current input line, we should trim that off, before adding the suggested string
+						currentLine.erase( currentLine.end() - lastToken.length(), currentLine.end() );
+						currentLine = currentLine + "$" + output[ 0 ];
+					}
+					end(); // put the cursor at the end of the line
+				}
 			}
 
 			// we didn't get any best matches... and we did trim whitespace, which means we are operating from no data
@@ -1059,8 +1057,20 @@ struct terminal_t {
 			}
 
 		} else {
+
 			// we want to consider all possible matching completions, not just matching cvars
 			std::vector< string > output = trie->predictCompletions( lastToken, 16 );
+
+			if ( output.size() == 1 ) { // if we only got one completion back, I want to say, ok, you asked for that one
+				if ( currentLine.length() == lastToken.length() ) { // the last token is the whole line, just replace
+					currentLine = output[ 0 ];
+				} else { // if this last token is only part of the current input line, we should trim that off, before adding the suggested string
+					currentLine.erase( currentLine.end() - lastToken.length(), currentLine.end() );
+					currentLine = currentLine + ( cvars.isValid( output[ 0 ] ) ? "$" : string( "" ) ) + output[ 0 ];
+				}
+				end(); // put the cursor at the end of the line
+			}
+
 			for ( auto& s : output ) {
 				count++;
 				ss << s << " ";
