@@ -373,10 +373,7 @@ void engineBase::TerminalSetup () {
 			}
 
 			terminal.addLineBreak();
-			terminal.addHistoryLine( terminal.csb.append( "Texture Manager", 3 ).flush() );
-			
-			terminal.addHistoryLine( terminal.csb.append( "[ ", 3 ).append( byteString.str() ).append( " total", 2 ).append( " ]", 3 ).flush() );
-			terminal.addHistoryLine( terminal.csb.append( "[ ", 3 ).append( to_string( textureManager.Count() ) ).append( " textures ", 2 ).append( " ]", 3 ).flush() );
+			terminal.addHistoryLine( terminal.csb.append( "Texture Manager [ ", 3 ).append( to_string( textureManager.Count() ) ).append( " textures in ", 2 ).append( byteString.str() ).append( " total", 2 ).append( " ]", 3 ).flush() );
 			terminal.addLineBreak();
 			for ( auto& tex : textureManager.textures ) { // the report for each one should only take up one line....
 
