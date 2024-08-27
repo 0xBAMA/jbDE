@@ -432,38 +432,8 @@ struct terminal_t {
 				}
 			}, "List all the active commands in this terminal." );
 
-		// test with several different arguments
-		addCommand(
-			{ "test", "ts" },
-			{ // arguments
-				var_t( "arg1", BOOL, "This is a first test bool." ),
-				var_t( "arg2", BOOL, "This is a second test bool." ),
-				var_t( "arg3", BOOL, "This is a third test bool." ),
-				var_t( "arg4", BOOL, "This is a fourth test bool." )
-			},
-			[=] ( args_t args ) {
-				// if this function did anything, it would be here
-			}, "I am a test command and I don't do a whole lot." );
-
-		addCvar( "transparentTerminalBackground", BOOL, "Whether to draw transparent or solid color for the background when displaying." );
-		cvars[ "transparentTerminalBackground" ].data.x = 1.0f; // would like a "setTrue"... function, maybe?
-
-		// testing some cvar stuff
-		addCvar( "testCvarString", STRING, "This is a test cvar, it's a string." );
-		addCvar( "testCvarFloat", FLOAT, "This is a test cvar, it's a float." );
-		addCvar( "testCvarBool", BOOL, "This is a test cvar, it's a bool." );
-		addCvar( "testCvarInt", INT, "This is a test cvar, it's an int." );
-		addCvar( "testCvarFloat4", VEC4, "This is a test cvar, it's a float vector." );
-
-		// setting the values of these test cvars
-		cvars[ "testCvarString" ].stringData = string( "testCvarStringValue" );
-		cvars[ "testCvarFloat" ].data.x = 1.0f;
-		cvars[ "testCvarBool" ].data.x = 0.0f;
-		cvars[ "testCvarInt" ].data.x = -1;
-		cvars[ "testCvarFloat4" ].data.x = -1;
-		cvars[ "testCvarFloat4" ].data.y = 1;
-		cvars[ "testCvarFloat4" ].data.z = 4;
-		cvars[ "testCvarFloat4" ].data.w = 1;
+		addCvar( "terminalTransparent", BOOL, "Whether to draw transparent or solid color for the background when displaying." );
+		cvars[ "terminalTransparent" ].data.x = 1.0f; // would like a "setTrue"... function, maybe?
 
 		addCommand( { "cvars" }, {}, [=] ( args_t args ) {
 			addHistoryLine( csb.flush() );
