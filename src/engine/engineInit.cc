@@ -380,6 +380,38 @@ void engineBase::TerminalSetup () {
 				// adding the texture handle
 				terminal.csb.append( "  " + fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( ": ", 3 );
 
+
+				GLenum thisTextureFormat = getFormat( tex.creationOptions.dataType );
+				bvec4 flags = bvec4( false );
+
+				// if the texture is a depth texture, just none of these will be turned on... I don't like that a lot, but it's alright
+
+				if ( thisTextureFormat == GL_RED || thisTextureFormat == GL_RED_INTEGER ) {
+					flags.r = true;
+				}
+				if ( thisTextureFormat == GL_RG || thisTextureFormat == GL_RG_INTEGER ) {
+					flags.r = true;
+					flags.g = true;
+				}
+				if ( thisTextureFormat == GL_RGB || thisTextureFormat == GL_RGB_INTEGER ) {
+					flags.r = true;
+					flags.g = true;
+					flags.b = true;
+				}
+				if ( thisTextureFormat == GL_RGBA || thisTextureFormat == GL_RGBA_INTEGER ) {
+					flags.r = true;
+					flags.g = true;
+					flags.b = true;
+					flags.a = true;
+				}
+
+				terminal.csb.append( "[" )
+					.append( "R", flags.r ? RED : GREY_DD )
+					.append( "G", flags.g ? GREEN : GREY_DD )
+					.append( "B", flags.b ? BLUE : GREY_DD )
+					.append( "A", flags.a ? WHITE : GREY_DD )
+					.append( "] " );
+
 				// appending the texture label, and the trailing
 				stringstream ss;
 				ss << tex.label;
