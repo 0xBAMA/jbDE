@@ -380,7 +380,7 @@ void engineBase::TerminalSetup () {
 			for ( auto& tex : textureManager.textures ) { // the report for each one should only take up one line....
 
 				// adding the texture handle
-				terminal.csb.append( " [", GREY_DD ).append( fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( " " );
+				terminal.csb.append( " [", GREY_DD ).append( fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( "] ", GREY_DD );
 
 				// two characters indicating the type of texture
 				string typeString;
@@ -424,14 +424,21 @@ void engineBase::TerminalSetup () {
 				}
 
 				string dataTypeString = getTypeString( tex.creationOptions.dataType );
+				string bitString = to_string( getBitCount( tex.creationOptions.dataType ) );
+				bitString = string( 2 - bitString.length(), ' ' ) + bitString + "-bit"; // make constant width
 
-				terminal.csb.append( typeString + " " )
+				terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
+					.append( typeString )
+					.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
 					.append( "R", flags.r ? RED : GREY_DD )
 					.append( "G", flags.g ? GREEN : GREY_DD )
 					.append( "B", flags.b ? BLUE : GREY_DD )
-					.append( "A ", flags.a ? WHITE : GREY_DD )
+					.append( "A", flags.a ? WHITE : GREY_DD )
+					.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
+					.append( bitString )
+					.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
 					.append( dataTypeString + string( dataWidth - dataTypeString.length(), ' ' ) )
-					.append( "]", GREY_DD ).append( ": ", 3 );
+					.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
 
 				// appending the texture label, and the trailing
 				stringstream ss;
@@ -446,7 +453,7 @@ void engineBase::TerminalSetup () {
 				terminal.addHistoryLine( terminal.csb.flush() );
 			}
 			// output the line with the total...
-			terminal.addHistoryLine( terminal.csb.append( string( 61 + dataWidth, ' ' ) ).append( "Total:  " ).append( GetWithThousandsSeparator( bytes ) ).append( " bytes", 2 ).flush() );
+			terminal.addHistoryLine( terminal.csb.append( string( 59 + dataWidth, ' ' ) ).append( "Total:  " ).append( GetWithThousandsSeparator( bytes ) ).append( " bytes", 2 ).flush() );
 
 			terminal.addLineBreak();
 		}, "Give the texture manager usage report." );

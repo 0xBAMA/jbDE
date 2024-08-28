@@ -132,88 +132,155 @@ inline string getTypeString ( GLint internalFormat ) {
 	string value;
 	switch ( internalFormat ) { // hitting the commonly used formats
 
-	// three-channel formats
-	case GL_RGB5:
-		value = " 5-bit"; break;
 	case GL_SRGB8:
-		value = " 8-bit sRGB"; break;
-	case GL_R11F_G11F_B10F:
-		value = "r11g11b10f"; break;
-	case GL_RGB9_E5:
-		value = "rgb9e5"; break;
+		value = "norm sRGB"; break;
 
-	// four-channel formats
+	case GL_RGB5:
+	case GL_R11F_G11F_B10F:
+	case GL_RGB9_E5:
 	case GL_RGBA2:
-		value = " 2-bit"; break;
 	case GL_RGB4:
 	case GL_RGBA4:
-		value = " 4-bit"; break;
 	case GL_R8:
 	case GL_RG8:
 	case GL_RGB8:
 	case GL_RGBA8:
-		value = " 8-bit norm"; break;
 	case GL_RGB12:
 	case GL_RGBA12:
-		value = "12-bit"; break;
 	case GL_R16:
 	case GL_RG16:
 	case GL_RGBA16:
-		value = "16-bit"; break;
+		value = "norm"; break;
+
 	case GL_R16F:
 	case GL_RG16F:
 	case GL_RGB16F:
 	case GL_RGBA16F:
-		value = "16-bit float"; break;
 	case GL_R32F:
 	case GL_RG32F:
 	case GL_RGB32F:
 	case GL_RGBA32F:
-		value = "32-bit float"; break;
+		value = "float"; break;
 
 	case GL_DEPTH_COMPONENT:
-		value = "depth"; break;
 	case GL_DEPTH_COMPONENT16:
-		value = "16-bit depth"; break;
 	case GL_DEPTH_COMPONENT24:
-		value = "24-bit depth"; break;
 	case GL_DEPTH_COMPONENT32:
-		value = "32-bit depth"; break;
+		value = "depth"; break;
 
 	case GL_R8I:
 	case GL_RG8I:
 	case GL_RGB8I:
 	case GL_RGBA8I:
-		value = " 8-bit int"; break;
-	case GL_R8UI:
-	case GL_RG8UI:
-	case GL_RGB8UI:
-	case GL_RGBA8UI:
-		value = " 8-bit uint"; break;
 	case GL_R16I:
 	case GL_RG16I:
 	case GL_RGB16I:
 	case GL_RGBA16I:
-		value = "16-bit int"; break;
-	case GL_R16UI:
-	case GL_RG16UI:
-	case GL_RGB16UI:
-	case GL_RGBA16UI:
-		value = "16-bit uint"; break;
 	case GL_R32I:
 	case GL_RG32I:
 	case GL_RGB32I:
 	case GL_RGBA32I:
-		value = "32-bit int"; break;
+		value = "int"; break;
+
+	case GL_R8UI:
+	case GL_RG8UI:
+	case GL_RGB8UI:
+	case GL_RGBA8UI:
+	case GL_R16UI:
+	case GL_RG16UI:
+	case GL_RGB16UI:
+	case GL_RGBA16UI:
 	case GL_R32UI:
 	case GL_RG32UI:
 	case GL_RGB32UI:
 	case GL_RGBA32UI:
-		value = "32-bit uint"; break;
+		value = "uint"; break;
+
 	default: break;
 	}
 	return value;
 }
+
+inline int getBitCount ( GLint internalFormat ) {
+	int value;
+	switch ( internalFormat ) { // hitting the commonly used formats
+
+	// three-channel formats
+	case GL_RGB5:
+		value = 5; break;
+	case GL_SRGB8:
+		value = 8; break;
+
+		// these are... yeah
+	case GL_R11F_G11F_B10F:
+		value = 11; break;
+	case GL_RGB9_E5:
+		value = 9; break;
+
+	// four-channel formats
+	case GL_RGBA2:
+		value = 2; break;
+	case GL_RGB4:
+	case GL_RGBA4:
+		value = 4; break;
+	case GL_R8:
+	case GL_RG8:
+	case GL_RGB8:
+	case GL_RGBA8:
+	case GL_R8I:
+	case GL_RG8I:
+	case GL_RGB8I:
+	case GL_RGBA8I:
+	case GL_R8UI:
+	case GL_RG8UI:
+	case GL_RGB8UI:
+	case GL_RGBA8UI:
+		value = 8; break;
+	case GL_RGB12:
+	case GL_RGBA12:
+		value = 12; break;
+	case GL_R16:
+	case GL_RG16:
+	case GL_RGBA16:
+	case GL_R16F:
+	case GL_RG16F:
+	case GL_RGB16F:
+	case GL_RGBA16F:
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_R16I:
+	case GL_RG16I:
+	case GL_RGB16I:
+	case GL_RGBA16I:
+	case GL_R16UI:
+	case GL_RG16UI:
+	case GL_RGB16UI:
+	case GL_RGBA16UI:
+		value = 16; break;
+
+	case GL_DEPTH_COMPONENT24:
+		value = 24; break;
+	case GL_R32F:
+	case GL_RG32F:
+	case GL_RGB32F:
+	case GL_RGBA32F:
+	case GL_DEPTH_COMPONENT32:
+	case GL_R32I:
+	case GL_RG32I:
+	case GL_RGB32I:
+	case GL_RGBA32I:
+	case GL_R32UI:
+	case GL_RG32UI:
+	case GL_RGB32UI:
+	case GL_RGBA32UI:
+		value = 32; break;
+
+	default: break;
+	}
+	return value;
+}
+
+
 
 //===== Texture Options ===============================================================================================
 // data required to create a texture
