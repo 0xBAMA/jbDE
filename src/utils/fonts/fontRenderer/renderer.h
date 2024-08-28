@@ -19,6 +19,7 @@
 #define BOTTOM_RIGHT_SINGLE_CORNER	217
 #define VERTICAL_SINGLE				(char)179
 #define HORIZONTAL_SINGLE			196
+#define TEE_UDR						(char)198
 
 // curly scroll thingy
 #define CURLY_SCROLL_TOP			244

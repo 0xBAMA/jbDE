@@ -374,30 +374,82 @@ void engineBase::TerminalSetup () {
 			}
 
 			terminal.addLineBreak();
-			terminal.addHistoryLine( terminal.csb.append( "Texture Manager Report", 3 ).flush() );
-			terminal.addHistoryLine( terminal.csb.append( "[ ", 3 ).append( to_string( textureManager.Count() ) ).append( " textures in ", 2 ).append( byteString.str() ).append( " total", 2 ).append( " ]", 3 ).flush() );
-			terminal.addLineBreak();
+			terminal.addHistoryLine( terminal.csb.append( "Texture Manager Report ", 3 ).flush() );
+			terminal.addHistoryLine( terminal.csb.append( "[ Summary: ", GREY_DD ).append( to_string( textureManager.Count() ) ).append( " textures in ", GREY_DD ).append( byteString.str() ).append( " total ]", GREY_DD ).flush() );
+
+			// divider...
+			terminal.csb.append( cChar( GREY_DD, ( char ) 218 ) );
+			terminal.csb.append( string( 3, ( char ) 196 ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 194 ) );
+			terminal.csb.append( string( 4, ( char ) 196 ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 194 ) );
+			terminal.csb.append( string( 9, ( char ) 196 ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 194 ) );
+			terminal.csb.append( string( 12, ( char ) 196 ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 194 ) );
+			terminal.csb.append( string( 65, ( char ) 196 ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 191 ) );
+
+			terminal.addHistoryLine( terminal.csb.flush() );
+
+			// table headings
+			terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+			terminal.csb.append( "ID " );
+			terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+			terminal.csb.append( "TYPE" );
+			terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+			terminal.csb.append( "CHANNELS " );
+			terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+			terminal.csb.append( "FORMAT      " );
+			terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+			terminal.csb.append( "LABEL" + string( 60, ' ' ) );
+			terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+
+			terminal.addHistoryLine( terminal.csb.flush() );
+
+			// divider
+			terminal.csb.append( cChar( GREY_DD, TEE_UDR ) );
+			terminal.csb.append( string( 3, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 216 ) );
+			terminal.csb.append( string( 4, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 216 ) );
+			terminal.csb.append( string( 9, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 216 ) );
+			terminal.csb.append( string( 12, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 216 ) );
+			terminal.csb.append( string( 65, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 190 ) );
+
+			terminal.addHistoryLine( terminal.csb.flush() );
+
 			for ( auto& tex : textureManager.textures ) { // the report for each one should only take up one line....
 
 				// adding the texture handle
-				terminal.csb.append( " [", GREY_DD ).append( fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( "] ", GREY_DD );
+				// terminal.csb.append( " [", GREY_DD ).append( fixedWidthNumberString( tex.textureHandle, 3, '0' ), 1 ).append( "] ", GREY_DD );
+
+				string idString = to_string( tex.textureHandle );
+				terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
+				// terminal.csb.append( string( 3 - idString.length(), '0' ), 1 );
+				// terminal.csb.append( idString, 2 );
+
+				terminal.csb.append( string( 3 - idString.length(), '0' ), TERMBG );
+				terminal.csb.append( idString, TERMFG );
 
 				// two characters indicating the type of texture
 				string typeString;
 
 				if ( tex.creationOptions.textureType == GL_TEXTURE_1D ) {
-					typeString = "1D";
+					typeString = "1D  ";
 				}
-				// if ( tex.creationOptions.textureType == GL_TEXTURE_2D_ARRAY ) {
-					// tbd how to handle this
-				// }
+				if ( tex.creationOptions.textureType == GL_TEXTURE_2D_ARRAY ) {
+					typeString = "2DAr";
+				}
 				if ( tex.creationOptions.textureType == GL_TEXTURE_2D ) {
-					typeString = "2D";
+					typeString = "2D  ";
 				}
 				if ( tex.creationOptions.textureType == GL_TEXTURE_3D ) {
-					typeString = "3D";
+					typeString = "3D  ";
 				}
-
 
 				GLenum thisTextureFormat = getFormat( tex.creationOptions.dataType );
 				bvec4 flags = bvec4( false );
@@ -430,13 +482,13 @@ void engineBase::TerminalSetup () {
 				terminal.csb.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
 					.append( typeString )
 					.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
-					.append( "R", flags.r ? RED : GREY_DD )
-					.append( "G", flags.g ? GREEN : GREY_DD )
-					.append( "B", flags.b ? BLUE : GREY_DD )
-					.append( "A", flags.a ? WHITE : GREY_DD )
+					.append( " R ", flags.r ? RED : GREY_DD )
+					.append( "G ", flags.g ? GREEN : GREY_DD )
+					.append( "B ", flags.b ? BLUE : GREY_DD )
+					.append( "A ", flags.a ? WHITE : GREY_DD )
 					.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
 					.append( bitString )
-					.append( cChar( GREY_DD, VERTICAL_SINGLE ) )
+					.append( " " )
 					.append( dataTypeString + string( dataWidth - dataTypeString.length(), ' ' ) )
 					.append( cChar( GREY_DD, VERTICAL_SINGLE ) );
 
@@ -452,8 +504,19 @@ void engineBase::TerminalSetup () {
 				terminal.csb.append( fill, 3 ).append( GetWithThousandsSeparator( tex.textureSize ) ).append( " bytes", 2 );
 				terminal.addHistoryLine( terminal.csb.flush() );
 			}
-			// output the line with the total...
-			terminal.addHistoryLine( terminal.csb.append( string( 59 + dataWidth, ' ' ) ).append( "Total:  " ).append( GetWithThousandsSeparator( bytes ) ).append( " bytes", 2 ).flush() );
+
+			// output the separator, up to the total
+			terminal.csb.append( cChar( GREY_DD, ( char ) 212 ) );
+			terminal.csb.append( string( 3, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 207 ) );
+			terminal.csb.append( string( 4, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 207 ) );
+			terminal.csb.append( string( 9, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 207 ) );
+			terminal.csb.append( string( 12, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.csb.append( cChar( GREY_DD, ( char ) 207 ) );
+			terminal.csb.append( string( 41, HORIZONTAL_DOUBLE ), GREY_DD );
+			terminal.addHistoryLine( terminal.csb.append( " Total:  " ).append( GetWithThousandsSeparator( bytes ) ).append( " bytes", 2 ).flush() );
 
 			terminal.addLineBreak();
 		}, "Give the texture manager usage report." );
