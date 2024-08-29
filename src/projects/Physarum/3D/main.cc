@@ -174,6 +174,7 @@ public:
 		}
 
 		// expose controls for the physarum
+		ImGui::Begin( "Physarum Controls" );
 		if ( ImGui::SmallButton( "Randomize Parameters" ) ) {
 			rng senseAngle( 0.0f, float( pi ) );
 			rng senseDistance( 0.0f, 0.005f );
@@ -283,6 +284,7 @@ public:
 		ImGui::Separator();
 		ImGui::Separator();
 		ImGui::SliderFloat( "Display Z Offset", &physarumConfig.zOffset, 0.0f, 1.0f, "%.3f" );
+		ImGui::End();
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
@@ -363,7 +365,13 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
+			textRenderer.Clear();
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
+
+			// show terminal, if active - check happens inside
+			textRenderer.drawTerminal( terminal );
+
+			// put the result on the display
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -382,6 +390,12 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
+
+		// get new data into the input handler
+		inputHandler.update();
+
+		// pass any signals into the terminal
+		terminal.update( inputHandler );
 
 		// run the shader to do the gaussian blur
 		glUseProgram( shaders[ "Diffuse and Decay" ] );
