@@ -46,8 +46,8 @@ public:
 			// prepare the glyph and DDA VAT buffers
 			PrepGlyphBuffer();
 			GoLTex();
-			// DDAVATTex();
-			// HeightmapTex();
+			DDAVATTex();
+			HeightmapTex();
 
 			{ // color grading tools
 				// exposure/brightness/color histogram setup
@@ -115,6 +115,12 @@ public:
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
+
+		// get new data into the input handler
+		inputHandler.update();
+
+		// pass any signals into the terminal
+		terminal.update( inputHandler );
 
 		// // current state of the whole keyboard
 		const uint8_t * state = SDL_GetKeyboardState( NULL );
@@ -464,6 +470,8 @@ public:
 		{ // text rendering - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 
+			textRenderer.Clear();
+
 			// toggle-able controls list, sounds like a nice to have
 			// textRenderer.DrawBlackBackedColorString( 2, string( " Daedalus  (?) show controls" ), vec3( 1.0f, 0.5f, 0.3f ) );
 
@@ -484,7 +492,11 @@ public:
 
 			// kill if the shaders fail - this is a temporary measure, eventually I'd like to incorporate this into the shader wrapper
 			// if ( tDelta > 1000.0f ) pQuit = true;
-			
+
+			// show terminal, if active - active check happens inside
+			textRenderer.drawTerminal( terminal );
+
+			// put it on the screen
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
