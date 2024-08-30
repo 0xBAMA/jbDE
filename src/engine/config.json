@@ -58,7 +58,7 @@
 			"dimensionX": 256,
 			"dimensionY": 256,
 			"dimensionZ": 256,
-			"numAgents": 10000000
+			"numAgents": 1000000
 		},
 		"PhysarumPresets": [
 			{

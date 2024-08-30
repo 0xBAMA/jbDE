@@ -55,10 +55,13 @@ public:
 
 			// something to put some basic data in the accumulator texture - comes from the demo project
 			const string basePath = "./src/projects/Physarum/3D/shaders/";
-			shaders[ "Buffer Copy" ]		= computeShader( basePath + "bufferCopy.cs.glsl" ).shaderHandle;
-			shaders[ "Lighting" ]			= computeShader( basePath + "lighting.cs.glsl" ).shaderHandle;
+			shaders[ "Draw" ]				= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
 			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
+
+			glObjectLabel( GL_PROGRAM, shaders[ "Draw" ], -1, string( "Draw" ).c_str() );
+			glObjectLabel( GL_PROGRAM, shaders[ "Diffuse and Decay" ], -1, string( "Diffuse and Decay" ).c_str() );
+			glObjectLabel( GL_PROGRAM, shaders[ "Agents" ], -1, string( "Agents" ).c_str() );
 
 			// get the configuration from config.json
 			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
@@ -324,32 +327,13 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 
-			glUseProgram( shaders[ "Lighting" ] );
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Lighting" ], 2 );
-			textureManager.BindImageForShader( "Shaded Volume", "shadedVolume", shaders[ "Lighting" ], 3 );
-			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
-			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "brightness" ), physarumConfig.brightness );
-			glUniform1f( glGetUniformLocation( shaders[ "Lighting" ], "zOffset" ), physarumConfig.zOffset );
-
-			static vec3 lightDirection = glm::normalize( vec3( 1.0f ) );
-			const float amt = 0.001f;
-			const float amt2 = 0.00451f;
-			const float amt3 = 0.001618f;
-			lightDirection = vec3( mat2( cos( amt ), -sin( amt ), sin( amt ), cos( amt ) ) * lightDirection.xy(), lightDirection.z );
-			lightDirection = vec3( lightDirection.x, mat2( cos( amt2 ), -sin( amt2 ), sin( amt2 ), cos( amt2 ) ) * lightDirection.yz() );
-			lightDirection = vec3( mat2( cos( amt3 ), -sin( amt3 ), sin( amt3 ), cos( amt3 ) ) * lightDirection.xy(), lightDirection.z );
-			glUniform3f( glGetUniformLocation( shaders[ "Lighting" ], "lightDirection" ), lightDirection.x, lightDirection.y, lightDirection.z );
-
-			glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-			glUseProgram( shaders[ "Buffer Copy" ] );
-			glUniform3f( glGetUniformLocation( shaders[ "Buffer Copy" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
-			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "brightness" ), physarumConfig.brightness );
-			glUniform2f( glGetUniformLocation( shaders[ "Buffer Copy" ], "resolution" ), config.width, config.height );
-			glUniform1f( glGetUniformLocation( shaders[ "Buffer Copy" ], "zOffset" ), physarumConfig.zOffset );
-			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Buffer Copy" ], 3 );
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Buffer Copy" ], 2 );
+			glUseProgram( shaders[ "Draw" ] );
+			glUniform3f( glGetUniformLocation( shaders[ "Draw" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
+			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "brightness" ), physarumConfig.brightness );
+			glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ), config.width, config.height );
+			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "zOffset" ), physarumConfig.zOffset );
+			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Draw" ], 3 );
+			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Draw" ], 2 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
