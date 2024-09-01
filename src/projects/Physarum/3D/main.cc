@@ -186,43 +186,43 @@ public:
 			const bool shift = inputHandler.getState( KEY_RIGHT_SHIFT ) || inputHandler.getState( KEY_LEFT_SHIFT );
 			const bool control = inputHandler.getState( KEY_RIGHT_CTRL ) || inputHandler.getState( KEY_LEFT_CTRL );
 
-			const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
+			const float scalar = shift ? 10.0f : ( control ? 0.05f : 2.0f );
 			if ( inputHandler.getState( KEY_W ) ) {
-				glm::quat rot = glm::angleAxis( scalar, physarumConfig.viewerBasisX ); // basisX is the axis, therefore remains untransformed
+				glm::quat rot = glm::angleAxis( scalar / 100.0f, physarumConfig.viewerBasisX ); // basisX is the axis, therefore remains untransformed
 				physarumConfig.viewerBasisY = ( rot * vec4( physarumConfig.viewerBasisY, 0.0f ) ).xyz();
 				physarumConfig.viewerBasisZ = ( rot * vec4( physarumConfig.viewerBasisZ, 0.0f ) ).xyz();
 			}
 			if ( inputHandler.getState( KEY_S ) ) {
-				glm::quat rot = glm::angleAxis( -scalar, physarumConfig.viewerBasisX );
+				glm::quat rot = glm::angleAxis( -scalar / 100.0f, physarumConfig.viewerBasisX );
 				physarumConfig.viewerBasisY = ( rot * vec4( physarumConfig.viewerBasisY, 0.0f ) ).xyz();
 				physarumConfig.viewerBasisZ = ( rot * vec4( physarumConfig.viewerBasisZ, 0.0f ) ).xyz();
 			}
 			if ( inputHandler.getState( KEY_A ) ) {
-				glm::quat rot = glm::angleAxis( -scalar, physarumConfig.viewerBasisY ); // same as above, but basisY is the axis
+				glm::quat rot = glm::angleAxis( -scalar / 100.0f, physarumConfig.viewerBasisY ); // same as above, but basisY is the axis
 				physarumConfig.viewerBasisX = ( rot * vec4( physarumConfig.viewerBasisX, 0.0f ) ).xyz();
 				physarumConfig.viewerBasisZ = ( rot * vec4( physarumConfig.viewerBasisZ, 0.0f ) ).xyz();
 			}
 			if ( inputHandler.getState( KEY_D ) ) {
-				glm::quat rot = glm::angleAxis( scalar, physarumConfig.viewerBasisY );
+				glm::quat rot = glm::angleAxis( scalar / 100.0f, physarumConfig.viewerBasisY );
 				physarumConfig.viewerBasisX = ( rot * vec4( physarumConfig.viewerBasisX, 0.0f ) ).xyz();
 				physarumConfig.viewerBasisZ = ( rot * vec4( physarumConfig.viewerBasisZ, 0.0f ) ).xyz();
 			}
 			if ( inputHandler.getState( KEY_Q ) ) {
-				glm::quat rot = glm::angleAxis( scalar, physarumConfig.viewerBasisZ ); // and again for basisZ
+				glm::quat rot = glm::angleAxis( scalar / 100.0f, physarumConfig.viewerBasisZ ); // and again for basisZ
 				physarumConfig.viewerBasisX = ( rot * vec4( physarumConfig.viewerBasisX, 0.0f ) ).xyz();
 				physarumConfig.viewerBasisY = ( rot * vec4( physarumConfig.viewerBasisY, 0.0f ) ).xyz();
 			}
 			if ( inputHandler.getState( KEY_E ) ) {
-				glm::quat rot = glm::angleAxis( -scalar, physarumConfig.viewerBasisZ );
+				glm::quat rot = glm::angleAxis( -scalar / 100.0f, physarumConfig.viewerBasisZ );
 				physarumConfig.viewerBasisX = ( rot * vec4( physarumConfig.viewerBasisX, 0.0f ) ).xyz();
 				physarumConfig.viewerBasisY = ( rot * vec4( physarumConfig.viewerBasisY, 0.0f ) ).xyz();
 			}
 			// zoom in and out with plus/minus
 			if ( inputHandler.getState( KEY_MINUS ) ) {
-				physarumConfig.viewerFoV += scalar;
+				physarumConfig.viewerFoV += scalar / 100.0f;
 			}
 			if ( inputHandler.getState( KEY_EQUALS ) ) {
-				physarumConfig.viewerFoV -= scalar;
+				physarumConfig.viewerFoV -= scalar / 100.0f;
 			}
 			// f to reset basis, shift + f to reset basis and home to origin
 			if ( inputHandler.getState( KEY_F ) ) {
