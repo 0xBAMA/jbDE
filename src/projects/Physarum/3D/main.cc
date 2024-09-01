@@ -69,12 +69,6 @@ public:
 			physarumConfig.dimensionX		= j[ "app" ][ "Physarum3D" ][ "dimensionX" ];
 			physarumConfig.dimensionY		= j[ "app" ][ "Physarum3D" ][ "dimensionY" ];
 			physarumConfig.dimensionZ		= j[ "app" ][ "Physarum3D" ][ "dimensionZ" ];
-			physarumConfig.brightness		= j[ "app" ][ "Physarum3D" ][ "brightness" ];
-			physarumConfig.color			= vec3(
-				j[ "app" ][ "Physarum3D" ][ "color" ][ "r" ],
-				j[ "app" ][ "Physarum3D" ][ "color" ][ "g" ],
-				j[ "app" ][ "Physarum3D" ][ "color" ][ "b" ]
-			);
 
 			// populate the presets vector
 			json j2 = j[ "app" ][ "PhysarumPresets" ];
@@ -281,12 +275,7 @@ public:
 
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 
-		ImGui::ColorEdit3( "Color", ( float * ) &physarumConfig.color, ImGuiColorEditFlags_PickerHueWheel );
-		ImGui::SliderFloat( "Brightness", &physarumConfig.brightness, 0.0f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
-
 		ImGui::Separator();
-		ImGui::Separator();
-		ImGui::SliderFloat( "Display Z Offset", &physarumConfig.zOffset, 0.0f, 1.0f, "%.3f" );
 		ImGui::End();
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
@@ -304,17 +293,18 @@ public:
 			scopedTimer Start( "Agent Sim" );
 
 			// send the simulation parameters
-			glUseProgram( shaders[ "Agents" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "stepSize" ), physarumConfig.stepSize );
-			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseAngle" ), physarumConfig.senseAngle );
-			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "senseDistance" ), physarumConfig.senseDistance );
-			glUniform1f( glGetUniformLocation( shaders[ "Agents" ], "turnAngle" ), physarumConfig.turnAngle );
-			glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "writeBack" ), physarumConfig.writeBack );
-			glUniform1i( glGetUniformLocation( shaders[ "Agents" ], "wangSeed" ), physarumConfig.wangSeed() );
-			glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "depositAmount" ), physarumConfig.depositAmount );
-			glUniform1ui( glGetUniformLocation( shaders[ "Agents" ], "numAgents" ), physarumConfig.numAgents );
+			const GLuint shader = shaders[ "Agents" ];
+			glUseProgram( shader );
+			glUniform1f( glGetUniformLocation( shader, "stepSize" ), physarumConfig.stepSize );
+			glUniform1f( glGetUniformLocation( shader, "senseAngle" ), physarumConfig.senseAngle );
+			glUniform1f( glGetUniformLocation( shader, "senseDistance" ), physarumConfig.senseDistance );
+			glUniform1f( glGetUniformLocation( shader, "turnAngle" ), physarumConfig.turnAngle );
+			glUniform1i( glGetUniformLocation( shader, "writeBack" ), physarumConfig.writeBack );
+			glUniform1i( glGetUniformLocation( shader, "wangSeed" ), physarumConfig.wangSeed() );
+			glUniform1ui( glGetUniformLocation( shader, "depositAmount" ), physarumConfig.depositAmount );
+			glUniform1ui( glGetUniformLocation( shader, "numAgents" ), physarumConfig.numAgents );
 
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shaders[ "Agents" ], 2 );
+			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shader, 2 );
 
 			// number of 1024-size jobs, rounded up
 			const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
@@ -327,13 +317,10 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 
-			glUseProgram( shaders[ "Draw" ] );
-			glUniform3f( glGetUniformLocation( shaders[ "Draw" ], "color" ), physarumConfig.color.r, physarumConfig.color.g, physarumConfig.color.b );
-			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "brightness" ), physarumConfig.brightness );
-			glUniform2f( glGetUniformLocation( shaders[ "Draw" ], "resolution" ), config.width, config.height );
-			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "zOffset" ), physarumConfig.zOffset );
-			textureManager.BindTexForShader( "Shaded Volume", "shadedVolume", shaders[ "Draw" ], 3 );
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shaders[ "Draw" ], 2 );
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -374,12 +361,6 @@ public:
 
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
-
-		// get new data into the input handler
-		inputHandler.update();
-
-		// pass any signals into the terminal
-		terminal.update( inputHandler );
 
 		// run the shader to do the gaussian blur
 		glUseProgram( shaders[ "Diffuse and Decay" ] );

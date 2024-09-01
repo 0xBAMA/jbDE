@@ -4,11 +4,7 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
 uniform usampler3D continuum;
-uniform sampler3D shadedVolume;
 uniform vec2 resolution;
-uniform vec3 color;
-uniform float brightness;
-uniform float zOffset;
 
 // what are we doing?
 
@@ -19,6 +15,6 @@ void main () {
 	// we will transform the block, sample in world coords making a couple assumptions
 		// ray starting points are on a constant grid, and we rotate the volume if we want that
 
-
+	
 
 }
