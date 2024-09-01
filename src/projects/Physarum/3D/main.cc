@@ -37,7 +37,7 @@ struct physarumConfig_t {
 	vec3 viewerBasisX = vec3( 1.0f, 0.0f, 0.0f );
 	vec3 viewerBasisY = vec3( 0.0f, 1.0f, 0.0f );
 	vec3 viewerBasisZ = vec3( 0.0f, 0.0f, 1.0f );
-	float viewerFoV = 45.0f;
+	float viewerFoV = 0.618f;
 };
 
 class Physarum final : public engineBase {
@@ -399,8 +399,15 @@ public:
 
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
-			glUniform2f( glGetUniformLocation( shader, "resolution" ), config.width, config.height );
+
+			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( physarumConfig.viewerPosition ) );
+			glUniform3fv( glGetUniformLocation( shader, "viewerBasisX" ), 1, glm::value_ptr( physarumConfig.viewerBasisX ) );
+			glUniform3fv( glGetUniformLocation( shader, "viewerBasisY" ), 1, glm::value_ptr( physarumConfig.viewerBasisY ) );
+			glUniform3fv( glGetUniformLocation( shader, "viewerBasisZ" ), 1, glm::value_ptr( physarumConfig.viewerBasisZ ) );
+			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );
+
 			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
