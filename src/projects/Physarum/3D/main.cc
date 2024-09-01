@@ -148,10 +148,6 @@ public:
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 
-			// caches the lit color value, to be sampled during rendering
-			opts.dataType		= GL_RGBA16F;
-			textureManager.Add( "Shaded Volume", opts );
-
 			terminal.addCommand(
 				{ "viewState" },
 				{},
