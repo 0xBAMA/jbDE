@@ -388,7 +388,7 @@ public:
 			glUniform1ui( glGetUniformLocation( shader, "depositAmount" ), physarumConfig.depositAmount );
 			glUniform1ui( glGetUniformLocation( shader, "numAgents" ), physarumConfig.numAgents );
 
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shader, 2 );
+			textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shader, 2 );
 
 			// number of 1024-size jobs, rounded up
 			const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
@@ -410,7 +410,7 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisZ" ), 1, glm::value_ptr( physarumConfig.viewerBasisZ ) );
 			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );
 
-			textureManager.BindTexForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
+			textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
