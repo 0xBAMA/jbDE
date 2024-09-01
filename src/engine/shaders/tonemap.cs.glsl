@@ -38,7 +38,7 @@ void main () {
 	}
 
 	// small amount of functional ( not aesthetic ) dither, for banding issues incurred from the vignette
-	originalValue.rgb = originalValue.rgb + blueNoiseRef( loc ).rgb * 0.01f;
+	originalValue.rgb = originalValue.rgb + blueNoiseRef( loc ).rgb * 0.005f;
 
 	vec3 color = Tonemap( tonemapMode, colorTempAdjust * ( saturation * originalValue.rgb ) );
 	color = GammaCorrect( gamma, color );
