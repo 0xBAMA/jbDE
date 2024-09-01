@@ -106,8 +106,10 @@ public:
 			size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
 
 			rngN dist( 0.0f, 0.1f );
+			rng distX( 10.0f, physarumConfig.dimensionX - 10.0f );
+			rng distY( 10.0f, physarumConfig.dimensionY - 10.0f );
+			rng distZ( 10.0f, physarumConfig.dimensionZ - 10.0f );
 			rng dist2( -pi, pi );
-			rng dist3( 0.0f, 1.0f );
 
 			// init the progress bar
 			progressBar bar;
@@ -123,7 +125,7 @@ public:
 				t.RotateZ( dist2() );
 
 				agentsInitialData.push_back( {
-					{ dist(), dist(), dist(), dist() },
+					{ distX(), distY(), distZ(), dist() },
 					{ t.basisX, dist() },
 					{ t.basisY, dist() },
 					{ t.basisZ, dist() }
