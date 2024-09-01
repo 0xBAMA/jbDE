@@ -75,8 +75,8 @@ public:
 			physarumConfig.dimensionZ		= j[ "app" ][ "Physarum3D" ][ "dimensionZ" ];
 
 			// populate the presets vector
-			json j2 = j[ "app" ][ "PhysarumPresets" ];
-			for ( auto& data : j2 ) {
+			json j2; ifstream i2 ( "src/projects/Physarum/presets.json" ); i2 >> j2; i2.close();
+			for ( auto& data : j2[ "PhysarumPresets" ] ) {
 				preset_t preset;
 				preset.senseAngle		= data[ "senseAngle" ];
 				preset.senseDistance	= data[ "senseDistance" ];
