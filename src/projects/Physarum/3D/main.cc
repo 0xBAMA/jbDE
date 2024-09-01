@@ -412,6 +412,7 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 
+			glUniform1i( glGetUniformLocation( shader, "wangSeed" ), physarumConfig.wangSeed() );
 			glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( physarumConfig.viewerPosition ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisX" ), 1, glm::value_ptr( physarumConfig.viewerBasisX ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisY" ), 1, glm::value_ptr( physarumConfig.viewerBasisY ) );

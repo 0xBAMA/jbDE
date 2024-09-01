@@ -4,6 +4,10 @@ layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 layout( binding = 0, r32ui ) uniform uimage3D continuum;
 
+// rng
+uniform int wangSeed;
+#include "random.h"
+
 // viewer state
 uniform vec3 viewerPosition;
 uniform vec3 viewerBasisX;
@@ -15,10 +19,12 @@ uniform float viewerFoV;
 #include "mathUtils.h"
 
 bool inBounds ( ivec3 pos ) { // helper function for bounds checking
-	return all( greaterThanEqual( pos, ivec3( 0 ) ) ) && all( lessThan( pos, imageSize( continuum ) ) );
+	return ( all( greaterThanEqual( pos, ivec3( 0 ) ) ) && all( lessThan( pos, imageSize( continuum ) ) ) );
 }
 
 void main () {
+	seed = wangSeed + 420 * gl_GlobalInvocationID.x + 69 * gl_GlobalInvocationID.y;
+
 	vec2 uv = ( ( gl_GlobalInvocationID.xy + vec2( 0.5f ) ) / vec2( imageSize( accumulatorTexture ).xy ) ) - vec2( 0.5f );
 
 	const float aspectRatio = float( imageSize( accumulatorTexture ).x ) / float( imageSize( accumulatorTexture ).y );
@@ -31,23 +37,19 @@ void main () {
 
 	vec3 normal = vec3( 0.0f );
 	ivec3 boxSize = imageSize( continuum );
-	float boxDist = iBoxOffset( rayOrigin, rayDirection, normal, vec3( boxSize / 2.0f ), vec3( boxSize ) / 2.0f );
+	float boxDist = max( 0.0f, iBoxOffset( rayOrigin, rayDirection, normal, vec3( boxSize / 2.0f ), vec3( boxSize ) / 2.0f ) );
 
-	if ( boxDist > 0.0f && boxDist < MAX_DIST ) { // the ray hits the box
+	if ( boxDist < MAX_DIST ) { // the ray hits the box
 		vec3 hitPos = rayOrigin + rayDirection * ( boxDist + 0.01f );
 
 		color += 0.02f;
 
-		// // the checkerboard
-		// bool blackOrWhite = ( step( 0.0f,
-		// 	cos( pi * hitPos.x + pi / 2.0f ) *
-		// 	cos( pi * hitPos.y + pi / 2.0f ) *
-		// 	cos( pi * hitPos.z + pi / 2.0f ) ) == 0 );
-		// color = vec3( blackOrWhite ? 1.0f : 0.0f );
+		vec3 transmission = vec3( 1.0f );
+		bool lightHit = false;
 
 		// tbd, controls for this
-		const int numBounces = 1;
-		for ( int bounce = 0; bounce < numBounces; bounce++ ) { // for N bounces
+		const int numBounces = 3;
+		for ( int bounce = 0; bounce < numBounces && !lightHit; bounce++ ) { // for N bounces
 			// start the DDA traversal...
 			// from https://www.shadertoy.com/view/7sdSzH
 			vec3 deltaDist = 1.0f / abs( rayDirection );
@@ -57,36 +59,52 @@ void main () {
 			vec3 sideDist0 = ( sign( rayDirection ) * ( vec3( mapPos0 ) - hitPos ) + ( sign( rayDirection ) * 0.5f ) + 0.5f ) * deltaDist;
 
 			#define MAX_RAY_STEPS 600
-			// for ( int i = 0; i < MAX_RAY_STEPS && inBounds( mapPos0 ); i++ ) {
-			for ( int i = 0; i < MAX_RAY_STEPS; i++ ) {
+			for ( int i = 0; i < MAX_RAY_STEPS && inBounds( mapPos0 ); i++ ) {
 
 				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-				// each step generate number 0..1
+				uint densityRead = imageLoad( continuum, mapPos0 ).r;
 
-				// if the density at the current voxel is less than the number
-					// this ray becomes scattered...
-					// attenuate by some amount related to the brightness...
+				// each step generate number 0..1, chance to scatter
+				if ( NormalizedRandomFloat() < ( densityRead / 5000.0f ) ) {
+
+				// if the density at the current voxel is less than the number this ray becomes scattered:
+					// attenuate transmission by some amount...
 					// ray direction becomes a random unit vector
 
-				// if you leave the volume...
-					// if you hit the light...
+					transmission *= 0.9f;
+					rayDirection = normalize( rayDirection + RandomUnitVector() );
+					// rayDirection = RandomUnitVector();
 
-				uint read = imageLoad( continuum, mapPos0 ).r;
-				if ( read != 0 ) {
-					// color.b = 1.0f;
-					color = mapPos0 / 512.0f;
-					break;
+					rayStep = ivec3( sign( rayDirection ) );
+					mask0 = bvec3( false );
+					// mapPos0 = ivec3( floor( hitPos + 0.001f ) ); // doesn't need to be updated
+					sideDist0 = ( sign( rayDirection ) * ( vec3( 0.5f ) ) + ( sign( rayDirection ) * 0.5f ) + 0.5f ) * deltaDist;
+
+				} else {
+					// take a regular step
+					sideDist0 = sideDist1;
+					mapPos0 = mapPos1;
 				}
-
-				sideDist0 = sideDist1;
-				mapPos0 = mapPos1;
 			}
+		}
+
+		// vec3 upColor = vec3( 1.0f, 0.25f, 0.15f ).zyx;
+		// vec3 downColor = vec3( 1.0f, 0.25f, 0.15f );
+
+		vec3 upColor = vec3( 1.0f, 0.25f, 0.15f );
+		vec3 downColor = vec3( 0.15f, 1.0f, 0.25f );
+
+		if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < 0.0f ) {
+			color = transmission * upColor;
+		} else {
+			color = transmission * downColor;
 		}
 	}
 
-	// blending, eventually
-	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( color, 1.0f ) );
+	vec4 previousColor = imageLoad( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ) );
+	previousColor.a += 1.0f;
+	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( mix( previousColor.rgb, color, 1.0f / previousColor.a ), previousColor.a ) );
 }
