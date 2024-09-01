@@ -39,6 +39,9 @@ struct physarumConfig_t {
 	vec3 viewerBasisY = vec3( 0.0f, 1.0f, 0.0f );
 	vec3 viewerBasisZ = vec3( 0.0f, 0.0f, 1.0f );
 	float viewerFoV = 0.618f;
+
+	// scattering density threshold
+	int densityThreshold = 5000;
 };
 
 class Physarum final : public engineBase {
@@ -368,6 +371,9 @@ public:
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 
 		ImGui::Separator();
+		ImGui::Text( "Rendering Density Threshold:" );
+		ImGui::DragScalar( "   ", ImGuiDataType_S32, &physarumConfig.densityThreshold, 50, NULL, NULL, "%d units" );
+		ImGui::Separator();
 		ImGui::End();
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
@@ -418,6 +424,7 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisY" ), 1, glm::value_ptr( physarumConfig.viewerBasisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisZ" ), 1, glm::value_ptr( physarumConfig.viewerBasisZ ) );
 			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );
+			glUniform1i( glGetUniformLocation( shader, "densityThreshold" ), physarumConfig.densityThreshold );
 
 			textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
 

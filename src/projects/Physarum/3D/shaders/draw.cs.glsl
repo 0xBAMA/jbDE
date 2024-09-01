@@ -15,6 +15,9 @@ uniform vec3 viewerBasisY;
 uniform vec3 viewerBasisZ;
 uniform float viewerFoV;
 
+// scattering density threshold
+uniform int densityThreshold;
+
 #include "consistentPrimitives.glsl.h"
 #include "mathUtils.h"
 
@@ -68,7 +71,7 @@ void main () {
 				uint densityRead = imageLoad( continuum, mapPos0 ).r;
 
 				// each step generate number 0..1, chance to scatter
-				if ( NormalizedRandomFloat() < ( densityRead / 5000.0f ) ) {
+				if ( NormalizedRandomFloat() < ( densityRead / float( densityThreshold ) ) ) {
 
 				// if the density at the current voxel is less than the number this ray becomes scattered:
 					// attenuate transmission by some amount...
