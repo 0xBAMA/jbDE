@@ -49,16 +49,10 @@
 			"numAgents": 1048576
 		},
 		"Physarum3D": {
-			"brightness": 1.0,
-			"color": {
-				"b": 0.2,
-				"g": 0.7,
-				"r": 1.0
-			},
-			"dimensionX": 256,
-			"dimensionY": 256,
-			"dimensionZ": 256,
-			"numAgents": 1000000
+			"dimensionX": 128,
+			"dimensionY": 128,
+			"dimensionZ": 128,
+			"numAgents": 10000000
 		},
 		"ProjectedFramebuffers": {
 			"Guys": 0,

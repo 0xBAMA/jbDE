@@ -94,11 +94,11 @@ void main () {
 			}
 		}
 
-		// vec3 upColor = vec3( 1.0f, 0.25f, 0.15f ).zyx;
-		// vec3 downColor = vec3( 1.0f, 0.25f, 0.15f );
+		vec3 upColor = vec3( 1.0f, 0.25f, 0.15f ).zyx;
+		vec3 downColor = vec3( 1.0f, 0.25f, 0.15f );
 
-		vec3 upColor = vec3( 1.0f, 0.25f, 0.15f );
-		vec3 downColor = vec3( 0.15f, 1.0f, 0.25f );
+		// vec3 upColor = vec3( 1.0f, 0.25f, 0.15f );
+		// vec3 downColor = vec3( 0.15f, 1.0f, 0.25f );
 
 		if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < 0.0f ) {
 			color = transmission * upColor;

@@ -123,7 +123,7 @@ public:
 				t.RotateZ( dist2() );
 
 				agentsInitialData.push_back( {
-					{ dist(), dist(), dist3(), dist() },
+					{ dist(), dist(), dist(), dist() },
 					{ t.basisX, dist() },
 					{ t.basisY, dist() },
 					{ t.basisZ, dist() }
