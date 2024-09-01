@@ -311,7 +311,7 @@ public:
 			presets.push_back( current );
 
 			// add it to the config
-			json j; ifstream i ( "src/engine/config.json" ); i >> j; i.close();
+			json j; ifstream i ( "src/projects/Physarum/presets.json" ); i >> j; i.close();
 			json currentConfig;
 			currentConfig[ "senseAngle" ] 		= current.senseAngle;
 			currentConfig[ "senseDistance" ] 	= current.senseDistance;
@@ -321,7 +321,7 @@ public:
 			currentConfig[ "depositAmount" ]	= current.depositAmount;
 			currentConfig[ "writeBack" ]		= current.writeBack;
 			j[ "app" ][ "PhysarumPresets" ].push_back( currentConfig );
-			std::ofstream o ( "src/engine/config.json" ); o << j.dump( 2 ); o.close();
+			std::ofstream o ( "src/projects/Physarum/presets.json" ); o << j.dump( 2 ); o.close();
 		}
 
 		// widgets
