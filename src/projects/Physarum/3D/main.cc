@@ -187,6 +187,10 @@ public:
 			const bool shift = inputHandler.getState( KEY_RIGHT_SHIFT ) || inputHandler.getState( KEY_LEFT_SHIFT );
 			const bool control = inputHandler.getState( KEY_RIGHT_CTRL ) || inputHandler.getState( KEY_LEFT_CTRL );
 
+			if ( inputHandler.getState4( KEY_R ) == KEYSTATE_RISING ) {
+				textureManager.ZeroTexture2D( "Accumulator" );
+			}
+
 			const float scalar = shift ? 10.0f : ( control ? 0.05f : 2.0f );
 			if ( inputHandler.getState( KEY_W ) ) {
 				glm::quat rot = glm::angleAxis( scalar / 100.0f, physarumConfig.viewerBasisX ); // basisX is the axis, therefore remains untransformed
