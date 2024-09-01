@@ -151,6 +151,26 @@ public:
 			// caches the lit color value, to be sampled during rendering
 			opts.dataType		= GL_RGBA16F;
 			textureManager.Add( "Shaded Volume", opts );
+
+			terminal.addCommand(
+				{ "viewState" },
+				{},
+				[=] ( args_t args ) {
+
+					// FoV:      xxx
+					// position: xxx yyy zzz
+					// basisX:   xxx yyy zzz
+					// basisY:   xxx yyy zzz
+					// basisZ:   xxx yyy zzz
+
+					terminal.addHistoryLine( terminal.csb.append( "FoV:      " + fixedWidthNumberStringF( physarumConfig.viewerFoV, 5 ) ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( "Position: " + fixedWidthNumberStringF( physarumConfig.viewerPosition.x, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerPosition.y, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerPosition.z, 5 ) ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( "Basis X:  " + fixedWidthNumberStringF( physarumConfig.viewerBasisX.x, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerBasisX.y, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerBasisX.z, 5 ) ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( "Basis Y:  " + fixedWidthNumberStringF( physarumConfig.viewerBasisY.x, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerBasisY.y, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerBasisY.z, 5 ) ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( "Basis Z:  " + fixedWidthNumberStringF( physarumConfig.viewerBasisZ.x, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerBasisZ.y, 5 ) + " " + fixedWidthNumberStringF( physarumConfig.viewerBasisZ.z, 5 ) ).flush() );
+
+				}, "Report the state of the viewer."
+			);
 		}
 	}
 
