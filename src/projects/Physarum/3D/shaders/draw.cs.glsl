@@ -25,7 +25,7 @@ bool inBounds ( ivec3 pos ) { // helper function for bounds checking
 void main () {
 	seed = wangSeed + 420 * gl_GlobalInvocationID.x + 69 * gl_GlobalInvocationID.y;
 
-	vec2 uv = ( ( gl_GlobalInvocationID.xy + vec2( 0.5f ) ) / vec2( imageSize( accumulatorTexture ).xy ) ) - vec2( 0.5f );
+	vec2 uv = ( ( gl_GlobalInvocationID.xy + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / vec2( imageSize( accumulatorTexture ).xy ) ) - vec2( 0.5f );
 
 	const float aspectRatio = float( imageSize( accumulatorTexture ).x ) / float( imageSize( accumulatorTexture ).y );
 	uv.x *= aspectRatio;
