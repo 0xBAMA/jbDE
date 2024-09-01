@@ -137,6 +137,9 @@ public:
 			}
 			cout << endl;
 
+			// don't need this active initially
+			terminal.active = false;
+
 			glGenBuffers( 1, &agentSSBO );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
 			glBufferData( GL_SHADER_STORAGE_BUFFER, bufferSize, ( GLvoid * ) &agentsInitialData[ 0 ], GL_DYNAMIC_COPY );
