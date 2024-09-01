@@ -50,9 +50,9 @@
 		},
 		"Physarum3D": {
 			"dimensionX": 128,
-			"dimensionY": 128,
-			"dimensionZ": 128,
-			"numAgents": 10000000
+			"dimensionY": 256,
+			"dimensionZ": 512,
+			"numAgents": 1000000
 		},
 		"ProjectedFramebuffers": {
 			"Guys": 0,

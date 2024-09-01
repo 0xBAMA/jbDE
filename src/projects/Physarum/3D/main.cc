@@ -78,7 +78,7 @@ public:
 			physarumConfig.dimensionZ		= j[ "app" ][ "Physarum3D" ][ "dimensionZ" ];
 
 			// populate the presets vector
-			json j2; ifstream i2 ( "src/projects/Physarum/presets.json" ); i2 >> j2; i2.close();
+			json j2; ifstream i2 ( "src/projects/Physarum/3D/presets.json" ); i2 >> j2; i2.close();
 			for ( auto& data : j2[ "PhysarumPresets" ] ) {
 				preset_t preset;
 				preset.senseAngle		= data[ "senseAngle" ];
@@ -314,7 +314,7 @@ public:
 			presets.push_back( current );
 
 			// add it to the config
-			json j; ifstream i ( "src/projects/Physarum/presets.json" ); i >> j; i.close();
+			json j; ifstream i ( "src/projects/Physarum/3D/presets.json" ); i >> j; i.close();
 			json currentConfig;
 			currentConfig[ "senseAngle" ] 		= current.senseAngle;
 			currentConfig[ "senseDistance" ] 	= current.senseDistance;
@@ -324,7 +324,7 @@ public:
 			currentConfig[ "depositAmount" ]	= current.depositAmount;
 			currentConfig[ "writeBack" ]		= current.writeBack;
 			j[ "app" ][ "PhysarumPresets" ].push_back( currentConfig );
-			std::ofstream o ( "src/projects/Physarum/presets.json" ); o << j.dump( 2 ); o.close();
+			std::ofstream o ( "src/projects/Physarum/3D/presets.json" ); o << j.dump( 2 ); o.close();
 		}
 
 		// widgets

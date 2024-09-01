@@ -1,0 +1,13 @@
+{
+  "PhysarumPresets": [
+	{
+		"decayFactor": 0.9604095816612244,
+		"depositAmount": 65400,
+		"senseAngle": 1.6163198947906494,
+		"senseDistance": 4.0,
+		"stepSize": 1.5,
+		"turnAngle": 1.992329716682434,
+		"writeBack": false
+	}
+  ]
+}
