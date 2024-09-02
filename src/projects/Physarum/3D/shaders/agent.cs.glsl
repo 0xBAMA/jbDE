@@ -55,52 +55,89 @@ void main () {
 		gl_GlobalInvocationID.x );
 
 	if ( index < numAgents ) {
-		seed = wangSeed + 69 * index; // initialize the rng
+		// initialize the rng
+		seed = wangSeed + 69 * index;
+
+		// figure out sense positions
 		agent_t a = data[ index ];
 
 		vec3 forwards = a.basisZ.xyz;
-		vec3 tippedUp = Rotate3D( senseAngle, a.basisX.xyz ) * forwards;
 
-		vec3 weightedSum = vec3( 0.0f );
-		const int numDirections = 3;
-		uint samples[ numDirections ];
-		for ( int i = 0; i < numDirections; i++ ) {
-			mat3 rollMat = Rotate3D( TAU * ( float( i ) / float( numDirections ) ), a.basisZ.xyz );
-			vec3 rotated = rollMat * tippedUp;
-			vec3 flatSpace = Rotate3D( TAU * ( float( i ) / float( numDirections ) ), vec3( 0.0f, 0.0f, 1.0f ) ) * vec3( 0.0f, 1.0f, 0.0f );
-			samples[ i ] = imageLoad( current, ivec3( imageSize( current ) * wrapPosition( 0.5f * ( a.position.xyz + senseDistance * rotated + vec3( 1.0f ) ) ) ) ).r;
-			weightedSum += float( samples[ i ] ) * flatSpace; // this can become 2d
+		vec3 sensePositions[ 4 ];
+		vec3 movePositions[ 4 ];
+
+		// the forward step
+		sensePositions[ 0 ] = a.position.xyz + forwards * senseDistance;
+		movePositions[ 0 ] = a.position.xyz + forwards * stepSize;
+
+		// we are starting with one vector tipped up, and then rolling about z
+		vec3 tippedUpSense = Rotate3D( senseAngle, a.basisX.xyz ) * forwards * senseDistance;
+		vec3 tippedUpMove = Rotate3D( turnAngle, a.basisX.xyz ) * forwards * stepSize;
+
+		for ( int i = 1; i <= 3; i++ ) {
+			sensePositions[ i ] = a.position.xyz + Rotate3D( 2.0f * pi * float( i ) / 3.0f, a.basisZ.xyz ) * tippedUpSense;
+			movePositions[ i ] = a.position.xyz + Rotate3D( 2.0f * pi * float( i ) / 3.0f, a.basisZ.xyz ) * tippedUpMove;
 		}
 
+		// take sense samples
+		uint bufferSamples[ 4 ] = uint[ 4 ](
+			imageLoad( current, ivec3( sensePositions[ 0 ] ) ).r,
+			imageLoad( current, ivec3( sensePositions[ 1 ] ) ).r,
+			imageLoad( current, ivec3( sensePositions[ 2 ] ) ).r,
+			imageLoad( current, ivec3( sensePositions[ 3 ] ) ).r
+		);
 
-		// basically need like, angle about the forward z axis, from the weighted sum
-			// ... if within some small circle of the forward z axis ( dot product > thresh ~0.9 or something like that, xy plane offset smaller than some value ), that's when we do the random direction logic - will also need to create a new basis, in that case - for now, that case will just be, no-op
-		
-		mat3 updateRotation = mat3( 1.0f );
-		if ( length( weightedSum.xy ) < 0.1f ) {
-			// this is the random direction behavior
-			for ( int i = 0; i < 3; i++ ) {
-				updateRotation *= Rotate3D( NormalizedRandomFloat(), RandomUnitVector() );
-			}
+		// turning 
+
+		// determine the max sampled value
+		uint maxSample = max( max( bufferSamples[ 0 ], bufferSamples[ 1 ] ), max( bufferSamples[ 2 ], bufferSamples[ 3 ] ) );
+
+		// if it is the same value across all samples, we need to pick a random direction
+		int selected = 0;
+		if ( maxSample == bufferSamples[ 0 ] &&
+			maxSample == bufferSamples[ 1 ] &&
+			maxSample == bufferSamples[ 2 ] &&
+			maxSample == bufferSamples[ 3 ] ) { // pick from all samples
+				selected = int( ( NormalizedRandomFloat() - 0.001f ) * 4.0f );
+		} else if ( maxSample == bufferSamples[ 1 ] &&
+			maxSample == bufferSamples[ 2 ] &&
+			maxSample == bufferSamples[ 3 ] ) { // pick from flanking samples
+				selected = int( ( NormalizedRandomFloat() - 0.001f ) * 3.0f ) + 1;
+		} else if ( maxSample == bufferSamples[ 0 ] ) { // just go forwards
+			selected = 0;
+		} else if ( maxSample == bufferSamples[ 1 ] ) { // or towards the flanking directions
+			selected = 1;
+		} else if ( maxSample == bufferSamples[ 2 ] ) {
+			selected = 2;
+		} else if ( maxSample == bufferSamples[ 3 ] ) {
+			selected = 3;
+		}
+
+		// processing required changes to the basis vectors
+		selected = clamp( selected, 0, 3 );
+		if ( selected == 0 ) {
+			// no changes needed, we are continuing forwards
 		} else {
-			float angle = atan( weightedSum.y, weightedSum.x );
-			// tilt up by the turn angle, then roll by the solved-for angle
-			updateRotation = Rotate3D( angle, a.basisZ.xyz ) * Rotate3D( turnAngle, a.basisX.xyz );
+			// it's the transforms from before, to update the basis vectors
+			mat3 transform = Rotate3D( 2.0f * pi * float( selected ) / 3.0f, a.basisZ.xyz ) * Rotate3D( senseAngle, a.basisX.xyz );
+			a.basisX.xyz = transform * a.basisX.xyz;
+			a.basisY.xyz = transform * a.basisY.xyz;
+			a.basisZ.xyz = transform * a.basisZ.xyz;
 		}
 
-		a.basisX.xyz = updateRotation * a.basisX.xyz;
-		a.basisY.xyz = updateRotation * a.basisY.xyz;
-		a.basisZ.xyz = updateRotation * a.basisZ.xyz;
+		// take a step
+		vec3 newPosition = wrapPosition( movePositions[ selected ] );
 
-		if ( writeBack ) { // solve for the new direction, update the basis vectors to indicate
+		// update the state values in the buffer...
+		if ( writeBack ) {
+			data[ index ].position.xyz = newPosition;
 			data[ index ].basisX.xyz = a.basisX.xyz;
 			data[ index ].basisY.xyz = a.basisY.xyz;
 			data[ index ].basisZ.xyz = a.basisZ.xyz;
 		}
 
-		vec3 newPosition = wrapPosition( a.position.xyz + stepSize * a.basisZ.xyz );
-		data[ index ].position.xyz = newPosition;
-
-		imageAtomicAdd( current, ivec3( imageSize( current ) * ( 0.5f * ( newPosition + vec3( 1.0f ) ) ) ), depositAmount );
+		// deposit at the location currently stored
+		imageAtomicAdd( current, ivec3( newPosition ), depositAmount );
 	}
+
 }
