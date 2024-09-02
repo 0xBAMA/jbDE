@@ -112,9 +112,9 @@ public:
 			size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
 
 			rngN dist( 0.0f, 0.1f );
-			rng distX( 10.0f, physarumConfig.dimensionX - 10.0f );
-			rng distY( 10.0f, physarumConfig.dimensionY - 10.0f );
-			rng distZ( 10.0f, physarumConfig.dimensionZ - 10.0f );
+			rng distX( 100.0f, physarumConfig.dimensionX - 100.0f );
+			rng distY( 100.0f, physarumConfig.dimensionY - 100.0f );
+			rng distZ( 100.0f, physarumConfig.dimensionZ - 100.0f );
 			rng dist2( -pi, pi );
 
 			// init the progress bar
@@ -279,12 +279,12 @@ public:
 		ImGui::Checkbox( "Run Sim", &physarumConfig.runSim );
 
 		if ( ImGui::SmallButton( "Randomize Parameters" ) ) {
-			rng senseAngle( 0.0f, float( pi ) );
-			rng senseDistance( 0.0f, 0.005f );
-			rng turnAngle( 0.0f, float( pi ) );
-			rng stepSize( 0.0f, 0.005f );
-			rngi depositAmount( 4000, 75000 );
-			rng decayFactor( 0.75f, 1.0f );
+			rng senseAngle( 0.1f, float( pi ) );
+			rng senseDistance( 0.1f, 2.5f );
+			rng turnAngle( 0.1f, float( pi ) );
+			rng stepSize( 0.1f, 1.5f );
+			rngi depositAmount( 1000, 750000 );
+			rng decayFactor( 0.25f, 1.0f );
 
 			// generate new values based on above distributions
 			physarumConfig.senseAngle		= senseAngle();
@@ -334,7 +334,7 @@ public:
 			currentConfig[ "decayFactor" ] 		= current.decayFactor;
 			currentConfig[ "depositAmount" ]	= current.depositAmount;
 			currentConfig[ "writeBack" ]		= current.writeBack;
-			j[ "app" ][ "PhysarumPresets" ].push_back( currentConfig );
+			j[ "PhysarumPresets" ].push_back( currentConfig );
 			std::ofstream o ( "src/projects/Physarum/3D/presets.json" ); o << j.dump( 2 ); o.close();
 		}
 
@@ -349,7 +349,7 @@ public:
 		HelpMarker( "The distance from the agent position to the sensors." );
 		ImGui::SameLine();
 		ImGui::Text( "Sensor Distance:" );
-		ImGui::SliderFloat( "        ", &physarumConfig.senseDistance, 0.0f, 0.005f, "%.4f" );
+		ImGui::SliderFloat( "        ", &physarumConfig.senseDistance, 0.0f, 3.0f, "%.4f" );
 
 		ImGui::Separator();
 
@@ -363,7 +363,7 @@ public:
 		HelpMarker( "Distance that each sim agent will go in their current direction each step." );
 		ImGui::SameLine();
 		ImGui::Text( "Step Size:" );
-		ImGui::SliderFloat( "    ", &physarumConfig.stepSize, 0.0f, 0.005f, "%.4f" );
+		ImGui::SliderFloat( "    ", &physarumConfig.stepSize, 0.0f, 3.0f, "%.4f" );
 
 		ImGui::Separator();
 
@@ -377,7 +377,7 @@ public:
 		HelpMarker( "Scale factor applied when storing the result of the gaussian blur." );
 		ImGui::SameLine();
 		ImGui::Text( "Decay Factor:" );
-		ImGui::SliderFloat( "              ", &physarumConfig.decayFactor, 0.75f, 1.0f, "%.4f" );
+		ImGui::SliderFloat( "              ", &physarumConfig.decayFactor, 0.001f, 1.0f, "%.4f" );
 
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 		ImGui::Separator();

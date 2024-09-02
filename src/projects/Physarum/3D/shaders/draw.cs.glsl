@@ -53,11 +53,10 @@ void main () {
 		color += 0.02f;
 
 		vec3 transmission = vec3( 1.0f );
-		bool lightHit = false;
 
 		// tbd, controls for this
 		const int numBounces = 3;
-		for ( int bounce = 0; bounce < numBounces && !lightHit; bounce++ ) { // for N bounces
+		for ( int bounce = 0; bounce < numBounces; bounce++ ) { // for N bounces
 			// start the DDA traversal...
 			// from https://www.shadertoy.com/view/7sdSzH
 			vec3 deltaDist = 1.0f / abs( rayDirection );
