@@ -40,6 +40,9 @@ struct physarumConfig_t {
 	vec3 viewerBasisZ = vec3( 0.0f, 0.0f, 1.0f );
 	float viewerFoV = 0.618f;
 
+	// accumulate toggle
+	bool accumulate = false;
+
 	// scattering density threshold
 	int densityThreshold = 5000;
 };
@@ -374,6 +377,8 @@ public:
 		ImGui::SliderFloat( "              ", &physarumConfig.decayFactor, 0.75f, 1.0f, "%.4f" );
 
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
+		ImGui::Separator();
+		ImGui::Checkbox( "Accumulate Render", &physarumConfig.accumulate );
 
 		ImGui::Separator();
 		ImGui::Text( "Rendering Density Threshold:" );
@@ -430,6 +435,8 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisZ" ), 1, glm::value_ptr( physarumConfig.viewerBasisZ ) );
 			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );
 			glUniform1i( glGetUniformLocation( shader, "densityThreshold" ), physarumConfig.densityThreshold );
+			glUniform1i( glGetUniformLocation( shader, "accumulate" ), physarumConfig.accumulate );
+
 
 			textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
 

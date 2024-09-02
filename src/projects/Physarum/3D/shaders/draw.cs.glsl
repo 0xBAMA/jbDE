@@ -14,6 +14,7 @@ uniform vec3 viewerBasisX;
 uniform vec3 viewerBasisY;
 uniform vec3 viewerBasisZ;
 uniform float viewerFoV;
+uniform bool accumulate;
 
 // scattering density threshold
 uniform int densityThreshold;
@@ -109,5 +110,9 @@ void main () {
 
 	vec4 previousColor = imageLoad( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ) );
 	previousColor.a += 1.0f;
-	imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( mix( previousColor.rgb, color, 1.0f / previousColor.a ), previousColor.a ) );
+	if ( accumulate ) {
+		imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( mix( previousColor.rgb, color, 1.0f / previousColor.a ), previousColor.a ) );
+	} else {
+		imageStore( accumulatorTexture, ivec2( gl_GlobalInvocationID.xy ), vec4( mix( previousColor.rgb, color, 0.25f ), 1.0f ) );
+	}
 }
