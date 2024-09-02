@@ -14,6 +14,10 @@ uniform vec3 viewerBasisX;
 uniform vec3 viewerBasisY;
 uniform vec3 viewerBasisZ;
 uniform float viewerFoV;
+
+uniform vec3 skyColor1;
+uniform vec3 skyColor2;
+
 uniform bool accumulate;
 
 // scattering density threshold
@@ -95,16 +99,10 @@ void main () {
 			}
 		}
 
-		vec3 upColor = vec3( 1.0f, 0.25f, 0.15f ).zyx;
-		vec3 downColor = vec3( 1.0f, 0.25f, 0.15f );
-
-		// vec3 upColor = vec3( 1.0f, 0.25f, 0.15f );
-		// vec3 downColor = vec3( 0.15f, 1.0f, 0.25f );
-
-		if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < 0.0f ) {
-			color = transmission * upColor;
-		} else {
-			color = transmission * downColor;
+		if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < -0.5f ) {
+			color = transmission * skyColor1;
+		} else if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) > 0.5f ) {
+			color = transmission * skyColor2;
 		}
 	}
 

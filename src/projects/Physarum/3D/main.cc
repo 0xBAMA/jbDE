@@ -45,6 +45,9 @@ struct physarumConfig_t {
 
 	// scattering density threshold
 	int densityThreshold = 5000;
+
+	vec3 skyColor1 = vec3( 1.0f, 0.25f, 0.15f );
+	vec3 skyColor2 = vec3( 0.15f, 0.25f, 1.0f );
 };
 
 class Physarum final : public engineBase {
@@ -383,6 +386,10 @@ public:
 		ImGui::Separator();
 		ImGui::Text( "Rendering Density Threshold:" );
 		ImGui::DragScalar( "   ", ImGuiDataType_S32, &physarumConfig.densityThreshold, 50, NULL, NULL, "%d units" );
+
+		ImGui::Separator();
+		ImGui::ColorEdit3( "Sky Color 1", ( float* ) &physarumConfig.skyColor1, ImGuiColorEditFlags_PickerHueWheel );
+		ImGui::ColorEdit3( "Sky Color 2", ( float* ) &physarumConfig.skyColor2, ImGuiColorEditFlags_PickerHueWheel );
 		ImGui::Separator();
 		ImGui::End();
 
@@ -433,6 +440,8 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisX" ), 1, glm::value_ptr( physarumConfig.viewerBasisX ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisY" ), 1, glm::value_ptr( physarumConfig.viewerBasisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisZ" ), 1, glm::value_ptr( physarumConfig.viewerBasisZ ) );
+			glUniform3fv( glGetUniformLocation( shader, "skyColor1" ), 1, glm::value_ptr( physarumConfig.skyColor1 ) );
+			glUniform3fv( glGetUniformLocation( shader, "skyColor2" ), 1, glm::value_ptr( physarumConfig.skyColor2 ) );
 			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );
 			glUniform1i( glGetUniformLocation( shader, "densityThreshold" ), physarumConfig.densityThreshold );
 			glUniform1i( glGetUniformLocation( shader, "accumulate" ), physarumConfig.accumulate );
