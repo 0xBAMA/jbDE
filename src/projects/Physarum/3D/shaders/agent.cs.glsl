@@ -2,7 +2,6 @@
 layout( local_size_x = 1024, local_size_y = 1, local_size_z = 1 ) in;
 
 layout( r32ui ) uniform uimage3D current;
-layout( rgba32f ) uniform image3D simData;
 
 struct agent_t {
 
@@ -30,41 +29,16 @@ uniform uint depositAmount;
 uniform uint numAgents;
 uniform bool writeBack;
 
-#include "hg_sdf.glsl"
-
-// takes argument in radians
-vec2 rotate ( const vec2 v, const float a ) {
-	const float s = sin( a );
-	const float c = cos( a );
-	const mat2 m = mat2( c, -s, s, c );
-	return m * v;
-}
-
-mat3 Rotate3D ( const float angle, const vec3 axis ) {
-	const vec3 a = normalize( axis );
-	const float s = sin( angle );
-	const float c = cos( angle );
-	const float r = 1.0f - c;
-	return mat3(
-		a.x * a.x * r + c,
-		a.y * a.x * r + a.z * s,
-		a.z * a.x * r - a.y * s,
-		a.x * a.y * r - a.z * s,
-		a.y * a.y * r + c,
-		a.z * a.y * r + a.x * s,
-		a.x * a.z * r + a.y * s,
-		a.y * a.z * r - a.x * s,
-		a.z * a.z * r + c
-	);
-}
+#include "mathUtils.h"
 
 vec3 wrapPosition ( vec3 pos ) {
-	if ( pos.x >=  1.0f ) pos.x -= 2.0f;
-	if ( pos.x <= -1.0f ) pos.x += 2.0f;
-	if ( pos.y >=  1.0f ) pos.y -= 2.0f;
-	if ( pos.y <= -1.0f ) pos.y += 2.0f;
-	if ( pos.z >=  1.0f ) pos.z -= 2.0f;
-	if ( pos.z <= -1.0f ) pos.z += 2.0f;
+	const ivec3 is = imageSize( current ).xyz;
+	if ( pos.x >= is.x ) pos.x -= is.x;
+	if ( pos.x <= 0.0f ) pos.x += is.x;
+	if ( pos.y >= is.y ) pos.y -= is.y;
+	if ( pos.y <= 0.0f ) pos.y += is.y;
+	if ( pos.z >= is.z ) pos.z -= is.z;
+	if ( pos.z <= 0.0f ) pos.z += is.z;
 	return pos;
 }
 
