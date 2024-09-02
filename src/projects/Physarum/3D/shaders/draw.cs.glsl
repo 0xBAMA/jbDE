@@ -50,7 +50,7 @@ void main () {
 	if ( boxDist < MAX_DIST ) { // the ray hits the box
 		vec3 hitPos = rayOrigin + rayDirection * ( boxDist + 0.01f );
 
-		color += 0.02f;
+		// color += 0.02f;
 
 		vec3 transmission = vec3( 1.0f );
 
@@ -98,10 +98,12 @@ void main () {
 			}
 		}
 
-		if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < -0.5f ) {
-			color = transmission * skyColor1;
-		} else if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) > 0.5f ) {
-			color = transmission * skyColor2;
+		if ( transmission != vec3( 1.0f ) ) {
+			if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < -0.5f ) {
+				color = transmission * skyColor1;
+			} else if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) > 0.5f ) {
+				color = transmission * skyColor2;
+			}
 		}
 	}
 

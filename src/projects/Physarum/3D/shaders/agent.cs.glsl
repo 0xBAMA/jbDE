@@ -139,5 +139,4 @@ void main () {
 		// deposit at the location currently stored
 		imageAtomicAdd( current, ivec3( newPosition ), depositAmount );
 	}
-
 }
