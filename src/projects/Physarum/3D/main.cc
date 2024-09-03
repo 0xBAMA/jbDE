@@ -132,6 +132,7 @@ public:
 
 				agentsInitialData.push_back( {
 					{ distX(), distY(), distZ(), dist() },
+					// { dist(), dist(), dist(), dist() },
 					{ t.basisX, dist() },
 					{ t.basisY, dist() },
 					{ t.basisZ, dist() }
