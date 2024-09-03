@@ -103,9 +103,9 @@ void main () {
 		}
 
 		if ( transmission != vec3( 1.0f ) ) {
-			if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < -0.5f ) {
+			if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) < 0.0f ) {
 				color = transmission * skyColor1;
-			} else if ( dot( rayDirection, vec3( 0.0f, 1.0f, 0.0f ) ) > 0.5f ) {
+			} else {
 				color = transmission * skyColor2;
 			}
 		}
