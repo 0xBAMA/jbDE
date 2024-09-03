@@ -76,45 +76,23 @@ void main () {
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-
-				// each step generate number 0..1, chance to scatter
-
-				// linear falloff
-				// uint densityRead = imageLoad( continuum, mapPos0 % ivec3( imageSize( continuum ) ) ).r;
-				// if ( NormalizedRandomFloat() < ( densityRead / float( densityThreshold ) ) ) {
-
-				// doing Beer's law
+				// doing Beer's law - if we pass a threshold check, we scatter
 				float densityRead = exp( -float( imageLoad( continuum, mapPos0 ).r ) / float( densityThreshold ) );
 				if ( NormalizedRandomFloat() > densityRead ) {
 
-				// if the density at the current voxel is less than the number this ray becomes scattered
-
-			// need to figure out how we are doing materials stuff:
+			// materials stuff:
 				// ============================================================================
-				// transmission
-
-					// constant
-					// transmission *= 0.9f;
-
-					// density based
-					// transmission *= saturate( 1.0f - densityRead / float( densityThreshold ) );
+				// transmission attenuates by the density
 					transmission *= saturate( densityRead );
 				// ============================================================================
-				// direction
-
-					// weighted by rayDirection, it scatters mostly forward
-					rayDirection = normalize( rayDirection + RandomUnitVector() ); // like a more typical phase function
-
-					// weighted by -rayDirection, scatters mostly backwards
-					// rayDirection = normalize( -rayDirection + RandomUnitVector() ); // "diffuse" type behavior
-
-					// with a random unit vector, it's scattering in any direction
-					// rayDirection = RandomUnitVector();
+				// direction - positive rdWeight means forward scatter, 0 is random scatter, negative is backscatter
+					const float rdWeight = 0.0f; // this kind of serves the purpose of a phase function
+					rayDirection = normalize( rdWeight * rayDirection + RandomUnitVector() );
 				// ============================================================================
 
+					// update the DDA params
 					rayStep = ivec3( sign( rayDirection ) );
 					mask0 = bvec3( false );
-					// mapPos0 = ivec3( floor( hitPos + 0.001f ) ); // doesn't need to be updated
 					sideDist0 = ( sign( rayDirection ) * ( vec3( 0.5f ) ) + ( sign( rayDirection ) * 0.5f ) + 0.5f ) * deltaDist;
 
 				} else {
