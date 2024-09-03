@@ -67,10 +67,7 @@ public:
 			Block Start( "Additional User Init" );
 
 			// something to put some basic data in the accumulator texture - comes from the demo project
-			const string basePath = "./src/projects/Physarum/3D/shaders/";
-			shaders[ "Draw" ]				= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
-			shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
-			shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
+			CompileShaders();
 
 			glObjectLabel( GL_PROGRAM, shaders[ "Draw" ], -1, string( "Draw" ).c_str() );
 			glObjectLabel( GL_PROGRAM, shaders[ "Diffuse and Decay" ], -1, string( "Diffuse and Decay" ).c_str() );
@@ -186,6 +183,14 @@ public:
 		}
 	}
 
+	void CompileShaders () {
+		const string basePath = "./src/projects/Physarum/3D/shaders/";
+		shaders[ "Draw" ]				= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
+		shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
+		shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
+	}
+
+
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 		// application specific controls
@@ -258,6 +263,10 @@ public:
 			if ( inputHandler.getState( KEY_PAGEDOWN ) )	physarumConfig.viewerPosition += scalar * physarumConfig.viewerBasisY;
 			if ( inputHandler.getState( KEY_PAGEUP ) )		physarumConfig.viewerPosition -= scalar * physarumConfig.viewerBasisY;
 
+
+			if ( inputHandler.getState4( KEY_Y ) == KEYSTATE_RISING ) {
+				CompileShaders();
+			}
 		}
 	}
 
