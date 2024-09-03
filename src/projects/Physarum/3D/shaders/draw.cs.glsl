@@ -76,17 +76,19 @@ void main () {
 				vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
-				uint densityRead = imageLoad( continuum, mapPos0 ).r;
 
 				// each step generate number 0..1, chance to scatter
-				if ( NormalizedRandomFloat() < ( densityRead / float( densityThreshold ) ) ) {
 
-				// if the density at the current voxel is less than the number this ray becomes scattered:
-					// attenuate transmission by some amount...
-					// ray direction becomes a random unit vector
+				// linear falloff
+				// uint densityRead = imageLoad( continuum, mapPos0 % ivec3( imageSize( continuum ) ) ).r;
+				// if ( NormalizedRandomFloat() < ( densityRead / float( densityThreshold ) ) ) {
 
-					transmission *= 0.9f;
-					rayDirection = normalize( rayDirection + RandomUnitVector() );
+				// doing Beer's law
+				float densityRead = exp( -float( imageLoad( continuum, mapPos0 ).r ) / float( densityThreshold ) );
+				if ( NormalizedRandomFloat() > densityRead ) {
+
+				// if the density at the current voxel is less than the number this ray becomes scattered
+
 			// need to figure out how we are doing materials stuff:
 				// ============================================================================
 				// transmission
