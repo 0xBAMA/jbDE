@@ -96,60 +96,10 @@ public:
 
 			ApplyPreset( 0 );
 
-			// setup the ssbo for the agent data
-			struct agent_t {
-				vec4 position;
-				vec4 basisX;
-				vec4 basisY;
-				vec4 basisZ;
-				// other info? parameters per-agent?
-			};
-
-			std::vector< agent_t > agentsInitialData;
-			size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
-
-			rngN dist( 0.0f, 0.1f );
-			rng distX( 100.0f, physarumConfig.dimensionX - 100.0f );
-			rng distY( 100.0f, physarumConfig.dimensionY - 100.0f );
-			rng distZ( 100.0f, physarumConfig.dimensionZ - 100.0f );
-			rng dist2( -pi, pi );
-
-			// init the progress bar
-			progressBar bar;
-			bar.total = physarumConfig.numAgents;
-			bar.label = string( " Generating Initial Data: " );
-
-			Tick();
-			cout << endl;
-			for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
-				orientTrident t; // randomize the orientation
-				t.RotateX( dist2() );
-				t.RotateY( dist2() );
-				t.RotateZ( dist2() );
-
-				agentsInitialData.push_back( {
-					{ distX(), distY(), distZ(), dist() },
-					// { dist(), dist(), dist(), dist() },
-					{ t.basisX, dist() },
-					{ t.basisY, dist() },
-					{ t.basisZ, dist() }
-				} );
-
-				// update and report
-				bar.done = i;
-				if ( i % 50 == 0 ) {
-					bar.writeCurrentState();
-				}
-			}
-			cout << endl;
+			InitAgentsBuffer( 0 );
 
 			// don't need this active initially
 			terminal.active = false;
-
-			glGenBuffers( 1, &agentSSBO );
-			glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
-			glBufferData( GL_SHADER_STORAGE_BUFFER, bufferSize, ( GLvoid * ) &agentsInitialData[ 0 ], GL_DYNAMIC_COPY );
-			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, agentSSBO );
 
 			// setup the image buffers for the atomic writes ( 2x for ping-ponging )
 			textureOptions_t opts;
@@ -190,6 +140,88 @@ public:
 		shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 	}
 
+	void InitAgentsBuffer ( int mode ) {
+		static bool firstTime = true;
+
+		// setup the ssbo for the agent data
+		struct agent_t {
+			vec4 position;
+			vec4 basisX;
+			vec4 basisY;
+			vec4 basisZ;
+			// other info? parameters per-agent?
+		};
+
+		std::vector< agent_t > agentsInitialData;
+		size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
+
+	// this is making me want to do some kind of templating for the rng stuff...
+		rngN dist( 0.0f, 0.1f );
+		rng distX( 100.0f, physarumConfig.dimensionX - 100.0f );
+		rng distY( 100.0f, physarumConfig.dimensionY - 100.0f );
+		rng distZ( 100.0f, physarumConfig.dimensionZ - 100.0f );
+
+		rngN distNX( physarumConfig.dimensionX / 2.0f, 1.0f );
+		rngN distNY( physarumConfig.dimensionY / 2.0f, 1.0f );
+		rngN distNZ( physarumConfig.dimensionZ / 2.0f, 1.0f );
+
+		rng dist2( -pi, pi );
+
+		// init the progress bar
+		progressBar bar;
+		bar.total = physarumConfig.numAgents;
+		bar.label = string( " Generating Initial Data: " );
+
+		Tick();
+		cout << endl;
+		for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
+			orientTrident t; // randomize the orientation
+			t.RotateX( dist2() );
+			t.RotateY( dist2() );
+			t.RotateZ( dist2() );
+
+			switch ( mode ) {
+
+				case 0: // uniform volume
+					agentsInitialData.push_back( {
+						{ distX(), distY(), distZ(), dist() },
+						{ t.basisX, dist() },
+						{ t.basisY, dist() },
+						{ t.basisZ, dist() }
+					} );
+					break;
+
+				case 1: // normal distribution
+					agentsInitialData.push_back( {
+						{ distNX(), distNY(), distNZ(), dist() },
+						{ t.basisX, dist() },
+						{ t.basisY, dist() },
+						{ t.basisZ, dist() }
+					} );
+					break;
+
+				default:
+					break;
+			}
+
+			// update and report
+			bar.done = i;
+			if ( i % 50 == 0 ) {
+				bar.writeCurrentState();
+			}
+		}
+		cout << endl;
+
+		if ( firstTime ) {
+			firstTime = false;
+			glGenBuffers( 1, &agentSSBO );
+		}
+
+		// and pass the data
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, bufferSize, ( GLvoid * ) &agentsInitialData[ 0 ], GL_DYNAMIC_COPY );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, agentSSBO );
+	}
 
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
