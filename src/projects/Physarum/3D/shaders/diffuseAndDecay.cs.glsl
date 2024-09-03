@@ -41,5 +41,8 @@ void main() {
 
 		8 * imageLoad( previous, pos + ivec3(  0,  0,  0 ) ).r ) / 64;
 
+	// ...trying with no blur... since this post seems to skip it? or not... need to look at the code - https://denizbicer.com/202408-UnderstandingPhysarum.html
+	// uint g = imageLoad( previous, ( pos ) % ivec3( imageSize( previous ) ) ).r;
+
 	imageStore( current, pos, uvec4( uint( decayFactor * g ) ) );
 }
