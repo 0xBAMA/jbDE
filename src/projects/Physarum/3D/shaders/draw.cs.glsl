@@ -87,7 +87,28 @@ void main () {
 
 					transmission *= 0.9f;
 					rayDirection = normalize( rayDirection + RandomUnitVector() );
+			// need to figure out how we are doing materials stuff:
+				// ============================================================================
+				// transmission
+
+					// constant
+					// transmission *= 0.9f;
+
+					// density based
+					// transmission *= saturate( 1.0f - densityRead / float( densityThreshold ) );
+					transmission *= saturate( densityRead );
+				// ============================================================================
+				// direction
+
+					// weighted by rayDirection, it scatters mostly forward
+					rayDirection = normalize( rayDirection + RandomUnitVector() ); // like a more typical phase function
+
+					// weighted by -rayDirection, scatters mostly backwards
+					// rayDirection = normalize( -rayDirection + RandomUnitVector() ); // "diffuse" type behavior
+
+					// with a random unit vector, it's scattering in any direction
 					// rayDirection = RandomUnitVector();
+				// ============================================================================
 
 					rayStep = ivec3( sign( rayDirection ) );
 					mask0 = bvec3( false );
