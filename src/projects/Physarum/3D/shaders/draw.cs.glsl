@@ -45,12 +45,16 @@ void main () {
 
 	vec3 normal = vec3( 0.0f );
 	ivec3 boxSize = imageSize( continuum );
-	float boxDist = max( 0.0f, iBoxOffset( rayOrigin, rayDirection, normal, vec3( boxSize / 2.0f ), vec3( boxSize ) / 2.0f ) );
+	float boxDist = iBoxOffset( rayOrigin, rayDirection, normal, vec3( boxSize / 2.0f ), vec3( boxSize ) / 2.0f );
 
 	if ( boxDist < MAX_DIST ) { // the ray hits the box
+		// calculating hit position
 		vec3 hitPos = rayOrigin + rayDirection * ( boxDist + 0.01f );
 
-		// color += 0.02f;
+		// trying to handle viewer-inside-volume
+		if ( inBounds( ivec3( viewerPosition ) ) ) {
+			hitPos = rayOrigin;
+		}
 
 		vec3 transmission = vec3( 1.0f );
 
@@ -62,7 +66,7 @@ void main () {
 			vec3 deltaDist = 1.0f / abs( rayDirection );
 			ivec3 rayStep = ivec3( sign( rayDirection ) );
 			bvec3 mask0 = bvec3( false );
-			ivec3 mapPos0 = ivec3( floor( hitPos + 0.001f ) );
+			ivec3 mapPos0 = ivec3( floor( hitPos ) );
 			vec3 sideDist0 = ( sign( rayDirection ) * ( vec3( mapPos0 ) - hitPos ) + ( sign( rayDirection ) * 0.5f ) + 0.5f ) * deltaDist;
 
 			#define MAX_RAY_STEPS 600
