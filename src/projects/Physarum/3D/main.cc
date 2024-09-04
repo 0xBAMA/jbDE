@@ -546,12 +546,13 @@ public:
 
 		if ( physarumConfig.runSim ) {
 			// run the shader to do the gaussian blur
-			glUseProgram( shaders[ "Diffuse and Decay" ] );
+			const GLuint shader = shaders[ "Diffuse and Decay" ];
+			glUseProgram( shader );
 
 			//swap the images
 			glBindImageTexture( 1, textureManager.Get( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ) ), 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI ); // previous
 			glBindImageTexture( 2, textureManager.Get( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ) ), 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI ); // current
-			glUniform1f( glGetUniformLocation( shaders[ "Diffuse and Decay" ], "decayFactor" ), physarumConfig.decayFactor );
+			glUniform1f( glGetUniformLocation( shader, "decayFactor" ), physarumConfig.decayFactor );
 			physarumConfig.oddFrame = !physarumConfig.oddFrame;
 
 			glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
