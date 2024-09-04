@@ -352,6 +352,8 @@ public:
 			currentPreset = ( currentPreset + 1 ) % presets.size();
 			ApplyPreset( currentPreset );
 		}
+		ImGui::SameLine();
+		ImGui::Text( "Currently Selected: %d / %d", currentPreset, int( presets.size() - 1 ) );
 
 		if ( ImGui::SmallButton( "Add Current Config To Presets" ) ) {
 			// currentPreset will now be the index of the final element
@@ -421,7 +423,6 @@ public:
 		ImGui::Text( "Decay Factor:" );
 		ImGui::SliderFloat( "##decayFactor", &physarumConfig.decayFactor, 0.001f, 1.0f, "%.4f" );
 
-		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 		ImGui::Separator();
 		ImGui::Checkbox( "Accumulate Render", &physarumConfig.accumulate );
 
@@ -462,7 +463,6 @@ public:
 			glUniform1f( glGetUniformLocation( shader, "senseAngle" ), physarumConfig.senseAngle );
 			glUniform1f( glGetUniformLocation( shader, "senseDistance" ), physarumConfig.senseDistance );
 			glUniform1f( glGetUniformLocation( shader, "turnAngle" ), physarumConfig.turnAngle );
-			glUniform1i( glGetUniformLocation( shader, "writeBack" ), physarumConfig.writeBack );
 			glUniform1i( glGetUniformLocation( shader, "wangSeed" ), physarumConfig.wangSeed() );
 			glUniform1ui( glGetUniformLocation( shader, "depositAmount" ), physarumConfig.depositAmount );
 			glUniform1ui( glGetUniformLocation( shader, "numAgents" ), physarumConfig.numAgents );
@@ -533,7 +533,6 @@ public:
 		physarumConfig.stepSize			= presets[ idx ].stepSize;
 		physarumConfig.decayFactor		= presets[ idx ].decayFactor;
 		physarumConfig.depositAmount	= presets[ idx ].depositAmount;
-		physarumConfig.writeBack		= presets[ idx ].writeBack;
 	}
 
 	void OnUpdate () {
