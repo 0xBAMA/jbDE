@@ -6,8 +6,7 @@
       "senseAngle": 1.6163198947906494,
       "senseDistance": 8.0,
       "stepSize": 3.0,
-      "turnAngle": 1.992329716682434,
-      "writeBack": false
+      "turnAngle": 1.992329716682434
     },
     {
       "decayFactor": 0.9990000128746033,
@@ -15,8 +14,7 @@
       "senseAngle": 1.6163198947906494,
       "senseDistance": 2.0,
       "stepSize": 0.10000000149011612,
-      "turnAngle": 1.992329716682434,
-      "writeBack": false
+      "turnAngle": 1.992329716682434
     },
     {
       "decayFactor": 0.8809000253677368,
@@ -24,8 +22,7 @@
       "senseAngle": 0.5485301613807678,
       "senseDistance": 2.2329583168029785,
       "stepSize": 0.5860999822616577,
-      "turnAngle": 0.5667115449905396,
-      "writeBack": true
+      "turnAngle": 0.5667115449905396
     },
     {
       "decayFactor": 0.8809000253677368,
@@ -33,8 +30,7 @@
       "senseAngle": 0.5485301613807678,
       "senseDistance": 2.2329583168029785,
       "stepSize": 0.5860999822616577,
-      "turnAngle": 0.5667115449905396,
-      "writeBack": true
+      "turnAngle": 0.5667115449905396
     },
     {
       "decayFactor": 0.421099990606308,
@@ -42,8 +38,7 @@
       "senseAngle": 0.38701263070106506,
       "senseDistance": 1.1950112581253052,
       "stepSize": 0.6173305511474609,
-      "turnAngle": 0.43388831615448,
-      "writeBack": true
+      "turnAngle": 0.43388831615448
     },
     {
       "decayFactor": 0.06390000134706497,
@@ -51,8 +46,7 @@
       "senseAngle": 0.3163624405860901,
       "senseDistance": 2.900599956512451,
       "stepSize": 1.3515383005142212,
-      "turnAngle": 0.6758000254631042,
-      "writeBack": true
+      "turnAngle": 0.6758000254631042
     },
     {
       "decayFactor": 0.5429300665855408,
@@ -60,8 +54,7 @@
       "senseAngle": 2.2265334129333496,
       "senseDistance": 0.9171523451805115,
       "stepSize": 0.44318336248397827,
-      "turnAngle": 2.5276379585266113,
-      "writeBack": true
+      "turnAngle": 2.5276379585266113
     },
     {
       "decayFactor": 0.4813021421432495,
@@ -69,8 +62,55 @@
       "senseAngle": 0.6868776679039001,
       "senseDistance": 2.052802562713623,
       "stepSize": 0.9479823112487793,
-      "turnAngle": 0.8996943235397339,
-      "writeBack": true
+      "turnAngle": 0.8996943235397339
+    },
+    {
+      "decayFactor": 0.5644132494926453,
+      "depositAmount": 637074,
+      "senseAngle": 0.685495913028717,
+      "senseDistance": 2.825573682785034,
+      "stepSize": 1.6337709426879883,
+      "turnAngle": 0.22824423015117645
+    },
+    {
+      "decayFactor": 0.6620628833770752,
+      "depositAmount": 85107,
+      "senseAngle": 0.7340435981750488,
+      "senseDistance": 2.9018237590789795,
+      "stepSize": 1.232591152191162,
+      "turnAngle": 1.5949801206588745
+    },
+    {
+      "decayFactor": 0.9353461265563965,
+      "depositAmount": 3592,
+      "senseAngle": 0.8584855794906616,
+      "senseDistance": 4.066417694091797,
+      "stepSize": 1.4492075443267822,
+      "turnAngle": 2.539086103439331
+    },
+    {
+      "decayFactor": 0.7089279294013977,
+      "depositAmount": 372557,
+      "senseAngle": 1.716738224029541,
+      "senseDistance": 11.475747108459473,
+      "stepSize": 2.5304410457611084,
+      "turnAngle": 2.4200544357299805
+    },
+    {
+      "decayFactor": 0.8027395606040955,
+      "depositAmount": 456430,
+      "senseAngle": 0.9345999956130981,
+      "senseDistance": 11.063641548156738,
+      "stepSize": 1.9852064847946167,
+      "turnAngle": 0.9556999802589417
+    },
+    {
+      "decayFactor": 0.4554167091846466,
+      "depositAmount": 490686,
+      "senseAngle": 1.848645567893982,
+      "senseDistance": 5.603784561157227,
+      "stepSize": 1.3509926795959473,
+      "turnAngle": 1.0507200956344604
     }
   ]
 }
