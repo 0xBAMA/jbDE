@@ -24,6 +24,7 @@ uniform bool accumulate;
 
 // scattering density threshold
 uniform int densityThreshold;
+uniform int noiseFloor;
 
 #include "consistentPrimitives.glsl.h"
 #include "mathUtils.h"
@@ -79,13 +80,14 @@ void main () {
 				ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
 
 				// doing Beer's law - if we pass a threshold check, we scatter
-				float densityRead = exp( -float( imageLoad( continuum, mapPos0 ).r ) / float( densityThreshold ) );
-				if ( NormalizedRandomFloat() > densityRead ) {
+				int densityRead = max( 0, int( imageLoad( continuum, mapPos0 ).r ) - noiseFloor );
+				float density = exp( -float( densityRead ) / float( densityThreshold ) );
+				if ( NormalizedRandomFloat() > density ) {
 
 			// materials stuff:
 				// ============================================================================
 				// transmission attenuates by the density
-					transmission *= saturate( densityRead );
+					transmission *= saturate( density );
 				// ============================================================================
 				// direction - positive rdWeight means forward scatter, 0 is random scatter, negative is backscatter
 					rayDirection = normalize( viewerScatterWeight * rayDirection + RandomUnitVector() );

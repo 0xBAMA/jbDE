@@ -432,7 +432,10 @@ public:
 
 		ImGui::Separator();
 		ImGui::Text( "Rendering Density Threshold:" );
-		ImGui::DragScalar( "   ", ImGuiDataType_S32, &physarumConfig.densityThreshold, 50, NULL, NULL, "%d units" );
+		ImGui::DragScalar( "##densitythresh", ImGuiDataType_S32, &physarumConfig.densityThreshold, 50, NULL, NULL, "%d units" );
+		ImGui::Text( "Rendering Noise Floor:" );
+		ImGui::DragScalar( "##noisefloor", ImGuiDataType_S32, &physarumConfig.noiseFloor, 50, NULL, NULL, "%d units" );
+
 		ImGui::Separator();
 		ImGui::Text( "Scatter Weight:" );
 		ImGui::SliderFloat( "##scatterweight", &physarumConfig.viewerScatterWeight, -2.0f, 2.0f, "%.4f" );
@@ -495,8 +498,8 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "skyColor2" ), 1, glm::value_ptr( physarumConfig.skyColor2 ) );
 			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );
 			glUniform1i( glGetUniformLocation( shader, "densityThreshold" ), physarumConfig.densityThreshold );
+			glUniform1i( glGetUniformLocation( shader, "noiseFloor" ), physarumConfig.noiseFloor );
 			glUniform1i( glGetUniformLocation( shader, "accumulate" ), physarumConfig.accumulate );
-
 
 			textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "continuum", shader, 2 );
 
