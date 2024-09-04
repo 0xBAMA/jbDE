@@ -7,7 +7,6 @@ struct preset_t {
 	float stepSize;
 	float decayFactor;
 	uint32_t depositAmount;
-	bool writeBack;
 };
 
 static std::vector< preset_t > presets;
@@ -26,7 +25,6 @@ struct physarumConfig_t {
 	float senseDistance;
 	float turnAngle;
 	float stepSize;
-	bool writeBack;
 	rngi wangSeed = rngi( 0, 100000 );
 
 	// diffuse + decay
@@ -93,7 +91,6 @@ public:
 				preset.senseDistance	= data[ "senseDistance" ];
 				preset.turnAngle		= data[ "turnAngle" ];
 				preset.stepSize			= data[ "stepSize" ];
-				preset.writeBack		= data[ "writeBack" ];
 				preset.decayFactor		= data[ "decayFactor" ];
 				preset.depositAmount	= data[ "depositAmount" ];
 				presets.push_back( preset );
@@ -368,7 +365,6 @@ public:
 			current.stepSize					= physarumConfig.stepSize;
 			current.decayFactor					= physarumConfig.decayFactor;
 			current.depositAmount				= physarumConfig.depositAmount;
-			current.writeBack					= physarumConfig.writeBack;
 			presets.push_back( current );
 
 			// add it to the config
@@ -380,7 +376,6 @@ public:
 			currentConfig[ "stepSize" ]			= current.stepSize;
 			currentConfig[ "decayFactor" ] 		= current.decayFactor;
 			currentConfig[ "depositAmount" ]	= current.depositAmount;
-			currentConfig[ "writeBack" ]		= current.writeBack;
 			j[ "PhysarumPresets" ].push_back( currentConfig );
 			std::ofstream o ( "src/projects/Physarum/3D/presets.json" ); o << j.dump( 2 ); o.close();
 		}

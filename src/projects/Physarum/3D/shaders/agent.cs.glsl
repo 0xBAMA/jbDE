@@ -27,7 +27,6 @@ uniform float senseDistance;
 uniform float turnAngle;
 uniform uint depositAmount;
 uniform uint numAgents;
-uniform bool writeBack;
 
 #include "mathUtils.h"
 
@@ -129,6 +128,7 @@ void main () {
 		vec3 newPosition = wrapPosition( movePositions[ selected ] );
 
 		// update the state values in the buffer...
+		const bool writeBack = true;
 		if ( writeBack ) {
 			data[ index ].position.xyz = newPosition;
 			data[ index ].basisX.xyz = a.basisX.xyz;
