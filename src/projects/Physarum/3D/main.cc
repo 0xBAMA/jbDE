@@ -40,11 +40,16 @@ struct physarumConfig_t {
 	vec3 viewerBasisZ = vec3( 0.0f, 0.0f, 1.0f );
 	float viewerFoV = 0.618f;
 
+	// how we select the direction when the ray scatters ( weight on the ray direction )
+	float viewerScatterWeight = 1.0f;
+
 	// accumulate toggle
 	bool accumulate = false;
 
 	// scattering density threshold
 	int densityThreshold = 5000;
+	// while rendering, we subtract this from the noise read
+	int noiseFloor = 0;
 
 	vec3 skyColor1 = vec3( 1.0f, 0.25f, 0.15f );
 	vec3 skyColor2 = vec3( 0.15f, 0.25f, 1.0f );
@@ -428,6 +433,9 @@ public:
 		ImGui::Separator();
 		ImGui::Text( "Rendering Density Threshold:" );
 		ImGui::DragScalar( "   ", ImGuiDataType_S32, &physarumConfig.densityThreshold, 50, NULL, NULL, "%d units" );
+		ImGui::Separator();
+		ImGui::Text( "Scatter Weight:" );
+		ImGui::SliderFloat( "##scatterweight", &physarumConfig.viewerScatterWeight, -2.0f, 2.0f, "%.4f" );
 
 		ImGui::Separator();
 		ImGui::ColorEdit3( "Sky Color 1", ( float* ) &physarumConfig.skyColor1, ImGuiColorEditFlags_PickerHueWheel );
@@ -482,6 +490,7 @@ public:
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisX" ), 1, glm::value_ptr( physarumConfig.viewerBasisX ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisY" ), 1, glm::value_ptr( physarumConfig.viewerBasisY ) );
 			glUniform3fv( glGetUniformLocation( shader, "viewerBasisZ" ), 1, glm::value_ptr( physarumConfig.viewerBasisZ ) );
+			glUniform1f( glGetUniformLocation( shader, "viewerScatterWeight" ), physarumConfig.viewerScatterWeight );
 			glUniform3fv( glGetUniformLocation( shader, "skyColor1" ), 1, glm::value_ptr( physarumConfig.skyColor1 ) );
 			glUniform3fv( glGetUniformLocation( shader, "skyColor2" ), 1, glm::value_ptr( physarumConfig.skyColor2 ) );
 			glUniform1f( glGetUniformLocation( shader, "viewerFoV" ), physarumConfig.viewerFoV );

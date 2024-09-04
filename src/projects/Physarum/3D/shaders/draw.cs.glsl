@@ -15,6 +15,8 @@ uniform vec3 viewerBasisY;
 uniform vec3 viewerBasisZ;
 uniform float viewerFoV;
 
+uniform float viewerScatterWeight;
+
 uniform vec3 skyColor1;
 uniform vec3 skyColor2;
 
@@ -86,8 +88,7 @@ void main () {
 					transmission *= saturate( densityRead );
 				// ============================================================================
 				// direction - positive rdWeight means forward scatter, 0 is random scatter, negative is backscatter
-					const float rdWeight = 0.0f; // this kind of serves the purpose of a phase function
-					rayDirection = normalize( rdWeight * rayDirection + RandomUnitVector() );
+					rayDirection = normalize( viewerScatterWeight * rayDirection + RandomUnitVector() );
 				// ============================================================================
 
 					// update the DDA params
