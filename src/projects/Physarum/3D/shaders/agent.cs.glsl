@@ -34,11 +34,11 @@ uniform bool writeBack;
 vec3 wrapPosition ( vec3 pos ) {
 	const ivec3 is = imageSize( current ).xyz;
 	if ( pos.x >= is.x ) pos.x -= is.x;
-	if ( pos.x <= 0.0f ) pos.x += is.x;
+	if ( pos.x < 0.0f ) pos.x += is.x;
 	if ( pos.y >= is.y ) pos.y -= is.y;
-	if ( pos.y <= 0.0f ) pos.y += is.y;
+	if ( pos.y < 0.0f ) pos.y += is.y;
 	if ( pos.z >= is.z ) pos.z -= is.z;
-	if ( pos.z <= 0.0f ) pos.z += is.z;
+	if ( pos.z < 0.0f ) pos.z += is.z;
 	return pos;
 }
 
