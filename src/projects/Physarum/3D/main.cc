@@ -389,42 +389,42 @@ public:
 		HelpMarker( "The angle between the sensors." );
 		ImGui::SameLine();
 		ImGui::Text( "Sensor Angle:" );
-		ImGui::SliderFloat( "radians", &physarumConfig.senseAngle, 0.0f, 3.14f, "%.4f" );
+		ImGui::SliderFloat( "radians##sense", &physarumConfig.senseAngle, 0.0f, 3.14f, "%.4f" );
 
 		ImGui::Separator();
 
 		HelpMarker( "The distance from the agent position to the sensors." );
 		ImGui::SameLine();
 		ImGui::Text( "Sensor Distance:" );
-		ImGui::SliderFloat( "        ", &physarumConfig.senseDistance, 0.0f, 3.0f, "%.4f" );
+		ImGui::SliderFloat( "##sensordistance", &physarumConfig.senseDistance, 0.0f, 3.0f, "%.4f" );
 
 		ImGui::Separator();
 
 		HelpMarker( "Amount that each simulation agent can turn in the movement shader." );
 		ImGui::SameLine();
 		ImGui::Text( "Turn Angle:" );
-		ImGui::SliderFloat( "radians ", &physarumConfig.turnAngle, 0.0f, 3.14f, "%.4f" );
+		ImGui::SliderFloat( "radians##turn", &physarumConfig.turnAngle, 0.0f, 3.14f, "%.4f" );
 
 		ImGui::Separator();
 
 		HelpMarker( "Distance that each sim agent will go in their current direction each step." );
 		ImGui::SameLine();
 		ImGui::Text( "Step Size:" );
-		ImGui::SliderFloat( "    ", &physarumConfig.stepSize, 0.0f, 3.0f, "%.4f" );
+		ImGui::SliderFloat( "##stepsize", &physarumConfig.stepSize, 0.0f, 3.0f, "%.4f" );
 
 		ImGui::Separator();
 
 		HelpMarker( "Amout of pheremone that is deposited by each simulation agent." );
 		ImGui::SameLine();
 		ImGui::Text( "Deposit Amount:" );
-		ImGui::DragScalar( "  ", ImGuiDataType_U32, &physarumConfig.depositAmount, 50, NULL, NULL, "%u units" );
+		ImGui::DragScalar( "##depositAmount", ImGuiDataType_U32, &physarumConfig.depositAmount, 50, NULL, NULL, "%u units" );
 
 		ImGui::Separator();
 
 		HelpMarker( "Scale factor applied when storing the result of the gaussian blur." );
 		ImGui::SameLine();
 		ImGui::Text( "Decay Factor:" );
-		ImGui::SliderFloat( "              ", &physarumConfig.decayFactor, 0.001f, 1.0f, "%.4f" );
+		ImGui::SliderFloat( "##decayFactor", &physarumConfig.decayFactor, 0.001f, 1.0f, "%.4f" );
 
 		ImGui::Checkbox( "Agent Direction Writeback", &physarumConfig.writeBack );
 		ImGui::Separator();
