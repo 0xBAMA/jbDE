@@ -96,13 +96,6 @@ public:
 				presets.push_back( preset );
 			}
 
-			ApplyPreset( 0 );
-
-			InitAgentsBuffer( 0 );
-
-			// don't need this active initially
-			terminal.active = false;
-
 			// setup the image buffers for the atomic writes ( 2x for ping-ponging )
 			textureOptions_t opts;
 			opts.dataType		= GL_R32UI;
@@ -113,6 +106,8 @@ public:
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 
+			// don't need this active initially (f10 to activate)
+			terminal.active = false;
 			terminal.addCommand(
 				{ "viewState" },
 				{},
@@ -132,6 +127,13 @@ public:
 
 				}, "Report the state of the viewer."
 			);
+
+			// default config
+			ApplyPreset( 0 );
+
+			// data in the buffer
+			InitAgentsBuffer();
+			InvokeGPUAgentInit();
 		}
 	}
 
@@ -140,90 +142,38 @@ public:
 		shaders[ "Draw" ]				= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
 		shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 		shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
+		shaders[ "Init" ]				= computeShader( basePath + "init.cs.glsl" ).shaderHandle;
 	}
 
-	void InitAgentsBuffer ( int mode ) {
-		static bool firstTime = true;
-
-		// setup the ssbo for the agent data
-		struct agent_t {
-			vec4 position;
-			vec4 basisX;
-			vec4 basisY;
-			vec4 basisZ;
-			// other info? parameters per-agent?
-		};
-
-		std::vector< agent_t > agentsInitialData;
-		size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
-
-	// this is making me want to do some kind of templating for the rng stuff...
-		rngN dist( 0.0f, 0.1f );
-		rng distX( 100.0f, physarumConfig.dimensionX - 100.0f );
-		rng distY( 100.0f, physarumConfig.dimensionY - 100.0f );
-		rng distZ( 100.0f, physarumConfig.dimensionZ - 100.0f );
-
-		rngN distNX( physarumConfig.dimensionX / 2.0f, 1.0f );
-		rngN distNY( physarumConfig.dimensionY / 2.0f, 1.0f );
-		rngN distNZ( physarumConfig.dimensionZ / 2.0f, 1.0f );
-
-		rng dist2( -pi, pi );
-
-		// init the progress bar
-		progressBar bar;
-		bar.total = physarumConfig.numAgents;
-		bar.label = string( " Generating Initial Data: " );
-
-		Tick();
-		cout << endl;
-		for ( uint32_t i = 0; i < physarumConfig.numAgents; i++ ) {
-			orientTrident t; // randomize the orientation
-			t.RotateX( dist2() );
-			t.RotateY( dist2() );
-			t.RotateZ( dist2() );
-
-			switch ( mode ) {
-
-				case 0: // uniform volume
-					agentsInitialData.push_back( {
-						{ distX(), distY(), distZ(), dist() },
-						{ t.basisX, dist() },
-						{ t.basisY, dist() },
-						{ t.basisZ, dist() }
-					} );
-					break;
-
-				case 1: // normal distribution
-					agentsInitialData.push_back( {
-						{ distNX(), distNY(), distNZ(), dist() },
-						{ t.basisX, dist() },
-						{ t.basisY, dist() },
-						{ t.basisZ, dist() }
-					} );
-					break;
-
-				default:
-					break;
-			}
-
-			// update and report
-			bar.done = i;
-			if ( i % 50 == 0 ) {
-				bar.writeCurrentState();
-			}
-		}
-		cout << endl;
-
-		if ( firstTime ) {
-			firstTime = false;
-			glGenBuffers( 1, &agentSSBO );
-		}
+	void InitAgentsBuffer () {
+		std::vector< float > agentsInitialData;
+		const size_t bufferSize = 16 * sizeof( GLfloat ) * physarumConfig.numAgents;
+		agentsInitialData.resize( bufferSize, 0.0f );
 
 		// and pass the data
+		glGenBuffers( 1, &agentSSBO );
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, agentSSBO );
 		glBufferData( GL_SHADER_STORAGE_BUFFER, bufferSize, ( GLvoid * ) &agentsInitialData[ 0 ], GL_DYNAMIC_COPY );
 		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, agentSSBO );
 	}
+
+	void InvokeGPUAgentInit ( int mode = 2 ) {
+		const GLuint shader = shaders[ "Init" ];
+		glUseProgram( shader );
+
+		// send the parameters
+		glUniform1i( glGetUniformLocation( shader, "initMode" ), mode );
+		glUniform1i( glGetUniformLocation( shader, "wangSeed" ), physarumConfig.wangSeed() );
+		glUniform1ui( glGetUniformLocation( shader, "numAgents" ), physarumConfig.numAgents );
+		textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shader, 2 );
+
+		// number of 1024-size jobs, rounded up
+		const int numSlices = ( physarumConfig.numAgents + 1023 ) / 1024;
+
+		glDispatchCompute( 1, numSlices, 1 );
+		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+	}
+
 
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
@@ -382,6 +332,10 @@ public:
 			std::ofstream o ( "src/projects/Physarum/3D/presets.json" ); o << j.dump( 2 ); o.close();
 		}
 
+		if ( ImGui::SmallButton( "Reseed Agent Positions" ) ) {
+			InvokeGPUAgentInit();
+		}
+
 		// widgets
 		HelpMarker( "The angle between the sensors." );
 		ImGui::SameLine();
@@ -523,7 +477,6 @@ public:
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
 	}
 
 	void ApplyPreset( int idx ) {

@@ -55,7 +55,7 @@ void main () {
 
 	if ( index < numAgents ) {
 		// initialize the rng
-		seed = wangSeed + 69 * index;
+		seed = wangSeed + 69420 * index;
 
 		// figure out sense positions
 		agent_t a = data[ index ];

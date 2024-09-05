@@ -72,7 +72,7 @@ void main () {
 			ivec3 mapPos0 = ivec3( floor( hitPos ) );
 			vec3 sideDist0 = ( sign( rayDirection ) * ( vec3( mapPos0 ) - hitPos ) + ( sign( rayDirection ) * 0.5f ) + 0.5f ) * deltaDist;
 
-			#define MAX_RAY_STEPS 600
+			#define MAX_RAY_STEPS 1000
 			for ( int i = 0; i < MAX_RAY_STEPS && inBounds( mapPos0 ); i++ ) {
 
 				bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
