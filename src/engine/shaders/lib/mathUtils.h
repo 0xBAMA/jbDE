@@ -21,6 +21,7 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 #ifndef PI_DEFINED
 #define PI_DEFINED
 const float pi = 3.141592f;
+const float tau = 2.0f * pi;
 #endif
 
 mat2 Rotate2D ( in float a ) {

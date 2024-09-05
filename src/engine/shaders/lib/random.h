@@ -16,6 +16,7 @@ float NormalizedRandomFloat () {
 #ifndef PI_DEFINED
 #define PI_DEFINED
 const float pi = 3.14159265358979323846f;
+const float tau = 2.0f * pi;
 #endif
 
 vec3 RandomUnitVector () {

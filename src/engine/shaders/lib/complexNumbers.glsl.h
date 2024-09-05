@@ -5,6 +5,7 @@
 #ifndef PI_DEFINED
 #define PI_DEFINED
 const float pi = 3.141592f;
+const float tau = 2.0f * pi;
 #endif
 
 /*
