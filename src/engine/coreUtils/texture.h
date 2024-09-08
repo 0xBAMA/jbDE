@@ -516,6 +516,26 @@ public:
 		glTexImage2D( GL_TEXTURE_2D, 0, dataType, w, h, 0, format, GL_UNSIGNED_BYTE, data );
 	}
 
+	void ZeroTexture3D ( string label ) {
+		GLuint handle, dataType, format;
+		uint32_t w, h, d;
+		for ( auto& tex : textures ) {
+			if ( tex.label == label ) {
+				w = tex.creationOptions.width;
+				h = tex.creationOptions.height;
+				d = tex.creationOptions.depth;
+				handle = tex.textureHandle;
+				dataType = tex.creationOptions.dataType;
+				format = getFormat( dataType );
+			}
+		}
+		// this is going to be too slow for per-frame usage, allocating a big buffer like this over and over
+		Image_4U zeroes( w, h * d );
+		void * data = ( void * ) zeroes.GetImageDataBasePtr();
+		glBindTexture( GL_TEXTURE_3D, handle );
+		glTexImage3D( GL_TEXTURE_3D, 0, dataType, w, h, d, 0, format, GL_UNSIGNED_BYTE, data );
+	}
+
 	void Update ( string label /*, ... */ ) {
 		// pass in new data for the texture... tbd
 	}
