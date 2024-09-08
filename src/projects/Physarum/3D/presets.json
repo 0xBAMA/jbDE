@@ -271,6 +271,70 @@
       "senseDistance": 6.391469478607178,
       "stepSize": 2.218991279602051,
       "turnAngle": 0.1372140645980835
+    },
+    {
+      "decayFactor": 0.2547255754470825,
+      "depositAmount": 656650,
+      "senseAngle": 0.9589782357215881,
+      "senseDistance": 12.093009948730469,
+      "stepSize": 2.282426118850708,
+      "turnAngle": 2.1745309829711914
+    },
+    {
+      "decayFactor": 0.6072306632995605,
+      "depositAmount": 584734,
+      "senseAngle": 0.6092508435249329,
+      "senseDistance": 2.3406691551208496,
+      "stepSize": 3.5757131576538086,
+      "turnAngle": 1.7088265419006348
+    },
+    {
+      "decayFactor": 0.7624626159667969,
+      "depositAmount": 118808,
+      "senseAngle": 0.1942693293094635,
+      "senseDistance": 11.222037315368652,
+      "stepSize": 1.7623825073242188,
+      "turnAngle": 1.609735131263733
+    },
+    {
+      "decayFactor": 0.9308061599731445,
+      "depositAmount": 221715,
+      "senseAngle": 0.4724378287792206,
+      "senseDistance": 5.836063861846924,
+      "stepSize": 2.2004077434539795,
+      "turnAngle": 1.1083035469055176
+    },
+    {
+      "decayFactor": 0.9870865345001221,
+      "depositAmount": 22450,
+      "senseAngle": 0.47926780581474304,
+      "senseDistance": 13.501648902893066,
+      "stepSize": 3.6015634536743164,
+      "turnAngle": 1.8224095106124878
+    },
+    {
+      "decayFactor": 0.9361772537231445,
+      "depositAmount": 613358,
+      "senseAngle": 0.3863805830478668,
+      "senseDistance": 9.044047355651855,
+      "stepSize": 3.0601918697357178,
+      "turnAngle": 0.31025421619415283
+    },
+    {
+      "decayFactor": 0.6146289110183716,
+      "depositAmount": 187130,
+      "senseAngle": 0.9356521964073181,
+      "senseDistance": 9.355396270751953,
+      "stepSize": 3.9504172801971436,
+      "turnAngle": 1.0068284273147583
+    },
+    {
+      "decayFactor": 0.7540903687477112,
+      "depositAmount": 500902,
+      "senseAngle": 1.045211672782898,
+      "senseDistance": 12.448110580444336,
+      "stepSize": 1.8826508522033691,
+      "turnAngle": 0.2526300847530365
     }
   ]
 }
