@@ -106,6 +106,13 @@ public:
 			textureManager.Add( "Pheremone Continuum Buffer 0", opts );
 			textureManager.Add( "Pheremone Continuum Buffer 1", opts );
 
+			// image buffer for the mask
+			opts.dataType		= GL_R8UI;
+			textureManager.Add( "Mask", opts );
+			textureManager.ZeroTexture3D( "Mask" );
+
+			ApplyStamp();
+
 			// don't need this active initially (f10 to activate)
 			terminal.active = false;
 			terminal.addCommand(
@@ -128,6 +135,10 @@ public:
 				}, "Report the state of the viewer."
 			);
 
+			// other commands?
+				// seeding
+				// stamping
+
 			// default config
 			ApplyPreset( 0 );
 
@@ -143,6 +154,7 @@ public:
 		shaders[ "Diffuse and Decay" ]	= computeShader( basePath + "diffuseAndDecay.cs.glsl" ).shaderHandle;
 		shaders[ "Agents" ]				= computeShader( basePath + "agent.cs.glsl" ).shaderHandle;
 		shaders[ "Init" ]				= computeShader( basePath + "init.cs.glsl" ).shaderHandle;
+		shaders[ "Stamp" ]				= computeShader( basePath + "stamp.cs.glsl" ).shaderHandle;
 	}
 
 	void InitAgentsBuffer () {
@@ -174,6 +186,17 @@ public:
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
+	void ApplyStamp () {
+		const GLuint shader = shaders[ "Stamp" ];
+		glUseProgram( shader );
+
+		textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "1" : "0" ), "previous", shader, 1 );
+		textureManager.BindImageForShader( string( "Pheremone Continuum Buffer " ) + string( physarumConfig.oddFrame ? "0" : "1" ), "current", shader, 2 );
+		textureManager.BindImageForShader( "Mask", "mask", shader, 3 );
+
+		glDispatchCompute( ( physarumConfig.dimensionX + 7 ) / 8, ( physarumConfig.dimensionY + 7 ) / 8, ( physarumConfig.dimensionZ + 7 ) / 8 );
+		glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+	}
 
 	void HandleCustomEvents () {
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
