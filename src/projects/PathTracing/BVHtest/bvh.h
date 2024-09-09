@@ -209,6 +209,30 @@ struct bvh_t {
 		node.aabbMin = bbox.mins;
 	}
 
+
+	float FindBestSplitPlane ( bvhNode_t& node, int& axis, float& splitPos ) {
+		float bestCost = 1e30f;
+		for ( int a = 0; a < 3; a++ ) {
+			for ( uint i = 0; i < node.primitiveCount; i++ ) {
+				triangle_t& triangle = triangleList[ triangleIndices[ node.leftChild + i ] ];
+				float candidatePos = triangle.centroid[ a ];
+				float cost = EvaluateSAH( node, a, candidatePos );
+				if ( cost < bestCost ) {
+					splitPos = candidatePos;
+					axis = a;
+					bestCost = cost;
+				}
+			}
+		}
+		return bestCost;
+	}
+
+	float CalculateNodeCost ( bvhNode_t& node ) {
+		vec3 e = node.aabbMax - node.aabbMin; // extent of the node
+		float surfaceArea = e.x * e.y + e.y * e.z + e.z * e.x;
+		return node.primitiveCount * surfaceArea;
+	}
+
 	float EvaluateSAH ( bvhNode_t& node, int axis, float pos ) {
 		// determine triangle counts and bounds for this split candidate
 		aabb_t leftBox, rightBox;
@@ -241,56 +265,17 @@ struct bvh_t {
 		int splitAxis = 0;
 		float splitPos = 0.0f;
 
-	#if 1
+		// surface area heuristic to pick the split axis and the position
+		int bestAxis;
+		float bestPos;
+		float bestCost = FindBestSplitPlane( currentNode, bestAxis, bestPos );
 
-	// midpoint spatial splits
-		// pick the split plane axis ( longest axis of the node's bounding box )
-		vec3 axisSpans = vec3(
-			abs( currentNode.aabbMin.x - currentNode.aabbMax.x ),
-			abs( currentNode.aabbMin.y - currentNode.aabbMax.y ),
-			abs( currentNode.aabbMin.z - currentNode.aabbMax.z )
-		);
-
-		int axis = 0; // initially pick x axis
-		if ( axisSpans.y > axisSpans.x ) axis = 1; // we see y axis is larger than x: pick it, at least temporarily
-		if ( axisSpans.z > axisSpans[ axis ] ) axis = 2; // and again for the z axis, pick it, if larger
-
-		// this is for the in-place partitioning - it's halfway along this selected longest axis
-		const float dividingLine = currentNode.aabbMin[ axis ]  + axisSpans[ axis ] * 0.5f;
-
-		splitAxis = axis;
-		splitPos = dividingLine;
-
-	#else
-
-	// surface area heuristic to pick the split axis and the position
-		int bestAxis = -1;
-		float bestPos = 0.0f;
-		float bestCost = 1e30f;
-
-		// for each axis, for each triangle - consider this centroid as the partition
-		for( int axis = 0; axis < 3; axis++ ) {
-			for( uint i = 0; i < currentNode.primitiveCount; i++ ){
-				triangle_t& triangle = triangleList[ triangleIndices[ currentNode.leftChild + i ] ];
-				float candidatePos = triangle.centroid[ axis ];
-				float cost = EvaluateSAH( currentNode, axis, candidatePos );
-				if ( cost < bestCost ) {
-					bestPos = candidatePos;
-					bestAxis = axis;
-					bestCost = cost;
-				}
-			}
-		}
-
-		vec3 e = currentNode.aabbMax - currentNode.aabbMin; // extent of parent node
-		float parentArea = e.x * e.y + e.y * e.z + e.z * e.x;
-		float parentCost = currentNode.primitiveCount * parentArea;
-		if ( bestCost >= parentCost ) return; // we can early out if we aren't improving
+		// we can early out if we aren't improving
+		float noSplitPos = CalculateNodeCost( currentNode );
+		if ( bestCost >= noSplitPos ) return;
 
 		splitAxis = bestAxis;
 		splitPos = bestPos;
-
-	#endif
 
 		// divide the group into two halves along this axis, partition by putting the split primitives at the end of the list
 		int i = currentNode.leftChild;
