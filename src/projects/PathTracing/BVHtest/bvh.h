@@ -148,10 +148,10 @@ struct bvh_t {
 
 	// load model triangles
 	SoftRast s;
-	void Load () {
-		// s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
+	aabb_t Load () {
+		s.LoadModel( "../SponzaRepack/sponza.obj", "../SponzaRepack/" );
 		// s.LoadModel( "../San_Miguel/san-miguel-low-poly.obj", "../San_Miguel/" );
-		s.LoadModel( "../birdOfPrey/birdOfPrey.obj", "../birdOfPrey/textures/" );
+		// s.LoadModel( "../birdOfPrey/birdOfPrey.obj", "../birdOfPrey/textures/" );
 
 		// and then get the triangles from here
 		triangleList.resize( 0 );
@@ -188,13 +188,8 @@ struct bvh_t {
 			triangleList.push_back( loaded );
 		}
 
-		cout << newline << "Created " << triangleList.size() << " triangles" << newline;
-
-		if ( reportbbox == true ) {
-			cout << "x: " << modelbbox.mins.x << " " << modelbbox.maxs.x << newline;
-			cout << "y: " << modelbbox.mins.y << " " << modelbbox.maxs.y << newline;
-			cout << "z: " << modelbbox.mins.z << " " << modelbbox.maxs.z << newline;
-		}
+		// return the bounding box for the model
+		return modelbbox;
 	}
 
 	void UpdateNodeBounds ( uint32_t nodeIndex ) {
@@ -246,7 +241,7 @@ struct bvh_t {
 		int splitAxis = 0;
 		float splitPos = 0.0f;
 
-	#if 0
+	#if 1
 
 	// midpoint spatial splits
 		// pick the split plane axis ( longest axis of the node's bounding box )
@@ -459,9 +454,9 @@ struct testRenderer_t {
 	static constexpr uint32_t REPORT_DELAY = 32; 				// reporter thread sleep duration, in ms
 	static constexpr uint32_t PROGRESS_INDICATOR_STOPS = 69; // cli spaces to take up
 
-	// static constexpr float scaleFactor = 0.618f;
+	static constexpr float scaleFactor = 0.618f;
 	// static constexpr float scaleFactor = 1.33f;
-	static constexpr float scaleFactor = 3.0f;
+	// static constexpr float scaleFactor = 3.0f;
 	static constexpr uint32_t X_IMAGE_DIM = 300 * scaleFactor;
 	static constexpr uint32_t Y_IMAGE_DIM = 200 * scaleFactor;
 	static constexpr uint32_t TILESIZE_XY = 4;
@@ -478,45 +473,10 @@ struct testRenderer_t {
 	rng jitter = rng( 0.0f, 1.0f );
 	rng centeredJitter = rng( -1.0f, 1.0f );
 
-	void init () {
+	testRenderer_t () {
 		// create the preview image - probably eventually use alpha channel to send traversal depth kind of stats
 		imageBuffer = Image_4F( X_IMAGE_DIM, Y_IMAGE_DIM );
 		imageBuffer.SaturateAlpha();
-
-		palette::PickRandomPalette( true );
-
-		cout << "Testing with " << imageBuffer.Width() * imageBuffer.Height() * NUM_SAMPLES << " rays..." << endl;
-
-		// some initial data (meshes)
-		auto tStart = std::chrono::system_clock::now();
-		accelerationStructure.Init();
-		accelerationStructure.Load();
-		auto tStop = std::chrono::system_clock::now();
-		cout << "Finished model loading in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
-
-		// get the tree structure built, from the triangle soup
-		tStart = std::chrono::system_clock::now();
-		accelerationStructure.BuildTree();
-		tStop = std::chrono::system_clock::now();
-		cout << "Finished acceleration structure building in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
-
-		// run the accelerated traversal
-		tStart = std::chrono::system_clock::now();
-		acceleratedTraversal();
-		tStop = std::chrono::system_clock::now();
-		cout << "Finished accelerated traversal in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
-		// imageBufferDirty = true;
-
-		if ( dumpOutput ) {
-			tStart = std::chrono::system_clock::now();
-			imageBuffer.SaturateAlpha();
-			imageBuffer.RGBtoSRGB();
-			// imageBuffer.RGBtoSRGB();
-			imageBuffer.Save( "test.png" );
-			// imageBuffer.SRGBtoRGB();
-			tStop = std::chrono::system_clock::now();
-			cout << "Finished image output in " << std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f << "ms." << newline;
-		}
 	}
 
 	// accelerated traversal, for comparison
@@ -576,17 +536,13 @@ struct testRenderer_t {
 							float d = MAX_DISTANCE;
 
 							for ( uint i = 0; i < NUM_SAMPLES; i++ ) {
-								// do the shit
-								// const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), -1.5f, 1.5f );
-								// const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -2.0f, 2.0f );
-								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 1.5f, 0.8f );
-								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), -5.8f, -6.0f );
+								const float xRemap = RangeRemap( x + jitter(), 0, imageBuffer.Width(), 10.0f, -10.0f );
+								const float yRemap = RangeRemap( y + jitter(), 0, imageBuffer.Height(), 10.0f, -10.0f );
 
 								// test a ray against the triangles
 								ray_t ray;
-								// ray.origin = vec3( xRemap, 0.0f, yRemap ) + eyeLocation;
-								ray.origin = 100.0f * vec3( xRemap, 0.0f, yRemap ) + eyeLocation;
-								ray.direction = normalize( vec3( 0.0f, 0.0f, 1.0f ) );
+								ray.origin = 100.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f ) + eyeLocation;
+								ray.direction = normalize( vec3( 1.0f, 0.0f, 0.25f ) );
 
 								accelerationStructure.acceleratedTraversal( ray );
 

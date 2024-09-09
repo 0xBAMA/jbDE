@@ -16,9 +16,6 @@ public:
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Draw" ] = computeShader( "./src/projects/PathTracing/BVHtest/shaders/draw.cs.glsl" ).shaderHandle;
 
-			// get some random triangles
-			// renderer.init();
-
 			// create the image buffer for GPU display
 			textureOptions_t opts;
 			opts.width			= renderer.imageBuffer.Width();
@@ -35,30 +32,62 @@ public:
 			// == Load the Model =====================================================================
 			terminal.addCommand( { "LoadModel" }, {},
 				[=] ( args_t args ) {
-					// load the model
+					auto tStart = std::chrono::system_clock::now();
 
+					// load the model
+					renderer.accelerationStructure.Init();
+					aabb_t bounds = renderer.accelerationStructure.Load();
+
+					// report timing + stats
+					auto tStop = std::chrono::system_clock::now();
+					float timeTaken = std::chrono::duration_cast< std::chrono::microseconds >( tStop - tStart ).count() / 1000.0f;
+					terminal.addHistoryLine( terminal.csb.append( "Model Loading finished in " + to_string( timeTaken ) + "ms" ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( "Model contains " + to_string( renderer.accelerationStructure.triangleList.size() ) + " triangles" ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( "Bounds:" ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( " X: " ).append( to_string( bounds.mins.x ) ).append( " to " ).append( to_string( bounds.maxs.x ) ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( " Y: " ).append( to_string( bounds.mins.y ) ).append( " to " ).append( to_string( bounds.maxs.y ) ).flush() );
+					terminal.addHistoryLine( terminal.csb.append( " Z: " ).append( to_string( bounds.mins.z ) ).append( " to " ).append( to_string( bounds.maxs.z ) ).flush() );
 				}, "Load the model from disk." );
 
 			// == Build the BVH ======================================================================
-			terminal.addCommand( { "BuildBVH" }, {{ "mode", INT, "Select BVH Construction Method." }},
+			terminal.addCommand( { "BuildBVH" }, {},
 				[=] ( args_t args ) {
+					auto tStart = std::chrono::system_clock::now();
 
 					// use the loaded model to build a bvh
-					switch( args[ "mode" ] ) {
-						case 0: // naiive
-							break;
+					renderer.accelerationStructure.BuildTree();
 
-						case 1: // SAH
-							break;
-
-						case 2: // Binned SAH
-							break;
-
-						default: break;
-					}
-					// report how long it took
+					// report how long it took + some stats
+					auto tStop = std::chrono::system_clock::now();
+					float timeTaken = std::chrono::duration_cast< std::chrono::microseconds >( tStop - tStart ).count() / 1000.0f;
+					terminal.addHistoryLine( terminal.csb.append( "BVH Build finished in " + to_string( timeTaken ) + "ms" ).flush() );
 
 				}, "Build the BVH from the currently loaded model." );
+
+			// == Render an Image ====================================================================
+			terminal.addCommand( { "RenderImage" }, {},
+				[=] ( args_t args ) {
+					auto tStart = std::chrono::system_clock::now();
+
+					// add some cvars (with defaults) for setting the following:
+						// viewer position
+						// viewer direction
+						// ...
+
+					// run the accelerated traversal
+					renderer.acceleratedTraversal();
+
+					// then put the result in the "Image Buffer" texture, to look at it
+					glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Image Buffer" ) );
+					glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, renderer.imageBuffer.Width(), renderer.imageBuffer.Height(), 0, GL_RGBA, GL_FLOAT, ( void * ) renderer.imageBuffer.GetImageDataBasePtr() );
+
+					// maybe also save to disk, tbd
+
+					auto tStop = std::chrono::system_clock::now();
+					float timeTaken = std::chrono::duration_cast< std::chrono::microseconds >( tStop - tStart ).count() / 1000.0f;
+					terminal.addHistoryLine( terminal.csb.append( "Render Image finished in " + to_string( timeTaken ) + "ms" ).flush() );
+
+				}, "Render an image from the built BVH." );
 		}
 	}
 
@@ -116,7 +145,17 @@ public:
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
+
+			// clear buffer
+			textRenderer.Clear();
+
+			// show timestamp
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
+
+			// show terminal, if active - active check happens inside
+			textRenderer.drawTerminal( terminal );
+
+			// composite down to the display tex
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
