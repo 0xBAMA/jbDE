@@ -479,16 +479,9 @@ struct testRenderer_t {
 	rng centeredJitter = rng( -1.0f, 1.0f );
 
 	void init () {
-		// create the preview image - probably use alpha channel to send traversal depth kind of stats
+		// create the preview image - probably eventually use alpha channel to send traversal depth kind of stats
 		imageBuffer = Image_4F( X_IMAGE_DIM, Y_IMAGE_DIM );
-		for ( uint32_t x = 0; x < imageBuffer.Width(); x++ ) {
-			for ( uint32_t y = 0; y < imageBuffer.Height(); y++ ) {
-				color_4F val;
-				val[ red ] = val[ green ] = val[ blue ] = 0.0f;
-				val[ alpha ] = 1.0f;
-				imageBuffer.SetAtXY( x, y, val );
-			}
-		}
+		imageBuffer.SaturateAlpha();
 
 		palette::PickRandomPalette( true );
 
