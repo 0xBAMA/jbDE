@@ -127,6 +127,12 @@ struct bvhNode_t {
 	bool isLeaf() { return primitiveCount > 0; }
 };
 
+// helper struct for binned SAH
+struct bin_t {
+	aabb_t bounds;
+	int primitiveCount = 0;
+};
+
 // top level bvh class
 struct bvh_t {
 	std::vector< triangle_t > triangleList;
@@ -209,21 +215,83 @@ struct bvh_t {
 		node.aabbMin = bbox.mins;
 	}
 
-
 	float FindBestSplitPlane ( bvhNode_t& node, int& axis, float& splitPos ) {
 		float bestCost = 1e30f;
+
+		// for the three axes, x,y,z ( optimization opportunity here, only considering the longest axis )
 		for ( int a = 0; a < 3; a++ ) {
+
+			// iterate through the list of triangles
+			float boundsMin = 1e30f, boundsMax = -1e30f;
+			for ( uint i = 0; i < node.primitiveCount; i++ ) {
+				// find the bounds for the primitive centroids of the primitives in the node
+				triangle_t& triangle = triangleList[ triangleIndices[ node.leftChild + i ] ];
+				boundsMin = min( boundsMin, triangle.centroid[ a ] );
+				boundsMax = max( boundsMax, triangle.centroid[ a ] );
+			}
+
+			// if the bounds are degenerate, continue
+			if ( boundsMin == boundsMax ) {
+				continue;
+			}
+
+			// otherwise, we start the binning
+			constexpr int NUM_BINS = 8;
+			bin_t bin[ NUM_BINS ];
+
+			// precompute a scale factor based on number of bins
+			float scale = NUM_BINS / ( boundsMax - boundsMin );
+
+			// iterating through the primitives again
 			for ( uint i = 0; i < node.primitiveCount; i++ ) {
 				triangle_t& triangle = triangleList[ triangleIndices[ node.leftChild + i ] ];
-				float candidatePos = triangle.centroid[ a ];
-				float cost = EvaluateSAH( node, a, candidatePos );
-				if ( cost < bestCost ) {
-					splitPos = candidatePos;
+
+				// figure out what bin it falls into
+				int bindex = min( NUM_BINS - 1, ( int )( ( triangle.centroid[ a ] - boundsMin ) * scale ) );
+
+				// increment bin count
+				bin[ bindex ].primitiveCount++;
+
+				// grow the bounds for that bin, to include all three vertices of this primitive
+				bin[ bindex ].bounds.growToInclude( triangle.vertex0 );
+				bin[ bindex ].bounds.growToInclude( triangle.vertex1 );
+				bin[ bindex ].bounds.growToInclude( triangle.vertex2 );
+			}
+
+			// left and right sweeps through the bins
+			float leftArea[ NUM_BINS - 1 ], rightArea[ NUM_BINS - 1 ];
+			int leftCount[ NUM_BINS - 1 ], rightCount[ NUM_BINS - 1 ];
+			aabb_t leftBox, rightBox;
+			int leftSum = 0, rightSum = 0;
+			for ( int i = 0; i < NUM_BINS - 1; i++ ) {
+				// left starts at 0 and goes up
+				leftSum += bin[ i ].primitiveCount;
+				leftCount[ i ] = leftSum;
+				leftBox.growToInclude( bin[ i ].bounds.mins );
+				leftBox.growToInclude( bin[ i ].bounds.maxs );
+				leftArea[ i ] = leftBox.area();
+
+				// right starts at NUM_BINS-1 and goes down
+				rightSum += bin[ NUM_BINS - 1 - i ].primitiveCount;
+				rightCount[ NUM_BINS - 2 - i ] = rightSum;
+				rightBox.growToInclude( bin[ NUM_BINS - 1 - i ].bounds.mins );
+				rightBox.growToInclude( bin[ NUM_BINS - 1 - i ].bounds.maxs );
+				rightArea[ NUM_BINS - 2 - i ] = rightBox.area();
+			}
+
+			// calculating SAH cost for each direction
+			scale = ( boundsMax - boundsMin ) / NUM_BINS;
+			for ( int i = 0; i < NUM_BINS - 1; i++ ) {
+				float planeCost = leftCount[ i ] * leftArea[ i ] + rightCount[ i ] * rightArea[ i ];
+				// update best cost etc while iterating
+				if ( planeCost < bestCost ) {
 					axis = a;
-					bestCost = cost;
+					splitPos = boundsMin + scale * ( i + 1 );
+					bestCost = planeCost;
 				}
 			}
 		}
+
 		return bestCost;
 	}
 
