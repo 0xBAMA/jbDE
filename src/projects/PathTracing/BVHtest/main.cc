@@ -17,7 +17,7 @@ public:
 			shaders[ "Draw" ] = computeShader( "./src/projects/PathTracing/BVHtest/shaders/draw.cs.glsl" ).shaderHandle;
 
 			// get some random triangles
-			renderer.init();
+			// renderer.init();
 
 			// create the image buffer for GPU display
 			textureOptions_t opts;
@@ -31,6 +31,34 @@ public:
 			opts.pixelDataType	= GL_FLOAT;
 			opts.initialData	= ( void * ) renderer.imageBuffer.GetImageDataBasePtr();
 			textureManager.Add( "Image Buffer", opts );
+
+			// == Load the Model =====================================================================
+			terminal.addCommand( { "LoadModel" }, {},
+				[=] ( args_t args ) {
+					// load the model
+
+				}, "Load the model from disk." );
+
+			// == Build the BVH ======================================================================
+			terminal.addCommand( { "BuildBVH" }, {{ "mode", INT, "Select BVH Construction Method." }},
+				[=] ( args_t args ) {
+
+					// use the loaded model to build a bvh
+					switch( args[ "mode" ] ) {
+						case 0: // naiive
+							break;
+
+						case 1: // SAH
+							break;
+
+						case 2: // Binned SAH
+							break;
+
+						default: break;
+					}
+					// report how long it took
+
+				}, "Build the BVH from the currently loaded model." );
 		}
 	}
 
@@ -41,6 +69,8 @@ public:
 		// new data into the input handler
 		inputHandler.update();
 
+		// pass any signals into the terminal
+		terminal.update( inputHandler );
 	}
 
 	void ImguiPass () {
