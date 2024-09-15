@@ -283,7 +283,7 @@ struct terminal_t {
 		uvec2 dims = uvec2( 156, 41 );
 
 		// is this terminal active
-		bool active = true;
+		bool active = false;
 
 		// navigation cursor
 		int cursorX = 0;
