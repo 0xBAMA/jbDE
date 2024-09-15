@@ -205,13 +205,28 @@ public:
 		uint32_t mouseState = SDL_GetMouseState( &mouse.x, &mouse.y );
 		if ( mouseState != 0 && !ImGui::GetIO().WantCaptureMouse ) {
 			if ( shift == true ) { // autofocus
-				daedalusConfig.view.clickPosition = vec2( mouse.x, config.height - mouse.y );
-				vec2 pixelLocation = daedalusConfig.view.clickPosition * daedalusConfig.view.outputZoom + daedalusConfig.view.outputOffset;
-				if ( pixelLocation.x >= 0 && pixelLocation.y >= 0 && pixelLocation.x < daedalusConfig.targetWidth && pixelLocation.y < daedalusConfig.targetHeight ) {
+				// resolution dependent behavior came from the fact that the input events come in based on the display mode, not the framebuffer size
+				SDL_DisplayMode DM;
+				SDL_GetCurrentDisplayMode( 0, &DM );
+				daedalusConfig.view.clickPosition = vec2( mouse.x, DM.h - mouse.y );
+
+				vec2 prepLoc = vec2( config.width, config.height ) * ( daedalusConfig.view.clickPosition / vec2( DM.w, DM.h ) );
+				prepLoc = prepLoc * daedalusConfig.view.outputZoom + daedalusConfig.view.outputOffset;
+
+				if ( prepLoc.x >= 0 && prepLoc.y >= 0 && prepLoc.x < daedalusConfig.targetWidth && prepLoc.y < daedalusConfig.targetHeight ) {
 					float value[ 4 ]; // get the value from the depth buffer - determine where to set the focal plane for the DoF
 					const GLuint texture = textureManager.Get( "Depth/Normals Accumulator" );
-					glGetTextureSubImage( texture, 0, pixelLocation.x,  daedalusConfig.targetHeight - pixelLocation.y, 0, 1, 1, 1, GL_RGBA, GL_FLOAT, 16, &value );
+					glGetTextureSubImage( texture, 0, int( prepLoc.x ), int( daedalusConfig.targetHeight - prepLoc.y ), 0, 1, 1, 1, GL_RGBA, GL_FLOAT, 16, &value );
 					daedalusConfig.render.thinLensFocusDistance = value[ 3 ];
+					// const GLuint texture2 = textureManager.Get( "Color Accumulator" );
+					// float values[ 9 * 9 * 4 ];
+					// for ( int i = 0; i < 9 * 9; i++ ) {
+					// 	values[ 4 * i + 0 ] = 1.0f;
+					// 	values[ 4 * i + 1 ] = 0.0f;
+					// 	values[ 4 * i + 2 ] = 0.0f;
+					// 	values[ 4 * i + 3 ] = 1.0f;
+					// }
+					// glTextureSubImage2D( texture2, 0, int( prepLoc.x ), int( daedalusConfig.targetHeight - prepLoc.y ), 9, 9, GL_RGBA, GL_FLOAT, &values );
 				}
 			} else { // panning control
 				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
