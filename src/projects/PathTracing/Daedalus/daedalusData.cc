@@ -253,7 +253,7 @@ void Daedalus::PrepSphereBufferRandom() {
 
 	vec3 color = vec3( 1.0f );
 	daedalusConfig.render.scene.explicitPrimitiveData.clear();
-	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 0.0f, 0.0f, 0.0f, 4.0f ) );			// position
+	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( 0.0f, 0.0f, 0.0f, daedalusConfig.render.scene.marbleRadius ) );			// position
 	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( color.x, color.y, color.z, 14.0f ) );	// color
 	daedalusConfig.render.scene.explicitPrimitiveData.push_back( vec4( IoR(), 0.0f, 0.0f, 0.0f ) );	// material properties
 }

@@ -67,7 +67,8 @@ void Daedalus::ShowDaedalusConfigWindow() {
 			ImGui::SliderFloat( "Bounds Size Z", &daedalusConfig.render.scene.ddaSpheresBoundSize.z, 0.1f, 20.0f );
 			ImGui::SliderInt( "Resolution", &daedalusConfig.render.scene.ddaSpheresResolution, 5, 1000 );
 			if ( ImGui::Button( "Regen" ) ) {
-				GoLTex();
+				// GoLTex();
+				DDAVATTex();
 			}
 			// bounding box center offset
 
