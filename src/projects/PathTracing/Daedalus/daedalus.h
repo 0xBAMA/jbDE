@@ -210,6 +210,9 @@ public:
 				SDL_GetCurrentDisplayMode( 0, &DM );
 				daedalusConfig.view.clickPosition = vec2( mouse.x, DM.h - mouse.y );
 
+				// disable click and drag while we're doing this
+				ImGui::ResetMouseDragDelta();
+
 				vec2 prepLoc = vec2( config.width, config.height ) * ( daedalusConfig.view.clickPosition / vec2( DM.w, DM.h ) );
 				prepLoc = prepLoc * daedalusConfig.view.outputZoom + daedalusConfig.view.outputOffset;
 
