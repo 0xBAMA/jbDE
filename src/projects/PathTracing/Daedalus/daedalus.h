@@ -218,15 +218,6 @@ public:
 					const GLuint texture = textureManager.Get( "Depth/Normals Accumulator" );
 					glGetTextureSubImage( texture, 0, int( prepLoc.x ), int( daedalusConfig.targetHeight - prepLoc.y ), 0, 1, 1, 1, GL_RGBA, GL_FLOAT, 16, &value );
 					daedalusConfig.render.thinLensFocusDistance = value[ 3 ];
-					// const GLuint texture2 = textureManager.Get( "Color Accumulator" );
-					// float values[ 9 * 9 * 4 ];
-					// for ( int i = 0; i < 9 * 9; i++ ) {
-					// 	values[ 4 * i + 0 ] = 1.0f;
-					// 	values[ 4 * i + 1 ] = 0.0f;
-					// 	values[ 4 * i + 2 ] = 0.0f;
-					// 	values[ 4 * i + 3 ] = 1.0f;
-					// }
-					// glTextureSubImage2D( texture2, 0, int( prepLoc.x ), int( daedalusConfig.targetHeight - prepLoc.y ), 9, 9, GL_RGBA, GL_FLOAT, &values );
 				}
 			} else { // panning control
 				ImVec2 currentMouseDrag = ImGui::GetMouseDragDelta( 0 );
