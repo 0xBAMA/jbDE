@@ -28,10 +28,11 @@ public:
 		// consider wrapping the below in a recursive filesystem iteration... do it for all the files in a folder + subfolders?
 			// const string filename = string( "./bin/CantorDust" );
 			// const string filename = string( "./TODO.md" );
-			const string filename = string( "../../Downloads/544141-1-2004-ranger-ford-stock-stock-cragar-soft-8-black.webp" );
+			// const string filename = string( "../../Downloads/544141-1-2004-ranger-ford-stock-stock-cragar-soft-8-black.webp" );
 			// const string filename = string( "../PolynomialOptics-Source.zip" );
 			// const string filename = string( "./src/projects/SignalProcessing/CantorDust/main.cc" );
 			// const string filename = string( "../EXRs/mosaic_tunnel_4k.exr" );
+			const string filename = string( "../2024-07-20 18-22-27.mp4" );
 
 			std::vector< unsigned char > bytes;
 			bytes.reserve( std::filesystem::file_size( std::filesystem::path( filename ) ) );
@@ -51,6 +52,20 @@ public:
 			for ( size_t idx = 0; idx < ( histogram.size() - 1 ); idx++ ) {
 				CantorDustConfig.maxValue = std::max( histogram[ idx ], CantorDustConfig.maxValue );
 			}
+
+			Image_4F output( 256, 256 );
+			for ( uint32_t y = 0; y < 256; y++ ) {
+				for ( uint32_t x = 0; x < 256; x++ ) {
+					color_4F col;
+					col[ red ]		= 0.0f;
+					col[ green ]	= 2.0f * std::pow( float( histogram[ x + 256 * y ] ) / float( CantorDustConfig.maxValue ), 0.25f );
+					col[ blue ]		= 0.0f;
+					col[ alpha ]	= 1.0f;
+
+					output.SetAtXY( x, y, col );
+				}
+			}
+			output.Save( "output.png", Image_4F::backend::LODEPNG );
 
 			// setup a texture to hold the data
 			textureOptions_t opts;
