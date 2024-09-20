@@ -494,3 +494,15 @@ target_link_libraries( ifs2D
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# Looking at relationships between neighboring bytes
+# =================================================================================================
+add_executable( CantorDust
+	src/projects/SignalProcessing/CantorDust/main.cc
+)
+
+target_link_libraries( CantorDust
+	PUBLIC
+	engineBase
+)
