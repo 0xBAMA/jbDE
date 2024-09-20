@@ -1096,6 +1096,62 @@ float deASDF( vec3 p ) {
   }
   return abs( p.y ) / s;
 }
+// from Nikolay
+void sphere_fold ( inout vec3 z, inout float dz ) {
+	float FixedRadius = 10.9;
+	float MinRadius = 1.1;
+	float r2 = dot( z, z );
+	if ( r2 < MinRadius ) {
+		float temp = ( FixedRadius / MinRadius );
+		z *= temp; dz *= temp;
+	} else if ( r2 < FixedRadius ) {
+		float temp = ( FixedRadius / r2 );
+		z *= temp; dz *= temp;
+	}
+}
+
+void box_fold ( inout vec3 z ) {
+	float folding_limit = 1.0;
+	z = clamp(z, -folding_limit, folding_limit) * 2.0 - z;
+}
+
+float DEnew ( vec3 p ) {
+	float s = 1.;
+	float t = 9999.;
+	for(int i = 0; i < 12; i++){
+		float k =  .1/clamp(dot(p,p),0.01,1.);
+		p *= k;
+		s *= k;
+		sphere_fold(p.xyz,s);
+		box_fold(p.xyz);
+		p=abs(p)-vec3(.2,5.,2.7);
+		p=mod(p-1.,2.)-1.;
+		t = min(t, length(p)/s);
+	}
+	return t;
+}
+
+float DEnew2 ( vec3 p ) {
+	float s = 1.;
+	float t = 9999.;
+
+	for(int i = 0; i < 12; i++){
+		//if(p.x > p.z)p.xz = p.zx;
+		//if(p.z > p.y)p.zy = p.yz;
+		//if(p.y > p.x)p.yx = p.xy;
+		float k =  .12/clamp(dot(p,p),0.01,1.);
+		p *= k;
+		s *= k;
+		sphere_fold(p.xyz,s);
+		box_fold(p.xyz);
+		p=abs(p)-vec3(5.2,2.,.7);
+		p=mod(p-1.,2.)-1.;
+
+		t = min(t, length(p)/s);
+	}
+	return t;
+}
+
 
 //=============================================================================================================================
 #include "oldTestChamber.h.glsl"
