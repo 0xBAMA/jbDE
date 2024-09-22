@@ -1,5 +1,5 @@
 #version 430
-layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
+layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
 uniform int byteOffset;
 
@@ -8,7 +8,7 @@ layout( binding = 2, r32ui ) uniform uimage2D dataTexture2D;
 layout( binding = 3, r32ui ) uniform uimage3D dataTexture3D;
 
 // target for the DDA draw
-layout( binding = 4, rgba8 ) uniform image2D blockImage;
+layout( binding = 4, rgba16f ) uniform image2D blockImage;
 
 // ssbo for data bytes
 layout( binding = 0, std430 ) buffer dataBuffer { uint data[]; };
@@ -51,21 +51,78 @@ uint getByte ( uint index ) {
 	return value;
 }
 
+uniform float time;
+
+#include "consistentPrimitives.glsl.h"
+#include "mathUtils.h"
+
+bool inBounds ( ivec3 pos ) { // helper function for bounds checking
+	return ( all( greaterThanEqual( pos, ivec3( 0 ) ) ) && all( lessThan( pos, imageSize( dataTexture3D ) ) ) );
+}
+
 void main () {
 	// byte index
-	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
+	ivec2 index = ivec2( gl_GlobalInvocationID.xy );
 
-// populating the histogram
-	// load this byte, and the two following bytes
-	uint bytes[ 3 ];
-	bytes[ 0 ] = getByte( index );
-	bytes[ 1 ] = getByte( index + 1 );
-	bytes[ 2 ] = getByte( index + 2 );
+// DDA traversal
+	float aspectRatio = float( imageSize( blockImage ).x ) / float( imageSize( blockImage ).y );
+	vec2 uv = vec2(
+		RangeRemapValue( float( index.x ), 0, imageSize( blockImage ).x, -aspectRatio, aspectRatio ),
+		RangeRemapValue( float( index.y ), 0, imageSize( blockImage ).y, 0.85f, -1.1f ) );
 
-	// 2d histogram considers only this byte and the next
-	atomicMax( max2D, imageAtomicAdd( dataTexture2D, ivec2( bytes[ 0 ], bytes[ 1 ] ), 1 ) + 1 );
+	// Camera
+	vec3 ro = vec3( 3.0f * sin( time ), 2.0f, -3.0f * cos( time ) );
+	vec3 lookat = vec3( 0.0f );
+	vec3 f = normalize( lookat - ro );
+	vec3 r = normalize( cross( vec3( 0.0f, 1.0f, 0.0f ), f ) );
+	vec3 u = normalize( cross( f, r ) );
+	float zoom = 2.0f;
+	vec3 c = ro + f * zoom;
+	vec3 i = c + uv.x * r + uv.y * u;
+	vec3 rd = i - ro;
 
-	// 3d histogram considers this byte and the two following
-	atomicMax( max3D, imageAtomicAdd( dataTexture3D, ivec3( bytes[ 0 ], bytes[ 1 ], bytes[ 2 ] ), 1 ) + 1 );
+	// intersect
+	float sum = 0.0f;
+	vec3 normal = vec3( 0.0f );
+	float boxDist = iBoxOffset( ro, rd, normal, vec3( 1.0f ), vec3( 0.0f ) );
 
+	if ( boxDist < MAX_DIST ) {
+	// DDA traversal for the sum
+		vec3 hitPos = ro + rd * ( boxDist + 0.001f );
+		hitPos.x = RangeRemapValue( hitPos.x, -1.0f, 1.0f, 0.0f, imageSize( dataTexture3D ).x );
+		hitPos.y = RangeRemapValue( hitPos.y, -1.0f, 1.0f, 0.0f, imageSize( dataTexture3D ).y );
+		hitPos.z = RangeRemapValue( hitPos.z, -1.0f, 1.0f, 0.0f, imageSize( dataTexture3D ).z );
+
+		// from https://www.shadertoy.com/view/7sdSzH
+		vec3 deltaDist = 1.0f / abs( rd );
+		ivec3 rayStep = ivec3( sign( rd ) );
+		bvec3 mask0 = bvec3( false );
+		ivec3 mapPos0 = ivec3( floor( hitPos ) );
+		vec3 sideDist0 = ( sign( rd ) * ( vec3( mapPos0 ) - hitPos ) + ( sign( rd ) * 0.5f ) + 0.5f ) * deltaDist;
+
+		for ( int i = 0; inBounds( mapPos0 ); i++ ) {
+
+			bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
+			vec3 sideDist1 = sideDist0 + vec3( mask1 ) * deltaDist;
+			ivec3 mapPos1 = mapPos0 + ivec3( vec3( mask1 ) ) * rayStep;
+
+			// add to the sum
+			// sum += float( imageLoad( dataTexture3D, mapPos0 ).r ) / float( max3D );
+			sum += float( imageLoad( dataTexture3D, mapPos0 ).r );
+
+			sideDist0 = sideDist1;
+			mapPos0 = mapPos1;
+		}
+	}
+
+	// getting a color from the sum
+	sum = log( sum / float( max3D ) + 0.01f ) - log( 0.01f );
+	vec3 color = vec3(
+		1.0f / ( 1.0f + sum / 2.0f ) * sum,
+		sum * 0.3f,
+		1.0f - 1.0f / ( 1.0f + sum * 0.7f ) + sum * 0.5f
+	) * 2.0f;
+
+	// store to the buffer, which gets sampled during output
+	imageStore( blockImage, index, vec4( saturate( color.gbr ), 1.0f ) );
 }

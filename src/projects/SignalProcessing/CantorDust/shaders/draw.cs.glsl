@@ -9,9 +9,9 @@ layout( binding = 2, r32ui ) uniform uimage2D dataTexture2D;
 layout( binding = 3, r32ui ) uniform uimage3D dataTexture3D;
 
 // target for the DDA draw
-layout( binding = 4, rgba8 ) uniform image2D blockImage;
+layout( binding = 4, rgba16f ) uniform image2D blockImage;
 
-// falloff curve control
+// falloff curve control, tbd
 uniform float histogramDisplayPower;
 
 // ssbo for data bytes
@@ -69,20 +69,14 @@ void main () {
 		color.g = getByte( index ) / 255.0f;
 
 	} else {
-
-		color.g = pow( float( imageLoad( dataTexture2D, ivec2( writeLoc.x - 300, writeLoc.y ) / 3 ).r ) / float( max2D ), 0.5f );
+		ivec2 loc = writeLoc;
+		loc.x -= 300;
 
 		// block visual
-			// DDA traversal
+		color = imageLoad( blockImage, loc ).rgb;
 
-		// place the block
-
-		// intersect
-
-		// DDA traversal for the sum
-
-		// do something to get a color from the sum
-
+		// 2d histogram overlay
+		color.g += pow( float( imageLoad( dataTexture2D, loc / 2 ).r ) / float( max2D ), 0.5f );
 	}
 
 	// write the data to the image
