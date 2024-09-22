@@ -1,18 +1,14 @@
 #version 430
-layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
+layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
-layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
-layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
+uniform int byteOffset;
 
-// probably move the 3D's DDA traversal into another image, sampled here in this shader
+// the 2D and 3D histogram images
 layout( binding = 2, r32ui ) uniform uimage2D dataTexture2D;
 layout( binding = 3, r32ui ) uniform uimage3D dataTexture3D;
 
 // target for the DDA draw
 layout( binding = 4, rgba8 ) uniform image2D blockImage;
-
-// falloff curve control
-uniform float histogramDisplayPower;
 
 // ssbo for data bytes
 layout( binding = 0, std430 ) buffer dataBuffer { uint data[]; };
@@ -56,35 +52,20 @@ uint getByte ( uint index ) {
 }
 
 void main () {
-	// pixel location
-	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
+	// byte index
+	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
 
-	vec3 color = vec3( 0.0f );
+// populating the histogram
+	// load this byte, and the two following bytes
+	uint bytes[ 3 ];
+	bytes[ 0 ] = getByte( index );
+	bytes[ 1 ] = getByte( index + 1 );
+	bytes[ 2 ] = getByte( index + 2 );
 
-	if ( writeLoc.x < 256 ) {
-		// linear/hilbert data view
-		uint index = writeLoc.x + 256 * writeLoc.y;
+	// 2d histogram considers only this byte and the next
+	atomicMax( max2D, imageAtomicAdd( dataTexture2D, ivec2( bytes[ 0 ], bytes[ 1 ] ), 1 ) + 1 );
 
-		// get the byte value and color it accordingly
-		color.g = getByte( index ) / 255.0f;
+	// 3d histogram considers this byte and the two following
+	atomicMax( max3D, imageAtomicAdd( dataTexture3D, ivec3( bytes[ 0 ], bytes[ 1 ], bytes[ 2 ] ), 1 ) + 1 );
 
-	} else {
-
-		color.g = pow( float( imageLoad( dataTexture2D, ivec2( writeLoc.x - 300, writeLoc.y ) / 3 ).r ) / float( max2D ), 0.5f );
-
-		// block visual
-			// DDA traversal
-
-		// place the block
-
-		// intersect
-
-		// DDA traversal for the sum
-
-		// do something to get a color from the sum
-
-	}
-
-	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
 }

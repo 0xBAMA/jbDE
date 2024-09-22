@@ -1,8 +1,37 @@
 #include "../../../engine/engine.h"
 
 struct CantorDustConfig_t {
-	uint32_t maxValue = 0;
-	float power = 1.0f;
+
+	// adjusting the falloff for the histogram values
+	float histogramDisplayPower = 1.0f;
+
+	// which one are we looking at?
+	int selectedDataset = 1;
+
+	// windowing the bytes - where do you start, and how many you do
+	uint byteOffset = 0;
+	uint numBytes = 0;
+
+	// if the data changes, we need to rebuild the histogram
+	bool needsUpdate = true;
+
+	// byte vectors for the files
+	std::vector< std::vector< unsigned char > > data;
+
+	// string filenames to load
+	std::vector< string > filenames = {
+		"./src/projects/SignalProcessing/CantorDust/main.cc",								// this file
+		"./bin/CantorDust",																	// the application generated from this file
+		"./TODO.md",																		// markdown document with lots of URLs
+		"../../Downloads/544141-1-2004-ranger-ford-stock-stock-cragar-soft-8-black.webp",	// random webp
+		"../PolynomialOptics-Source.zip",													// zip file
+		"../EXRs/mosaic_tunnel_4k.exr",														// exr image format
+		"../2024-07-20 18-22-27.mp4"														// mp4 video format
+	};
+
+	GLuint dataBuffer;
+	GLuint histogram2DMax;
+	GLuint histogram3DMax;
 };
 
 class CantorDust final : public engineBase { // sample derived from base engine class
@@ -19,63 +48,61 @@ public:
 
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Draw" ] = computeShader( "./src/projects/SignalProcessing/CantorDust/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Update" ] = computeShader( "./src/projects/SignalProcessing/CantorDust/shaders/update.cs.glsl" ).shaderHandle;
 
-		// processing the data
-			// setting up and initializing the buffer for the histogram
-			std::vector< uint32_t > histogram;
-			histogram.resize( 256 * 256, 0 );
+			// load up all the byte streams
+			CantorDustConfig.data.resize( CantorDustConfig.filenames.size() );
+			for ( uint i = 0; i < CantorDustConfig.filenames.size(); i++ ) {
+				const string filename = CantorDustConfig.filenames[ i ];
+				std::vector< unsigned char > bytes;
+				CantorDustConfig.data[ i ].reserve( std::filesystem::file_size( std::filesystem::path( filename ) ) );
+				std::ifstream file( filename, ios_base::in | ios_base::binary );
+				CantorDustConfig.data[ i ].insert( CantorDustConfig.data[ i ].end(), istreambuf_iterator< char >{ file }, {} );
 
-		// consider wrapping the below in a recursive filesystem iteration... do it for all the files in a folder + subfolders?
-			// const string filename = string( "./bin/CantorDust" );
-			// const string filename = string( "./TODO.md" );
-			// const string filename = string( "../../Downloads/544141-1-2004-ranger-ford-stock-stock-cragar-soft-8-black.webp" );
-			// const string filename = string( "../PolynomialOptics-Source.zip" );
-			// const string filename = string( "./src/projects/SignalProcessing/CantorDust/main.cc" );
-			// const string filename = string( "../EXRs/mosaic_tunnel_4k.exr" );
-			const string filename = string( "../2024-07-20 18-22-27.mp4" );
-
-			std::vector< unsigned char > bytes;
-			bytes.reserve( std::filesystem::file_size( std::filesystem::path( filename ) ) );
-			std::ifstream file( filename, ios_base::in | ios_base::binary );
-			bytes.insert( bytes.end(), istreambuf_iterator< char >{ file }, {} );
-
-			// now we're going to step throught the bytes, and populate the histogram
-			for ( size_t idx = 0; idx < ( bytes.size() - 1 ); idx++ ) {
-				// load the current and next bytes...
-				uint8_t current	= bytes[ idx ];
-				uint8_t next	= bytes[ idx + 1 ];
-				// increment the corresponding histogram bin
-				histogram[ current + next * 256 ] += 1;
-			}
-
-			// determine the maximum across the histogram, to normalize
-			for ( size_t idx = 0; idx < ( histogram.size() - 1 ); idx++ ) {
-				CantorDustConfig.maxValue = std::max( histogram[ idx ], CantorDustConfig.maxValue );
-			}
-
-			Image_4F output( 256, 256 );
-			for ( uint32_t y = 0; y < 256; y++ ) {
-				for ( uint32_t x = 0; x < 256; x++ ) {
-					color_4F col;
-					col[ red ]		= 0.0f;
-					col[ green ]	= 2.0f * std::pow( float( histogram[ x + 256 * y ] ) / float( CantorDustConfig.maxValue ), 0.25f );
-					col[ blue ]		= 0.0f;
-					col[ alpha ]	= 1.0f;
-
-					output.SetAtXY( x, y, col );
+				uint pad = 3 - ( CantorDustConfig.data[ i ].size() % 4 );
+				for ( uint i = 0; i < pad; i++ ) {
+					// need to pad with 1-3 zeroes, depending on the situation
+					CantorDustConfig.data[ i ].push_back( 0 );
 				}
 			}
-			output.Save( "output.png", Image_4F::backend::LODEPNG );
 
-			// setup a texture to hold the data
+			// going to now be passing that into an SSBO, and doing the analysis on the GPU
+			// CantorDustConfig.selectedDataset
+
+			// setup a texture to hold the 2D histogram
 			textureOptions_t opts;
 			opts.dataType		= GL_R32UI;
 			opts.width			= 256;
 			opts.height			= 256;
 			opts.textureType	= GL_TEXTURE_2D;
-			opts.pixelDataType	= GL_UNSIGNED_INT;
-			opts.initialData	= ( void * ) histogram.data();
-			textureManager.Add( "Data Texture", opts );
+			textureManager.Add( "Histogram2D", opts );
+
+			// and the 3D
+			opts.depth			= 256;
+			opts.textureType	= GL_TEXTURE_3D;
+			textureManager.Add( "Histogram3D", opts );
+
+			// create the SSBO for the data
+			glGenBuffers( 1, &CantorDustConfig.dataBuffer );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, CantorDustConfig.dataBuffer );
+			uint byteCount = CantorDustConfig.data[ CantorDustConfig.selectedDataset ].size();
+
+			CantorDustConfig.numBytes = byteCount; // update numBytes
+			void * data = ( void * ) CantorDustConfig.data[ CantorDustConfig.selectedDataset ].data();
+			glBufferData( GL_SHADER_STORAGE_BUFFER, byteCount, data, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, CantorDustConfig.dataBuffer );
+
+			// buffers for the histogram max values
+			constexpr uint32_t countValue = 0;
+			glGenBuffers( 1, &CantorDustConfig.histogram2DMax );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, CantorDustConfig.histogram2DMax );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, CantorDustConfig.histogram2DMax );
+
+			glGenBuffers( 1, &CantorDustConfig.histogram3DMax );
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, CantorDustConfig.histogram3DMax );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, CantorDustConfig.histogram3DMax );
 		}
 	}
 
@@ -111,6 +138,22 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
+		if ( CantorDustConfig.needsUpdate ) {
+			CantorDustConfig.needsUpdate = false;
+
+			scopedTimer Start( "Update" );
+			const GLuint shader = shaders[ "Update" ];
+			glUseProgram( shader );
+
+			// glUniform1i( glGetUniformLocation( shader, "byteOffset" ), CantorDustConfig.byteOffset );
+			textureManager.BindImageForShader( "Histogram2D", "dataTexture2D", shader, 2 );
+			textureManager.BindImageForShader( "Histogram3D", "dataTexture3D", shader, 3 );
+
+			const int workgroupsRoundedUp = ( CantorDustConfig.numBytes + 63 ) / 64;
+			glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1 ), 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
@@ -118,9 +161,10 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 
-			glUniform1ui( glGetUniformLocation( shader, "maxValue" ), CantorDustConfig.maxValue );
-			glUniform1f( glGetUniformLocation( shader, "power" ), CantorDustConfig.power );
-			textureManager.BindImageForShader( "Data Texture", "dataTexture", shader, 2 );
+			glUniform1f( glGetUniformLocation( shader, "histogramDisplayPower" ), CantorDustConfig.histogramDisplayPower );
+
+			textureManager.BindImageForShader( "Histogram2D", "dataTexture2D", shader, 2 );
+			textureManager.BindImageForShader( "Histogram3D", "dataTexture3D", shader, 3 );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
