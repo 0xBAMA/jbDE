@@ -3,7 +3,8 @@
 struct CantorDustConfig_t {
 
 	// adjusting the falloff for the histogram values
-	float histogramDisplayPower = 1.0f;
+	float histogramDisplayPower = 0.4f;
+	float histogramDisplayScale = 0.3f;
 
 	// which one are we looking at?
 	int selectedDataset = 1;
@@ -24,6 +25,7 @@ struct CantorDustConfig_t {
 		"./bin/CantorDust",																	// the application generated from this file
 		"./TODO.md",																		// markdown document with lots of URLs
 		"../../Downloads/544141-1-2004-ranger-ford-stock-stock-cragar-soft-8-black.webp",	// random webp
+		"../../Downloads/noctilucentia/noctilucentia.exe",									// wrighter's demo
 		"../PolynomialOptics-Source.zip",													// zip file
 		"../EXRs/mosaic_tunnel_4k.exr",														// exr image format
 		"../2024-07-20 18-22-27.mp4"														// mp4 video format
@@ -49,9 +51,10 @@ public:
 			// something to put some basic data in the accumulator texture - specific to the demo project
 			shaders[ "Draw" ] = computeShader( "./src/projects/SignalProcessing/CantorDust/shaders/draw.cs.glsl" ).shaderHandle;
 			shaders[ "Update" ] = computeShader( "./src/projects/SignalProcessing/CantorDust/shaders/update.cs.glsl" ).shaderHandle;
+			shaders[ "Block" ] = computeShader( "./src/projects/SignalProcessing/CantorDust/shaders/block.cs.glsl" ).shaderHandle;
 
 			// load up all the byte streams
-			CantorDustConfig.data.resize( CantorDustConfig.filenames.size() );
+			CantorDustConfig.data.resize( CantorDustConfig.filenames.size() + 1 );
 			for ( uint i = 0; i < CantorDustConfig.filenames.size(); i++ ) {
 				const string filename = CantorDustConfig.filenames[ i ];
 				std::vector< unsigned char > bytes;
@@ -64,6 +67,22 @@ public:
 					// need to pad with 1-3 zeroes, depending on the situation
 					CantorDustConfig.data[ i ].push_back( 0 );
 				}
+			}
+
+			const int bindex = CantorDustConfig.filenames.size();
+			for ( uint z = 0; z <= 255; z++ ) {
+				for ( uint y = 0; y <= 255; y++ ) {
+					for ( uint x = 0; x <= 255; x++ ) {
+						CantorDustConfig.data[ bindex ].push_back( x );
+						CantorDustConfig.data[ bindex ].push_back( y );
+						CantorDustConfig.data[ bindex ].push_back( z );
+					}
+				}
+			}
+			uint pad = 3 - ( CantorDustConfig.data[ bindex ].size() % 4 );
+			for ( uint i = 0; i < pad; i++ ) {
+				// need to pad with 1-3 zeroes, depending on the situation
+				CantorDustConfig.data[ bindex ].push_back( 0 );
 			}
 
 			// going to now be passing that into an SSBO, and doing the analysis on the GPU
@@ -81,6 +100,14 @@ public:
 			opts.depth			= 256;
 			opts.textureType	= GL_TEXTURE_3D;
 			textureManager.Add( "Histogram3D", opts );
+
+			// and the buffer to hold the DDA result
+			opts.dataType		= GL_R16F;
+			opts.width			= config.width - 300; // cropped for the data display
+			opts.height			= config.height;
+			opts.depth			= 1;
+			opts.textureType	= GL_TEXTURE_2D;
+			textureManager.Add( "DDA Result", opts );
 
 			// create the SSBO for the data
 			glGenBuffers( 1, &CantorDustConfig.dataBuffer );
@@ -138,6 +165,13 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
+		{
+			CantorDustConfig.byteOffset += 256;
+			CantorDustConfig.byteOffset = CantorDustConfig.byteOffset % CantorDustConfig.data[ CantorDustConfig.selectedDataset ].size();
+			CantorDustConfig.numBytes = 256 * 128;
+			CantorDustConfig.needsUpdate = true;
+		}
+
 		if ( CantorDustConfig.needsUpdate ) {
 			CantorDustConfig.needsUpdate = false;
 
@@ -145,12 +179,43 @@ public:
 			const GLuint shader = shaders[ "Update" ];
 			glUseProgram( shader );
 
-			// glUniform1i( glGetUniformLocation( shader, "byteOffset" ), CantorDustConfig.byteOffset );
+			glUniform1ui( glGetUniformLocation( shader, "byteOffset" ), CantorDustConfig.byteOffset );
+			glUniform1ui( glGetUniformLocation( shader, "numBytes" ), CantorDustConfig.numBytes );
 			textureManager.BindImageForShader( "Histogram2D", "dataTexture2D", shader, 2 );
 			textureManager.BindImageForShader( "Histogram3D", "dataTexture3D", shader, 3 );
 
-			const int workgroupsRoundedUp = ( CantorDustConfig.numBytes + 63 ) / 64;
-			glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1 ), 1 );
+			// reset the max
+			constexpr uint32_t countValue = 0;
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, CantorDustConfig.histogram2DMax );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, CantorDustConfig.histogram2DMax );
+
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, CantorDustConfig.histogram3DMax );
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, ( GLvoid * ) &countValue, GL_DYNAMIC_COPY );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, CantorDustConfig.histogram3DMax );
+
+			// reset the buffers
+			textureManager.ZeroTexture2D( "Histogram2D" );
+			textureManager.ZeroTexture3D( "Histogram3D" );
+
+			const uint numBytes = CantorDustConfig.data[ CantorDustConfig.selectedDataset ].size();
+			const uint workgroupsRoundedUp = ( numBytes + 63 ) / 64;
+			glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1u ), 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+		}
+
+		{
+			scopedTimer Start( "DDA Block Prep" );
+			const GLuint shader = shaders[ "Block" ];
+			glUseProgram( shader );
+
+			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1000.0f );
+
+			textureManager.BindImageForShader( "Histogram2D", "dataTexture2D", shader, 2 );
+			textureManager.BindImageForShader( "Histogram3D", "dataTexture3D", shader, 3 );
+			textureManager.BindImageForShader( "DDA Result", "blockImage", shader, 4 );
+
+			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
@@ -161,10 +226,15 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 
+			glUniform1ui( glGetUniformLocation( shader, "byteOffset" ), CantorDustConfig.byteOffset );
+			glUniform1ui( glGetUniformLocation( shader, "numBytes" ), CantorDustConfig.numBytes );
+
+			glUniform1f( glGetUniformLocation( shader, "histogramDisplayScale" ), CantorDustConfig.histogramDisplayScale );
 			glUniform1f( glGetUniformLocation( shader, "histogramDisplayPower" ), CantorDustConfig.histogramDisplayPower );
 
 			textureManager.BindImageForShader( "Histogram2D", "dataTexture2D", shader, 2 );
 			textureManager.BindImageForShader( "Histogram3D", "dataTexture3D", shader, 3 );
+			textureManager.BindImageForShader( "DDA Result", "blockImage", shader, 4 );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

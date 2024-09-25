@@ -1,14 +1,12 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-uniform int byteOffset;
-
 // the 2D and 3D histogram images
 layout( binding = 2, r32ui ) uniform uimage2D dataTexture2D;
 layout( binding = 3, r32ui ) uniform uimage3D dataTexture3D;
 
 // target for the DDA draw
-layout( binding = 4, rgba16f ) uniform image2D blockImage;
+layout( binding = 4, r16f ) uniform image2D blockImage;
 
 // ssbo for data bytes
 layout( binding = 0, std430 ) buffer dataBuffer { uint data[]; };
@@ -55,6 +53,7 @@ uniform float time;
 
 #include "consistentPrimitives.glsl.h"
 #include "mathUtils.h"
+#include "colorRamps.glsl.h"
 
 bool inBounds ( ivec3 pos ) { // helper function for bounds checking
 	return ( all( greaterThanEqual( pos, ivec3( 0 ) ) ) && all( lessThan( pos, imageSize( dataTexture3D ) ) ) );
@@ -67,7 +66,7 @@ void main () {
 // DDA traversal
 	float aspectRatio = float( imageSize( blockImage ).x ) / float( imageSize( blockImage ).y );
 	vec2 uv = vec2(
-		RangeRemapValue( float( index.x ), 0, imageSize( blockImage ).x, -aspectRatio, aspectRatio ),
+		RangeRemapValue( float( index.x ), 0, imageSize( blockImage ).x, -aspectRatio, aspectRatio ) - 0.3f,
 		RangeRemapValue( float( index.y ), 0, imageSize( blockImage ).y, 0.85f, -1.1f ) );
 
 	// Camera
@@ -85,6 +84,7 @@ void main () {
 	float sum = 0.0f;
 	vec3 normal = vec3( 0.0f );
 	float boxDist = iBoxOffset( ro, rd, normal, vec3( 1.0f ), vec3( 0.0f ) );
+	vec3 color = vec3( 0.0f );
 
 	if ( boxDist < MAX_DIST ) {
 	// DDA traversal for the sum
@@ -113,16 +113,11 @@ void main () {
 			sideDist0 = sideDist1;
 			mapPos0 = mapPos1;
 		}
+
+		// getting a color from the sum
+		sum = sqrt( sum / float( max3D ) );
 	}
 
-	// getting a color from the sum
-	sum = log( sum / float( max3D ) + 0.01f ) - log( 0.01f );
-	vec3 color = vec3(
-		1.0f / ( 1.0f + sum / 2.0f ) * sum,
-		sum * 0.3f,
-		1.0f - 1.0f / ( 1.0f + sum * 0.7f ) + sum * 0.5f
-	) * 2.0f;
-
 	// store to the buffer, which gets sampled during output
-	imageStore( blockImage, index, vec4( saturate( color.gbr ), 1.0f ) );
+	imageStore( blockImage, index, vec4( sum, 0.0f, 0.0f, 1.0f ) );
 }
