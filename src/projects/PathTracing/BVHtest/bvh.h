@@ -508,13 +508,10 @@ struct testRenderer_t {
 	static constexpr uint32_t PROGRESS_INDICATOR_STOPS = 69; // cli spaces to take up
 
 	static constexpr float scaleFactor = 0.618f;
-	// static constexpr float scaleFactor = 1.33f;
-	// static constexpr float scaleFactor = 3.0f;
 	static constexpr uint32_t X_IMAGE_DIM = 300 * scaleFactor;
 	static constexpr uint32_t Y_IMAGE_DIM = 200 * scaleFactor;
 	static constexpr uint32_t TILESIZE_XY = 4;
-	static constexpr uint32_t NUM_SAMPLES = 1;
-	const bool dumpOutput = true;
+	static constexpr uint32_t NUM_SAMPLES = 4;
 	// bool threadsShouldDie = false;
 
 	std::atomic< uint32_t > tileIndexCounter{ 0 };
@@ -594,8 +591,10 @@ struct testRenderer_t {
 
 								// test a ray against the triangles
 								ray_t ray;
-								ray.origin = 100.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f ) + eyeLocation;
-								ray.direction = normalize( vec3( 1.0f, 0.0f, 0.25f ) );
+								// ray.origin = 100.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f ) + eyeLocation;
+								ray.origin = 40.0f * vec3( xRemap * ( float( imageBuffer.Width() ) / float( imageBuffer.Height() ) ), yRemap, 0.0f ) + eyeLocation;
+								// ray.direction = normalize( vec3( 1.0f, 0.0f, 0.25f ) );
+								ray.direction = normalize( vec3( 0.0f, 0.0f, 1.0f ) );
 
 								accelerationStructure.acceleratedTraversal( ray );
 
