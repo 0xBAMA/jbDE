@@ -196,6 +196,18 @@ target_link_libraries( Caustic
 )
 
 # =================================================================================================
+# Icarus
+# =================================================================================================
+add_executable( Icarus
+	src/projects/PathTracing/Icarus/main.cc
+)
+
+target_link_libraries( Icarus
+	PUBLIC
+	engineBase
+)
+
+# =================================================================================================
 # BVH construction/traversal experiment based on https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
 # =================================================================================================
 add_executable( BVHtest
