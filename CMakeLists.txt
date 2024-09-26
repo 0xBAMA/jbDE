@@ -518,3 +518,15 @@ target_link_libraries( CantorDust
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# generalizing Adam7 to arbitrary size neighborhoods
+# =================================================================================================
+add_executable( Adam
+	src/projects/SignalProcessing/Adam/main.cc
+)
+
+target_link_libraries( Adam
+	PUBLIC
+	engineBase
+)
