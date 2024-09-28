@@ -151,8 +151,13 @@ public:
 				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataU );
 
 				// put a color sample of a circular mask into the pixel for the color...
-				rng col = rng( 0.0f, 1.0f );
-				vec4 dataC = ( fmod( glm::distance( vec2( loc ), vec2( wInitial / 2.0f, hInitial / 2.0f ) ), 100.0f ) < 35.0f ) ? vec4( ( loc.x % 80 < 40 ) ? 0.0f : 1.0f, col(), ( loc.x % 80 < 40 ) ? 1.0f : 0.0f, 1.0f ) : vec4( 0.0f, 0.0f, 0.0f, 1.0f );
+				// rng col = rng( 0.0f, 1.0f );
+				// vec4 dataC = ( fmod( glm::distance( vec2( loc ), vec2( wInitial / 2.0f, hInitial / 2.0f ) ), 100.0f ) < 35.0f ) ? vec4( ( loc.x % 80 < 40 ) ? 0.0f : 1.0f, col(), ( loc.x % 80 < 40 ) ? 1.0f : 0.0f, 1.0f ) : vec4( 0.0f, 0.0f, 0.0f, 1.0f );
+
+				static Image_4F testImage( "test2.png" );
+				Image_4F::color col = testImage.GetAtXY( loc.x, loc.y );
+				vec4 dataC = vec4( col[ red ], col[ green ], col[ blue ], 1.0f );
+
 				glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Adam Color" ) );
 				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_RGBA32F ), GL_FLOAT, &dataC );
 
@@ -186,7 +191,7 @@ public:
 			}
 		}
 		// shuffle it around a bit
-		auto rng = std::default_random_engine {};
+		static auto rng = std::default_random_engine {};
 		std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
 		std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
 		std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
