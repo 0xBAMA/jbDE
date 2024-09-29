@@ -1,3 +1,4 @@
+#include "icarusView.h"
 #include "icarusData.h"
 
 // Icarus
@@ -8,10 +9,7 @@ public:
 	Icarus () { Init(); OnInit(); PostInit(); }
 	~Icarus () { Quit(); }
 
-	// viewerState_t viewerState;
-
-	vec2 offset = vec2( 0.0f );
-	float scale = 1.0f;
+	viewerState_t viewerState;
 
 	void OnInit () {
 		ZoneScoped;
@@ -22,7 +20,7 @@ public:
 			AllocateTextures( textureManager );
 			AllocateBuffers();
 
-			// viewerState.width = ;
+			viewerState.viewerSize = vec2( config.width, config.height );
 		}
 	}
 
@@ -30,16 +28,8 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		static bool isDragging = false;
-		static vec2 offsetPush = vec2( 0.0f );
-		if ( inputHandler.dragging && !isDragging ) {
-			isDragging = true;
-			offsetPush = offset;
-		} else if ( inputHandler.dragging ) { // while this dragging is happening...
-			offset = offsetPush - ( scale * vec2( inputHandler.mouseDragDelta() ) * vec2( 2.0f / std::min( config.width, config.height ) ) );
-		} else {
-			isDragging = false;
-		}
+		// click and drag handling
+		viewerState.dragUpdate( inputHandler.mouseDragDelta(), inputHandler.dragging );
 
 		SDL_Event event;
 		SDL_PumpEvents();
@@ -53,9 +43,9 @@ public:
 				quitConfirm = !quitConfirm; // this has to stay because it doesn't seem like ImGui::IsKeyReleased is stable enough to use
 			}
 
+			// handling scrolling
 			if ( event.type == SDL_MOUSEWHEEL && !ImGui::GetIO().WantCaptureMouse ) {
-				const float wheel_y = event.wheel.y;
-				scale = std::clamp( scale - wheel_y * ( ( SDL_GetModState() & KMOD_SHIFT ) ? 0.07f : 0.01f ), 0.005f, 5.0f );
+				viewerState.scroll( event.wheel.y );
 			}
 		}
 
@@ -88,11 +78,11 @@ public:
 			const GLuint shader = shaders[ "Draw" ];
 			glUseProgram( shader );
 
-			// use this for some time varying seeding type thing
+			// use this for some time varying seeding type thing, maybe
 			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
 
-			glUniform2f( glGetUniformLocation( shader, "offset" ), offset.x, offset.y );
-			glUniform1f( glGetUniformLocation( shader, "scale" ), scale );
+			glUniform2f( glGetUniformLocation( shader, "offset" ), viewerState.offset.x, viewerState.offset.y );
+			glUniform1f( glGetUniformLocation( shader, "scale" ), viewerState.scale );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -151,7 +141,6 @@ public:
 
 		// event handling
 		HandleCustomEvents();
-		HandleQuitEvents();
 
 		// derived-class-specific functionality
 		OnUpdate();
