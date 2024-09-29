@@ -34,8 +34,23 @@ void main () {
 	normalizedPosition.x *= aspectRatio;
 	vec2 uv = scale * ( normalizedPosition ) + offset;
 
-	if ( step( 0.0f, cos( pi * uv.x + pi / 2.0f ) * cos( pi * uv.y + pi / 2.0f ) ) == 0 ) {
+	// debug checkerboard
+	// if ( step( 0.0f, cos( pi * uv.x + pi / 2.0f ) * cos( pi * uv.y + pi / 2.0f ) ) == 0 ) {
+		// col = vec3( 1.0f );
+	// }
+
+	const vec2 ts = textureSize( outputImage, 0 );
+	vec2 texUV = uv * 1000.0f;
+	if ( texUV.x >= 0 && texUV.y >= 0 && texUV.x < ts.x && texUV.y < ts.y ) {
+		// this is where we need to do the Adam sampling
 		col = vec3( 1.0f );
+	} else {
+		// guide lines
+		float verticalFalloff = exp( -0.01f * abs( ts.y - texUV.y ) );
+		float xStep = smoothstep( 10.0f, 0.0f, abs( texUV.x - ts.x / 2.0f ) ) * verticalFalloff;
+		float yStep = smoothstep( 10.0f, 0.0f, abs( texUV.y - ts.y / 2.0f ) );
+		// col = vec3( xStep + yStep );
+		col = vec3( verticalFalloff );
 	}
 
 	// write the data to the image
