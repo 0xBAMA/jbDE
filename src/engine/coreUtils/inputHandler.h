@@ -344,7 +344,7 @@ struct inputHandler_t {
 		stateBuffer[ currentOffset ].timestamp =  std::chrono::system_clock::now();
 	}
 
-	bool dragging;
+	bool dragging = false;
 	ivec2 clickPush;
 	ivec2 mouseDragDelta () {
 		if ( dragging == true ) {
