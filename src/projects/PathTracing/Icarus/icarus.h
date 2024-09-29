@@ -9,6 +9,7 @@ public:
 	Icarus () { Init(); OnInit(); PostInit(); }
 	~Icarus () { Quit(); }
 
+	icarusBuffers_t icarusBuffers;
 	viewerState_t viewerState;
 
 	void OnInit () {
@@ -17,8 +18,8 @@ public:
 			Block Start( "Additional User Init" );
 
 			CompileShaders( shaders );
-			AllocateTextures( textureManager );
-			AllocateBuffers();
+			AllocateTextures( textureManager, uvec2( 1080, 1920 ) );
+			AllocateBuffers( icarusBuffers );
 
 			viewerState.viewerSize = vec2( config.width, config.height );
 		}
@@ -83,6 +84,8 @@ public:
 
 			glUniform2f( glGetUniformLocation( shader, "offset" ), viewerState.offset.x, viewerState.offset.y );
 			glUniform1f( glGetUniformLocation( shader, "scale" ), viewerState.scale );
+
+			textureManager.BindTexForShader( "Output Buffer", "outputBuffer", shader, 2 );
 
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

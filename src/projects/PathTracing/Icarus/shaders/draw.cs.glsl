@@ -4,6 +4,8 @@ layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
 layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 
+uniform sampler2D outputImage;
+
 uniform float time;
 
 // #include "spaceFillingCurves.h.glsl"
@@ -26,7 +28,7 @@ void main () {
 
 	vec3 col = vec3( 0.0f );
 
-	// I want consistiency in the click/drag/zoom logic this time... this is a priority
+	// we got the click and drag much nicer this time
 	const vec2 is = vec2( imageSize( accumulatorTexture ).xy );
 	vec2 offsetLoc = vec2( writeLoc ) + vec2( 0.5f );
 	vec2 normalizedPosition =  2.0f * offsetLoc / is.xy - vec2( 1.0f );
