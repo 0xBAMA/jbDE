@@ -90,6 +90,18 @@ inline int64_t intPow ( int64_t base, uint8_t exp ) {
 	}
 }
 
+inline uint32_t nextPowerOfTwo ( uint32_t n ) {
+	if ( n == 0 )
+		return 1;
+
+	// Find the position of the most significant bit
+	int msb = 0;
+	while ( n >>= 1 ) { msb++; }
+
+	// Return the next power of 2
+	return 1 << ( msb + 1 );
+}
+
 
 // // from fadaaszhi on GP discord 11/8/2023
 // vec2 randHex() {
