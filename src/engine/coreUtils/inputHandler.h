@@ -331,8 +331,31 @@ struct inputHandler_t {
 		if ( mouseState & SDL_BUTTON_X1MASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_X1 );
 		if ( mouseState & SDL_BUTTON_X2MASK ) stateBuffer[ currentOffset ].setState( MOUSE_BUTTON_X2 );
 
+		if ( getState4( MOUSE_BUTTON_LEFT ) == KEYSTATE_RISING ) {
+			// when you see the left mouse button go down...
+			clickPush = mouseLoc;
+			dragging = true;
+		} else if ( getState4( MOUSE_BUTTON_LEFT ) == KEYSTATE_FALLING ) {
+			// and when the mouse is released...
+			dragging = false;
+		}
+
 		// update the timestamp
 		stateBuffer[ currentOffset ].timestamp =  std::chrono::system_clock::now();
+	}
+
+	bool dragging;
+	ivec2 clickPush;
+	ivec2 mouseDragDelta () {
+		if ( dragging == true ) {
+			return stateBuffer[ currentOffset ].mousePosition - clickPush;
+		} else {
+			return ivec2( 0 );
+		}
+	}
+
+	ivec2 getMousePos () {
+		return stateBuffer[ currentOffset ].mousePosition;
 	}
 
 	// get instant state
