@@ -10,9 +10,8 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			// something to put some basic data in the accumulator texture - specific to the demo project
+			// something to put some basic data in the accumulator texture
 			shaders[ "Draw" ] = computeShader( "./src/projects/PathTracing/Icarus/shaders/draw.cs.glsl" ).shaderHandle;
-
 
 		}
 	}
@@ -21,11 +20,7 @@ public:
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// get new data into the input handler
-		inputHandler.update();
 
-		// pass any signals into the terminal
-		terminal.update( inputHandler );
 	}
 
 	void ImguiPass () {
@@ -43,12 +38,7 @@ public:
 
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 
-		if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
-	}
-
-	void DrawAPIGeometry () {
-		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit - need to add a hello triangle to this, so I have an easier starting point for raster stuff
+		// if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 	}
 
 	void ComputePasses () {
@@ -57,8 +47,19 @@ public:
 		{ // dummy draw - draw something into accumulatorTexture
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
-			glUseProgram( shaders[ "Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+			const GLuint shader = shaders[ "Draw" ];
+			glUseProgram( shader );
+
+			// use this for some time varying seeding type thing
+			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
+
+			glUniform2i( glGetUniformLocation( shader, "clickPush" ), inputHandler.clickPush.x, inputHandler.clickPush.y );
+			glUniform2i( glGetUniformLocation( shader, "currentMouse" ), inputHandler.clickPush.x + inputHandler.mouseDragDelta().x, inputHandler.clickPush.y + inputHandler.mouseDragDelta().y );
+
+			if ( inputHandler.dragging ) {
+				cout << "delta is " << inputHandler.mouseDragDelta().x << " " << inputHandler.mouseDragDelta().y << endl;
+			}
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -94,7 +95,6 @@ public:
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
-		DrawAPIGeometry();			// draw any API geometry desired
 		ComputePasses();			// multistage update of displayTexture
 		BlitToScreen();				// fullscreen triangle copying to the screen
 		{
@@ -108,6 +108,12 @@ public:
 
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
+
+		// get new data into the input handler
+		inputHandler.update();
+
+		// pass any signals into the terminal
+		terminal.update( inputHandler );
 
 		// event handling
 		HandleCustomEvents();

@@ -10,7 +10,7 @@ public:
 		{
 			Block Start( "Additional User Init" );
 
-			// something to put some basic data in the accumulator texture - specific to the demo project
+			// something to put some basic data in the accumulator texture
 			shaders[ "Dummy Draw" ] = computeShader( "./src/projects/EngineDemo/shaders/dummyDraw.cs.glsl" ).shaderHandle;
 
 		// very interesting - can call stuff from the command line
@@ -98,18 +98,13 @@ public:
 			// cout << "float: " << sizeof( float ) << " double: " << sizeof( double ) << " quad: " << sizeof( long double ) << endl << endl;
 
 		}
-
 	}
 
 	void HandleCustomEvents () {
 		// application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
-		// get new data into the input handler
-		inputHandler.update();
 
-		// pass any signals into the terminal
-		terminal.update( inputHandler );
 	}
 
 	void ImguiPass () {
@@ -204,6 +199,12 @@ public:
 
 	bool MainLoop () { // this is what's called from the loop in main
 		ZoneScoped;
+
+		// get new data into the input handler
+		inputHandler.update();
+
+		// pass any signals into the terminal (active check happens inside)
+		terminal.update( inputHandler );
 
 		// event handling
 		HandleTridentEvents();
