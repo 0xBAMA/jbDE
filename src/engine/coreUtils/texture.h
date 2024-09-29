@@ -347,6 +347,8 @@ public:
 			glGetIntegerv( GL_MAX_TEXTURE_SIZE, &val );
 			cout << endl << endl << "\t\tMax Texture Size Reports: " << val << endl;
 
+			cout << "\t\t  So Max Texture MIP Level Should Be " << log2( val ) << endl;
+
 			glGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &val );
 			cout << "\t\tMax 3D Texture Size Reports: " << val << endl;
 
@@ -492,8 +494,8 @@ public:
 	}
 
 	// so an example call is textureManager.BindImageForShader( "Display Texture", "current", shaders[ "Display" ], 0 );
-	void BindImageForShader ( string label, const string shaderSampler, const GLuint shader, int location ) {
-		glBindImageTexture( location, Get( label ), 0, GL_TRUE, 0, GL_READ_WRITE, GetType( label ) );
+	void BindImageForShader ( string label, const string shaderSampler, const GLuint shader, int location, int level = 0 ) {
+		glBindImageTexture( location, Get( label ), level, GL_TRUE, 0, GL_READ_WRITE, GetType( label ) );
 		glUniform1i( glGetUniformLocation( shader, shaderSampler.c_str() ), location );
 	}
 
