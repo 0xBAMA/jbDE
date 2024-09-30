@@ -45,14 +45,31 @@ void main () {
 	vec2 texUV = uv * 1000.0f;
 	if ( texUV.x >= 0 && texUV.y >= 0 && texUV.x < ts.x && texUV.y < ts.y ) {
 		// this is where we need to do the Adam sampling
-		col = vec3( 1.0f );
+		// col = vec3( 1.0f );
+		// col = vec3( ( ( int( texUV.x ) % 512 ) ^ ( int( texUV.y ) % 512 ) ) / 512.0f );
+		col = vec3( 0.01f );
 	} else {
-		// guide lines
-		float verticalFalloff = exp( -0.01f * abs( ts.y - texUV.y ) );
-		float xStep = smoothstep( 10.0f, 0.0f, abs( texUV.x - ts.x / 2.0f ) ) * verticalFalloff;
-		float yStep = smoothstep( 10.0f, 0.0f, abs( texUV.y - ts.y / 2.0f ) );
-		// col = vec3( xStep + yStep );
-		col = vec3( verticalFalloff );
+		// vertical and horizontal falloff factors
+		const float vertical = max( -texUV.y, texUV.y - ts.y );
+		const float horizontal = max( -texUV.x, texUV.x - ts.x );
+
+		// midpoints
+		const float xStepMid = smoothstep( 10.0f, 0.0f, abs( texUV.x - ts.x / 2.0f ) );
+		const float yStepMid = smoothstep( 10.0f, 0.0f, abs( texUV.y - ts.y / 2.0f ) );
+
+		// rule of thirds
+		const float xStepThirds = smoothstep( 10.0f, 0.0f, abs( texUV.x - ts.x / 3.0f ) ) + smoothstep( 10.0f, 0.0f, abs( texUV.x - 2.0f * ts.x / 3.0f ) );
+		const float yStepThirds = smoothstep( 10.0f, 0.0f, abs( texUV.y - ts.y / 3.0f ) ) + smoothstep( 10.0f, 0.0f, abs( texUV.y - 2.0f * ts.y / 3.0f ) );
+
+		// golden ratio
+		const float xStepGolden = smoothstep( 10.0f, 0.0f, abs( texUV.x - ts.x / 2.618f ) ) + smoothstep( 10.0f, 0.0f, abs( texUV.x - 1.618f * ts.x / 2.618f ) );
+		const float yStepGolden = smoothstep( 10.0f, 0.0f, abs( texUV.y - ts.y / 2.618f ) ) + smoothstep( 10.0f, 0.0f, abs( texUV.y - 1.618f * ts.y / 2.618f ) );
+
+		col = vec3(
+			vec3( 0.1618f, 0.0618f, 0.0f ) * exp( -0.01f * max( vertical, horizontal ) ) * ( xStepMid + yStepMid ) + // midpoints
+			vec3( 0.1618f, 0.0f, 0.0f ) * exp( -0.02f * max( vertical, horizontal ) ) * 0.75f * ( xStepGolden + yStepGolden ) + // golden ratio
+			vec3( 0.0f, 0.0618f, 0.0618f ) * exp( -0.03f * max( vertical, horizontal ) ) * 0.75f * ( xStepThirds + yStepThirds ) // rule of thirds
+		);
 	}
 
 	// write the data to the image
