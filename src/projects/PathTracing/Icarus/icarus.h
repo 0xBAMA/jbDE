@@ -75,8 +75,14 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		// draw something into accumulatorTexture
-		{ // this will probably move to a function, so that the complexity is hidden behind a function call
+		{
+			// adam buffer prep
+				// iterative sampling to put something in the output buffer
+				// this will also do the postprocessing stuff
+		}
+
+		{ // this samples the prepared image, and gives the click and drag interface
+			// this will probably move to a function
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			const GLuint shader = shaders[ "Draw" ];
