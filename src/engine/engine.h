@@ -26,7 +26,7 @@ protected:
 //====== Tonemapping Parameters + Adjustment ==================================
 	colorGradeParameters tonemap;
 	void TonemapControlsWindow();
-	void SendTonemappingParameters();
+	void SendTonemappingParameters( const bool passthrough = false );
 	void PostProcessImguiMenu();
 
 //====== Initialization =======================================================

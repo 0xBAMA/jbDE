@@ -56,9 +56,9 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
-		if ( tonemap.showTonemapWindow ) {
-			TonemapControlsWindow();
-		}
+		// if ( tonemap.showTonemapWindow ) {
+		// 	TonemapControlsWindow();
+		// }
 
 		if ( showProfiler ) {
 			static ImGuiUtils::ProfilersWindow profilerWindow; // add new profiling data and render
@@ -94,12 +94,16 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
-		// this will change... to something more custom, like Daedalus
-		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
+		{	// this is now basically just a passthrough... extra copy? might make more sense to do this in a more straightforward way
+				// not important at this stage
 			scopedTimer Start( "Postprocess" );
 			bindSets[ "Postprocessing" ].apply();
 			glUseProgram( shaders[ "Tonemap" ] );
-			SendTonemappingParameters();
+
+			// SendTonemappingParameters should take an argument, "passthrough", defaulting to false (doesn't break existing usage)
+				// this simplifies usage for environments like this, where I have prepped image data I want to present faithfully
+			SendTonemappingParameters( true );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}

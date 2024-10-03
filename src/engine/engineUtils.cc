@@ -14,7 +14,7 @@ void engineBase::ClearColorAndDepth () {
 	glViewport( 0, 0, windowSize.x, windowSize.y );
 }
 
-void engineBase::SendTonemappingParameters () {
+void engineBase::SendTonemappingParameters ( const bool passthrough ) {
 	ZoneScoped;
 
 	static float prevColorTemperature = 0.0f;
@@ -52,6 +52,8 @@ void engineBase::SendTonemappingParameters () {
 	glUniform1i( glGetUniformLocation( shader, "enableVignette" ), tonemap.enableVignette );
 	glUniform1f( glGetUniformLocation( shader, "vignettePower" ), tonemap.vignettePower );
 
+	// bypass/passthrough
+	glUniform1i( glGetUniformLocation( shader, "passthrough" ), passthrough );
 }
 
 void engineBase::BlitToScreen () {
