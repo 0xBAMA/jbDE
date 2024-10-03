@@ -30,7 +30,9 @@ public:
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 
 		// click and drag handling
-		viewerState.dragUpdate( inputHandler.mouseDragDelta(), inputHandler.dragging );
+		if ( !ImGui::GetIO().WantCaptureMouse ) {
+			viewerState.dragUpdate( inputHandler.mouseDragDelta(), inputHandler.dragging );
+		}
 
 		SDL_Event event;
 		SDL_PumpEvents();
