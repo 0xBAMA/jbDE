@@ -36,9 +36,9 @@ struct icarusBuffers_t {
 };
 
 void AllocateBuffers ( icarusBuffers_t &icarusBuffers ) {
-	// todo - will need to think about how to make these accessible from the rest of the program
-
+	// allocate the ray buffer
 }
 
 // =============================================================================================================
 // Passing Uniforms
+// ...

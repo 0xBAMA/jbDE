@@ -44,9 +44,7 @@ void main () {
 	const vec2 ts = textureSize( outputImage, 0 );
 	vec2 texUV = uv * 1000.0f;
 	if ( texUV.x >= 0 && texUV.y >= 0 && texUV.x < ts.x && texUV.y < ts.y ) {
-		// this is where we need to do the Adam sampling
-		// col = vec3( 1.0f );
-		// col = vec3( ( ( int( texUV.x ) % 512 ) ^ ( int( texUV.y ) % 512 ) ) / 512.0f );
+		// placeholder - this is where we need to do the Adam sampling
 		col = vec3( 0.01f );
 	} else {
 		// vertical and horizontal falloff factors

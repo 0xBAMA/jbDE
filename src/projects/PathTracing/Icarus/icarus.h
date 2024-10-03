@@ -75,7 +75,8 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		{ // dummy draw - draw something into accumulatorTexture
+		// draw something into accumulatorTexture
+		{ // this will probably move to a function, so that the complexity is hidden behind a function call
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			const GLuint shader = shaders[ "Draw" ];
@@ -93,6 +94,7 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
+		// this will change... to something more custom, like Daedalus
 		{ // postprocessing - shader for color grading ( color temp, contrast, gamma ... ) + tonemapping
 			scopedTimer Start( "Postprocess" );
 			bindSets[ "Postprocessing" ].apply();
@@ -102,6 +104,7 @@ public:
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
 
+		// this will stay very similiar
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Clear();
