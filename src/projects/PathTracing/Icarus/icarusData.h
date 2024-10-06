@@ -6,6 +6,7 @@ struct icarusState_t {
 	textureManager_t * textureManager;
 
 	// shaders
+	GLuint CopyShader;
 	GLuint AdamShader;
 	GLuint PrepShader;
 	GLuint DrawShader;
@@ -20,6 +21,7 @@ struct icarusState_t {
 void CompileShaders ( icarusState_t &state ) {
 	const string basePath = string( "./src/projects/PathTracing/Icarus/shaders/" );
 
+	state.CopyShader = computeShader( basePath + "copy.cs.glsl" ).shaderHandle;
 	state.AdamShader = computeShader( basePath + "adam.cs.glsl" ).shaderHandle;
 	state.PrepShader = computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
 	state.DrawShader = computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
@@ -34,8 +36,9 @@ void AllocateTextures ( icarusState_t &state ) {
 	}
 	firstTime = false;
 
-	// creating an image to hold results
 	textureOptions_t opts;
+
+	// image to hold tonemapped results
 	opts.width			= state.dimensions.x;
 	opts.height			= state.dimensions.y;
 	opts.dataType		= GL_RGBA32F;
@@ -44,6 +47,15 @@ void AllocateTextures ( icarusState_t &state ) {
 	opts.textureType	= GL_TEXTURE_2D;
 	opts.wrap			= GL_CLAMP_TO_BORDER;
 	state.textureManager->Add( "Output Buffer", opts );
+
+	// atomic tally images, for the renderer to write to
+	opts.dataType		= GL_R32UI;
+	opts.minFilter		= GL_NEAREST;
+	opts.magFilter		= GL_NEAREST;
+	state.textureManager->Add( "R Tally Image", opts );
+	state.textureManager->Add( "G Tally Image", opts );
+	state.textureManager->Add( "B Tally Image", opts );
+	state.textureManager->Add( "Sample Count", opts );
 
 	// Adam's buffers
 	uint32_t adamBufferSize = nextPowerOfTwo( std::max( state.dimensions.x, state.dimensions.y ) );
@@ -76,10 +88,23 @@ void AllocateTextures ( icarusState_t &state ) {
 
 void AdamUpdate ( icarusState_t &state ) {
 
-	// first, we will have to populate color + counts from the atomic R, G, B, and Count tallies...
-		// that can all go into one texture... so that might be a perf win, too
+	// do the initial averaging, into Adam mip 0
+	GLuint shader = state.CopyShader;
+	glUseProgram( shader );
 
-	const GLuint shader = state.AdamShader;
+	glUniform2i( glGetUniformLocation( shader, "dims" ), state.dimensions.x, state.dimensions.y );
+	
+	state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
+	state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
+	state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
+	state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
+	state.textureManager->BindImageForShader( "Adam", "adam", shader, 4 );
+
+	glDispatchCompute( ( state.dimensions.x + 15 ) / 16, ( state.dimensions.y + 15 ) / 16, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+	// the propagate that data back up through the mips
+	shader = state.AdamShader;
 	glUseProgram( shader );
 
 	// this seems wrong...
