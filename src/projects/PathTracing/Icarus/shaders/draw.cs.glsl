@@ -1,10 +1,8 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( binding = 0, rgba8ui ) uniform uimage2D blueNoiseTexture;
-layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
-
-uniform sampler2D outputImage;
+layout( binding = 0, rgba16f ) uniform image2D accumulatorTexture;
+layout( binding = 1 ) uniform sampler2D outputImage;
 
 uniform float time;
 
@@ -26,7 +24,7 @@ void main () {
 	// pixel location
 	ivec2 writeLoc = ivec2( gl_GlobalInvocationID.xy );
 
-	vec3 col = vec3( 0.0f );
+	vec3 color = vec3( 0.0f );
 
 	// we got the click and drag much nicer this time
 	const vec2 is = vec2( imageSize( accumulatorTexture ).xy );
@@ -36,16 +34,11 @@ void main () {
 	normalizedPosition.x *= aspectRatio;
 	vec2 uv = scale * ( normalizedPosition ) + offset;
 
-	// debug checkerboard
-	// if ( step( 0.0f, cos( pi * uv.x + pi / 2.0f ) * cos( pi * uv.y + pi / 2.0f ) ) == 0 ) {
-		// col = vec3( 1.0f );
-	// }
-
 	const vec2 ts = textureSize( outputImage, 0 );
 	vec2 texUV = uv * 1000.0f;
 	if ( texUV.x >= 0 && texUV.y >= 0 && texUV.x < ts.x && texUV.y < ts.y ) {
-		// placeholder - this is where we need to do the Adam sampling
-		col = vec3( 0.01f );
+		// this is were we sample the prepared image
+		color = texture( outputImage, texUV / ts ).rgb;
 	} else {
 		// vertical and horizontal falloff factors
 		const float vertical = max( -texUV.y, texUV.y - ts.y );
@@ -63,7 +56,7 @@ void main () {
 		const float xStepGolden = smoothstep( 10.0f, 0.0f, abs( texUV.x - ts.x / 2.618f ) ) + smoothstep( 10.0f, 0.0f, abs( texUV.x - 1.618f * ts.x / 2.618f ) );
 		const float yStepGolden = smoothstep( 10.0f, 0.0f, abs( texUV.y - ts.y / 2.618f ) ) + smoothstep( 10.0f, 0.0f, abs( texUV.y - 1.618f * ts.y / 2.618f ) );
 
-		col = vec3(
+		color = vec3(
 			vec3( 0.1618f, 0.0618f, 0.0f ) * exp( -0.01f * max( vertical, horizontal ) ) * ( xStepMid + yStepMid ) + // midpoints
 			vec3( 0.1618f, 0.0f, 0.0f ) * exp( -0.02f * max( vertical, horizontal ) ) * 0.75f * ( xStepGolden + yStepGolden ) + // golden ratio
 			vec3( 0.0f, 0.0618f, 0.0618f ) * exp( -0.03f * max( vertical, horizontal ) ) * 0.75f * ( xStepThirds + yStepThirds ) // rule of thirds
@@ -71,5 +64,5 @@ void main () {
 	}
 
 	// write the data to the image
-	imageStore( accumulatorTexture, writeLoc, vec4( col, 1.0f ) );
+	imageStore( accumulatorTexture, writeLoc, vec4( color, 1.0f ) );
 }

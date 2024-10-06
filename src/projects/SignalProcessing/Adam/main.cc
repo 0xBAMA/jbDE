@@ -38,10 +38,8 @@ public:
 
 			int level = 0;
 			while ( h >= 1 ) {
-				// we half on both dimensions at once... don't have enough mips for 
-				h /= 2;
-				w /= 2;
-				level++;
+				// we half on both dimensions at once... don't have enough levels available for splitting resolution alternately on x and y at each step
+				h /= 2; w /= 2; level++;
 
 				glBindTexture( GL_TEXTURE_2D, textureManager.Get( "Adam Color" ) );
 				glTexImage2D( GL_TEXTURE_2D, level, GL_RGBA32F, w, h, 0, getFormat( GL_RGBA32F ), GL_FLOAT, ( void * ) zeroesF.GetImageDataBasePtr() );
@@ -198,6 +196,7 @@ public:
 	}
 
 	void MipSweep () {
+		scopedTimer Start( "MIP" );
 		int w = wInitial / 2;
 		int h = hInitial / 2;
 		const GLuint shader = shaders[ "Up Mip" ];

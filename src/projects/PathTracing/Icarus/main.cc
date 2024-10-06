@@ -1,6 +1,6 @@
 #include "../../../engine/engine.h"
 
-#include "icarus.h"
+#include "icarusMain.h"
 
 int main ( int argc, char *argv[] ) {
 	Icarus engineInstance;
