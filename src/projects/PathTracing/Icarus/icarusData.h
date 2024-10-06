@@ -57,10 +57,7 @@ void AllocateTextures ( icarusState_t &state ) {
 	opts.width = w;
 	opts.height = h;
 	opts.dataType = GL_RGBA32F; // type tbd... may need to be ints, for atomic operations? Not sure what that's going to look like, in practical terms
-	state.textureManager->Add( "Adam Color", opts );
-
-	opts.dataType = GL_R32UI;
-	state.textureManager->Add( "Adam Count", opts );
+	state.textureManager->Add( "Adam", opts );
 
 	Image_4U zeroesU( w, h );
 	Image_4F zeroesF( w, h );
@@ -69,11 +66,8 @@ void AllocateTextures ( icarusState_t &state ) {
 	while ( h >= 1 ) {
 		h /= 2; w /= 2; level++;
 
-		glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "Adam Color" ) );
+		glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "Adam" ) );
 		glTexImage2D( GL_TEXTURE_2D, level, GL_RGBA32F, w, h, 0, getFormat( GL_RGBA32F ), GL_FLOAT, ( void * ) zeroesF.GetImageDataBasePtr() );
-
-		glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "Adam Count" ) );
-		glTexImage2D( GL_TEXTURE_2D, level, GL_R32UI, w, h, 0, getFormat( GL_R32UI ), GL_UNSIGNED_BYTE, ( void * ) zeroesU.GetImageDataBasePtr() );
 	}
 
 	// set the number of levels that are in the texture
@@ -97,11 +91,8 @@ void AdamUpdate ( icarusState_t &state ) {
 		glUniform2i( glGetUniformLocation( shader, "dims" ), 2 * w, 2 * h );
 
 		// bind the appropriate levels for N and N+1 (starting with N=0... to N=...? )
-		state.textureManager->BindImageForShader( "Adam Color", "adamColorN", shader, 0, n );
-		state.textureManager->BindImageForShader( "Adam Color", "adamColorNPlusOne", shader, 1, n + 1 );
-
-		state.textureManager->BindImageForShader( "Adam Count", "adamCountN", shader, 2, n );
-		state.textureManager->BindImageForShader( "Adam Count", "adamCountNPlusOne", shader, 3, n + 1 );
+		state.textureManager->BindImageForShader( "Adam", "adamN", shader, 0, n );
+		state.textureManager->BindImageForShader( "Adam", "adamNPlusOne", shader, 1, n + 1 );
 
 		// this seems to be the most effective groupsize, got it down from ~4.7ms to ~0.7ms
 		glDispatchCompute( ( w + 15 ) / 16, ( h + 15 ) / 16, 1 ); w /= 2; h /= 2;
@@ -120,8 +111,7 @@ void PostProcess ( icarusState_t &state ) {
 	state.textureManager->BindImageForShader( "Output Buffer", "outputBuffer", shader, 0 );
 
 	// Adam buffers
-	state.textureManager->BindTexForShader( "Adam Color", "adamColor", shader, 1 );
-	state.textureManager->BindTexForShader( "Adam Count", "adamCount", shader, 2 );
+	state.textureManager->BindTexForShader( "Adam", "adam", shader, 1 );
 
 	glDispatchCompute( ( state.dimensions.x + 15 ) / 16, ( state.dimensions.y + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );

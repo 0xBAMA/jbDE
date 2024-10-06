@@ -143,8 +143,7 @@ public:
 		if ( offsets.size() == 0 ) {
 			// clearing the color and count buffers
 
-			textureManager.ZeroTexture2D( "Adam Count" );
-			textureManager.ZeroTexture2D( "Adam Color" );
+			textureManager.ZeroTexture2D( "Adam" );
 
 			// get a new set of offsets
 			const int w = icarusState.dimensions.x;
@@ -165,11 +164,6 @@ public:
 				// write data for one more pixel, at that offset...
 				ivec2 loc = offsets[ offsets.size() - 1 ];
 
-				// put a 1 into the pixel for the count...
-				uint32_t dataU = 1;
-				glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "Adam Count" ) );
-				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataU );
-
 				// put a color sample of a circular mask into the pixel for the color...
 				rng col = rng( 0.0f, 1.0f );
 				vec4 dataC = ( fmod( glm::distance( vec2( loc ), vec2( icarusState.dimensions.x / 2.0f, icarusState.dimensions.y / 2.0f ) ), 100.0f ) < 35.0f ) ? vec4( ( loc.x % 80 < 40 ) ? 0.0f : 1.0f, col(), ( loc.x % 80 < 40 ) ? 1.0f : 0.0f, 1.0f ) : vec4( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -178,7 +172,7 @@ public:
 				// Image_4F::color col = testImage.GetAtXY( loc.x, loc.y );
 				// vec4 dataC = vec4( col[ red ], col[ green ], col[ blue ], 1.0f );
 
-				glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "Adam Color" ) );
+				glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "Adam" ) );
 				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_RGBA32F ), GL_FLOAT, &dataC );
 
 				// pop that entry off the list

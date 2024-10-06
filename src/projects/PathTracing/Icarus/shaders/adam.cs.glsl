@@ -1,11 +1,8 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-layout( binding = 0, rgba32f ) uniform image2D adamColorN;			// the larger image, being downsampled
-layout( binding = 1, rgba32f ) uniform image2D adamColorNPlusOne;	// the smaller image, being written to
-
-layout( binding = 2, r32ui ) uniform uimage2D adamCountN;
-layout( binding = 3, r32ui ) uniform uimage2D adamCountNPlusOne;
+layout( binding = 0, rgba32f ) uniform image2D adamN;			// the larger image, being downsampled
+layout( binding = 1, rgba32f ) uniform image2D adamNPlusOne;	// the smaller image, being written to
 
 uniform ivec2 dims;
 
@@ -18,35 +15,33 @@ void main () {
 
 	if ( oldLoc.x < dims.x && oldLoc.y < dims.y ) {
 		// initialize sum of counts
-		uint count = 0;
-		vec4 colorSum = vec4( 0.0f );
+		float count = 0.0f;
+		vec4 sum = vec4( 0.0f );
 
 		// each invocation needs to:
 		ivec2 offsets[ 4 ] = ivec2[]( ivec2( 0, 0 ), ivec2( 1, 0 ), ivec2( 0, 1 ), ivec2( 1, 1 ) );
 		for ( int i = 0; i < 4; i++ ) {
 
-			// update count
-			uint countSample = imageLoad( adamCountN, oldLoc + offsets[ i ] ).r;
+			// rgb + count
+			vec4 valueSample = imageLoad( adamN, oldLoc + offsets[ i ] );
 
 			// the sum of their counts, goes into adamCountNPlusOne
-			count += countSample;
-
-			// update color
-			vec4 colorSample = imageLoad( adamColorN, oldLoc + offsets[ i ] );
+			count += valueSample.a;
 
 			// so we're setting up for a weighted sum...
-			// adamColorN samples weighted by adamCountN samples...
-			colorSum += colorSample * countSample;
+			// color samples weighted by count...
+			sum.rgb += valueSample.rgb * valueSample.a;
 		}
 
 		if ( count != 0 ) {
 		// so now, if we have a nonzero count, divide back out...
-			// divide this sum by the color sum of the adamCountN samples
-			colorSum /= float( count );
+			// divide this to get a weighted sum here
+			sum /= float( count );
 		}
 
+		sum.a = count;
+
 		// and store the results for layer N + 1
-		imageStore( adamColorNPlusOne, newLoc, colorSum );
-		imageStore( adamCountNPlusOne, newLoc, uvec4( count ) );
+		imageStore( adamNPlusOne, newLoc, sum );
 	}
 }
