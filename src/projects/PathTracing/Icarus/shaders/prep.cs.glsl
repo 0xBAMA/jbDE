@@ -29,5 +29,7 @@ void main () {
 		loc /= 2;
 	}
 
+	// now, need to do any desired postprocesing, on the loaded color...
+
 	imageStore( outputBuffer, writeLoc, vec4( color, 1.0f ) );
 }

@@ -18,15 +18,16 @@ void main () {
 
 	if ( loc.x < dims.x && loc.y < dims.y ) {
 
-		// loading the data from the atomic images
-		float r = float( imageLoad( rTally, loc ).r );
-		float g = float( imageLoad( gTally, loc ).r );
-		float b = float( imageLoad( bTally, loc ).r );
+		// loading the data from the atomic images... scale by a constant, since we have ints
+		float r = float( imageLoad( rTally, loc ).r ) / 1024.0f;
+		float g = float( imageLoad( gTally, loc ).r ) / 1024.0f;
+		float b = float( imageLoad( bTally, loc ).r ) / 1024.0f;
 		float c = float( imageLoad( count, loc ).r );
 
 		// averaging out the accumulated color data by sample count
-		vec4 outputValue = vec4( r / c, g / c, b / c, c );
-
-		imageStore( adam, loc, outputValue );
+		if ( c != 0.0f ) {
+			vec4 outputValue = vec4( r / c, g / c, b / c, c );
+			imageStore( adam, loc, outputValue );
+		}
 	}
 }
