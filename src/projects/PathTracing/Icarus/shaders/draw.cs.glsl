@@ -61,6 +61,10 @@ void main () {
 			vec3( 0.1618f, 0.0f, 0.0f ) * exp( -0.02f * max( vertical, horizontal ) ) * 0.75f * ( xStepGolden + yStepGolden ) + // golden ratio
 			vec3( 0.0f, 0.0618f, 0.0618f ) * exp( -0.03f * max( vertical, horizontal ) ) * 0.75f * ( xStepThirds + yStepThirds ) // rule of thirds
 		);
+
+		// float biasLight = exp( -0.2f * max( vertical, horizontal ) );
+		// color += vec3( biasLight );
+
 	}
 
 	// write the data to the image
