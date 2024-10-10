@@ -14,6 +14,16 @@ struct icarusState_t {
 	// dimensions and related info
 	uvec2 dimensions = uvec2( 1920, 1080 );
 	int numLevels;
+
+	// how are we generating primary ray locations
+	#define UNIFORM  0
+	#define GAUSSIAN 1
+	#define SHUFFLED 2
+	int offsetFeedMode = UNIFORM;
+	GLuint offsetsSSBO;
+
+	// holding the rays... double buffering? tbd
+	GLuint raySSBO;
 };
 
 // =============================================================================================================
@@ -74,6 +84,7 @@ void AllocateTextures ( icarusState_t &state ) {
 	Image_4U zeroesU( w, h );
 	Image_4F zeroesF( w, h );
 
+	// creating the mip chain
 	int level = 0;
 	while ( h >= 1 ) {
 		h /= 2; w /= 2; level++;
@@ -84,6 +95,66 @@ void AllocateTextures ( icarusState_t &state ) {
 
 	// set the number of levels that are in the texture
 	state.numLevels = level;
+}
+
+uvec2 GetNextOffset ( icarusState_t &state ) {
+	uvec2 offset;
+	switch ( state.offsetFeedMode ) {
+		case UNIFORM: {
+			// uniform random
+			static rng offsetGen = rng( 0.0f, 1.0f );
+			offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+			break;
+		}
+
+		case GAUSSIAN: {
+			// center-biased random, creates a foveated look
+				// probably easiest to rejection sample for off-screen offsets
+			static rngN offsetGen = rngN( 0.5f, 0.125f );
+			do {
+				offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+			} while ( offset.x >= state.dimensions.x || offset.x < 0 || offset.y >= state.dimensions.y || offset.y < 0 );
+			break;
+		}
+
+		case SHUFFLED: {
+			// list that ensures you will touch every pixel before repeating
+			static vector< uvec2 > offsets;
+			if ( offsets.size() == 0 ) {
+				// generate new list of offsets
+				for ( uint32_t x = 0; x < state.dimensions.x; x++ ) {
+					for ( uint32_t y = 0; y < state.dimensions.y; y++ ) {
+						offsets.push_back( uvec2( x, y ) );
+					}
+				}
+				// shuffle it around a bit
+				static auto rng = std::default_random_engine {};
+				std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
+				std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
+				std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
+			}
+
+			// pop one off the list, return that
+			offset = offsets[ offsets.size() - 1 ];
+			offsets.pop_back();
+
+			break;
+		}
+
+		default: {
+			offset = uvec2( 0 );
+			break;
+		}
+	}
+
+	return offset;
+}
+
+void UpdateOffsetList ( icarusState_t &state ) {
+	// get N offsets (number of pixels to update per frame)
+
+	// and put this list of offsets into an SSBO
+
 }
 
 void AdamUpdate ( icarusState_t &state ) {

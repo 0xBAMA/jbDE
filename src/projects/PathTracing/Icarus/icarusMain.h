@@ -135,86 +135,37 @@ public:
 		}
 	}
 
-	vector< ivec2 > offsets;
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
 		// write some pixels
-		if ( offsets.size() == 0 ) {
-			// clearing the color and count buffers
+		for ( int i = 0; i < 2048; i++ ) {
+			ivec2 loc = GetNextOffset( icarusState );
 
-			textureManager.ZeroTexture2D( "R Tally Image" );
-			textureManager.ZeroTexture2D( "G Tally Image" );
-			textureManager.ZeroTexture2D( "B Tally Image" );
-			textureManager.ZeroTexture2D( "Sample Count" );
-			textureManager.ZeroTexture2D( "Adam" );
+			static rngi dataGen = rngi( 0, 1000 );
+			uint32_t dataI = dataGen();
 
-			// get a new set of offsets
-			const int w = icarusState.dimensions.x;
-			const int h = icarusState.dimensions.y;
+			switch ( dataGen() % 3 ) {
+				case 0:
+					glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "R Tally Image" ) );
+					glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+					break;
 
-			for ( int x = 0; x < w; x++ ) {
-				for ( int y = 0; y < h; y++ ) {
-					offsets.push_back( ivec2( x, y ) );
-				}
+				case 1:
+					glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "G Tally Image" ) );
+					glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+					break;
+
+				case 2:
+					glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "B Tally Image" ) );
+					glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+					break;
 			}
-			// shuffle it around a bit
-			static auto rng = std::default_random_engine {};
-			std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
-			std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
-			std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
 
-		} else {
-
-			rngN offsetGen = rngN( 0.5f, 0.15f );
-			for ( int i = 0; i < 2048; i++ ) {
-				// write data for one more pixel, at that offset...
-				// ivec2 loc = offsets[ offsets.size() - 1 ];
-
-				ivec2 loc;
-				do {
-					loc = ivec2( offsetGen() * icarusState.dimensions.x, offsetGen() * icarusState.dimensions.y );
-				} while ( loc.x >= icarusState.dimensions.x || loc.x < 0 || loc.y >= icarusState.dimensions.y || loc.y < 0 );
-
-				// cout << "offset is " << loc.x << " " << loc.y << endl;
-
-				// put a color sample of a circular mask into the pixel for the color...
-				// rng col = rng( 0.0f, 1.0f );
-				// vec4 dataC = ( fmod( glm::distance( vec2( loc ), vec2( icarusState.dimensions.x / 2.0f, icarusState.dimensions.y / 2.0f ) ), 100.0f ) < 35.0f ) ? vec4( ( loc.x % 80 < 40 ) ? 0.0f : 1.0f, col(), ( loc.x % 80 < 40 ) ? 1.0f : 0.0f, 1.0f ) : vec4( 0.0f, 0.0f, 0.0f, 1.0f );
-
-				// static Image_4F testImage( "test2.png" );
-				// Image_4F::color col = testImage.GetAtXY( loc.x, loc.y );
-				// vec4 dataC = vec4( col[ red ], col[ green ], col[ blue ], 1.0f );
-
-				static rngi dataGen = rngi( 0, 1000 );
-				uint32_t dataI = dataGen();
-
-				switch ( dataGen() % 3 ) {
-					case 0:
-						glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "R Tally Image" ) );
-						glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-						break;
-
-					case 1:
-						glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "G Tally Image" ) );
-						glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-						break;
-
-					case 2:
-						glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "B Tally Image" ) );
-						glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-						break;
-				}
-
-				dataI = 1;
-				glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "Sample Count" ) );
-				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-
-				// pop that entry off the list
-				// offsets.pop_back();
-			}
+			dataI = 1;
+			glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "Sample Count" ) );
+			glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
 		}
-
 	}
 
 	void OnRender () {
