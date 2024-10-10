@@ -37,7 +37,12 @@ public:
 		}
 
 		if ( inputHandler.getState4( KEY_R ) == KEYSTATE_RISING ) {
-			offsets.clear();
+			// clear the accumulation buffers
+			textureManager.ZeroTexture2D( "R Tally Image" );
+			textureManager.ZeroTexture2D( "G Tally Image" );
+			textureManager.ZeroTexture2D( "B Tally Image" );
+			textureManager.ZeroTexture2D( "Sample Count" );
+			textureManager.ZeroTexture2D( "Adam" );
 		}
 
 		SDL_Event event;
