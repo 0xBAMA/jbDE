@@ -215,7 +215,8 @@ void PostProcess ( icarusState_t &state ) {
 
 void AllocateBuffers ( icarusState_t &state ) {
 	// allocate the ray buffer
-
+	glGenBuffers( 1, &state.offsetsSSBO );
+	glGenBuffers( 1, &state.raySSBO );
 }
 
 // =============================================================================================================
