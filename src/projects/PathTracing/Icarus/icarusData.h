@@ -19,7 +19,7 @@ struct icarusState_t {
 	#define UNIFORM  0
 	#define GAUSSIAN 1
 	#define SHUFFLED 2
-	int offsetFeedMode = UNIFORM;
+	int offsetFeedMode = GAUSSIAN;
 	GLuint offsetsSSBO;
 
 	// holding the rays... double buffering? tbd
@@ -37,6 +37,12 @@ void CompileShaders ( icarusState_t &state ) {
 	state.DrawShader = computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
 	// ...
 
+}
+
+void AllocateBuffers ( icarusState_t &state ) {
+	// allocate the ray buffer
+	glGenBuffers( 1, &state.offsetsSSBO );
+	glGenBuffers( 1, &state.raySSBO );
 }
 
 void AllocateTextures ( icarusState_t &state ) {
@@ -213,11 +219,22 @@ void PostProcess ( icarusState_t &state ) {
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
-void AllocateBuffers ( icarusState_t &state ) {
-	// allocate the ray buffer
-	glGenBuffers( 1, &state.offsetsSSBO );
-	glGenBuffers( 1, &state.raySSBO );
+void DrawViewer ( icarusState_t &state, viewerState_t &viewerState ) {
+	const GLuint shader = state.DrawShader;
+	glUseProgram( shader );
+
+	// use this for some time varying seeding type thing, maybe
+	glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
+	glUniform2f( glGetUniformLocation( shader, "offset" ), viewerState.offset.x, viewerState.offset.y );
+	glUniform1f( glGetUniformLocation( shader, "scale" ), viewerState.scale );
+
+	state.textureManager->BindImageForShader( "Accumulator", "accumulator", shader, 0 );
+	state.textureManager->BindTexForShader( "Output Buffer", "outputBuffer", shader, 1 );
+
+	glDispatchCompute( ( viewerState.viewerSize.x + 15 ) / 16, ( viewerState.viewerSize.y + 15 ) / 16, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
+
 
 // =============================================================================================================
 // Passing Uniforms

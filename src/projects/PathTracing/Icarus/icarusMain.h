@@ -20,8 +20,8 @@ public:
 			icarusState.textureManager = &textureManager;
 
 			CompileShaders( icarusState );
-			AllocateTextures( icarusState );
 			AllocateBuffers( icarusState );
+			AllocateTextures( icarusState );
 
 			viewerState.viewerSize = vec2( config.width, config.height );
 		}
@@ -92,27 +92,12 @@ public:
 		}
 
 		{ // this samples the prepared image, and gives the click and drag interface
-			// this will probably move to a function
 			scopedTimer Start( "Drawing" );
-
-			const GLuint shader = icarusState.DrawShader;
-			glUseProgram( shader );
-
-			// use this for some time varying seeding type thing, maybe
-			glUniform1f( glGetUniformLocation( shader, "time" ), SDL_GetTicks() / 1600.0f );
-
-			glUniform2f( glGetUniformLocation( shader, "offset" ), viewerState.offset.x, viewerState.offset.y );
-			glUniform1f( glGetUniformLocation( shader, "scale" ), viewerState.scale );
-
-			textureManager.BindImageForShader( "Accumulator", "accumulator", shader, 0 );
-			textureManager.BindTexForShader( "Output Buffer", "outputBuffer", shader, 1 );
-
-			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+			DrawViewer( icarusState, viewerState );
 		}
 
 		{	// this is now basically just a passthrough... extra copy? might make more sense to drop this and do it in a more straightforward way
-				// not important at this stage
+				// Basically the only thing it does is flip the image...
 			scopedTimer Start( "Postprocess" );
 			bindSets[ "Postprocessing" ].apply();
 			glUseProgram( shaders[ "Tonemap" ] );
