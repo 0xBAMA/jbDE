@@ -96,6 +96,8 @@ public:
 			DrawViewer( icarusState, viewerState );
 		}
 
+	// EVERYTHING FROM HERE TO THE END OF THE FUNCTION NEEDS TO GO
+
 		{	// this is now basically just a passthrough... extra copy? might make more sense to drop this and do it in a more straightforward way
 				// Basically the only thing it does is flip the image...
 			scopedTimer Start( "Postprocess" );
@@ -128,34 +130,7 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		// write some pixels
-		for ( int i = 0; i < 2048; i++ ) {
-			ivec2 loc = GetNextOffset( icarusState );
-
-			static rngi dataGen = rngi( 0, 1000 );
-			uint32_t dataI = dataGen();
-
-			switch ( dataGen() % 3 ) {
-				case 0:
-					glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "R Tally Image" ) );
-					glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-					break;
-
-				case 1:
-					glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "G Tally Image" ) );
-					glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-					break;
-
-				case 2:
-					glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "B Tally Image" ) );
-					glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-					break;
-			}
-
-			dataI = 1;
-			glBindTexture( GL_TEXTURE_2D, icarusState.textureManager->Get( "Sample Count" ) );
-			glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-		}
+		Update( icarusState );
 	}
 
 	void OnRender () {

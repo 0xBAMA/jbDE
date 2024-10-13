@@ -235,6 +235,36 @@ void DrawViewer ( icarusState_t &state, viewerState_t &viewerState ) {
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
+void Update ( icarusState_t &state ) {
+	// write some pixels... still placeholder
+	for ( int i = 0; i < 2048; i++ ) {
+		ivec2 loc = GetNextOffset( state );
+
+		static rngi dataGen = rngi( 0, 1000 );
+		uint32_t dataI = dataGen();
+
+		switch ( dataGen() % 3 ) {
+			case 0:
+				glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "R Tally Image" ) );
+				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+				break;
+
+			case 1:
+				glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "G Tally Image" ) );
+				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+				break;
+
+			case 2:
+				glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "B Tally Image" ) );
+				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+				break;
+		}
+
+		dataI = 1;
+		glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "Sample Count" ) );
+		glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+	}
+}
 
 // =============================================================================================================
 // Passing Uniforms
