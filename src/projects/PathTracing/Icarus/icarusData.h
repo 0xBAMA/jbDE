@@ -234,6 +234,13 @@ void DrawViewer ( icarusState_t &state, viewerState_t &viewerState ) {
 	glDispatchCompute( ( viewerState.viewerSize.x + 15 ) / 16, ( viewerState.viewerSize.y + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
+void ClearAccumulators ( icarusState_t &state ) {
+	state.textureManager->ZeroTexture2D( "R Tally Image" );
+	state.textureManager->ZeroTexture2D( "G Tally Image" );
+	state.textureManager->ZeroTexture2D( "B Tally Image" );
+	state.textureManager->ZeroTexture2D( "Sample Count" );
+	state.textureManager->ZeroTexture2D( "Adam" );
+}
 
 void Update ( icarusState_t &state ) {
 	// write some pixels... still placeholder
