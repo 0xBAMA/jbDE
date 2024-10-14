@@ -26,6 +26,12 @@ struct icarusState_t {
 
 	// holding the rays... double buffering? tbd
 	GLuint raySSBO;
+
+	// camera parameterization
+	vec3 viewerPosition = vec3( 0.0f );
+	vec3 basisX = vec3( 1.0f, 0.0f, 0.0f );
+	vec3 basisY = vec3( 0.0f, 1.0f, 0.0f );
+	vec3 basisZ = vec3( 0.0f, 0.0f, 1.0f );
 };
 
 // =============================================================================================================
@@ -253,7 +259,48 @@ void ClearAccumulators ( icarusState_t &state ) {
 	state.textureManager->ZeroTexture2D( "Adam" );
 }
 
-void Update ( icarusState_t &state ) {
+void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
+	// const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
+	const float scalar = 0.02f;
+	if ( input.getState( KEY_W ) ) {
+		glm::quat rot = glm::angleAxis( scalar, state.basisX ); // basisX is the axis, therefore remains untransformed
+		state.basisY = ( rot * vec4( state.basisY, 0.0f ) ).xyz();
+		state.basisZ = ( rot * vec4( state.basisZ, 0.0f ) ).xyz();
+	}
+	if ( input.getState( KEY_S ) ) {
+		glm::quat rot = glm::angleAxis( -scalar, state.basisX );
+		state.basisY = ( rot * vec4( state.basisY, 0.0f ) ).xyz();
+		state.basisZ = ( rot * vec4( state.basisZ, 0.0f ) ).xyz();
+	}
+	if ( input.getState( KEY_A ) ) {
+		glm::quat rot = glm::angleAxis( -scalar, state.basisY ); // same as above, but basisY is the axis
+		state.basisX = ( rot * vec4( state.basisX, 0.0f ) ).xyz();
+		state.basisZ = ( rot * vec4( state.basisZ, 0.0f ) ).xyz();
+	}
+	if ( input.getState( KEY_D ) ) {
+		glm::quat rot = glm::angleAxis( scalar, state.basisY );
+		state.basisX = ( rot * vec4( state.basisX, 0.0f ) ).xyz();
+		state.basisZ = ( rot * vec4( state.basisZ, 0.0f ) ).xyz();
+	}
+	if ( input.getState( KEY_Q ) ) {
+		glm::quat rot = glm::angleAxis( scalar, state.basisZ ); // and again for basisZ
+		state.basisX = ( rot * vec4( state.basisX, 0.0f ) ).xyz();
+		state.basisY = ( rot * vec4( state.basisY, 0.0f ) ).xyz();
+	}
+	if ( input.getState( KEY_E ) ) {
+		glm::quat rot = glm::angleAxis( -scalar, state.basisZ );
+		state.basisX = ( rot * vec4( state.basisX, 0.0f ) ).xyz();
+		state.basisY = ( rot * vec4( state.basisY, 0.0f ) ).xyz();
+	}
+	if ( input.getState( KEY_UP ) )		state.viewerPosition += scalar * state.basisZ;
+	if ( input.getState( KEY_DOWN ) )		state.viewerPosition -= scalar * state.basisZ;
+	if ( input.getState( KEY_RIGHT ) )		state.viewerPosition += scalar * state.basisX;
+	if ( input.getState( KEY_LEFT ) )		state.viewerPosition -= scalar * state.basisX;
+	if ( input.getState( KEY_PAGEDOWN ) )	state.viewerPosition += scalar * state.basisY;
+	if ( input.getState( KEY_PAGEUP ) )	state.viewerPosition -= scalar * state.basisY;
+}
+
+void RayUpdate ( icarusState_t &state ) {
 
 	{ // update the buffer containing the pixel offsets
 		uvec2 offsets[ 1024 ] = { uvec2( 0 ) };

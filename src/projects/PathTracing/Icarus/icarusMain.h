@@ -40,6 +40,9 @@ public:
 			ClearAccumulators( icarusState );
 		}
 
+		// camera update
+		CameraUpdate( icarusState, inputHandler );
+
 		SDL_Event event;
 		SDL_PumpEvents();
 		while ( SDL_PollEvent( &event ) ) {
