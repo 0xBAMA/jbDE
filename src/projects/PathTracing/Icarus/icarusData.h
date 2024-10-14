@@ -1,7 +1,4 @@
 struct icarusState_t {
-	// SSBOs... details tbd
-	GLuint rayBuffer;
-
 	// access to the texture manager
 	textureManager_t * textureManager;
 
@@ -35,7 +32,10 @@ void CompileShaders ( icarusState_t &state ) {
 	state.AdamShader = computeShader( basePath + "adam.cs.glsl" ).shaderHandle;
 	state.PrepShader = computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
 	state.DrawShader = computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
-	// ...
+
+	// ray generation
+	// ray intersection
+	// ray shading
 
 }
 
@@ -43,6 +43,17 @@ void AllocateBuffers ( icarusState_t &state ) {
 	// allocate the ray buffer
 	glGenBuffers( 1, &state.offsetsSSBO );
 	glGenBuffers( 1, &state.raySSBO );
+
+	// allocate space for ray offsets - 2x ints * 1024 offsets per frame
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * 1024, NULL, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, state.offsetsSSBO );
+
+	// allocate space for the ray state structs, 1024 of them - this is going to change a lot, as I figure out what needs to happen
+		// 2x vec4's... origin in .xyz, then hit state... direction in .xyz, distance in .w
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * 4 * sizeof( GLfloat ) * 1024, NULL, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
 }
 
 void AllocateTextures ( icarusState_t &state ) {
@@ -156,13 +167,6 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 	return offset;
 }
 
-void UpdateOffsetList ( icarusState_t &state ) {
-	// get N offsets (number of pixels to update per frame)
-
-	// and put this list of offsets into an SSBO
-
-}
-
 void AdamUpdate ( icarusState_t &state ) {
 
 	// do the initial averaging, into Adam mip 0
@@ -243,34 +247,49 @@ void ClearAccumulators ( icarusState_t &state ) {
 }
 
 void Update ( icarusState_t &state ) {
-	// write some pixels... still placeholder
-	for ( int i = 0; i < 2048; i++ ) {
-		ivec2 loc = GetNextOffset( state );
+	// // write some pixels... still placeholder
+	// for ( int i = 0; i < 2048; i++ ) {
+	// 	ivec2 loc = GetNextOffset( state );
 
-		static rngi dataGen = rngi( 0, 1000 );
-		uint32_t dataI = dataGen();
+	// 	static rngi dataGen = rngi( 0, 1000 );
+	// 	uint32_t dataI = dataGen();
 
-		switch ( dataGen() % 3 ) {
-			case 0:
-				glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "R Tally Image" ) );
-				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-				break;
+	// 	switch ( dataGen() % 3 ) {
+	// 		case 0:
+	// 			glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "R Tally Image" ) );
+	// 			glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+	// 			break;
 
-			case 1:
-				glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "G Tally Image" ) );
-				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-				break;
+	// 		case 1:
+	// 			glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "G Tally Image" ) );
+	// 			glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+	// 			break;
 
-			case 2:
-				glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "B Tally Image" ) );
-				glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-				break;
-		}
+	// 		case 2:
+	// 			glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "B Tally Image" ) );
+	// 			glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+	// 			break;
+	// 	}
 
-		dataI = 1;
-		glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "Sample Count" ) );
-		glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
-	}
+	// 	dataI = 1;
+	// 	glBindTexture( GL_TEXTURE_2D, state.textureManager->Get( "Sample Count" ) );
+	// 	glTexSubImage2D( GL_TEXTURE_2D, 0, loc.x, loc.y, 1, 1, getFormat( GL_R32UI ), GL_UNSIGNED_INT, &dataI );
+	// }
+
+
+
+
+
+
+
+	// update the buffer containing the pixel offsets
+
+	// use the offsets to generate rays (first shader)
+
+	// intersect those rays with the scene (second shader)
+
+	// do the shading on the intersection results (third shader)
+
 }
 
 // =============================================================================================================
