@@ -128,7 +128,7 @@ public:
 	void OnUpdate () {
 		ZoneScoped; scopedTimer Start( "Update" );
 
-		Update( icarusState );
+		RayUpdate( icarusState );
 	}
 
 	void OnRender () {

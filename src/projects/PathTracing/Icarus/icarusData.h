@@ -21,7 +21,7 @@ struct icarusState_t {
 	#define UNIFORM  0
 	#define GAUSSIAN 1
 	#define SHUFFLED 2
-	int offsetFeedMode = GAUSSIAN;
+	int offsetFeedMode = SHUFFLED;
 	GLuint offsetsSSBO;
 
 	// holding the rays... double buffering? tbd
@@ -316,34 +316,45 @@ void RayUpdate ( icarusState_t &state ) {
 		const GLuint shader = state.RayGenerateShader;
 		glUseProgram( shader );
 
-		// proof of concept, just write at the offsets
-		state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
-		state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
-		state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
-		state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
+		// need to update the stuff related to the rendering
+		glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( state.basisX ) );
+		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( state.basisY ) );
+		glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( state.basisZ ) );
+		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
+
+		// cout << "camera state is: " << endl;
+		// cout << " pos: " << state.viewerPosition.x << " " << state.viewerPosition.y << " " << state.viewerPosition.z << endl;
+		// cout << " x: " << state.basisX.x << " " << state.basisX.y << " " << state.basisX.z << endl;
+		// cout << " y: " << state.basisY.x << " " << state.basisY.y << " " << state.basisY.z << endl;
+		// cout << " z: " << state.basisZ.x << " " << state.basisZ.y << " " << state.basisZ.z << endl;
+		// cout << endl;
 
 		// fixed size, 4 x 256 = 1024
 		glDispatchCompute( 4, 1, 1 );
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
-	// { // intersect those rays with the scene (second shader)
-	// 	const GLuint shader = state.RayIntersectShader;
-	// 	glUseProgram( shader );
+	{ // intersect those rays with the scene (second shader)
+		const GLuint shader = state.RayIntersectShader;
+		glUseProgram( shader );
 
+		glDispatchCompute( 4, 1, 1 );
+		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+	}
 
-	// 	glDispatchCompute( 4, 1, 1 );
-	// 	glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
-	// }
+	{ // do the shading on the intersection results (third shader)
+		const GLuint shader = state.RayShadeShader;
+		glUseProgram( shader );
 
-	// { // do the shading on the intersection results (third shader)
-	// 	const GLuint shader = state.RayShadeShader;
-	// 	glUseProgram( shader );
+		// this pass writes colors
+		state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
+		state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
+		state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
+		state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
 
-
-	// 	glDispatchCompute( 4, 1, 1 );
-	// 	glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
-	// }
+		glDispatchCompute( 4, 1, 1 );
+		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+	}
 
 	// make sure image writes complete
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
