@@ -1,7 +1,7 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
 
-// pathtracer output
+// pathtracer output buffers
 layout( binding = 0, r32ui ) uniform uimage2D rTally;
 layout( binding = 1, r32ui ) uniform uimage2D gTally;
 layout( binding = 2, r32ui ) uniform uimage2D bTally;

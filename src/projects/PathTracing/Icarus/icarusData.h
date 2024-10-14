@@ -8,6 +8,11 @@ struct icarusState_t {
 	GLuint PrepShader;
 	GLuint DrawShader;
 
+	// first pass on the pipeline
+	GLuint RayGenerateShader;
+	GLuint RayIntersectShader;
+	GLuint RayShadeShader;
+
 	// dimensions and related info
 	uvec2 dimensions = uvec2( 1920, 1080 );
 	int numLevels;
@@ -28,14 +33,15 @@ struct icarusState_t {
 void CompileShaders ( icarusState_t &state ) {
 	const string basePath = string( "./src/projects/PathTracing/Icarus/shaders/" );
 
-	state.CopyShader = computeShader( basePath + "copy.cs.glsl" ).shaderHandle;
-	state.AdamShader = computeShader( basePath + "adam.cs.glsl" ).shaderHandle;
-	state.PrepShader = computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
-	state.DrawShader = computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
+	state.CopyShader 			= computeShader( basePath + "copy.cs.glsl" ).shaderHandle;
+	state.AdamShader			= computeShader( basePath + "adam.cs.glsl" ).shaderHandle;
+	state.PrepShader			= computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
+	state.DrawShader			= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
 
-	// ray generation
-	// ray intersection
-	// ray shading
+	// ray generation, intersection, and shading
+	state.RayGenerateShader		= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
+	state.RayIntersectShader	= computeShader( basePath + "rayIntersect.cs.glsl" ).shaderHandle;
+	state.RayShadeShader		= computeShader( basePath + "rayShade.cs.glsl" ).shaderHandle;
 
 }
 
@@ -50,9 +56,9 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, state.offsetsSSBO );
 
 	// allocate space for the ray state structs, 1024 of them - this is going to change a lot, as I figure out what needs to happen
-		// 2x vec4's... origin in .xyz, then hit state... direction in .xyz, distance in .w
+		// 2x vec4's... origin in .xyz, then hit state... direction in .xyz, distance in .w... also need pixel index, 2x uints
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * 4 * sizeof( GLfloat ) * 1024, NULL, GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 3 * 4 * sizeof( GLfloat ) * 1024, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
 }
 
@@ -238,6 +244,7 @@ void DrawViewer ( icarusState_t &state, viewerState_t &viewerState ) {
 	glDispatchCompute( ( viewerState.viewerSize.x + 15 ) / 16, ( viewerState.viewerSize.y + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
+
 void ClearAccumulators ( icarusState_t &state ) {
 	state.textureManager->ZeroTexture2D( "R Tally Image" );
 	state.textureManager->ZeroTexture2D( "G Tally Image" );
@@ -247,14 +254,52 @@ void ClearAccumulators ( icarusState_t &state ) {
 }
 
 void Update ( icarusState_t &state ) {
-	// update the buffer containing the pixel offsets
 
-	// use the offsets to generate rays (first shader)
+	{ // update the buffer containing the pixel offsets
+		uvec2 offsets[ 1024 ] = { uvec2( 0 ) };
+		for ( int i = 0; i < 1024; i++ ) {
+			offsets[ i ] = GetNextOffset( state );
+		}
+		// send the data
+		glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * 1024, ( GLvoid * ) &offsets[ 0 ], GL_DYNAMIC_COPY );
+	}
 
-	// intersect those rays with the scene (second shader)
+	{ // use the offsets to generate rays (first shader)
+		const GLuint shader = state.RayGenerateShader;
+		glUseProgram( shader );
 
-	// do the shading on the intersection results (third shader)
+		// proof of concept, just write at the offsets
+		state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
+		state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
+		state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
+		state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
 
+		// fixed size, 4 x 256 = 1024
+		glDispatchCompute( 4, 1, 1 );
+		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+	}
+
+	// { // intersect those rays with the scene (second shader)
+	// 	const GLuint shader = state.RayIntersectShader;
+	// 	glUseProgram( shader );
+
+
+	// 	glDispatchCompute( 4, 1, 1 );
+	// 	glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+	// }
+
+	// { // do the shading on the intersection results (third shader)
+	// 	const GLuint shader = state.RayShadeShader;
+	// 	glUseProgram( shader );
+
+
+	// 	glDispatchCompute( 4, 1, 1 );
+	// 	glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+	// }
+
+	// make sure image writes complete
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 // =============================================================================================================
