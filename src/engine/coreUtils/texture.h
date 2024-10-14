@@ -512,7 +512,7 @@ public:
 			}
 		}
 		// this is going to be too slow for per-frame usage, allocating a big buffer like this over and over
-		Image_4U zeroes( w, h );
+		Image_4U zeroes( w, h ); // consider static declaration, resizing only if the current buffer is not large enough
 		void * data = ( void * ) zeroes.GetImageDataBasePtr();
 		glBindTexture( GL_TEXTURE_2D, handle );
 		glTexImage2D( GL_TEXTURE_2D, 0, dataType, w, h, 0, format, GL_UNSIGNED_BYTE, data );

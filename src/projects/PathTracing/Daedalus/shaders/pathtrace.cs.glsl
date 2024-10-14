@@ -1698,66 +1698,84 @@ float de( in vec3 p ) {
 
 	p.y = -p.y;
 
-	// {
-	// 	// const float d = max( mapPl( p - vec3( -5.0f, -5.0f, 5.0f ), 0.0f ), fBox( p - vec3( -18.0f, -3.0f, 0.0f ), vec3( 8.0f, 3.0f, 10.5f ) ) );
-
-	// 	// pModPolar( p.xy, 7.0f );
-
-	// 	// ivec3 idx = ivec3( pMod3( p, vec3( 1.0f ) ) );
-
-	// 	// uint seedCache = seed;
-
-	// 	// seed = idx.x * 1000 + idx.y * 2040 + idx.z * 3002;
-	// 	// vec3 col = abs( RandomUnitVector() );
-
-	// 	// seed = seedCache;
-
-	// 	// const float d = max( dHead( p * scale ) / scale, fBox( pOriginal, vec3( 8.0f, 3.0f, 10.5f ) ) );
-
-	// 	pR( p.xy, 0.0f );
-
-	// 	const float scale = 5.8f;
-	// 	p *= scale;
-
-	// 	const vec3 offset = vec3( -4.55f, 2.75f, 5.6f ) * scale;
-
-	// 	const float d = dHead( p - offset ) / scale;
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-	// 		if ( isEye ) {
-	// 			hitSurfaceType = EMISSIVE;
-	// 			hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
-	// 			// hitColor = col;
-	// 		} else {
-	// 			// hitSurfaceType = LUMARBLECHECKER;
-	// 			hitSurfaceType = DIFFUSE;
-	// 			// hitSurfaceType = METALLIC;
-	// 			// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-	// 			// hitSurfaceType = EMISSIVE;
-	// 			// hitColor = vec3( 0.887f, 0.789f, 0.434f ).rrg; // bone
-	// 			// hitRoughness = 0.6f;
-	// 			// hitColor = vec3( 0.3f );
-	// 			hitColor = vec3( 0.99f );
-	// 		}
-	// 	}
-	// }
-
 	{
+		// const float d = max( mapPl( p - vec3( -5.0f, -5.0f, 5.0f ), 0.0f ), fBox( p - vec3( -18.0f, -3.0f, 0.0f ), vec3( 8.0f, 3.0f, 10.5f ) ) );
+
+		// pModPolar( p.xy, 7.0f );
+
+		// ivec3 idx = ivec3( pMod3( p, vec3( 1.0f ) ) );
+		// uint seedCache = seed;
+		// seed = idx.x * 1000 + idx.y * 2040 + idx.z * 3002;
+
+		// seed = seedCache;
+
+		// const float d = max( dHead( p * scale ) / scale, fBox( pOriginal, vec3( 8.0f, 3.0f, 10.5f ) ) );
+
+		uint seedCache = seed;
+		int xIdx = int( pModInterval1( p.x, 1.2f, -10.0f, 10.0f ) );
+		int yIdx = int( pModInterval1( p.y, 1.2f, -10.0f, 10.0f ) );
+		seed = xIdx * 1000 + yIdx * 2040;
+		vec3 col = viridis( RangeRemapValue( NormalizedRandomFloat(), 0.0f, 1.0f, 0.5f, 0.7f ) );
+		pR( p.xy, 35.0f * NormalizedRandomFloat() );
+		seed = seedCache;
+
+		float scale = 1.5f;
+		p *= scale;
+		float d = fOpUnionSoft( dHead( p ) / scale, fPlane( pOriginal, vec3( 0.0f, 0.0f, 1.0f ), 0.0f ), 0.2f );
+
+		bool isEye1 = isEye;
+
+		// second octave
 		p = pOriginal;
-		p.y = -p.y;
+		seedCache = seed;
+		xIdx = int( pModInterval1( p.x, 2.6f, -10.0f, 10.0f ) );
+		yIdx = int( pModInterval1( p.y, 2.1f, -10.0f, 10.0f ) );
+		seed = xIdx * 1000 + yIdx * 2040;
+		vec3 col2 = viridis( RangeRemapValue( NormalizedRandomFloat(), 0.0f, 1.0f, 0.5f, 0.7f ) );
+		pR( p.xy, 35.0f * NormalizedRandomFloat() );
+		seed = seedCache;
+		scale = 0.75f;
 
-		// ivec3 idx = ivec3( pMod3( p, vec3( 5.0f ) ) );
+		d = fOpUnionSoft( d, fOpUnionSoft( dHead( p ) / scale, fPlane( pOriginal, vec3( 0.0f, 0.0f, 1.0f ), 0.0f ), 0.2f ), 0.1f );
 
-		const float scale = 0.1f;
-		const float d = max( DEnew( p * scale ) / scale, fBox( pOriginal, vec3( 10.0f ) ) );
+
 		sceneDist = min( sceneDist, d );
+
 		if ( sceneDist == d && d < epsilon ) {
-			// hitSurfaceType = DIFFUSE;
-			hitSurfaceType = MIRROR;
-			hitColor = vec3( 0.618f );
+			// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+			if ( isEye || isEye1 ) {
+				hitSurfaceType = EMISSIVE;
+				hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+				// hitColor = col;
+			} else {
+				// hitSurfaceType = LUMARBLECHECKER;
+				hitSurfaceType = DIFFUSE;
+				// hitSurfaceType = METALLIC;
+				// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+				// hitSurfaceType = EMISSIVE;
+				// hitColor = vec3( 0.887f, 0.789f, 0.434f ).rrg; // bone
+				// hitRoughness = 0.6f;
+				// hitColor = vec3( 0.3f );
+				hitColor = vec3( 0.99f );
+			}
 		}
 	}
+
+	// {
+	// 	p = pOriginal;
+	// 	p.y = -p.y;
+
+	// 	// ivec3 idx = ivec3( pMod3( p, vec3( 5.0f ) ) );
+
+	// 	const float scale = 0.1f;
+	// 	const float d = max( DEnew( p * scale ) / scale, fBox( pOriginal, vec3( 10.0f ) ) );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		// hitSurfaceType = DIFFUSE;
+	// 		hitSurfaceType = MIRROR;
+	// 		hitColor = vec3( 0.618f );
+	// 	}
+	// }
 
 	// {
 	// 	p = pOriginal;
