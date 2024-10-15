@@ -7,6 +7,7 @@ struct icarusState_t {
 	GLuint AdamShader;
 	GLuint PrepShader;
 	GLuint DrawShader;
+	GLuint ClearShader;
 
 	// first pass on the pipeline
 	GLuint RayGenerateShader;
@@ -43,6 +44,7 @@ void CompileShaders ( icarusState_t &state ) {
 	state.AdamShader			= computeShader( basePath + "adam.cs.glsl" ).shaderHandle;
 	state.PrepShader			= computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
 	state.DrawShader			= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
+	state.ClearShader			= computeShader( basePath + "clear.cs.glsl" ).shaderHandle;
 
 	// ray generation, intersection, and shading
 	state.RayGenerateShader		= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
@@ -252,11 +254,17 @@ void DrawViewer ( icarusState_t &state, viewerState_t &viewerState ) {
 }
 
 void ClearAccumulators ( icarusState_t &state ) {
-	state.textureManager->ZeroTexture2D( "R Tally Image" );
-	state.textureManager->ZeroTexture2D( "G Tally Image" );
-	state.textureManager->ZeroTexture2D( "B Tally Image" );
-	state.textureManager->ZeroTexture2D( "Sample Count" );
-	state.textureManager->ZeroTexture2D( "Adam" );
+	const GLuint shader = state.ClearShader;
+	glUseProgram( shader );
+
+	state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
+	state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
+	state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
+	state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
+	state.textureManager->BindTexForShader( "Adam", "adam", shader, 4 );
+
+	glDispatchCompute( ( state.dimensions.x + 15 ) / 16, ( state.dimensions.y + 15 ) / 16, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
