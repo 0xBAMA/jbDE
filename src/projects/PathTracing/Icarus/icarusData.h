@@ -268,8 +268,11 @@ void ClearAccumulators ( icarusState_t &state ) {
 }
 
 void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
-	// const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
-	const float scalar = 0.02f;
+	const bool shift = input.getState( KEY_LEFT_SHIFT ) || input.getState( KEY_RIGHT_SHIFT );
+	const bool control = input.getState( KEY_LEFT_CTRL ) || input.getState( KEY_RIGHT_CTRL );
+
+	const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
+
 	if ( input.getState( KEY_W ) ) {
 		glm::quat rot = glm::angleAxis( scalar, state.basisX ); // basisX is the axis, therefore remains untransformed
 		state.basisY = ( rot * vec4( state.basisY, 0.0f ) ).xyz();
@@ -329,13 +332,6 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( state.basisY ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( state.basisZ ) );
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
-
-		// cout << "camera state is: " << endl;
-		// cout << " pos: " << state.viewerPosition.x << " " << state.viewerPosition.y << " " << state.viewerPosition.z << endl;
-		// cout << " x: " << state.basisX.x << " " << state.basisX.y << " " << state.basisX.z << endl;
-		// cout << " y: " << state.basisY.x << " " << state.basisY.y << " " << state.basisY.z << endl;
-		// cout << " z: " << state.basisZ.x << " " << state.basisZ.y << " " << state.basisZ.z << endl;
-		// cout << endl;
 
 		// fixed size, 4 x 256 = 1024
 		glDispatchCompute( 4, 1, 1 );
