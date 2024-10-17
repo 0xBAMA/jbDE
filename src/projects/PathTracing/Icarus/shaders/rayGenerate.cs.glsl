@@ -1,18 +1,12 @@
 #version 430
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
-struct rayState_t {
-	// there's some stuff for padding... this is very wip
-	vec4 origin;
-	vec4 direction;
-	vec4 pixel;
-};
+#include "random.h"
+#include "rayState.h.glsl"
 
 // pixel offset + ray state buffers
 layout( binding = 0, std430 ) readonly buffer pixelOffsets { uvec2 offsets[]; };
 layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
-
-#include "random.h"
 
 uniform vec3 basisX;
 uniform vec3 basisY;
@@ -31,10 +25,11 @@ void main () {
 	const float aspectRatio = 1920.0f / 1080.0f;
 	const float FoV = 0.618f;
 
-	// compute ray origin + direction
-	state[ index ].origin.xyz = viewerPosition;
-	state[ index ].direction = vec4( normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ), 0.0f );
+	// zero out the buffer entry
+	StateReset( state[ index ] );
 
-	// need to know what pixel to write to
-	state[ index ].pixel.xy = vec2( offset );
+	// filling out the rayState_t struct
+	SetRayOrigin( state[ index ], viewerPosition );
+	SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
+	SetPixelIndex( state[ index ], offset );
 }

@@ -64,9 +64,9 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, state.offsetsSSBO );
 
 	// allocate space for the ray state structs, 1024 of them - this is going to change a lot, as I figure out what needs to happen
-		// 2x vec4's... origin in .xyz, then hit state... direction in .xyz, distance in .w... also need pixel index, 2x uints
+		// currently 108 bytes, see rayState.h.glsl
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 3 * 4 * sizeof( GLfloat ) * 1024, NULL, GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 108 * 1024, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
 }
 

@@ -29,7 +29,7 @@ void SetHitMaterial		( inout rayState_t rayState, int material )		{ rayState.dat
 int GetHitMaterial		( rayState_t rayState )							{ return int( rayState.data2.w ); }
 
 void SetThroughput		( inout rayState_t rayState, vec3 throughput )	{ rayState.data3.xyz = throughput; }
-float GetThroughput		( rayState_t rayState )							{ return rayState.data3.xyz; }
+vec3 GetThroughput		( rayState_t rayState )							{ return rayState.data3.xyz; }
 
 void SetHitIntersector	( inout rayState_t rayState, int intersector )	{ rayState.data3.w = float( intersector ); }
 int GetHitIntersector	( rayState_t rayState )							{ return int( rayState.data3.w ); }
@@ -54,3 +54,8 @@ float GetHitRoughness	( rayState_t rayState )							{ return rayState.data6.w; }
 
 void SetPixelIndex		( inout rayState_t rayState, ivec2 pixelIndex )	{ rayState.data7 = pixelIndex; }
 ivec2 GetPixelIndex		( rayState_t rayState )							{ return rayState.data7; }
+
+void StateReset ( inout rayState_t rayState ) {
+	rayState.data1 = rayState.data2 = rayState.data3 = rayState.data4 = rayState.data5 = rayState.data6 = vec4( 0.0f );
+	rayState.data7 = ivec2( 0 );
+}

@@ -1,18 +1,13 @@
 #version 430
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
-struct rayState_t {
-	// there's some stuff for padding... this is very wip
-	vec4 origin;
-	vec4 direction;
-	vec4 pixel;
-};
+#include "random.h"
+#include "rayState.h.glsl"
 
 // pixel offset + ray state buffers
 layout( binding = 0, std430 ) readonly buffer pixelOffsets { uvec2 offsets[]; };
 layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 
-#include "random.h"
 
 // basic raymarch stuff
 #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
@@ -55,17 +50,15 @@ vec3 SDFNormal( in vec3 position ) {
 void main () {
 
 	rayState_t myRay = state[ gl_GlobalInvocationID.x ];
-	seed = uint( myRay.pixel.x ) * 100625 + uint( myRay.pixel.y ) * 2324 + gl_GlobalInvocationID.x * 235;
+	seed = uint( GetPixelIndex( myRay ).x ) * 100625 + uint( GetPixelIndex( myRay ).y ) * 2324 + gl_GlobalInvocationID.x * 235;
 
 	// do the raymarch...
-	const float distanceToHit = raymarch( myRay.origin.xyz, myRay.direction.xyz );
+	const vec3 origin = GetRayOrigin( myRay );
+	const vec3 direction = GetRayDirection( myRay );
+	const float distanceToHit = raymarch( origin, direction );
 
-	// set hit/nohit on origin.w
-	state[ gl_GlobalInvocationID.x ].origin.w = ( distanceToHit < raymarchMaxDistance ) ? 1.0f : 0.0f;
-
-	// set distance on position.w
-	state[ gl_GlobalInvocationID.x ].direction.w = distanceToHit;
-
-	// something for color
-	state[ gl_GlobalInvocationID.x ].pixel.zw = SDFNormal( myRay.origin.xyz + myRay.direction.xyz * distanceToHit ).xy;
+	// update the intersection info
+	SetHitDistance( state[ gl_GlobalInvocationID.x ], distanceToHit );
+	SetHitIntersector( state[ gl_GlobalInvocationID.x ], ( distanceToHit < raymarchMaxDistance ) ? 1 : 0 );
+	SetHitNormal( state[ gl_GlobalInvocationID.x ], SDFNormal( origin + direction * distanceToHit ) );
 }
