@@ -14,17 +14,17 @@ layout( binding = 2, r32ui ) uniform uimage2D bTally;
 layout( binding = 3, r32ui ) uniform uimage2D count;
 
 void main () {
-
 	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
 	const float d = GetHitDistance( myState );
 	const int didHit = GetHitIntersector( myState );
 	const ivec2 loc = GetPixelIndex( myState );
+	const vec3 normal = GetHitNormal( myState );
 
 	if ( didHit == 1 ) {
-		imageAtomicAdd( rTally, loc, uint( 1024 * ( 1.0f / d ) ) );
-		imageAtomicAdd( gTally, loc, uint( 1024 * ( 1.0f / d ) ) );
-		imageAtomicAdd( bTally, loc, uint( 1024 * ( 1.0f / d ) ) );
+		imageAtomicAdd( rTally, loc, uint( 1024 * abs( normal.x ) * ( 1.0f / d ) ) );
+		imageAtomicAdd( gTally, loc, uint( 1024 * abs( normal.y ) * ( 1.0f / d ) ) );
+		imageAtomicAdd( bTally, loc, uint( 1024 * abs( normal.z ) * ( 1.0f / d ) ) );
 	}
 	imageAtomicAdd( count, loc, 1 );
 }
