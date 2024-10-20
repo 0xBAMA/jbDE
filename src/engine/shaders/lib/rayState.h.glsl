@@ -1,9 +1,13 @@
 // rayState_t setup for Icarus
 
-// #defines for
-	// intersection types
-	// material types
-	// ...
+// intersection types
+#define TERMINATED	-1
+#define NOHIT		0
+#define SDFHIT		1
+
+// material types
+#define NONE	0
+#define DIFFUSE 1
 
 // total 104 bytes... pad to 128? tbd
 struct rayState_t {
@@ -58,4 +62,7 @@ ivec2 GetPixelIndex		( rayState_t rayState )							{ return rayState.data7; }
 void StateReset ( inout rayState_t rayState ) {
 	rayState.data1 = rayState.data2 = rayState.data3 = rayState.data4 = rayState.data5 = rayState.data6 = vec4( 0.0f );
 	rayState.data7 = ivec2( 0 );
+
+	// need saner defaults...
+	SetThroughput( rayState, vec3( 1.0f ) );
 }
