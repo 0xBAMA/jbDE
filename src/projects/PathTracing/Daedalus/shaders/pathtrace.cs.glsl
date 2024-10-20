@@ -408,11 +408,11 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		}
 
 		case DIFFUSE: {
-			// ray.direction = randomVectorCosineWeighted;
-			// throughput *= intersection.albedo;
+			ray.direction = randomVectorCosineWeighted;
+			throughput *= intersection.albedo;
 
-			ray.direction = randomVectorDiffuse;
-			throughput *= ( intersection.albedo * saturate( dot( intersection.normal, ray.direction ) ) ) / pi;
+			// ray.direction = randomVectorDiffuse;
+			// throughput *= ( intersection.albedo * saturate( dot( intersection.normal, ray.direction ) ) ) / pi;
 			break;
 		}
 
