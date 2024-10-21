@@ -338,26 +338,30 @@ void RayUpdate ( icarusState_t &state ) {
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
-	{ // intersect those rays with the scene (second shader)
-		const GLuint shader = state.RayIntersectShader;
-		glUseProgram( shader );
+	// looping for bounces
+	for ( int i = 0; i < 10; i++ ) {
 
-		glDispatchCompute( 4, 1, 1 );
-		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
-	}
+		{ // intersect those rays with the scene (second shader)
+			const GLuint shader = state.RayIntersectShader;
+			glUseProgram( shader );
 
-	{ // do the shading on the intersection results (third shader)
-		const GLuint shader = state.RayShadeShader;
-		glUseProgram( shader );
+			glDispatchCompute( 4, 1, 1 );
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+		}
 
-		// this pass writes colors
-		state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
-		state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
-		state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
-		state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
+		{ // do the shading on the intersection results (third shader)
+			const GLuint shader = state.RayShadeShader;
+			glUseProgram( shader );
 
-		glDispatchCompute( 4, 1, 1 );
-		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+			// this pass writes colors
+			state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
+			state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
+			state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
+			state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
+
+			glDispatchCompute( 4, 1, 1 );
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+		}
 	}
 
 	// make sure image writes complete

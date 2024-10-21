@@ -1,9 +1,8 @@
 // rayState_t setup for Icarus
 
 // intersection types
-#define TERMINATED	-1
-#define NOHIT		0
-#define SDFHIT		1
+#define NOHIT	0
+#define SDFHIT	1
 
 // material types
 #define NONE	0
@@ -13,7 +12,7 @@
 struct rayState_t {
 	vec4 data1; // ray origin in .xyz, distance to hit in .w
 	vec4 data2; // ray direction in .xyz, type of material in .w
-	vec4 data3; // throughput in .xyz, type of intersector in .w
+	vec4 data3; // transmission in .xyz, type of intersector in .w
 	vec4 data4; // energy total in .xyz, frontface in .w
 	vec4 data5; // normal vector in .xyz, IoR in .w
 	vec4 data6; // albedo of hit in .xyz, roughness in .w
@@ -32,8 +31,8 @@ vec3 GetRayDirection	( rayState_t rayState )							{ return rayState.data2.xyz; 
 void SetHitMaterial		( inout rayState_t rayState, int material )		{ rayState.data2.w = float( material ); }
 int GetHitMaterial		( rayState_t rayState )							{ return int( rayState.data2.w ); }
 
-void SetThroughput		( inout rayState_t rayState, vec3 throughput )	{ rayState.data3.xyz = throughput; }
-vec3 GetThroughput		( rayState_t rayState )							{ return rayState.data3.xyz; }
+void SetTransmission	( inout rayState_t rayState, vec3 transmission ){ rayState.data3.xyz = transmission; }
+vec3 GetTransmission	( rayState_t rayState )							{ return rayState.data3.xyz; }
 
 void SetHitIntersector	( inout rayState_t rayState, int intersector )	{ rayState.data3.w = float( intersector ); }
 int GetHitIntersector	( rayState_t rayState )							{ return int( rayState.data3.w ); }
@@ -64,5 +63,5 @@ void StateReset ( inout rayState_t rayState ) {
 	rayState.data7 = ivec2( 0 );
 
 	// need saner defaults...
-	SetThroughput( rayState, vec3( 1.0f ) );
+	SetTransmission( rayState, vec3( 1.0f ) );
 }
