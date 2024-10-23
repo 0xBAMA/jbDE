@@ -39,6 +39,7 @@ int GetHitIntersector	( rayState_t rayState )							{ return int( rayState.data3
 
 void SetEnergyTotal 	( inout rayState_t rayState, vec3 energy )		{ rayState.data4.xyz = energy; }
 vec3 GetEnergyTotal		( rayState_t rayState )							{ return rayState.data4.xyz; }
+void AddEnergy			( inout rayState_t rayState, vec3 energy )		{ SetEnergyTotal( rayState, GetEnergyTotal( rayState ) + energy ); }
 
 void SetHitFrontface 	( inout rayState_t rayState, bool frontface )	{ rayState.data4.w = frontface ? 1.0f : 0.0f; }
 bool GetHitFrontface	( rayState_t rayState )							{ return ( rayState.data4.w == 1.0f ); }
