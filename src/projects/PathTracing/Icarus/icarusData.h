@@ -267,6 +267,41 @@ void ClearAccumulators ( icarusState_t &state ) {
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
+void Screenshot ( icarusState_t &state ) {
+
+	const bool fullDepth = false;
+	const bool srgbConvert = true;
+	const string label = "Output Buffer";
+
+	const GLuint tex = state.textureManager->Get( label );
+	uvec2 dims = state.textureManager->GetDimensions( label );
+	std::vector< float > imageBytesToSave;
+	imageBytesToSave.resize( dims.x * dims.y * sizeof( float ) * 4, 0 );
+	glBindTexture( GL_TEXTURE_2D, tex );
+	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &imageBytesToSave.data()[ 0 ] );
+	Image_4F screenshot( dims.x, dims.y, &imageBytesToSave.data()[ 0 ] );
+	if ( srgbConvert == true ) {
+		screenshot.RGBtoSRGB();
+	}
+	screenshot.SaturateAlpha();
+	const string filename = string( "Icarus-" ) + timeDateString() + string( fullDepth ? ".exr" : ".png" );
+	screenshot.Save( filename, fullDepth ? Image_4F::backend::TINYEXR : Image_4F::backend::LODEPNG );
+}
+
+void SystemUpdate ( icarusState_t &state, inputHandler_t &input ) {
+	if ( input.getState4( KEY_R ) == KEYSTATE_RISING ) {
+		ClearAccumulators( state );
+	}
+
+	if ( input.getState4( KEY_T ) == KEYSTATE_RISING ) {
+		Screenshot( state );
+	}
+
+	if ( input.getState4( KEY_Y ) == KEYSTATE_RISING ) {
+		CompileShaders( state );
+	}
+}
+
 void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
 	const bool shift = input.getState( KEY_LEFT_SHIFT ) || input.getState( KEY_RIGHT_SHIFT );
 	const bool control = input.getState( KEY_LEFT_CTRL ) || input.getState( KEY_RIGHT_CTRL );
