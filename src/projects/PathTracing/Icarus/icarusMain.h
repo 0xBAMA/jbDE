@@ -36,12 +36,9 @@ public:
 			viewerState.dragUpdate( inputHandler.mouseDragDelta(), inputHandler.dragging );
 		}
 
-		if ( inputHandler.getState4( KEY_R ) == KEYSTATE_RISING ) {
-			ClearAccumulators( icarusState );
-		}
-
-		// camera update
+		// camera + system update for icarus
 		CameraUpdate( icarusState, inputHandler );
+		SystemUpdate( icarusState, inputHandler );
 
 		SDL_Event event;
 		SDL_PumpEvents();

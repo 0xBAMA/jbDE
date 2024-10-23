@@ -22,8 +22,11 @@ struct icarusState_t {
 	#define UNIFORM  0
 	#define GAUSSIAN 1
 	#define SHUFFLED 2
-	int offsetFeedMode = SHUFFLED;
+	// int offsetFeedMode = SHUFFLED;
+	int offsetFeedMode = GAUSSIAN;
 	GLuint offsetsSSBO;
+
+	uint numRays = 2 << 16;
 
 	// holding the rays... double buffering? tbd
 	GLuint raySSBO;
@@ -58,15 +61,15 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glGenBuffers( 1, &state.offsetsSSBO );
 	glGenBuffers( 1, &state.raySSBO );
 
-	// allocate space for ray offsets - 2x ints * 1024 offsets per frame
+	// allocate space for ray offsets - 2x ints * state.numRays offsets per frame
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * 1024, NULL, GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * state.numRays, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, state.offsetsSSBO );
 
-	// allocate space for the ray state structs, 1024 of them - this is going to change a lot, as I figure out what needs to happen
+	// allocate space for the ray state structs, state.numRays of them - this is going to change a lot, as I figure out what needs to happen
 		// currently 108 bytes, see rayState.h.glsl
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 108 * 1024, NULL, GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 108 * state.numRays, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
 }
 
@@ -141,7 +144,7 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 		case GAUSSIAN: {
 			// center-biased random, creates a foveated look
 				// probably easiest to rejection sample for off-screen offsets
-			static rngN offsetGen = rngN( 0.5f, 0.125f );
+			static rngN offsetGen = rngN( 0.5f, 0.15f );
 			do {
 				offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
 			} while ( offset.x >= state.dimensions.x || offset.x < 0 || offset.y >= state.dimensions.y || offset.y < 0 );
@@ -349,13 +352,13 @@ void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
 void RayUpdate ( icarusState_t &state ) {
 
 	{ // update the buffer containing the pixel offsets
-		uvec2 offsets[ 1024 ] = { uvec2( 0 ) };
-		for ( int i = 0; i < 1024; i++ ) {
+		uvec2 offsets[ state.numRays ] = { uvec2( 0 ) };
+		for ( uint i = 0; i < state.numRays; i++ ) {
 			offsets[ i ] = GetNextOffset( state );
 		}
 		// send the data
 		glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
-		glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * 1024, ( GLvoid * ) &offsets[ 0 ], GL_DYNAMIC_COPY );
+		glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * state.numRays, ( GLvoid * ) &offsets[ 0 ], GL_DYNAMIC_COPY );
 	}
 
 	{ // use the offsets to generate rays (first shader)
@@ -368,19 +371,19 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( state.basisZ ) );
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
 
-		// fixed size, 4 x 256 = 1024
-		glDispatchCompute( 4, 1, 1 );
+		// fixed size, x times 256 = state.numRays
+		glDispatchCompute( state.numRays / 256, 1, 1 );
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
 	// looping for bounces
-	for ( int i = 0; i < 10; i++ ) {
+	for ( uint i = 0; i < 16; i++ ) {
 
 		{ // intersect those rays with the scene (second shader)
 			const GLuint shader = state.RayIntersectShader;
 			glUseProgram( shader );
 
-			glDispatchCompute( 4, 1, 1 );
+			glDispatchCompute( state.numRays / 256, 1, 1 );
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
@@ -394,7 +397,7 @@ void RayUpdate ( icarusState_t &state ) {
 			state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
 			state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
 
-			glDispatchCompute( 4, 1, 1 );
+			glDispatchCompute( state.numRays / 256, 1, 1 );
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 	}
