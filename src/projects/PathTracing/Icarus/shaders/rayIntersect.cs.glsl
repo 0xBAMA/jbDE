@@ -1,10 +1,12 @@
 #version 430
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
-
 // ray state buffer
 #include "rayState.h.glsl"
 layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
+
+#include "random.h"
+#include "hg_sdf.glsl"
 
 // basic raymarch stuff
 vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
@@ -24,7 +26,7 @@ vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
 	return vec3(zx,zy,zz);
 }
 
-float de( vec3 p ) {
+float deTrees ( vec3 p ) {
 	float Scale = 1.34f;
 	float FoldY = 1.025709f;
 	float FoldX = 1.025709f;
@@ -65,10 +67,110 @@ float de( vec3 p ) {
 	return Precision*(l)*pow(Scale, -float(i));
 }
 
+float deTemple ( vec3 p ) {
+	float s = 2.;
+	float e = 0.;
+	for(int j=0;++j<7;)
+		p.xz=abs(p.xz)-2.3,
+		p.z>p.x?p=p.zyx:p,
+		p.z=1.5-abs(p.z-1.3+sin(p.z)*.2),
+		p.y>p.x?p=p.yxz:p,
+		p.x=3.-abs(p.x-5.+sin(p.x*3.)*.2),
+		p.y>p.x?p=p.yxz:p,
+		p.y=.9-abs(p.y-.4),
+		e=12.*clamp(.3/min(dot(p,p),1.),.0,1.)+
+		2.*clamp(.1/min(dot(p,p),1.),.0,1.),
+		p=e*p-vec3(7,1,1),
+		s*=e;
+	return length(p)/s;
+}
+
+#define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
+float deTemple2(vec3 p){
+	p=abs(p)-3.;
+	if(p.x < p.z)p.xz=p.zx;
+	if(p.y < p.z)p.yz=p.zy;
+	if(p.x < p.y)p.xy=p.yx;
+	float s=2.; vec3 off=p*.5;
+	for(int i=0;i<12;i++){
+		p=1.-abs(p-1.);
+		float k=-1.1*max(1.5/dot(p,p),1.5);
+		s*=abs(k); p*=k; p+=off;
+		p.zx*=rot(-1.2);
+	}
+	float a=2.5;
+	p-=clamp(p,-a,a);
+	return length(p)/s;
+}
+
+float deTemple3 ( vec3 pos ) {
+	vec3 tpos=pos;
+	tpos.xz=abs(.5-mod(tpos.xz,1.));
+	vec4 p=vec4(tpos,1.);
+	float y=max(0.,.35-abs(pos.y-3.35))/.35;
+	for (int i=0; i<7; i++) {
+		p.xyz = abs(p.xyz)-vec3(-0.02,1.98,-0.02);
+		p=p*(2.0+0.*y)/clamp(dot(p.xyz,p.xyz),.4,1.)-vec4(0.5,1.,0.4,0.);
+		p.xz*=mat2(-0.416,-0.91,0.91,-0.416);
+	}
+	return (length(max(abs(p.xyz)-vec3(0.1,5.0,0.1),vec3(0.0)))-0.05)/p.w;
+}
+
 const float raymarchMaxDistance = 50.0f;
 const float raymarchUnderstep = 0.9f;
 const int raymarchMaxSteps = 300;
 const float epsilon = 0.001f;
+
+const vec3 carrot = vec3( 0.713f, 0.170f, 0.026f );
+const vec3 honey = vec3( 0.831f, 0.397f, 0.038f );
+const vec3 bone = vec3( 0.887f, 0.789f, 0.434f );
+const vec3 tire = vec3( 0.023f, 0.023f, 0.023f );
+const vec3 sapphire = vec3( 0.670f, 0.764f, 0.855f );
+const vec3 nickel = vec3( 0.649f, 0.610f, 0.541f );
+
+vec3 hitColor;
+float hitRoughness;
+int hitSurfaceType;
+
+float de ( vec3 p ) {
+	const vec3 pOriginal = p;
+	float sceneDist = 1000.0f;
+
+	hitColor = vec3( 0.0f );
+	hitSurfaceType = NONE;
+	hitRoughness = 0.0f;
+
+	// form for the following:
+	// {
+		// const float d = blah whatever SDF
+		// sceneDist = min( sceneDist, d );
+		// if ( sceneDist == d && d < epsilon ) {
+			// set material specifics - hitColor, hitSurfaceType, hitRoughness
+		// }
+	// }
+
+	{
+		const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = EMISSIVE;
+			hitColor = vec3( 1.0f );
+		}
+	}
+
+	{
+		const float d = deTemple3( p );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			// hitSurfaceType = MIRROR;
+			hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+			hitColor = vec3( 0.95f );
+			// hitColor = bone;
+		}
+	}
+
+	return sceneDist;
+}
 
 float raymarch ( vec3 rayOrigin, vec3 rayDirection ) {
 	float dQuery = 0.0f;
