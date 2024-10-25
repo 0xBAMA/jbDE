@@ -92,17 +92,26 @@ vec3 SDFNormal( in vec3 position ) {
 
 void main () {
 
-	rayState_t myRay = state[ gl_GlobalInvocationID.x ];
+	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
-	// do the raymarch...
-	const vec3 origin = GetRayOrigin( myRay );
-	const vec3 direction = GetRayDirection( myRay );
+	const uvec2 loc = uvec2( GetPixelIndex( myState ) );
+	seed = loc.x * 10625 + loc.y * 23624 + gl_GlobalInvocationID.x * 2335;
 
+	const vec3 origin = GetRayOrigin( myState );
+	const vec3 direction = GetRayDirection( myState );
+
+	// ray is live, do the raymarch...
 	if ( length( direction ) > 0.5f ) {
 		// update the intersection info
 		const float distanceToHit = raymarch( origin, direction );
-		SetHitDistance( state[ gl_GlobalInvocationID.x ], distanceToHit );
-		SetHitIntersector( state[ gl_GlobalInvocationID.x ], ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
-		SetHitNormal( state[ gl_GlobalInvocationID.x ], SDFNormal( origin + direction * distanceToHit ) );
+
+		SetHitAlbedo( myState, hitColor );
+		SetHitRoughness( myState, hitRoughness );
+		SetHitDistance( myState, distanceToHit );
+		SetHitMaterial( myState, hitSurfaceType );
+		SetHitNormal( myState, SDFNormal( origin + direction * distanceToHit ) );
+		SetHitIntersector( myState, ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
+
+		state[ gl_GlobalInvocationID.x ] = myState;
 	}
 }
