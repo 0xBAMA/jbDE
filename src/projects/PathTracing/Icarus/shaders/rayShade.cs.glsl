@@ -43,6 +43,16 @@ void main () {
 
 	} else {
 		// if you didn't hit the object, you die
+	// russian roulette termination
+	vec3 transmission = GetTransmission( myState );
+	const float maxChannel = max( max( transmission.x, transmission.y ), transmission.z );
+	if ( NormalizedRandomFloat() > maxChannel ) {
+		terminate = true;
+	}
+	// RR compensation term
+	transmission *= ( 1.0f / maxChannel );
+	SetTransmission( myState, transmission );
+
 		terminate = true;
 	}
 
