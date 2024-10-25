@@ -1,12 +1,14 @@
 // rayState_t setup for Icarus
 
 // intersection types
-#define NOHIT	0
-#define SDFHIT	1
+#define NOHIT		0
+#define SDFHIT		1
 
 // material types
-#define NONE	0
-#define DIFFUSE 1
+#define NONE		0
+#define EMISSIVE	1
+#define MIRROR		2
+#define DIFFUSE 	3
 
 // total 104 bytes... pad to 128? tbd
 struct rayState_t {
