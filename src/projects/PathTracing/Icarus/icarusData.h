@@ -28,8 +28,10 @@ struct icarusState_t {
 
 	uint numRays = 2 << 16;
 
-	// holding the rays... double buffering? tbd
-	GLuint raySSBO;
+	// holding the rays
+	GLuint raySSBO[ 2 ];
+	GLuint raySSBOOffset;
+	bool evenOdd = true;
 
 	// camera parameterization
 	vec3 viewerPosition = vec3( 0.0f );
@@ -37,6 +39,12 @@ struct icarusState_t {
 	vec3 basisY = vec3( 0.0f, 1.0f, 0.0f );
 	vec3 basisZ = vec3( 0.0f, 0.0f, 1.0f );
 	float FoV = 0.618f;
+	int cameraType = 0;
+
+	// DoF stuff
+	bool DoF = true;
+	float DoFDistance = 2.5f;
+	float DoFRadius = 0.1f;
 };
 
 // =============================================================================================================
@@ -60,7 +68,7 @@ void CompileShaders ( icarusState_t &state ) {
 void AllocateBuffers ( icarusState_t &state ) {
 	// allocate the ray buffer
 	glGenBuffers( 1, &state.offsetsSSBO );
-	glGenBuffers( 1, &state.raySSBO );
+	glGenBuffers( 2, &state.raySSBO[ 0 ] );
 
 	// allocate space for ray offsets - 2x ints * state.numRays offsets per frame
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
@@ -69,9 +77,13 @@ void AllocateBuffers ( icarusState_t &state ) {
 
 	// allocate space for the ray state structs, state.numRays of them - this is going to change a lot, as I figure out what needs to happen
 		// currently 108 bytes, see rayState.h.glsl
-	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 108 * state.numRays, NULL, GL_DYNAMIC_COPY );
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO[ 0 ] );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 128 * state.numRays, NULL, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO[ 0 ] );
+
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO[ 1 ] );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 128 * state.numRays, NULL, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO[ 1 ] );
 }
 
 void AllocateTextures ( icarusState_t &state ) {
@@ -369,11 +381,11 @@ void RayUpdate ( icarusState_t &state ) {
 		glUseProgram( shader );
 
 		// need to update the stuff related to the rendering
+		glUniform1f( glGetUniformLocation( shader, "FoV" ), state.FoV );
 		glUniform3fv( glGetUniformLocation( shader, "basisX" ), 1, glm::value_ptr( state.basisX ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( state.basisY ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( state.basisZ ) );
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
-		glUniform1f( glGetUniformLocation( shader, "FoV" ), state.FoV );
 		glUniform2f( glGetUniformLocation( shader, "imageDimensions" ), state.dimensions.x, state.dimensions.y );
 
 		// fixed size, x times 256 = state.numRays
@@ -405,6 +417,7 @@ void RayUpdate ( icarusState_t &state ) {
 			glDispatchCompute( state.numRays / 256, 1, 1 );
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
+
 	}
 
 	// make sure image writes complete
