@@ -374,9 +374,6 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 
 	const vec3 randomVectorSpecular = normalize( ( 1.0f + epsilon ) * intersection.normal + mix( reflectedVector, RandomUnitVector(), intersection.roughness ) );
 
-	// handle volumetrics, here? something where you attenuate by a term, weighted by exp( -distance )
-		// with a chance to randomly scatter, which will give a random ray, and the position will be the point where it scatters
-
 	// if the ray escapes
 	if ( intersection.dTravel >= maxDistance ) {
 
@@ -1154,8 +1151,6 @@ float DEnew2 ( vec3 p ) {
 	return t;
 }
 
-
-
 float deJAIL ( vec3 p ) {
   float d = 0.0f;
   float t = 0.3f;
@@ -1683,75 +1678,77 @@ float de( in vec3 p ) {
 	// 	}
 	// }
 
-	// {
-	// 	const float d = deOldTestChamber( p );
-	// 	sceneDist = min( sceneDist, d );
-	// }
-
-	p.y = -p.y;
-
 	{
-		// const float d = max( mapPl( p - vec3( -5.0f, -5.0f, 5.0f ), 0.0f ), fBox( p - vec3( -18.0f, -3.0f, 0.0f ), vec3( 8.0f, 3.0f, 10.5f ) ) );
-
-		// pModPolar( p.xy, 7.0f );
-
-		// ivec3 idx = ivec3( pMod3( p, vec3( 1.0f ) ) );
-		// uint seedCache = seed;
-		// seed = idx.x * 1000 + idx.y * 2040 + idx.z * 3002;
-
-		// seed = seedCache;
-
-		// const float d = max( dHead( p * scale ) / scale, fBox( pOriginal, vec3( 8.0f, 3.0f, 10.5f ) ) );
-
-		uint seedCache = seed;
-		int xIdx = int( pModInterval1( p.x, 1.2f, -10.0f, 10.0f ) );
-		int yIdx = int( pModInterval1( p.y, 1.2f, -10.0f, 10.0f ) );
-		seed = xIdx * 1000 + yIdx * 2040;
-		vec3 col = viridis( RangeRemapValue( NormalizedRandomFloat(), 0.0f, 1.0f, 0.5f, 0.7f ) );
-		pR( p.xy, 35.0f * NormalizedRandomFloat() );
-		seed = seedCache;
-
-		float scale = 1.5f;
-		p *= scale;
-		float d = fOpUnionSoft( dHead( p ) / scale, fPlane( pOriginal, vec3( 0.0f, 0.0f, 1.0f ), 0.0f ), 0.2f );
-
-		bool isEye1 = isEye;
-
-		// second octave
-		p = pOriginal;
-		seedCache = seed;
-		xIdx = int( pModInterval1( p.x, 2.6f, -10.0f, 10.0f ) );
-		yIdx = int( pModInterval1( p.y, 2.1f, -10.0f, 10.0f ) );
-		seed = xIdx * 1000 + yIdx * 2040;
-		vec3 col2 = viridis( RangeRemapValue( NormalizedRandomFloat(), 0.0f, 1.0f, 0.5f, 0.7f ) );
-		pR( p.xy, 35.0f * NormalizedRandomFloat() );
-		seed = seedCache;
-		scale = 0.75f;
-
-		d = fOpUnionSoft( d, fOpUnionSoft( dHead( p ) / scale, fPlane( pOriginal, vec3( 0.0f, 0.0f, 1.0f ), 0.0f ), 0.2f ), 0.1f );
-
-
+		const float d = deOldTestChamber( p );
 		sceneDist = min( sceneDist, d );
-
-		if ( sceneDist == d && d < epsilon ) {
-			// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-			if ( isEye || isEye1 ) {
-				hitSurfaceType = EMISSIVE;
-				hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
-				// hitColor = col;
-			} else {
-				// hitSurfaceType = LUMARBLECHECKER;
-				hitSurfaceType = DIFFUSE;
-				// hitSurfaceType = METALLIC;
-				// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
-				// hitSurfaceType = EMISSIVE;
-				// hitColor = vec3( 0.887f, 0.789f, 0.434f ).rrg; // bone
-				// hitRoughness = 0.6f;
-				// hitColor = vec3( 0.3f );
-				hitColor = vec3( 0.99f );
-			}
-		}
 	}
+
+	// p.y = -p.y;
+
+	// {
+	// // 	// const float d = max( mapPl( p - vec3( -5.0f, -5.0f, 5.0f ), 0.0f ), fBox( p - vec3( -18.0f, -3.0f, 0.0f ), vec3( 8.0f, 3.0f, 10.5f ) ) );
+
+	// // 	// pModPolar( p.xy, 7.0f );
+
+	// // 	// ivec3 idx = ivec3( pMod3( p, vec3( 1.0f ) ) );
+	// // 	// uint seedCache = seed;
+	// // 	// seed = idx.x * 1000 + idx.y * 2040 + idx.z * 3002;
+
+	// // 	// seed = seedCache;
+
+	// // 	// const float d = max( dHead( p * scale ) / scale, fBox( pOriginal, vec3( 8.0f, 3.0f, 10.5f ) ) );
+
+	// // 	uint seedCache = seed;
+	// // 	int xIdx = int( pModInterval1( p.x, 1.2f, -10.0f, 10.0f ) );
+	// // 	int yIdx = int( pModInterval1( p.y, 1.2f, -10.0f, 10.0f ) );
+	// // 	seed = xIdx * 1000 + yIdx * 2040;
+	// // 	vec3 col = viridis( RangeRemapValue( NormalizedRandomFloat(), 0.0f, 1.0f, 0.5f, 0.7f ) );
+	// // 	pR( p.xy, 35.0f * NormalizedRandomFloat() );
+	// // 	seed = seedCache;
+
+	// // 	float scale = 1.5f;
+	// // 	p *= scale;
+	// // 	float d = fOpUnionSoft( dHead( p ) / scale, fPlane( pOriginal, vec3( 0.0f, 0.0f, 1.0f ), 0.0f ), 0.2f );
+
+	// // 	bool isEye1 = isEye;
+
+	// // 	// second octave
+	// // 	p = pOriginal;
+	// // 	seedCache = seed;
+	// // 	xIdx = int( pModInterval1( p.x, 2.6f, -10.0f, 10.0f ) );
+	// // 	yIdx = int( pModInterval1( p.y, 2.1f, -10.0f, 10.0f ) );
+	// // 	seed = xIdx * 1000 + yIdx * 2040;
+	// // 	vec3 col2 = viridis( RangeRemapValue( NormalizedRandomFloat(), 0.0f, 1.0f, 0.5f, 0.7f ) );
+	// // 	pR( p.xy, 35.0f * NormalizedRandomFloat() );
+	// // 	seed = seedCache;
+	// // 	scale = 0.75f;
+
+	// // 	d = fOpUnionSoft( d, fOpUnionSoft( dHead( p ) / scale, fPlane( pOriginal, vec3( 0.0f, 0.0f, 1.0f ), 0.0f ), 0.2f ), 0.1f );
+
+	// 	const float scale = 0.1f;
+	// 	const float d = dHead( p * scale ) / scale;
+	// 	sceneDist = min( sceneDist, d );
+
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 		if ( isEye ) {
+	// 			hitSurfaceType = EMISSIVE;
+	// 			// hitColor = vec3( 0.670f, 0.764f, 0.855f ); // sapphire blue
+	// 			hitColor = vec3( 3.0f );
+	// 			// hitColor = col;
+	// 		} else {
+	// 			// hitSurfaceType = LUMARBLECHECKER;
+	// 			hitSurfaceType = DIFFUSE;
+	// 			// hitSurfaceType = METALLIC;
+	// 			// hitSurfaceType = NormalizedRandomFloat() < 0.9f ? DIFFUSE : MIRROR;
+	// 			// hitSurfaceType = EMISSIVE;
+	// 			// hitColor = vec3( 0.887f, 0.789f, 0.434f ).rrg; // bone
+	// 			// hitRoughness = 0.6f;
+	// 			// hitColor = vec3( 0.3f );
+	// 			hitColor = vec3( 0.99f );
+	// 		}
+	// 	}
+	// }
 
 	// {
 	// 	p = pOriginal;

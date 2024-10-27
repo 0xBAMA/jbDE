@@ -37,7 +37,7 @@ float deTrees ( vec3 p ) {
 	float AngX = -80.00209f;
 	float AngY = 0.0f;
 	float AngZ = -28.096322f;
-	float Offset = -3.036726f;
+	float Offset = -3.036726f + p.x / 10.0f;
 	int EnableOffset = 1;
 	int Iterations = 80;
 	float Precision = 1.0f;
@@ -64,6 +64,7 @@ float deTrees ( vec3 p ) {
 		// hitColor = vec3( abs( p / 10.0f ) );
 	}
 	// hitColor = vec3( OrbitTrap.r, abs( 10.0f * p.xy ) );
+
 	return Precision*(l)*pow(Scale, -float(i));
 }
 
@@ -103,18 +104,67 @@ float deTemple2(vec3 p){
 	return length(p)/s;
 }
 
-float deTemple3 ( vec3 pos ) {
-	vec3 tpos=pos;
-	tpos.xz=abs(.5-mod(tpos.xz,1.));
-	vec4 p=vec4(tpos,1.);
-	float y=max(0.,.35-abs(pos.y-3.35))/.35;
-	for (int i=0; i<7; i++) {
-		p.xyz = abs(p.xyz)-vec3(-0.02,1.98,-0.02);
-		p=p*(2.0+0.*y)/clamp(dot(p.xyz,p.xyz),.4,1.)-vec4(0.5,1.,0.4,0.);
-		p.xz*=mat2(-0.416,-0.91,0.91,-0.416);
-	}
-	return (length(max(abs(p.xyz)-vec3(0.1,5.0,0.1),vec3(0.0)))-0.05)/p.w;
+float deGround ( vec3 p ) {
+	float i,j,d=1.,a;
+	vec3 Q;
+	a=1.;
+	d=p.y+1.;
+	for(j=0.;j++<9.;)
+		Q=(p+fract(sin(j)*1e4)*3.141592)*a,
+		Q+=sin(Q)*2.,
+		d+=sin(Q.x)*sin(Q.z)/a,
+		a*=2.;
+	return d*.15;
 }
+
+mat2 rotate2D(float r){
+	return mat2(cos(r), sin(r), -sin(r), cos(r));
+}
+float deTree(vec3 p){
+	float d, a;
+	d=a=1.;
+	for(int j=0;j++<15;)
+		p.xz=abs(p.xz)*rotate2D(PI/4.),
+		d=min(d,max(length(p.zx)-.3,p.y-.4)/a),
+		p.yx*=rotate2D(.5),
+		p.y-=3.,
+		p*=1.5,
+		a*=1.5;
+	return d;
+}
+
+void sphere_fold ( inout vec3 z, inout float dz ) {
+	float FixedRadius = 10.9;
+	float MinRadius = 1.1;
+	float r2 = dot( z, z );
+	if ( r2 < MinRadius ) {
+		float temp = ( FixedRadius / MinRadius );
+		z *= temp; dz *= temp;
+	} else if ( r2 < FixedRadius ) {
+		float temp = ( FixedRadius / r2 );
+		z *= temp; dz *= temp;
+	}
+}
+void box_fold ( inout vec3 z ) {
+	float folding_limit = 1.0;
+	z = clamp(z, -folding_limit, folding_limit) * 2.0 - z;
+}
+float DEnew ( vec3 p ) {
+	float s = 1.;
+	float t = 9999.;
+	for(int i = 0; i < 12; i++){
+		float k =  .1/clamp(dot(p,p),0.01,1.);
+		p *= k;
+		s *= k;
+		sphere_fold(p.xyz,s);
+		box_fold(p.xyz);
+		p=abs(p)-vec3(.2,5.,2.7);
+		p=mod(p-1.,2.)-1.;
+		t = min(t, length(p)/s);
+	}
+	return t;
+}
+
 
 const float raymarchMaxDistance = 50.0f;
 const float raymarchUnderstep = 0.9f;
@@ -150,21 +200,33 @@ float de ( vec3 p ) {
 	// }
 
 	{
+		// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
 		const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = EMISSIVE;
-			hitColor = vec3( 1.0f );
+			hitColor = vec3( 3.0f );
 		}
 	}
 
+	// {
+	// 	// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
+	// 	const float d = deTemple( p );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = MIRROR;
+	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+	// 		hitColor = nickel;
+	// 	}
+	// }
+
 	{
-		const float d = deTemple3( p );
+		const float scale = 1.5f;
+		const float d = deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale;
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
-			// hitSurfaceType = MIRROR;
-			hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-			hitColor = vec3( 0.95f );
+			hitSurfaceType = MIRROR;
+			hitColor = carrot.grb * 0.3f;
 			// hitColor = bone;
 		}
 	}
