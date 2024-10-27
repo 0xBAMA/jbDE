@@ -37,6 +37,7 @@ struct icarusState_t {
 	vec3 basisX = vec3( 1.0f, 0.0f, 0.0f );
 	vec3 basisY = vec3( 0.0f, 1.0f, 0.0f );
 	vec3 basisZ = vec3( 0.0f, 0.0f, 1.0f );
+	float FoV = 0.618f;
 };
 
 // =============================================================================================================
@@ -391,6 +392,8 @@ void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
 	if ( input.getState( KEY_LEFT ) )		state.viewerPosition -= scalar * state.basisX;
 	if ( input.getState( KEY_PAGEDOWN ) )	state.viewerPosition += scalar * state.basisY;
 	if ( input.getState( KEY_PAGEUP ) )	state.viewerPosition -= scalar * state.basisY;
+	if ( input.getState( KEY_EQUALS ) )	state.FoV = state.FoV - 0.1f * scalar; // zoom in
+	if ( input.getState( KEY_MINUS ) )		state.FoV = state.FoV + 0.1f * scalar; // zoom out
 }
 
 void RayUpdate ( icarusState_t &state ) {
@@ -414,6 +417,8 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform3fv( glGetUniformLocation( shader, "basisY" ), 1, glm::value_ptr( state.basisY ) );
 		glUniform3fv( glGetUniformLocation( shader, "basisZ" ), 1, glm::value_ptr( state.basisZ ) );
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
+		glUniform1f( glGetUniformLocation( shader, "FoV" ), state.FoV );
+		glUniform2f( glGetUniformLocation( shader, "imageDimensions" ), state.dimensions.x, state.dimensions.y );
 
 		// fixed size, x times 256 = state.numRays
 		glDispatchCompute( state.numRays / 256, 1, 1 );
