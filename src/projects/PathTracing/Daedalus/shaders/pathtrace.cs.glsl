@@ -361,6 +361,20 @@ float Reflectance ( const float cosTheta, const float IoR ) {
 	return r0 + ( 1.0f - r0 ) * pow( ( 1.0f - cosTheta ), 5.0f );
 }
 //=============================================================================================================================
+vec3 anglePhong( float a, vec3 n ){
+	float r1 = NormalizedRandomFloat();
+	float r2 = NormalizedRandomFloat();
+	float t = pow( r2, 2.0f / ( 1.0f + a ) );
+	float x = cos( 2.0f * 3.14159f * r1 ) * sqrt( 1.0f - t );
+	float y = sin( 2.0f * 3.14159f * r1 ) * sqrt( 1.0f - t );
+	float z = sqrt( t );
+	vec3 W = ( abs( n.x ) > 0.99f ) ? vec3( 0.0f, 1.0f, 0.0f ) : vec3( 1.0f, 0.0f, 0.0f );
+	vec3 N = n;
+	vec3 T = normalize( cross( N, W ) );
+	vec3 B = cross( T, N );
+	return normalize( x * T + y * B + z * N );
+}
+//=============================================================================================================================
 bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersection_t intersection, inout ray_t ray, in ray_t rayPrevious ) {
 	// precalculate reflected vector, random diffuse vector, random specular vector
 	const vec3 reflectedVector = reflect( rayPrevious.direction, intersection.normal );
@@ -382,6 +396,19 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 		return false;
 
 	} else {
+
+		// handle volumetrics, here? something where you attenuate by a term, weighted by exp( -distance )
+			// with a chance to randomly scatter, which will give a random ray, and the position will be the point where it scatters
+		// from Nikolay
+		float distanceTerm = exp( -intersection.dTravel * 0.35f );
+		// float distanceTerm = exp( -intersection.dTravel * 1.0f );
+		if ( NormalizedRandomFloat() > distanceTerm && intersection.dTravel > 1.0f ) {
+			vec3 prevDIr = ray.direction;
+			vec3 other = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() ) * 2.0f - 1.0f;
+			ray.direction = normalize( other + anglePhong( 1800.0f, ray.direction ) * 0.15f );
+			throughput *= vec3( 0.618f, 0.385f, 0.112f );
+			return true;
+		}
 
 		// material specific behavior
 		switch( intersection.materialID ) {
