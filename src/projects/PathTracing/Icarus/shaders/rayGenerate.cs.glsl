@@ -13,23 +13,29 @@ uniform vec3 basisY;
 uniform vec3 basisZ;
 uniform vec3 viewerPosition;
 
+uniform float FoV;
+uniform vec2 imageDimensions;
+
+// camera type
+// ...
+
 void main () {
 	const int index = int( gl_GlobalInvocationID.x );
 	ivec2 offset = ivec2( offsets[ index ] );
 	seed = offset.x * 100625 + offset.y * 2324 + gl_GlobalInvocationID.x * 235;
 
 	// generate initial ray origins + directions... very basic camera logic
-	vec2 uv = ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / vec2( 1920, 1080 );
+	vec2 uv = ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / imageDimensions;
 	uv = uv * 2.0f - vec2( 1.0f );
 
-	const float aspectRatio = 1920.0f / 1080.0f;
-	const float FoV = 0.618f;
+	const float aspectRatio = imageDimensions.x / imageDimensions.y;
 
 	// zero out the buffer entry
 	StateReset( state[ index ] );
 
 	// filling out the rayState_t struct
 	SetRayOrigin( state[ index ], viewerPosition );
+	// SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.025f * ( 1.0f - sqrt( NormalizedRandomFloat() ) ) ) ) * basisZ ) ); // interesting motion blur ish thing from jittering FoV
 	SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
 	SetPixelIndex( state[ index ], offset );
 }
