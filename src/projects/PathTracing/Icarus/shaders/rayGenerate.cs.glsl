@@ -3,6 +3,7 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
 #include "random.h"
 #include "rayState.h.glsl"
+#include "biasGain.h"
 
 // pixel offset + ray state buffers
 layout( binding = 0, std430 ) readonly buffer pixelOffsets { uvec2 offsets[]; };
@@ -33,9 +34,17 @@ void main () {
 	// zero out the buffer entry
 	StateReset( state[ index ] );
 
+
+
+	const float interpolationValue = NormalizedRandomFloat();
+	const float i = gainValue( interpolationValue, 0.7f ) * ( 3.1415f / 2.0f );
+	const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
+	// convolving transmission with the offset... gives like chromatic aberration
+	SetTransmission( state[ index ], pow( colorWeight, vec3( 1.0f / 2.2f ) ) );
+
 	// filling out the rayState_t struct
 	SetRayOrigin( state[ index ], viewerPosition );
-	// SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.025f * ( 1.0f - sqrt( NormalizedRandomFloat() ) ) ) ) * basisZ ) ); // interesting motion blur ish thing from jittering FoV
-	SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
+	SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.1f * gainValue( interpolationValue, 0.75f ) ) ) * basisZ ) ); // interesting motion blur ish thing from jittering FoV
+	// SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
 	SetPixelIndex( state[ index ], offset );
 }
