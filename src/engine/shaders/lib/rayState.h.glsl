@@ -10,7 +10,7 @@
 #define MIRROR		2
 #define DIFFUSE 	3
 
-// total 104 bytes... pad to 128? tbd
+// total 128 bytes
 struct rayState_t {
 	vec4 data1; // ray origin in .xyz, distance to hit in .w
 	vec4 data2; // ray direction in .xyz, type of material in .w
@@ -18,7 +18,8 @@ struct rayState_t {
 	vec4 data4; // energy total in .xyz, frontface in .w
 	vec4 data5; // normal vector in .xyz, IoR in .w
 	vec4 data6; // albedo of hit in .xyz, roughness in .w
-	ivec2 data7; // pixel index
+	vec4 data7; // pixel index in .xy, .zw unused
+	vec4 data8; // unused
 };
 
 void SetRayOrigin 		( inout rayState_t rayState, vec3 origin )		{ rayState.data1.xyz = origin; }
@@ -58,12 +59,13 @@ vec3 GetHitAlbedo		( rayState_t rayState )							{ return rayState.data6.xyz; }
 void SetHitRoughness	( inout rayState_t rayState, float roughness )	{ rayState.data6.w = roughness; }
 float GetHitRoughness	( rayState_t rayState )							{ return rayState.data6.w; }
 
-void SetPixelIndex		( inout rayState_t rayState, ivec2 pixelIndex )	{ rayState.data7 = pixelIndex; }
-ivec2 GetPixelIndex		( rayState_t rayState )							{ return rayState.data7; }
+void SetPixelIndex		( inout rayState_t rayState, ivec2 pixelIndex )	{ rayState.data7.xy = vec2( pixelIndex ); }
+ivec2 GetPixelIndex		( rayState_t rayState )							{ return ivec2( rayState.data7.xy ); }
 
 void StateReset ( inout rayState_t rayState ) {
-	rayState.data1 = rayState.data2 = rayState.data3 = rayState.data4 = rayState.data5 = rayState.data6 = vec4( 0.0f );
-	rayState.data7 = ivec2( 0 );
+	// write zeroes
+	rayState.data1 = rayState.data2 = rayState.data3 = rayState.data4 =
+	rayState.data5 = rayState.data6 = rayState.data7 = rayState.data8 = vec4( 0.0f );
 
 	// need saner defaults...
 	SetTransmission( rayState, vec3( 1.0f ) );
