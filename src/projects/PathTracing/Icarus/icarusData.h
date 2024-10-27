@@ -19,12 +19,11 @@ struct icarusState_t {
 	int numLevels;
 
 	// how are we generating primary ray locations
-	#define UNIFORM				0
-	#define GAUSSIAN			1
-	#define GAUSSIAN_SHUFFLED	2
-	#define SHUFFLED			3
-	
-	int offsetFeedMode = GAUSSIAN;
+	#define UNIFORM		0
+	#define GAUSSIAN	1
+	#define SHUFFLED	2
+
+	int offsetFeedMode = SHUFFLED;
 	GLuint offsetsSSBO;
 
 	uint numRays = 2 << 16;
@@ -150,49 +149,6 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 			do {
 				offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
 			} while ( offset.x >= state.dimensions.x || offset.x < 0 || offset.y >= state.dimensions.y || offset.y < 0 );
-			break;
-		}
-
-		case GAUSSIAN_SHUFFLED: {
-			// Might be a dead end... not sure. Maybe revisit this later.
-
-			uint32_t numOffsets = ( state.dimensions.x * state.dimensions.y );
-			static vector< uvec2 > offsets;
-			if ( offsets.size() != numOffsets ) {
-				// generate new list of offsets
-				offsets.clear();
-				rngN offsetGen = rngN( 0.5f, 0.2f );
-				while ( offsets.size() < numOffsets ) {
-					do {
-						offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
-					} while ( offset.x >= state.dimensions.x || offset.x < 0 || offset.y >= state.dimensions.y || offset.y < 0 );
-
-					// // let's skip redundant offsets
-					// bool reject = false;
-					// for ( uint i = 0; i < offsets.size(); i++ ) {
-					// 	if ( offsets[ i ] == offset ) {
-					// 		reject = true;
-					// 		break;
-					// 	}
-					// }
-					// if ( !reject ) {
-						offsets.push_back( offset );
-						// cout << "adding " << offset.x << " " << offset.y << " " << offsets.size() << "/" << numOffsets << endl;
-					// }
-				}
-
-				// shuffle it around a bit
-				static auto rng = std::default_random_engine {};
-				std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
-				std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
-				std::shuffle( std::begin( offsets ), std::end( offsets ), rng );
-			}
-
-			static uint32_t offsetIdx = 0;
-
-			offsetIdx = ( offsetIdx + 1 ) % numOffsets;
-			offset = offsets[ offsetIdx ];
-
 			break;
 		}
 
