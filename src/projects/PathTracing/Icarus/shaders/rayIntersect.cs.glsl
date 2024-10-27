@@ -201,7 +201,7 @@ float de ( vec3 p ) {
 
 	{
 		// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
-		const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
+		const float d = fCylinder( p, 0.1f, 100.0f );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = EMISSIVE;
@@ -209,25 +209,25 @@ float de ( vec3 p ) {
 		}
 	}
 
-	// {
-	// 	// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
-	// 	const float d = deTemple( p );
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = MIRROR;
-	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 		hitColor = nickel;
-	// 	}
-	// }
-
 	{
-		const float scale = 1.5f;
-		const float d = deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale;
+		// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
+		const float d = deTemple( p );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = MIRROR;
-			hitColor = carrot.grb * 0.3f;
-			// hitColor = bone;
+			hitColor = nickel;
+		}
+	}
+
+	{
+		const float scale = 1.3f;
+		// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
+		const float d = deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale;
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+			hitSurfaceType = MIRROR;
+			hitColor = mix( carrot, bone, 0.1618f ).grb * 0.4f;
 		}
 	}
 

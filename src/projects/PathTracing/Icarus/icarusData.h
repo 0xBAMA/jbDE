@@ -440,7 +440,7 @@ void RayUpdate ( icarusState_t &state ) {
 			const GLuint shader = state.RayShadeShader;
 			glUseProgram( shader );
 
-			// this pass writes colors
+			// this pass writes colors... I think it makes sense to also write depth, but only on the first bounce
 			state.textureManager->BindImageForShader( "R Tally Image", "rTally", shader, 0 );
 			state.textureManager->BindImageForShader( "G Tally Image", "gTally", shader, 1 );
 			state.textureManager->BindImageForShader( "B Tally Image", "bTally", shader, 2 );
