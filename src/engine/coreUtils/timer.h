@@ -150,6 +150,49 @@ public:
 	}
 };
 
+class unscopedTimer {
+public:
+	queryPair_GPU q;
+
+	std::chrono::time_point< std::chrono::steady_clock > tStart;
+	std::chrono::time_point< std::chrono::steady_clock > tStop;
+
+	unscopedTimer () : q( " " ) {}
+	void tick () { // start the timers
+		// GPU
+		glGenQueries( 2, &q.queryID[ 0 ] );
+		glQueryCounter( q.queryID[ 0 ], GL_TIMESTAMP );
+
+		// CPU
+		tStart = std::chrono::steady_clock::now();
+	}
+
+	void tock () { // end the timers
+		// GPU
+		glQueryCounter( q.queryID[ 1 ], GL_TIMESTAMP );
+		GLint timeAvailable = 0;
+		while ( !timeAvailable ) { // wait on the most recent of the queries to become available
+			glGetQueryObjectiv( q.queryID[ 1 ], GL_QUERY_RESULT_AVAILABLE, &timeAvailable );
+		}
+
+		GLuint64 startTime, stopTime; // get the query results, since they're both ready
+		glGetQueryObjectui64v( q.queryID[ 0 ], GL_QUERY_RESULT, &startTime );
+		glGetQueryObjectui64v( q.queryID[ 1 ], GL_QUERY_RESULT, &stopTime );
+		glDeleteQueries( 2, &q.queryID[ 0 ] ); // and then delete them
+
+		// get final operation time in ms, from difference of nanosecond timestamps
+		timeGPU = ( stopTime - startTime ) / 1000000.0f;
+
+		// CPU
+		tStop = std::chrono::steady_clock::now();
+		timeCPU = std::chrono::duration_cast<std::chrono::microseconds>( tStop - tStart ).count() / 1000.0f;
+	}
+
+	// values in ms
+	float timeGPU;
+	float timeCPU;
+};
+
 inline timerManager* timerQueries;
 
 class scopedTimer {

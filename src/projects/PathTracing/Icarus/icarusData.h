@@ -365,6 +365,18 @@ void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
 }
 
 void RayUpdate ( icarusState_t &state ) {
+	struct timing {
+		float rayGen;
+		float bounceLoopIteration[ 16 ];
+		float intersect[ 16 ];
+		float shading[ 16 ];
+	};
+
+	timing loopTimingCPU;
+	timing loopTimingGPU;
+
+	unscopedTimer rayGen;
+	rayGen.tick();
 
 	{ // update the buffer containing the pixel offsets
 		uvec2 offsets[ state.numRays ] = { uvec2( 0 ) };
@@ -377,6 +389,7 @@ void RayUpdate ( icarusState_t &state ) {
 	}
 
 	{ // use the offsets to generate rays (first shader)
+
 		const GLuint shader = state.RayGenerateShader;
 		glUseProgram( shader );
 
@@ -393,18 +406,32 @@ void RayUpdate ( icarusState_t &state ) {
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 	}
 
+	rayGen.tock();
+	loopTimingCPU.rayGen = rayGen.timeCPU;
+	loopTimingGPU.rayGen = rayGen.timeGPU;
+
 	// looping for bounces
 	for ( uint i = 0; i < 16; i++ ) {
 
 		{ // intersect those rays with the scene (second shader)
+			unscopedTimer intersect;
+			intersect.tick();
+
 			const GLuint shader = state.RayIntersectShader;
 			glUseProgram( shader );
 
 			glDispatchCompute( state.numRays / 256, 1, 1 );
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+
+			intersect.tock();
+			loopTimingCPU.intersect[ i ] = intersect.timeCPU;
+			loopTimingGPU.intersect[ i ] = intersect.timeGPU;
 		}
 
 		{ // do the shading on the intersection results (third shader)
+			unscopedTimer shading;
+			shading.tick();
+
 			const GLuint shader = state.RayShadeShader;
 			glUseProgram( shader );
 
@@ -416,8 +443,24 @@ void RayUpdate ( icarusState_t &state ) {
 
 			glDispatchCompute( state.numRays / 256, 1, 1 );
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
-		}
 
+			shading.tock();
+			loopTimingCPU.shading[ i ] = shading.timeCPU;
+			loopTimingGPU.shading[ i ] = shading.timeGPU;
+		}
+	}
+
+	static int frameNumber = 0;
+	frameNumber++;
+
+	cout << endl << endl << endl << "Timings (CPU/GPU) frame " << frameNumber << endl;
+	cout << "  raygen: " <<  loopTimingCPU.rayGen << "ms / " << loopTimingGPU.rayGen  << "ms" << endl;
+
+	cout << "  bounces:" << endl << endl;
+	for ( int i = 0; i < 16; i++ ) {
+		cout << "    iteration " << i << endl;
+		cout << "      intersect: " << loopTimingCPU.intersect[ i ] << "ms / " << loopTimingGPU.intersect[ i ] << "ms" << endl;
+		cout << "      shading:   " << loopTimingCPU.shading[ i ] << "ms / " << loopTimingGPU.shading[ i ] << "ms" << endl << endl;
 	}
 
 	// make sure image writes complete
