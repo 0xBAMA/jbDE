@@ -397,18 +397,18 @@ bool EvaluateMaterial( inout vec3 finalColor, inout vec3 throughput, in intersec
 
 	} else {
 
-		// handle volumetrics, here? something where you attenuate by a term, weighted by exp( -distance )
-			// with a chance to randomly scatter, which will give a random ray, and the position will be the point where it scatters
-		// from Nikolay
-		float distanceTerm = exp( -intersection.dTravel * 0.35f );
-		// float distanceTerm = exp( -intersection.dTravel * 1.0f );
-		if ( NormalizedRandomFloat() > distanceTerm && intersection.dTravel > 1.0f ) {
-			vec3 prevDIr = ray.direction;
-			vec3 other = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() ) * 2.0f - 1.0f;
-			ray.direction = normalize( other + anglePhong( 1800.0f, ray.direction ) * 0.15f );
-			throughput *= vec3( 0.618f, 0.385f, 0.112f );
-			return true;
-		}
+		// // handle volumetrics, here? something where you attenuate by a term, weighted by exp( -distance )
+		// 	// with a chance to randomly scatter, which will give a random ray, and the position will be the point where it scatters
+		// // from Nikolay
+		// float distanceTerm = exp( -intersection.dTravel * 0.35f );
+		// // float distanceTerm = exp( -intersection.dTravel * 1.0f );
+		// if ( NormalizedRandomFloat() > distanceTerm && intersection.dTravel > 1.0f ) {
+		// 	vec3 prevDIr = ray.direction;
+		// 	vec3 other = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() ) * 2.0f - 1.0f;
+		// 	ray.direction = normalize( other + anglePhong( 1800.0f, ray.direction ) * 0.15f );
+		// 	throughput *= vec3( 0.618f, 0.385f, 0.112f );
+		// 	return true;
+		// }
 
 		// material specific behavior
 		switch( intersection.materialID ) {
@@ -1705,10 +1705,10 @@ float de( in vec3 p ) {
 	// 	}
 	// }
 
-	{
-		const float d = deOldTestChamber( p );
-		sceneDist = min( sceneDist, d );
-	}
+	// {
+	// 	const float d = deOldTestChamber( p );
+	// 	sceneDist = min( sceneDist, d );
+	// }
 
 	// p.y = -p.y;
 
