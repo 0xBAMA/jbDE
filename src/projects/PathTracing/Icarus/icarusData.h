@@ -30,7 +30,7 @@ struct icarusState_t {
 
 	// holding the rays
 	GLuint raySSBO[ 2 ];
-	GLuint raySSBOOffset;
+	GLuint raySSBOOffsetsBuffer;
 	bool evenOdd = true;
 
 	// camera parameterization
@@ -67,8 +67,9 @@ void CompileShaders ( icarusState_t &state ) {
 
 void AllocateBuffers ( icarusState_t &state ) {
 	// allocate the ray buffer
-	glGenBuffers( 1, &state.offsetsSSBO );
-	glGenBuffers( 2, &state.raySSBO[ 0 ] );
+	glGenBuffers( 1, &state.offsetsSSBO );		// pixel offsets
+	glGenBuffers( 2, &state.raySSBO[ 0 ] );		// ray state front and back buffers
+	glGenBuffers( 1, &state.raySSBOOffsetsBuffer );	// holding the values for the atomic 
 
 	// allocate space for ray offsets - 2x ints * state.numRays offsets per frame
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
@@ -83,7 +84,13 @@ void AllocateBuffers ( icarusState_t &state ) {
 
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO[ 1 ] );
 	glBufferData( GL_SHADER_STORAGE_BUFFER, 128 * state.numRays, NULL, GL_DYNAMIC_COPY );
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO[ 1 ] );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, state.raySSBO[ 1 ] );
+
+	// two uints, for allocating space in the buffers
+	constexpr GLuint data[ 1 ] = { 0u };
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBOOffsetsBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 4, &data[ 0 ], GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, state.raySSBOOffsetsBuffer );
 }
 
 void AllocateTextures ( icarusState_t &state ) {
@@ -366,10 +373,12 @@ void CameraUpdate ( icarusState_t &state, inputHandler_t &input ) {
 
 void RayUpdate ( icarusState_t &state ) {
 	struct timing {
+		GLuint remainingRays;
 		float rayGen;
 		float bounceLoopIteration[ 16 ];
 		float intersect[ 16 ];
 		float shading[ 16 ];
+		float swapping[ 16 ];
 	};
 
 	timing loopTimingCPU;
@@ -410,6 +419,8 @@ void RayUpdate ( icarusState_t &state ) {
 	loopTimingCPU.rayGen = rayGen.timeCPU;
 	loopTimingGPU.rayGen = rayGen.timeGPU;
 
+	GLuint currentLivingRays = 0;
+
 	// looping for bounces
 	for ( uint i = 0; i < 16; i++ ) {
 
@@ -448,6 +459,37 @@ void RayUpdate ( icarusState_t &state ) {
 			loopTimingCPU.shading[ i ] = shading.timeCPU;
 			loopTimingGPU.shading[ i ] = shading.timeGPU;
 		}
+
+		{ // buffer swapping
+			unscopedTimer swapping;
+			swapping.tick();
+
+			state.evenOdd = !state.evenOdd;
+
+			// reset buffer bindings
+			// glBindBufferBase( GL_SHADER_STORAGE_BUFFER, state.evenOdd ? 1 : 2, state.raySSBO[ 0 ] );
+			// glBindBufferBase( GL_SHADER_STORAGE_BUFFER, state.evenOdd ? 2 : 1, state.raySSBO[ 1 ] );
+
+			// and reset the buffer containing the offset
+			// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glMapBuffer.xhtml
+			// bind as read/write... read the value out of it... and then write a zero
+			glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBOOffsetsBuffer );
+			GLuint * bufferAccess = ( GLuint * ) glMapBuffer( GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE );
+
+			// read the value
+			loopTimingGPU.remainingRays = currentLivingRays = bufferAccess[ 0 ];
+
+			// write the new value
+			bufferAccess[ 0 ] = 0;
+
+			glUnmapBuffer( GL_SHADER_STORAGE_BUFFER );
+			glMemoryBarrier( GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT );
+
+			swapping.tock();
+			loopTimingCPU.swapping[ i ] = swapping.timeCPU;
+			loopTimingGPU.swapping[ i ] = swapping.timeGPU;
+		}
+
 	}
 
 	static int frameNumber = 0;
@@ -458,7 +500,7 @@ void RayUpdate ( icarusState_t &state ) {
 
 	cout << "  bounces:" << endl << endl;
 	for ( int i = 0; i < 16; i++ ) {
-		cout << "    iteration " << i << endl;
+		cout << "    iteration " << i << " remaining rays: " << loopTimingGPU.remainingRays << " of " << state.numRays << endl;
 		cout << "      intersect: " << loopTimingCPU.intersect[ i ] << "ms / " << loopTimingGPU.intersect[ i ] << "ms" << endl;
 		cout << "      shading:   " << loopTimingCPU.shading[ i ] << "ms / " << loopTimingGPU.shading[ i ] << "ms" << endl << endl;
 	}

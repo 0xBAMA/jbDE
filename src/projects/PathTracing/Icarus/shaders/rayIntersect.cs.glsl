@@ -3,7 +3,9 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
 // ray state buffer
 #include "rayState.h.glsl"
-layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
+layout( binding = 1, std430 ) buffer rayStateFront { rayState_t stateFront[]; };
+layout( binding = 2, std430 ) buffer rayStateBack  { rayState_t stateBack[]; };
+layout( binding = 3, std430 ) buffer rayBufferOffset { uint offset; };
 
 #include "random.h"
 #include "hg_sdf.glsl"
@@ -165,6 +167,23 @@ float DEnew ( vec3 p ) {
 	return t;
 }
 
+mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
+float deGyroid ( vec3 p ) {
+	float d = 1e5;
+	const int n = 3;
+	const float fn = float(n);
+	for(int i = 0; i < n; i++){
+		vec3 q = p;
+		float a = float(i)*fn*2.422; //*6.283/fn
+		a *= a;
+		q.z += float(i)*float(i)*1.67; //*3./fn
+		q.xy *= rot2(a);
+		float b = (length(length(sin(q.xy) + cos(q.yz))) - .15);
+		float f = max(0., 1. - abs(b - d));
+		d = min(d, b) - .25*f*f;
+	}
+	return d;
+}
 
 const float raymarchMaxDistance = 50.0f;
 const float raymarchUnderstep = 0.9f;
@@ -199,15 +218,15 @@ float de ( vec3 p ) {
 		// }
 	// }
 
-	{
-		// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
-		const float d = fCylinder( p, 0.1f, 100.0f );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = EMISSIVE;
-			hitColor = vec3( 3.0f );
-		}
-	}
+	// {
+	// 	// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
+	// 	const float d = fCylinder( p, 0.1f, 100.0f );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = EMISSIVE;
+	// 		hitColor = vec3( 3.0f );
+	// 	}
+	// }
 
 	{
 		// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
@@ -219,17 +238,28 @@ float de ( vec3 p ) {
 		}
 	}
 
-	{
-		const float scale = 1.3f;
-		// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
-		const float d = deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale;
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-			hitSurfaceType = MIRROR;
-			hitColor = mix( carrot, bone, 0.1618f ).grb * 0.4f;
-		}
-	}
+	// {
+	// 	const float scale = 1.3f;
+	// 	// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
+	// 	const float d = deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale;
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+	// 		hitSurfaceType = MIRROR;
+	// 		// hitColor = mix( carrot, bone, 0.1618f ).grb * 0.4f;
+	// 		hitColor = mix( carrot, bone, 0.618f );
+	// 	}
+	// }
+
+	// {
+	// 	const float scale = 2.0f;
+	// 	const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 6.0f ) ) );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+	// 		hitColor = bone;
+	// 	}
+	// }
 
 	return sceneDist;
 }
@@ -256,7 +286,7 @@ vec3 SDFNormal( in vec3 position ) {
 
 void main () {
 
-	rayState_t myState = state[ gl_GlobalInvocationID.x ];
+	rayState_t myState = stateFront[ gl_GlobalInvocationID.x ];
 
 	const uvec2 loc = uvec2( GetPixelIndex( myState ) );
 	seed = loc.x * 10625 + loc.y * 23624 + gl_GlobalInvocationID.x * 2335;
@@ -276,6 +306,6 @@ void main () {
 		SetHitNormal( myState, SDFNormal( origin + direction * distanceToHit ) );
 		SetHitIntersector( myState, ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
 
-		state[ gl_GlobalInvocationID.x ] = myState;
+		stateFront[ gl_GlobalInvocationID.x ] = myState;
 	}
 }
