@@ -3,9 +3,7 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
 // ray state buffer
 #include "rayState.h.glsl"
-layout( binding = 1, std430 ) buffer rayStateFront { rayState_t stateFront[]; };
-layout( binding = 2, std430 ) buffer rayStateBack  { rayState_t stateBack[]; };
-layout( binding = 3, std430 ) buffer rayBufferOffset { uint offset; };
+layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 
 #include "random.h"
 #include "hg_sdf.glsl"
@@ -285,8 +283,7 @@ vec3 SDFNormal( in vec3 position ) {
 }
 
 void main () {
-
-	rayState_t myState = stateFront[ gl_GlobalInvocationID.x ];
+	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
 	const uvec2 loc = uvec2( GetPixelIndex( myState ) );
 	seed = loc.x * 10625 + loc.y * 23624 + gl_GlobalInvocationID.x * 2335;
@@ -306,6 +303,6 @@ void main () {
 		SetHitNormal( myState, SDFNormal( origin + direction * distanceToHit ) );
 		SetHitIntersector( myState, ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
 
-		stateFront[ gl_GlobalInvocationID.x ] = myState;
+		state[ gl_GlobalInvocationID.x ] = myState;
 	}
 }

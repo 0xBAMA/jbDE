@@ -7,9 +7,7 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
 // pixel offset + ray state buffers
 layout( binding = 0, std430 ) readonly buffer pixelOffsets { uvec2 offsets[]; };
-layout( binding = 1, std430 ) buffer rayStateFront { rayState_t stateFront[]; };
-layout( binding = 2, std430 ) buffer rayStateBack  { rayState_t stateBack[]; };
-layout( binding = 3, std430 ) buffer rayBufferOffset { uint offset; };
+layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 
 uniform vec3 basisX;
 uniform vec3 basisY;
@@ -34,10 +32,10 @@ void main () {
 	const float aspectRatio = imageDimensions.x / imageDimensions.y;
 
 	// zero out the buffer entry
-	StateReset( stateFront[ index ] );
+	StateReset( state[ index ] );
 
 	// filling out the rayState_t struct
-	SetRayOrigin( stateFront[ index ], viewerPosition );
-	SetRayDirection( stateFront[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
-	SetPixelIndex( stateFront[ index ], offset );
+	SetRayOrigin( state[ index ], viewerPosition );
+	SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
+	SetPixelIndex( state[ index ], offset );
 }

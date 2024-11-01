@@ -5,9 +5,7 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 
 // ray state buffers
 #include "rayState.h.glsl"
-layout( binding = 1, std430 ) buffer rayStateFront { rayState_t stateFront[]; };
-layout( binding = 2, std430 ) buffer rayStateBack  { rayState_t stateBack[]; };
-layout( binding = 3, std430 ) buffer rayBufferOffset { uint offset; };
+layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 
 // accumulation buffers
 layout( binding = 0, r32ui ) uniform uimage2D rTally;
@@ -16,7 +14,7 @@ layout( binding = 2, r32ui ) uniform uimage2D bTally;
 layout( binding = 3, r32ui ) uniform uimage2D count;
 
 void main () {
-	rayState_t myState = stateFront[ gl_GlobalInvocationID.x ];
+	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
 	// location of the associated pixel
 	const ivec2 loc = GetPixelIndex( myState );
@@ -94,7 +92,6 @@ void main () {
 	transmission *= ( 1.0f / maxChannel );
 	SetTransmission( myState, transmission );
 
-
 	if ( terminate ) {
 
 		// time to write to the framebuffer
@@ -105,15 +102,12 @@ void main () {
 		imageAtomicAdd( count, loc, 1 );
 
 		// and the ray is dead
-		StateReset( stateFront[ gl_GlobalInvocationID.x ] );
+		StateReset( state[ gl_GlobalInvocationID.x ] );
 
 	} else {
 
-		// hit the increment
-		uint index = atomicAdd( offset, 2 );
-
 		// store updated stuff back in the buffer
-		stateBack[ index + 0 ] = myState;
-		stateBack[ index + 1 ] = myState;
+		state[ gl_GlobalInvocationID.x ] = myState;
+
 	}
 }
