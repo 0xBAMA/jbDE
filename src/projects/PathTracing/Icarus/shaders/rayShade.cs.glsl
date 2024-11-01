@@ -110,10 +110,10 @@ void main () {
 	} else {
 
 		// hit the increment
-		uint index = atomicAdd( offset, 1u );
+		uint index = atomicAdd( offset, 2 );
 
 		// store updated stuff back in the buffer
-		stateFront[ gl_GlobalInvocationID.x ] = myState;
-
+		stateBack[ index + 0 ] = myState;
+		stateBack[ index + 1 ] = myState;
 	}
 }

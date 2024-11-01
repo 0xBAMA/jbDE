@@ -13,6 +13,7 @@ struct icarusState_t {
 	GLuint RayGenerateShader;
 	GLuint RayIntersectShader;
 	GLuint RayShadeShader;
+	GLuint WipeShader;
 
 	// dimensions and related info
 	uvec2 dimensions = uvec2( 1920, 1080 );
@@ -57,6 +58,7 @@ void CompileShaders ( icarusState_t &state ) {
 	state.PrepShader			= computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
 	state.DrawShader			= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
 	state.ClearShader			= computeShader( basePath + "clear.cs.glsl" ).shaderHandle;
+	state.WipeShader			= computeShader( basePath + "wipe.cs.glsl" ).shaderHandle;
 
 	// ray generation, intersection, and shading
 	state.RayGenerateShader		= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
@@ -453,7 +455,9 @@ void RayUpdate ( icarusState_t &state ) {
 			state.textureManager->BindImageForShader( "Sample Count", "count", shader, 3 );
 
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+
+			// make sure image writes complete
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 			shading.tock();
 			loopTimingCPU.shading[ i ] = shading.timeCPU;
@@ -466,24 +470,26 @@ void RayUpdate ( icarusState_t &state ) {
 
 			state.evenOdd = !state.evenOdd;
 
+			// shader to wipe the front buffer contents, now that we don't need them anymore
+			glUseProgram( state.WipeShader );
+			glDispatchCompute( state.numRays / 256, 1, 1 );
+
 			// reset buffer bindings
-			// glBindBufferBase( GL_SHADER_STORAGE_BUFFER, state.evenOdd ? 1 : 2, state.raySSBO[ 0 ] );
-			// glBindBufferBase( GL_SHADER_STORAGE_BUFFER, state.evenOdd ? 2 : 1, state.raySSBO[ 1 ] );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, state.evenOdd ? 1 : 2, state.raySSBO[ 0 ] );
+			glBindBufferBase( GL_SHADER_STORAGE_BUFFER, state.evenOdd ? 2 : 1, state.raySSBO[ 1 ] );
 
 			// and reset the buffer containing the offset
-			// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glMapBuffer.xhtml
-			// bind as read/write... read the value out of it... and then write a zero
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 			glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBOOffsetsBuffer );
-			GLuint * bufferAccess = ( GLuint * ) glMapBuffer( GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE );
+			glGetBufferSubData( GL_SHADER_STORAGE_BUFFER, 0, 4, &currentLivingRays );
 
 			// read the value
-			loopTimingGPU.remainingRays = currentLivingRays = bufferAccess[ 0 ];
+			loopTimingGPU.remainingRays = currentLivingRays;
 
 			// write the new value
-			bufferAccess[ 0 ] = 0;
-
-			glUnmapBuffer( GL_SHADER_STORAGE_BUFFER );
-			glMemoryBarrier( GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT );
+			constexpr GLuint data[ 1 ] = { 0u };
+			glBufferData( GL_SHADER_STORAGE_BUFFER, 4, &data[ 0 ], GL_DYNAMIC_COPY );
+			glMemoryBarrier( GL_ALL_BARRIER_BITS );
 
 			swapping.tock();
 			loopTimingCPU.swapping[ i ] = swapping.timeCPU;
@@ -502,11 +508,10 @@ void RayUpdate ( icarusState_t &state ) {
 	for ( int i = 0; i < 16; i++ ) {
 		cout << "    iteration " << i << " remaining rays: " << loopTimingGPU.remainingRays << " of " << state.numRays << endl;
 		cout << "      intersect: " << loopTimingCPU.intersect[ i ] << "ms / " << loopTimingGPU.intersect[ i ] << "ms" << endl;
-		cout << "      shading:   " << loopTimingCPU.shading[ i ] << "ms / " << loopTimingGPU.shading[ i ] << "ms" << endl << endl;
+		cout << "      shading:   " << loopTimingCPU.shading[ i ] << "ms / " << loopTimingGPU.shading[ i ] << "ms" << endl;
+		cout << "      swapping:  " << loopTimingCPU.swapping[ i ] << "ms / " << loopTimingGPU.swapping[ i ] << "ms" << endl << endl;
 	}
 
-	// make sure image writes complete
-	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 // =============================================================================================================
