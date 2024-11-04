@@ -3,12 +3,15 @@
 // intersection types
 #define NOHIT		0
 #define SDFHIT		1
+#define TRIANGLEHIT	2
+#define VOLUMEHIT	3
 
 // material types
 #define NONE		0
 #define EMISSIVE	1
 #define MIRROR		2
-#define DIFFUSE 	3
+#define DIFFUSE		3
+#define VOLUME		4
 
 // total 128 bytes
 struct rayState_t {
@@ -69,4 +72,5 @@ void StateReset ( inout rayState_t rayState ) {
 
 	// need saner defaults...
 	SetTransmission( rayState, vec3( 1.0f ) );
+	SetHitDistance( rayState, 1e10f );
 }
