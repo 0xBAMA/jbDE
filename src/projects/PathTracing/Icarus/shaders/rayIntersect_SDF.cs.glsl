@@ -226,36 +226,40 @@ float de ( vec3 p ) {
 	// 	}
 	// }
 
-	{
-		// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
-		const float d = deTemple( p );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = MIRROR;
-			hitColor = nickel;
-		}
-	}
+	// {
+	// 	// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
+	// 	const float d = deTemple( p );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = DIFFUSE;
+	// 		hitColor = nickel;
+	// 	}
+	// }
 
 	// {
 	// 	const float scale = 1.3f;
 	// 	// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
-	// 	const float d = deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale;
+	// 	const float d = deTrees( p * scale - vec3( 0.0f, 5.0f, 10.0f ) * scale ) / scale;
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
 	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
 	// 		hitSurfaceType = MIRROR;
 	// 		// hitColor = mix( carrot, bone, 0.1618f ).grb * 0.4f;
-	// 		hitColor = mix( carrot, bone, 0.618f );
+	// 		// hitColor = mix( carrot, bone, 0.618f );
+	// 		hitColor = vec3( 0.95f );
+	// 		// hitColor = vec3( 1.1f );
 	// 	}
 	// }
 
 	// {
 	// 	const float scale = 2.0f;
+	// 	// const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 6.0f ) ) );
 	// 	const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 6.0f ) ) );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 		hitColor = bone;
+	// 		// hitSurfaceType = ( NormalizedRandomFloat() > 0.1f ) ? MIRROR : DIFFUSE;
+	// 		hitSurfaceType = DIFFUSE;
+	// 		hitColor = vec3( 0.95f );
 	// 	}
 	// }
 
@@ -296,12 +300,14 @@ void main () {
 		// update the intersection info
 		const float distanceToHit = raymarch( origin, direction );
 
-		SetHitAlbedo( myState, hitColor );
-		SetHitRoughness( myState, hitRoughness );
-		SetHitDistance( myState, distanceToHit );
-		SetHitMaterial( myState, hitSurfaceType );
-		SetHitNormal( myState, SDFNormal( origin + direction * distanceToHit ) );
-		SetHitIntersector( myState, ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
+		// if ( distanceToHit > GetHitDistance( myState ) ) {
+			SetHitAlbedo( myState, hitColor );
+			SetHitRoughness( myState, hitRoughness );
+			SetHitDistance( myState, distanceToHit );
+			SetHitMaterial( myState, hitSurfaceType );
+			SetHitNormal( myState, SDFNormal( origin + direction * distanceToHit ) );
+			SetHitIntersector( myState, ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
+		// }
 
 		state[ gl_GlobalInvocationID.x ] = myState;
 	}
