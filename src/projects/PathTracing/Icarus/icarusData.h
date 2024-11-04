@@ -11,7 +11,9 @@ struct icarusState_t {
 
 	// first pass on the pipeline
 	GLuint RayGenerateShader;
-	GLuint RayIntersectShader;
+	GLuint RayIntersectShader_SDF;
+	GLuint RayIntersectShader_Triangle;
+	GLuint RayIntersectShader_Volume;
 	GLuint RayShadeShader;
 	GLuint WipeShader;
 
@@ -58,9 +60,11 @@ void CompileShaders ( icarusState_t &state ) {
 	state.ClearShader			= computeShader( basePath + "clear.cs.glsl" ).shaderHandle;
 
 	// ray generation, intersection, and shading
-	state.RayGenerateShader		= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
-	state.RayIntersectShader	= computeShader( basePath + "rayIntersect.cs.glsl" ).shaderHandle;
-	state.RayShadeShader		= computeShader( basePath + "rayShade.cs.glsl" ).shaderHandle;
+	state.RayGenerateShader				= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
+	state.RayIntersectShader_SDF		= computeShader( basePath + "rayIntersect_SDF.cs.glsl" ).shaderHandle;
+	state.RayIntersectShader_Triangle	= computeShader( basePath + "rayIntersect_Triangle.cs.glsl" ).shaderHandle;
+	state.RayIntersectShader_Volume		= computeShader( basePath + "rayIntersect_Volume.cs.glsl" ).shaderHandle;
+	state.RayShadeShader				= computeShader( basePath + "rayShade.cs.glsl" ).shaderHandle;
 
 }
 
@@ -390,8 +394,24 @@ void RayUpdate ( icarusState_t &state ) {
 	// looping for bounces
 	for ( uint i = 0; i < 16; i++ ) {
 
-		{ // intersect those rays with the scene (second shader)
-			const GLuint shader = state.RayIntersectShader;
+		{ // intersect those rays with SDF geo
+			const GLuint shader = state.RayIntersectShader_SDF;
+			glUseProgram( shader );
+
+			glDispatchCompute( state.numRays / 256, 1, 1 );
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+		}
+
+		{ // intersect those rays with a triangle
+			const GLuint shader = state.RayIntersectShader_Triangle;
+			glUseProgram( shader );
+
+			glDispatchCompute( state.numRays / 256, 1, 1 );
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+		}
+
+		{ // intersect those rays with the volume
+			const GLuint shader = state.RayIntersectShader_Volume;
 			glUseProgram( shader );
 
 			glDispatchCompute( state.numRays / 256, 1, 1 );
