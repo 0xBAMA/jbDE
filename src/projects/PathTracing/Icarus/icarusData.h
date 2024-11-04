@@ -181,8 +181,13 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 			}
 
 			// pop one off the list, return that
-			offset = offsets[ offsets.size() - 1 ];
-			offsets.pop_back();
+			// offset = offsets[ offsets.size() - 1 ];
+			// offsets.pop_back();
+
+			// just go through the list over and over
+			static size_t idx = 0;
+			idx = ( idx + 1 ) % offsets.size();
+			offset = offsets[ idx ];
 
 			break;
 		}
