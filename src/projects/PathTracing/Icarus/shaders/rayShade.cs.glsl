@@ -32,11 +32,18 @@ void main () {
 		// const vec3 color = ( ( abs( mixFactor ) > 0.95f ) ? mix( vec3( 1.0f ), vec3( 0.0f, 0.15f, 1.0f ), mixFactor * 0.5f + 0.5f ) : ( ( abs( mixFactor ) < 0.1f ) ? vec3( 1.0f, 0.0f, 0.0f ) : vec3( 0.0f ) ) );
 		// const vec3 color = mix( vec3( 1.0f ), sapphire, mixFactor * 0.5f + 0.5f );
 		// const vec3 color = ( mixFactor < -0.5f ) ? ( ( mixFactor < -0.75f ) ? vec3( 1.0f ) : vec3( 1.0f, 0.7f, 0.3f ) ) : vec3( 0.0f );
-		// const vec3 color = ( mixFactor < -0.8f ) ? vec3( 1.0f ) : ( ( mixFactor > 0.8f ) ? bone : vec3( 0.0f ) );
+		// const vec3 color = ( mixFactor < -0.8f ) ? vec3( 1.0f ) : vec3( 0.0f );
 		// const vec3 color = ( mixFactor < -0.5f ) ? vec3( 0.3f ) : vec3( 0.0f );
-		const vec3 color = vec3( 1.0f );
-		// const vec3 color = vec3( 0.0f );
+		// const vec3 color = vec3( 0.3f );
+		// const vec3 color = vec3( 1.0f );
+		const vec3 color = vec3( 0.0f );
 		AddEnergy( myState, GetTransmission( myState ) * color );
+
+	} else if ( GetHitIntersector( myState ) == VOLUMEHIT ) {
+
+		SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( myState ) * GetRayDirection( myState ) );
+		SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
+		SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( myState ) );
 
 	} else {
 	// material handling...
@@ -59,25 +66,28 @@ void main () {
 		const vec3 reflectedVector = reflect( direction, normal );
 
 		switch ( materialID ) {
-		case NONE: // tbd, this might go away
+		case NONE: {}// tbd, this might go away
 		break;
 		
-		case DIFFUSE: // lambertian diffuse reflection
+		case DIFFUSE: { // lambertian diffuse reflection
 			SetRayDirection( myState, diffuseVector );
 			SetTransmission( myState, GetTransmission( myState ) * albedo );
+		}
 		break;
 
-		case EMISSIVE: // light emitting surface
+		case EMISSIVE: { // light emitting surface
 			SetRayDirection( myState, diffuseVector );
 			AddEnergy( myState, GetTransmission( myState ) * albedo );
+		}
 		break;
 
-		case MIRROR: // mirror reflection
+		case MIRROR: { // mirror reflection
 			SetRayDirection( myState, reflectedVector );
 			SetTransmission( myState, GetTransmission( myState ) * albedo );
+		}
 		break;
 
-		default:
+		default: {}
 		break;
 		}
 	}
