@@ -34,8 +34,18 @@ void main () {
 	// zero out the buffer entry
 	StateReset( state[ index ] );
 
+	#if 0 // interesting motion blur ish thing from jittering FoV
+		const float interpolationValue = NormalizedRandomFloat();
+		const float i = gainValue( interpolationValue, 0.7f ) * ( 3.1415f / 2.0f );
+		const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
+		// convolving transmission with the offset... gives like chromatic aberration
+		SetTransmission( state[ index ], pow( colorWeight, vec3( 1.0f / 2.2f ) ) );
+		SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.025f * gainValue( interpolationValue, 0.75f ) ) ) * basisZ ) );
+	#else
+		SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
+	#endif
+
 	// filling out the rayState_t struct
 	SetRayOrigin( state[ index ], viewerPosition );
-	SetRayDirection( state[ index ], normalize( aspectRatio * uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
 	SetPixelIndex( state[ index ], offset );
 }
