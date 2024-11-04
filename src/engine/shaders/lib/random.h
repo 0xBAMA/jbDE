@@ -19,6 +19,10 @@ const float pi = 3.14159265358979323846f;
 const float tau = 2.0f * pi;
 #endif
 
+#ifndef saturate
+#define saturate(x) clamp(x, 0, 1)
+#endif
+
 vec3 RandomUnitVector () {
 	float z = NormalizedRandomFloat() * 2.0f - 1.0f;
 	float a = NormalizedRandomFloat() * 2.0f * pi;
