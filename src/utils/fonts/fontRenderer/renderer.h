@@ -50,9 +50,9 @@
 
 extern std::vector< paletteEntry > paletteList;
 
-class Layer {
+class TextRenderLayer {
 public:
-	Layer ( int w, int h, textureManager_t * tml, string label ) : width( w ), height( h ), textureManager_local( tml ), layerLabel( label ) {
+	TextRenderLayer ( int w, int h, textureManager_t * tml, string label ) : width( w ), height( h ), textureManager_local( tml ), layerLabel( label ) {
 		Resize( w, h );
 
 		// add a texture with the given label
@@ -267,15 +267,15 @@ public:
 
 	// Initialize Layers
 		// terminal background, foreground, highlight
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Background" ) );
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Foreground" ) );
-		layers.push_back( Layer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Highlight" ) );
+		layers.push_back( TextRenderLayer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Background" ) );
+		layers.push_back( TextRenderLayer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Foreground" ) );
+		layers.push_back( TextRenderLayer( numBinsWidth, numBinsHeight, textureManager_local, "Terminal Highlight" ) );
 
 		cout << newline << "Text Renderer Created with Dimensions: " << numBinsWidth << " x " << numBinsHeight << newline;
 
 		// hexxDump
-		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump background
-		// layers.push_back( Layer( numBinsWidth, numBinsHeight ) ); // hexxDump foreground
+		// layers.push_back( TextRenderLayer( numBinsWidth, numBinsHeight ) ); // hexxDump background
+		// layers.push_back( TextRenderLayer( numBinsWidth, numBinsHeight ) ); // hexxDump foreground
 
 		// set basepoint for the orientation widget
 		basePt = glm::ivec2( 8 * ( numBinsWidth - 20 ), 16 );
@@ -400,8 +400,8 @@ public:
 
 	GLuint fontWriteShader;
 
-	// allocation of the textures happens in Layer()
-	std::vector< Layer > layers;
+	// allocation of the textures happens in TextRenderLayer()
+	std::vector< TextRenderLayer > layers;
 
 	// HexDump ( SexxDump ) - need to call loadHexx() to get the file data, then you can call drawHexxLayer() to put it in the data texture and load it
 	std::vector< uint8_t > hexData;
