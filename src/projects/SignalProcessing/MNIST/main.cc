@@ -4,11 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct MNISTImage {
-	uint8_t label;
-	uint8_t data[ 28 ][ 28 ];
+#include "other.h"
 
-	MNISTImage ( uint8_t inputLabel ) : label( inputLabel ) {}
+struct MNISTImage {
+	unsigned char label;
+	unsigned char data[ 28 ][ 28 ];
+
+	MNISTImage ( unsigned char inputLabel ) : label( inputLabel ) {}
 };
 
 vector< MNISTImage > trainImages;
@@ -17,11 +19,11 @@ vector< MNISTImage > testImages;
 // referring to https://x.com/konradgajdus/article/1837196363735482396
 	// adding also the test set from https://yann.lecun.com/exdb/mnist/index.html
 struct MNIST_dataLoader {
-	unsigned char *images_train, *labels_train;
-	int nImages_train;
+	unsigned char *imagesTrain, *labelsTrain;
+	int nImagesTrain;
 
-	unsigned char *images_test, *labels_test;
-	int nImages_test;
+	unsigned char *imagesTest, *labelsTest;
+	int nImagesTest;
 
 	void ReadImages ( const char *filename, unsigned char **images, int *nImages ) {
 		FILE *file = fopen( filename, "rb" );
@@ -56,16 +58,16 @@ struct MNIST_dataLoader {
 
 	void Load () {
 		// training set
-		ReadImages( "../MNIST/train-images-idx3-ubyte", &images_train, &nImages_train );
-		ReadLabels( "../MNIST/train-labels-idx1-ubyte", &labels_train, &nImages_train );
+		ReadImages( "../MNIST/train-images-idx3-ubyte", &imagesTrain, &nImagesTrain );
+		ReadLabels( "../MNIST/train-labels-idx1-ubyte", &labelsTrain, &nImagesTrain );
 
 		// put it in the vector
-		for ( int i = 0; i < nImages_train; i++ ) {
-			MNISTImage temp( labels_train[ i ] );
+		for ( int i = 0; i < nImagesTrain; i++ ) {
+			MNISTImage temp( labelsTrain[ i ] );
 			int baseIdx = i * 28 * 28;
 			for ( int y = 0; y < 28; y++ ) {
 				for ( int x = 0; x < 28; x++ ) {
-					temp.data[ x ][ y ] = images_train[ baseIdx ];
+					temp.data[ x ][ y ] = imagesTrain[ baseIdx ];
 					baseIdx++;
 				}
 			}
@@ -73,20 +75,20 @@ struct MNIST_dataLoader {
 		}
 
 		// free memory
-		free( images_train );
-		free( labels_train );
+		free( imagesTrain );
+		free( labelsTrain );
 
 		// testing set
-		ReadImages( "../MNIST/t10k-images-idx3-ubyte", &images_test, &nImages_test );
-		ReadLabels( "../MNIST/t10k-labels-idx1-ubyte", &labels_test, &nImages_test );
+		ReadImages( "../MNIST/t10k-images-idx3-ubyte", &imagesTest, &nImagesTest );
+		ReadLabels( "../MNIST/t10k-labels-idx1-ubyte", &labelsTest, &nImagesTest );
 
 		// put it in the vector
-		for ( int i = 0; i < nImages_test; i++ ) {
-			MNISTImage temp( labels_test[ i ] );
+		for ( int i = 0; i < nImagesTest; i++ ) {
+			MNISTImage temp( labelsTest[ i ] );
 			int baseIdx = i * 28 * 28;
-			for ( int y = 0; y < 28; y++ ) {
-				for ( int x = 0; x < 28; x++ ) {
-					temp.data[ x ][ y ] = images_test[ baseIdx ];
+			for ( uint y = 0; y < 28; y++ ) {
+				for ( uint x = 0; x < 28; x++ ) {
+					temp.data[ x ][ y ] = imagesTest[ baseIdx ];
 					baseIdx++;
 				}
 			}
@@ -94,8 +96,8 @@ struct MNIST_dataLoader {
 		}
 
 		// free memory
-		free( images_test );
-		free( labels_test );
+		free( imagesTest );
+		free( labelsTest );
 	}
 
 	void ShowTrain ( uint i ) {
@@ -108,7 +110,6 @@ struct MNIST_dataLoader {
 		}
 		cout << endl;
 	}
-
 	void ShowTest ( uint i ) {
 		cout << "Label: " << int( testImages[ i ].label ) << endl;
 		for ( int y = 0; y < 28; y++ ) {
@@ -119,7 +120,6 @@ struct MNIST_dataLoader {
 		}
 		cout << endl;
 	}
-
 	void Show () {
 		// enumerate images in the training set
 		for ( uint i = 0; i < trainImages.size(); i++ ) {
@@ -154,11 +154,22 @@ struct NNLayer {
 		biasMomentum.resize( out, 0.0f );
 
 		// "He initialization", initial random weights correlated with input size
-		float scale = std::sqrt( 2.0f / in ) * 2.0f;
-		rng init = rng( -scale, scale );
+		// float scale = std::sqrt( 2.0f / in ) * 2.0f;
+		// rng init = rng( -scale, scale );
+		// for ( int i = 0; i < n; i++ ) {
+		// 	weights[ i ] = init();
+		// }
+
+		static int offset = 0;
 		for ( int i = 0; i < n; i++ ) {
-			weights[ i ] = init();
+			weights[ i ] = initialWeights[ offset ];
+			offset++;
 		}
+
+		// // cout << "Generated weights:" << endl;
+		// for ( int i = 0; i < n; i++ ) {
+		// 	cout << float( weights[ i ] ) << ", ";
+		// }
 	}
 };
 
@@ -166,7 +177,9 @@ void SoftMax ( vector< float > &input ) {
 	// first iteration - find the max across elements
 	float max = input[ 0 ];
 	for ( uint i = 1; i < input.size(); i++ ) {
-		max = std::max( max, input[ i ] );
+		if ( input[ i ] > max ) {
+			max = input[ i ];
+		}
 	}
 
 	// second iteration - apply the transform, keep a sum
@@ -187,13 +200,15 @@ struct NeuralNet {
 	// hyperparameters
 	const float learningRate = 0.0005f;
 	const float momentum = 0.9f;
-	const uint epochs = 20;
+	const uint epochs = 1;
 
 	vector< float > inputData;		// buffer for inputs
 	vector< float > inputGradient;	// placeholder, for consistency
+
 	NNLayer hiddenLayer;			// first fully connected layer
 	vector< float > hiddenData;		// buffer for hidden layer outputs
 	vector< float > hiddenGradient;	// gradient of values for the hidden layer
+
 	NNLayer outputLayer;			// second fully connected layer
 	vector< float > outputData;		// buffer for output neurons
 	vector< float > outputGradient;	// gradient of values, with respect to known label
@@ -221,7 +236,7 @@ struct NeuralNet {
 		for ( uint j = 0; j < layer.inputSize; j++ ) {
 			float input = inputData[ j ];
 			for ( uint i = 0; i < layer.outputSize; i++ ) {
-				outputData[ i ] += input * layer.weights[ i + j * layer.outputSize ];
+				outputData[ i ] += input * layer.weights[ j * layer.outputSize + i ];
 			}
 		}
 
@@ -239,7 +254,7 @@ struct NeuralNet {
 			for ( uint j = 0; j < layer.inputSize; j++ ) {
 				inputGradient[ j ] = 0.0f;
 				for ( uint i = 0; i < layer.outputSize; i++ ) {
-					inputGradient[ j ] += outputGradient[ i ] * layer.weights[ i + j * layer.outputSize ];
+					inputGradient[ j ] += outputGradient[ i ] * layer.weights[ j * layer.outputSize + i ];
 				}
 			}
 		}
@@ -250,11 +265,12 @@ struct NeuralNet {
 			for ( uint i = 0; i < layer.outputSize; i++ ) {
 				float grad = outputGradient[ i ] * inputValue;
 				// cout << "weight before: " << layer.weights[ i + j * layer.outputSize ];
-				layer.weightMomentum[ i + j * layer.outputSize ] = momentum * layer.weightMomentum[ i + j * layer.outputSize ] + learningRate * grad;
-				layer.weights[ i + j * layer.outputSize ] -= layer.weightMomentum[ i + j * layer.outputSize ];
+				const uint idx = j * layer.outputSize + i;
+				layer.weightMomentum[ idx ] = momentum * layer.weightMomentum[ idx ] + learningRate * grad;
+				layer.weights[ idx ] -= layer.weightMomentum[ idx ];
 				// cout << " weight after: " << layer.weights[ i + j * layer.outputSize ] << " with momentum: " << layer.weightMomentum[ i + j * layer.outputSize ] << endl;
 				if ( inputGradient.size() != 0 ) {
-					inputGradient[ j ] += outputGradient[ i ] * layer.weights[ i + j * layer.outputSize ];
+					inputGradient[ j ] += outputGradient[ i ] * layer.weights[ idx ];
 				}
 			}
 		}
@@ -279,6 +295,10 @@ struct NeuralNet {
 			}
 		}
 
+		for ( uint i = 0; i < 28 * 28; i++ ) {
+			cout << std::fixed <<std::setprecision( 4 ) << inputData[ i ] << ", ";
+		}
+
 		// forward propagation
 		Forward( hiddenLayer, inputData, hiddenData );
 		Forward( outputLayer, hiddenData, outputData );
@@ -287,6 +307,7 @@ struct NeuralNet {
 		// calculate output gradients (compared to known label)
 		for ( uint i = 0; i < outputLayer.outputSize; i++ ) {
 			outputGradient[ i ] = outputData[ i ] - ( i == currentImage.label ? 1.0f : 0.0f );
+			cout << std::fixed <<std::setprecision( 4 ) << outputData[ i ] << " ( " << std::fixed <<std::setprecision( 4 ) << outputGradient[ i ] << " ), ";
 		}
 
 		// backwards propagation
@@ -300,7 +321,7 @@ struct NeuralNet {
 		Backward( hiddenLayer, inputData, hiddenGradient, inputGradient );
 
 		// calculating loss, from the output layer
-		return -log( outputData[ currentImage.label ] + 1e-10f );
+		return -logf( outputData[ currentImage.label ] + 1e-10f );
 	}
 
 	uint8_t Predict ( uint i ) {
@@ -331,7 +352,6 @@ struct NeuralNet {
 
 		return maxOutput;
 	}
-
 };
 
 class MNIST final : public engineBase {
@@ -348,38 +368,48 @@ public:
 
 			// something to put some basic data in the accumulator texture
 			shaders[ "Draw" ] = computeShader( "./src/projects/SignalProcessing/MNIST/shaders/draw.cs.glsl" ).shaderHandle;
+			shaders[ "Draw Points" ] = regularShader( "./src/projects/SignalProcessing/MNIST/shaders/drawPoints.vs.glsl", "./src/projects/SignalProcessing/MNIST/shaders/drawPoints.fs.glsl" ).shaderHandle;
+			shaders[ "Draw Lines" ] = regularShader( "./src/projects/SignalProcessing/MNIST/shaders/drawLines.vs.glsl", "./src/projects/SignalProcessing/MNIST/shaders/drawLines.fs.glsl" ).shaderHandle;
 
 			// load the data
 			MNIST_dataLoader data;
 			data.Load();
 
-			// training + testing
-			for ( uint epoch = 0; epoch < network.epochs; epoch++ ) {
-				unscopedTimer epochTime;
-				epochTime.tick();
+			// // training + testing
+			// for ( uint epoch = 0; epoch < network.epochs; epoch++ ) {
+			// 	unscopedTimer epochTime;
+			// 	epochTime.tick();
 
-				// training iterations
-				float totalLoss = 0.0f;
-				for ( uint i = 0; i < trainImages.size(); i++ ) {
-					totalLoss += network.Train( i );
-				}
+			// 	// training iterations
+			// 	float totalLoss = 0.0f;
+			// 	// for ( uint i = 0; i < trainImages.size(); i++ ) {
+			// 	for ( uint i = 0; i < 1; i++ ) {
+			// 		float loss = network.Train( i );
+			// 		totalLoss += loss;
+			// 		cout << "loss: " << totalLoss << endl;
+			// 	}
 
-				// testing iterations
-				int correct = 0;
-				for ( uint i = 0; i < testImages.size(); i++ ) {
-					data.ShowTest( i );
+			// 	// testing iterations
+			// 	int correct = 0;
+			// 	for ( uint i = 0; i < testImages.size(); i++ ) {
+			// 		uint prediction = network.Predict( i );
+			// 		// data.ShowTest( i );
+			// 		// cout << "predicted: " << prediction << endl << endl;
+			// 		if ( testImages[ i ].label == prediction ) {
+			// 			correct++;
+			// 		}
+			// 	}
 
-					uint prediction = network.Predict( i );
-					cout << "predicted: " << prediction << endl << endl;
-					if ( testImages[ i ].label == prediction ) {
-						correct++;
-					}
-				}
+			// 	// report epoch results
+			// 	epochTime.tock();
+			// 	cout << "Epoch " << epoch + 1 << ", Accuracy: " << 100.0f * float( correct ) / float( testImages.size() ) << "% Avg. Loss: " << totalLoss / float( trainImages.size() ) << " Time: " << epochTime.timeCPU / 1000.0f << "s" << endl;
+			// }
 
-				// report epoch results
-				epochTime.tock();
-				cout << "Epoch " << epoch + 1 << ", Accuracy: " << 100.0f * float( correct ) / float( testImages.size() ) << "% Avg. Loss: " << totalLoss / float( trainImages.size() ) << " Time: " << epochTime.timeCPU / 1000.0f << "s" << endl;
-			}
+			// runNetwork();
+
+			// data for points
+
+			// data for lines
 
 			// quit when done
 			config.oneShot = true;
@@ -412,7 +442,11 @@ public:
 
 	void DrawAPIGeometry () {
 		ZoneScoped; scopedTimer Start( "API Geometry" );
-		// draw some shit - need to add a hello triangle to this, so I have an easier starting point for raster stuff
+
+		// draw the points
+
+		// draw the lines
+
 	}
 
 	void ComputePasses () {
