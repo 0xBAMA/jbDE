@@ -27,53 +27,48 @@ float deGyroid ( vec3 p ) {
 	return d;
 }
 
-float deWhorl( vec3 p ) {
-	float i, e, s, g, k = 0.01;
-	p.xy *= mat2( cos( p.z ), sin( p.z ), -sin( p.z ), cos( p.z ) );
-	e = 0.3 - dot( p.xy, p.xy );
-	for( s = 2.0; s < 2e2; s /= 0.6 ) {
-		p.yz *= mat2( cos( s ), sin( s ), -sin( s ), cos( s ) );
-		e += abs( dot( sin( p * s * s * 0.2 ) / s, vec3( 1.0 ) ) );
-	}
-	return e;
-}
-
 const vec3 carrot = vec3( 0.713f, 0.170f, 0.026f );
 const vec3 honey = vec3( 0.831f, 0.397f, 0.038f );
 const vec3 bone = vec3( 0.887f, 0.789f, 0.434f );
 const vec3 tire = vec3( 0.023f, 0.023f, 0.023f );
 const vec3 sapphire = vec3( 0.670f, 0.764f, 0.855f );
 const vec3 nickel = vec3( 0.649f, 0.610f, 0.541f );
+const vec3 tungsten = vec3( 0.504f, 0.498f, 0.478f );
+
+const float scaleFactor = 100.0f;
 
 vec3 scatterColor;
 float GetVolumeDensity( ivec3 pos ) {
-	// return 100.0f * perlinfbm( pos / 100.0f, 10.0f, 4 );
 
-	// vec3 p = pos / 300.0f;
-	// return ( step( 0.0f,
-	// 	cos( pi * p.x + pi / 2.0f ) *
-	// 	cos( pi * p.y + pi / 2.0f ) *
-	// 	cos( pi * p.z + pi / 2.0f ) ) == 0 ) ? 0.0f : 30.0f;
+	vec3 p = pos / scaleFactor;
 
-	// return ( length( vec3( pos ) ) < 300.0f ) ? 350.0f : 0.0f;
+	const float scale = 15.0f;
+	bool blackOrWhite = ( step( -0.8f,
+		// cos( scale * pi * p.x + pi / 2.0f ) *
+		// cos( scale * pi * p.y + pi / 2.0f ) *
+		// cos( scale * pi * p.z + pi / 2.0f ) ) == 0 );
+		cos( scale * pi * p.y + pi / 2.0f ) ) == 0 );
 
-	vec3 p = pos / 100.0f;
-
-	// float pModInterval1(inout float p, float size, float start, float stop) {
-
-	float d = deWhorl( p / 1.0f );
+	const float scalar = 0.8f;
+	// float d = max( deWhorl( p / 1.0f ), fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 0.0f ) );
+	// const float boxDist = fBox( p, vec3( 10.0f, 3.0f, 12.0f ) );
+	const float boxDist = fBox( p, vec3( 15.0f ) );
+	// float d = max( deGyroid( p * scalar ) / scalar, boxDist ) - ( blackOrWhite ? -0.02f : 0.05f );
 	float value;
 
-	if ( d < 0.0f ) {
-		value = 200000.0f * -d;
-		// value = 10000.0f * -d;
-		// scatterColor = vec3( 0.99f );
-		scatterColor = vec3( 1.0f );
-	} else {
-		// value = pi + 0.618f;
+	// if ( d < 0.0f ) {
+	// 	value = 200000.0f * -d;
+	// 	// scatterColor = vec3( 0.99f );
+	// 	scatterColor = bone.brg;
+	// } else if ( boxDist < 0.0f ) {
+	if ( boxDist < 0.0f ) {
+		// value = 1.618f;
+		value = 2.618f;
 		// value = 0.0f;
-		value = 100.0f;
-		scatterColor = sapphire;
+		// value = 10.0f;
+		scatterColor = mix( tungsten, sapphire, 0.618f );
+	} else {
+		value = 0.0f;
 	}
 
 	return value;
@@ -87,8 +82,6 @@ void main () {
 
 	const vec3 origin = GetRayOrigin( myState );
 	const vec3 direction = GetRayDirection( myState );
-
-	const float scaleFactor = 100.0f;
 
 	// ray is live, do the raymarch...
 	if ( length( direction ) > 0.5f ) {
@@ -116,7 +109,7 @@ void main () {
 			// doing Beer's law - if we pass a threshold check, we scatter
 			// int densityRead = max( 0, int( imageLoad( continuum, mapPos0 ).r ) - noiseFloor );
 			float densityRead = GetVolumeDensity( mapPos0 ); // constant density for now
-			int densityThreshold = 50000;
+			int densityThreshold = 5000;
 			float density = exp( -densityRead / float( densityThreshold ) );
 
 			if ( NormalizedRandomFloat() > density ) {

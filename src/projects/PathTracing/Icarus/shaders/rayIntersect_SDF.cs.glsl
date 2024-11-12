@@ -7,6 +7,8 @@ layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 
 #include "random.h"
 #include "hg_sdf.glsl"
+#include "colorRamps.glsl.h"
+#include "twigl.glsl"
 
 // basic raymarch stuff
 vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
@@ -26,6 +28,7 @@ vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
 	return vec3(zx,zy,zz);
 }
 
+float escape = 0.0f;
 float deTrees ( vec3 p ) {
 	float Scale = 1.34f;
 	float FoldY = 1.025709f;
@@ -43,10 +46,12 @@ float deTrees ( vec3 p ) {
 	float Precision = 1.0f;
 	// output _sdf c = _SDFDEF)
 
-	vec4 OrbitTrap = vec4(1,1,1,1);
+	escape = 0.0f;
+
 	float u2 = 1;
 	float v2 = 1;
-	if(EnableOffset != 0)p = Offset+abs(vec3(p.x,p.y,p.z));
+	if( EnableOffset != 0)
+		p = Offset+abs(vec3(p.x,p.y,p.z));
 
 	vec3 p0 = vec3(JuliaX,JuliaY,JuliaZ);
 	float l = 0.0;
@@ -59,11 +64,8 @@ float deTrees ( vec3 p ) {
 		p=p*Scale+p0;
 		l=length(p);
 
-		float rr = dot(p,p) + 1.5f;
-		// OrbitTrap.r = max( OrbitTrap.r, rr );
-		// hitColor = vec3( abs( p / 10.0f ) );
+		escape += exp( -0.2f * dot( p, p ) );
 	}
-	// hitColor = vec3( OrbitTrap.r, abs( 10.0f * p.xy ) );
 
 	return Precision*(l)*pow(Scale, -float(i));
 }
@@ -117,13 +119,10 @@ float deGround ( vec3 p ) {
 	return d*.15;
 }
 
-mat2 rotate2D(float r){
-	return mat2(cos(r), sin(r), -sin(r), cos(r));
-}
 float deTree(vec3 p){
 	float d, a;
 	d=a=1.;
-	for(int j=0;j++<15;)
+	for(int j=0;j++<14;)
 		p.xz=abs(p.xz)*rotate2D(PI/4.),
 		d=min(d,max(length(p.zx)-.3,p.y-.4)/a),
 		p.yx*=rotate2D(.5),
@@ -133,36 +132,17 @@ float deTree(vec3 p){
 	return d;
 }
 
-void sphere_fold ( inout vec3 z, inout float dz ) {
-	float FixedRadius = 10.9;
-	float MinRadius = 1.1;
-	float r2 = dot( z, z );
-	if ( r2 < MinRadius ) {
-		float temp = ( FixedRadius / MinRadius );
-		z *= temp; dz *= temp;
-	} else if ( r2 < FixedRadius ) {
-		float temp = ( FixedRadius / r2 );
-		z *= temp; dz *= temp;
-	}
-}
-void box_fold ( inout vec3 z ) {
-	float folding_limit = 1.0;
-	z = clamp(z, -folding_limit, folding_limit) * 2.0 - z;
-}
-float DEnew ( vec3 p ) {
-	float s = 1.;
-	float t = 9999.;
-	for(int i = 0; i < 12; i++){
-		float k =  .1/clamp(dot(p,p),0.01,1.);
-		p *= k;
-		s *= k;
-		sphere_fold(p.xyz,s);
-		box_fold(p.xyz);
-		p=abs(p)-vec3(.2,5.,2.7);
-		p=mod(p-1.,2.)-1.;
-		t = min(t, length(p)/s);
-	}
-	return t;
+float deTreeFoliage(vec3 p){
+	float d, a;
+	d=a=1.;
+	for(int j=0;j++<19;)
+		p.xz=abs(p.xz)*rotate2D(PI/4.),
+		d=min(d,max(length(p.zx)-.3,p.y-.4)/a),
+		p.yx*=rotate2D(.5),
+		p.y-=3.,
+		p*=1.5,
+		a*=1.5;
+	return d;
 }
 
 mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
@@ -194,6 +174,7 @@ const vec3 bone = vec3( 0.887f, 0.789f, 0.434f );
 const vec3 tire = vec3( 0.023f, 0.023f, 0.023f );
 const vec3 sapphire = vec3( 0.670f, 0.764f, 0.855f );
 const vec3 nickel = vec3( 0.649f, 0.610f, 0.541f );
+const vec3 tungsten = vec3( 0.504f, 0.498f, 0.478f );
 
 vec3 hitColor;
 float hitRoughness;
@@ -218,7 +199,8 @@ float de ( vec3 p ) {
 
 	// {
 	// 	// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
-	// 	const float d = fCylinder( p, 0.1f, 100.0f );
+	// 	// const float d = fCylinder( p - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
+	// 	const float d = fCylinder( p.zyx - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
 	// 		hitSurfaceType = EMISSIVE;
@@ -227,39 +209,74 @@ float de ( vec3 p ) {
 	// }
 
 	// {
+	// 	const float scale = 0.2f;
 	// 	// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
-	// 	const float d = deTemple( p );
+	// 	const float d = deTemp( p.xzy * scale ) / scale;
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = DIFFUSE;
-	// 		hitColor = nickel;
+	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+	// 		// hitSurfaceType = DIFFUSE;
+	// 		hitColor = bone;
+	// 	}
+	// }
+
+	{
+		pModInterval1( p.z, 0.8f, -10.0f, 0.0f );
+		pModInterval1( p.x, 0.8f, -10.0f, 0.0f );
+
+		const float scale = 1.0f;
+		// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
+		// const float d = deTrees( p * scale - vec3( 0.0f, 5.0f, 10.0f ) * scale ) / scale;
+		// const float d = deTrees( p * scale ) / scale;
+		// const float d = max( deSDFSDFe( p * scale + vec3( 0.4, 0.1, 2.0f ) ) / scale, fBox( p, vec3( 5.0f, 0.5f, 10.8f ) ) );
+		const float d = deTree( p * scale ) / scale;
+		const float d2 = deTreeFoliage( p * scale ) / scale;
+
+		const float dCombined = min( d, d2 );
+
+		sceneDist = min( sceneDist, dCombined );
+		if ( sceneDist == dCombined && dCombined < epsilon ) {
+			// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+
+			// // if ( escape > 0.58f ) {
+			// if ( escape > 0.45f ) {
+			// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
+			// 	hitColor = mix( carrot, vec3( 0.4f, 0.0f, 0.0f ), ( escape - 0.45f ) * 2.0f );
+			// 	hitSurfaceType = EMISSIVE;
+			// } else {
+				// hitSurfaceType = DIFFUSE;
+				// hitColor = ( escape < 0.01f ) ? vec3( 1.0f ) : mix( carrot, bone, 0.618f ).rgb * saturate( escape ) * 2.6f;
+			// }
+
+			if ( dCombined == d ) {
+				hitSurfaceType = MIRROR;
+				hitColor = vec3( 0.918f );
+			} else {
+				hitSurfaceType = MIRROR;
+				hitColor = carrot.grb * 0.1f;
+			}
+		}
+	}
+
+	// {
+	// 	const float d = fBox
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		// 
 	// 	}
 	// }
 
 	// {
-	// 	const float scale = 1.3f;
-	// 	// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
-	// 	const float d = deTrees( p * scale - vec3( 0.0f, 5.0f, 10.0f ) * scale ) / scale;
+	// 	const float scale = 0.8f;
+	// 	const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 12.0f ) ) );
+	// 	// const float d = deTemp( p * scale ) / scale;
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
 	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
 	// 		hitSurfaceType = MIRROR;
-	// 		// hitColor = mix( carrot, bone, 0.1618f ).grb * 0.4f;
-	// 		// hitColor = mix( carrot, bone, 0.618f );
-	// 		hitColor = vec3( 0.95f );
-	// 		// hitColor = vec3( 1.1f );
-	// 	}
-	// }
-
-	// {
-	// 	const float scale = 2.0f;
-	// 	// const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 6.0f ) ) );
-	// 	const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 6.0f ) ) );
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		// hitSurfaceType = ( NormalizedRandomFloat() > 0.1f ) ? MIRROR : DIFFUSE;
-	// 		hitSurfaceType = DIFFUSE;
-	// 		hitColor = vec3( 0.95f );
+	// 		// hitColor = vec3( 0.95f );
+	// 		hitColor = mix( carrot, bone, 0.618f ) * 0.1f;
+	// 		// hitColor = tungsten;
 	// 	}
 	// }
 
@@ -300,7 +317,7 @@ void main () {
 		// update the intersection info
 		const float distanceToHit = raymarch( origin, direction );
 
-		// if ( distanceToHit > GetHitDistance( myState ) ) {
+		// if ( distanceToHit <= GetHitDistance( myState ) &&  ) {
 			SetHitAlbedo( myState, hitColor );
 			SetHitRoughness( myState, hitRoughness );
 			SetHitDistance( myState, distanceToHit );

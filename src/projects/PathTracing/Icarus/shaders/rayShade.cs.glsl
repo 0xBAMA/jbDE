@@ -42,15 +42,16 @@ void main () {
 		// if you didn't any object in the scene, we're saying you hit the skybox
 			// this is probably going to be setup very similar to the rectilinear map from Daedalus
 		terminate = true;
-		const float mixFactor = dot( vec3( 0.0f, 0.0f, 1.0f ), GetRayDirection( myState ) );
+		const float mixFactor = dot( vec3( 0.0f, 0.0f, -1.0f ), GetRayDirection( myState ) );
 		// const vec3 color = ( ( abs( mixFactor ) > 0.95f ) ? mix( vec3( 1.0f ), vec3( 0.0f, 0.15f, 1.0f ), mixFactor * 0.5f + 0.5f ) : ( ( abs( mixFactor ) < 0.1f ) ? vec3( 1.0f, 0.0f, 0.0f ) : vec3( 0.0f ) ) );
-		// const vec3 color = mix( vec3( 1.0f ), sapphire, mixFactor * 0.5f + 0.5f );
+		// const vec3 color = mix( vec3( 0.0f ), vec3( 0.670f, 0.764f, 0.855f ), mixFactor * 0.5f + 0.5f );
 		// const vec3 color = ( mixFactor < -0.5f ) ? ( ( mixFactor < -0.75f ) ? vec3( 1.0f ) : vec3( 1.0f, 0.7f, 0.3f ) ) : vec3( 0.0f );
-		// const vec3 color = ( mixFactor < -0.8f ) ? vec3( 1.0f ) : vec3( 0.0f );
+		// const vec3 color = ( mixFactor < -0.6f ) ? vec3( 3.0f ) : vec3( 0.0f );
 		// const vec3 color = ( mixFactor < -0.5f ) ? vec3( 0.3f ) : vec3( 0.0f );
+		const vec3 color = vec3( smoothstep( 0.5f, 0.8f, mixFactor ) * 3.0f );
 		// const vec3 color = vec3( 0.3f );
 		// const vec3 color = vec3( 1.0f );
-		const vec3 color = vec3( 0.0f );
+		// const vec3 color = vec3( 0.0f );
 		AddEnergy( myState, GetTransmission( myState ) * color );
 
 	} else if ( GetHitIntersector( myState ) == VOLUMEHIT ) {
