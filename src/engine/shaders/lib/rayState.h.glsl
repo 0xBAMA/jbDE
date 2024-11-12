@@ -72,5 +72,5 @@ void StateReset ( inout rayState_t rayState ) {
 
 	// need saner defaults...
 	SetTransmission( rayState, vec3( 1.0f ) );
-	SetHitDistance( rayState, 1e10f );
+	SetHitDistance( rayState, 1e4f );
 }
