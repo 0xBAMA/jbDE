@@ -49,7 +49,7 @@ vec3 Blues_r ( float t ) {
 }
 
 // makes bone colormap with polynimal 6
-vec3 bone ( float t ) {
+vec3 Bone ( float t ) {
 	const vec3 c0 = vec3( -0.005007f, -0.003054f, 0.004092f );
 	const vec3 c1 = vec3( 1.098251f, 0.964561f, 0.971829f );
 	const vec3 c2 = vec3( -2.688698f, -0.537516f, 2.444353f );
@@ -379,7 +379,7 @@ vec4 refPalette ( float t, int idx ) {
 	switch ( idx ) {
 		case AFMHOT:	fragColor.xyz = afmhot( t );			break;
 		case BLUESR:	fragColor.xyz = Blues_r( t );			break;
-		case BONE:		fragColor.xyz = bone( t );				break;
+		case BONE:		fragColor.xyz = Bone( t );				break;
 		case BUPUR:		fragColor.xyz = BuPu_r( t );			break;
 		case CIVIDIS:	fragColor.xyz = cividis( t );			break;
 		case CMRMAP:	fragColor.xyz = CMRmap( t );			break;
