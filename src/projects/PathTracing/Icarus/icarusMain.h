@@ -1,5 +1,6 @@
 #include "icarusView.h"
 #include "icarusData.h"
+#include "icarusImGUI.h"
 
 // Icarus
 	// goal is to keep this super, super high level (<250 lines, kind of idea)
@@ -69,6 +70,8 @@ public:
 			profilerWindow.Render(); // GPU graph is presented on top, CPU on bottom
 		}
 
+		IcarusImguiWindow( icarusState );
+
 		// if ( showDemoWindow ) ImGui::ShowDemoWindow( &showDemoWindow );
 		QuitConf( &quitConfirm ); // show quit confirm window, if triggered
 	}
@@ -90,8 +93,6 @@ public:
 			scopedTimer Start( "Drawing" );
 			DrawViewer( icarusState, viewerState );
 		}
-
-	// EVERYTHING FROM HERE TO THE END OF THE FUNCTION NEEDS TO GO
 
 		{	// this is now basically just a passthrough... extra copy? might make more sense to drop this and do it in a more straightforward way
 				// Basically the only thing it does is flip the image...
