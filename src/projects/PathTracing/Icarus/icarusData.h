@@ -18,8 +18,15 @@ struct icarusState_t {
 	GLuint WipeShader;
 
 	// dimensions and related info
+	// uvec2 dimensions = uvec2( 1280, 720 );
 	uvec2 dimensions = uvec2( 1920, 1080 );
 	int numLevels;
+
+	// perf settings
+	uint maxBounces		= 16;
+	bool runSDF			= true;
+	bool runTriangle	= false;
+	bool runVolume		= false;
 
 	// how are we generating primary ray locations
 	#define UNIFORM		0
@@ -397,9 +404,9 @@ void RayUpdate ( icarusState_t &state ) {
 	}
 
 	// looping for bounces
-	for ( uint i = 0; i < 16; i++ ) {
+	for ( uint i = 0; i < state.maxBounces; i++ ) {
 
-		{ // intersect those rays with SDF geo
+		if ( state.runSDF ) { // intersect those rays with SDF geo
 			const GLuint shader = state.RayIntersectShader_SDF;
 			glUseProgram( shader );
 
@@ -407,7 +414,7 @@ void RayUpdate ( icarusState_t &state ) {
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
-		{ // intersect those rays with a triangle
+		if ( state.runTriangle ) { // intersect those rays with a triangle
 			const GLuint shader = state.RayIntersectShader_Triangle;
 			glUseProgram( shader );
 
@@ -415,7 +422,7 @@ void RayUpdate ( icarusState_t &state ) {
 			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
-		{ // intersect those rays with the volume
+		if ( state.runVolume ) { // intersect those rays with the volume
 			const GLuint shader = state.RayIntersectShader_Volume;
 			glUseProgram( shader );
 
