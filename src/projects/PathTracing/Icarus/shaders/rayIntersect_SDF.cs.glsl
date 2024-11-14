@@ -168,14 +168,6 @@ const float raymarchUnderstep = 0.9f;
 const int raymarchMaxSteps = 300;
 const float epsilon = 0.001f;
 
-const vec3 carrot = vec3( 0.713f, 0.170f, 0.026f );
-const vec3 honey = vec3( 0.831f, 0.397f, 0.038f );
-const vec3 bone = vec3( 0.887f, 0.789f, 0.434f );
-const vec3 tire = vec3( 0.023f, 0.023f, 0.023f );
-const vec3 sapphire = vec3( 0.670f, 0.764f, 0.855f );
-const vec3 nickel = vec3( 0.649f, 0.610f, 0.541f );
-const vec3 tungsten = vec3( 0.504f, 0.498f, 0.478f );
-
 vec3 hitColor;
 float hitRoughness;
 int hitSurfaceType;
