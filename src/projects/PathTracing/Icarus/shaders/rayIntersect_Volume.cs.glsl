@@ -1,14 +1,14 @@
 #version 430
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
-
-// ray state buffer
-#include "rayState.h.glsl"
-layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
-
+//=============================================================================================================================
 #include "random.h"
 #include "noise.h"
 #include "hg_sdf.glsl"
-
+#include "pbrConstants.glsl"
+#include "rayState.h.glsl"
+//=============================================================================================================================
+layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
+//=============================================================================================================================
 mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
 float deGyroid ( vec3 p ) {
 	float d = 1e5;
@@ -44,7 +44,8 @@ float GetVolumeDensity( ivec3 pos ) {
 	const float scalar = 0.8f;
 	// float d = max( deWhorl( p / 1.0f ), fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 0.0f ) );
 	// const float boxDist = fBox( p, vec3( 10.0f, 3.0f, 12.0f ) );
-	const float boxDist = fBox( p, vec3( 15.0f ) );
+	// const float boxDist = fBox( p, vec3( 15.0f ) );
+	const float boxDist = fBox( p, vec3( 10.0f ) );
 	// float d = max( deGyroid( p * scalar ) / scalar, boxDist ) - ( blackOrWhite ? -0.02f : 0.05f );
 	float value;
 
@@ -58,14 +59,15 @@ float GetVolumeDensity( ivec3 pos ) {
 		value = 2.618f;
 		// value = 0.0f;
 		// value = 10.0f;
-		scatterColor = mix( tungsten, sapphire, 0.618f );
+		// scatterColor = mix( tungsten, sapphire, 0.618f );
+		scatterColor = sapphire;
 	} else {
 		value = 0.0f;
 	}
 
 	return value;
 }
-
+//=============================================================================================================================
 void main () {
 	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 

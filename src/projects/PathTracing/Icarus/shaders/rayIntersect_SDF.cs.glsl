@@ -9,6 +9,7 @@ layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 #include "hg_sdf.glsl"
 #include "colorRamps.glsl.h"
 #include "twigl.glsl"
+#include "pbrConstants.glsl"
 
 // basic raymarch stuff
 vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
@@ -119,6 +120,20 @@ float deGround ( vec3 p ) {
 	return d*.15;
 }
 
+float deLacy( vec3 p ){
+	float s=3.;
+	for(int i = 0; i < 4; i++) {
+		p=mod(p-1.,2.)-1.;
+		float r=1.2/dot(p,p);
+		p*=r; s*=r;
+	}
+	p = abs(p)-0.8;
+	if (p.x < p.z) p.xz = p.zx;
+	if (p.y < p.z) p.yz = p.zy;
+	if (p.x < p.y) p.xy = p.yx;
+	return length(cross(p,normalize(vec3(0,1,1))))/s-.001;
+}
+
 float deTree(vec3 p){
 	float d, a;
 	d=a=1.;
@@ -200,63 +215,66 @@ float de ( vec3 p ) {
 	// 	}
 	// }
 
-	// {
-	// 	const float scale = 0.2f;
-	// 	// const float d = max( fBox( p, vec3( 3.0f ) ), DEnew( p ) );
-	// 	const float d = deTemp( p.xzy * scale ) / scale;
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 		// hitSurfaceType = DIFFUSE;
-	// 		hitColor = bone;
-	// 	}
-	// }
-
 	{
-		pModInterval1( p.z, 0.8f, -10.0f, 0.0f );
-		pModInterval1( p.x, 0.8f, -10.0f, 0.0f );
-
-		const float scale = 1.0f;
-		// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
-		// const float d = deTrees( p * scale - vec3( 0.0f, 5.0f, 10.0f ) * scale ) / scale;
-		// const float d = deTrees( p * scale ) / scale;
-		// const float d = max( deSDFSDFe( p * scale + vec3( 0.4, 0.1, 2.0f ) ) / scale, fBox( p, vec3( 5.0f, 0.5f, 10.8f ) ) );
-		const float d = deTree( p * scale ) / scale;
-		const float d2 = deTreeFoliage( p * scale ) / scale;
-
-		const float dCombined = min( d, d2 );
-
-		sceneDist = min( sceneDist, dCombined );
-		if ( sceneDist == dCombined && dCombined < epsilon ) {
-			// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-
-			// // if ( escape > 0.58f ) {
-			// if ( escape > 0.45f ) {
-			// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
-			// 	hitColor = mix( carrot, vec3( 0.4f, 0.0f, 0.0f ), ( escape - 0.45f ) * 2.0f );
-			// 	hitSurfaceType = EMISSIVE;
-			// } else {
-				// hitSurfaceType = DIFFUSE;
-				// hitColor = ( escape < 0.01f ) ? vec3( 1.0f ) : mix( carrot, bone, 0.618f ).rgb * saturate( escape ) * 2.6f;
-			// }
-
-			if ( dCombined == d ) {
-				hitSurfaceType = MIRROR;
-				hitColor = vec3( 0.918f );
-			} else {
-				hitSurfaceType = MIRROR;
-				hitColor = carrot.grb * 0.1f;
-			}
+		const float scale = 0.2f;
+		// const float d = max( fBox( p, vec3( 3.0f ) ), deGround( p.xzy * scale ) / scale );
+		const float d = deGround( p.xzy * scale ) / scale;
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+			// hitSurfaceType = MIRROR;
+			hitColor = silicon * 0.3f;
+			// hitColor = tire;
 		}
 	}
 
 	// {
-	// 	const float d = fBox
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		// 
+	// 	pModInterval1( p.z, 0.8f, -10.0f, 0.0f );
+	// 	pModInterval1( p.x, 0.8f, -10.0f, 0.0f );
+
+	// 	const float scale = 1.0f;
+	// 	// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
+	// 	// const float d = deTrees( p * scale - vec3( 0.0f, 5.0f, 10.0f ) * scale ) / scale;
+	// 	// const float d = deTrees( p * scale ) / scale;
+	// 	// const float d = max( deSDFSDFe( p * scale + vec3( 0.4, 0.1, 2.0f ) ) / scale, fBox( p, vec3( 5.0f, 0.5f, 10.8f ) ) );
+	// 	const float d = deTree( p * scale ) / scale;
+	// 	const float d2 = deTreeFoliage( p * scale ) / scale;
+
+	// 	const float dCombined = min( d, d2 );
+
+	// 	sceneDist = min( sceneDist, dCombined );
+	// 	if ( sceneDist == dCombined && dCombined < epsilon ) {
+	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+
+	// 		// // if ( escape > 0.58f ) {
+	// 		// if ( escape > 0.45f ) {
+	// 		// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
+	// 		// 	hitColor = mix( carrot, vec3( 0.4f, 0.0f, 0.0f ), ( escape - 0.45f ) * 2.0f );
+	// 		// 	hitSurfaceType = EMISSIVE;
+	// 		// } else {
+	// 			// hitSurfaceType = DIFFUSE;
+	// 			// hitColor = ( escape < 0.01f ) ? vec3( 1.0f ) : mix( carrot, bone, 0.618f ).rgb * saturate( escape ) * 2.6f;
+	// 		// }
+
+	// 		if ( dCombined == d ) {
+	// 			hitSurfaceType = MIRROR;
+	// 			hitColor = vec3( 0.918f );
+	// 		} else {
+	// 			hitSurfaceType = MIRROR;
+	// 			hitColor = carrot.grb * 0.1f;
+	// 		}
 	// 	}
 	// }
+
+	{
+		const float d = deTemple( rotate3D( 1.3f, vec3( 1.0f, 2.0f, 3.0f ) ) * p + vec3( 0.0f, 0.0f, 9.0f ) );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = MIRROR;
+			// hitColor = honey.grb;
+			hitColor = honey;
+		}
+	}
 
 	// {
 	// 	const float scale = 0.8f;
