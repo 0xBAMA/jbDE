@@ -7,5 +7,7 @@ void IcarusImguiWindow ( icarusState_t &state ) {
 	ImGui::Checkbox( "Triangle", &state.runTriangle );
 	ImGui::Checkbox( "Volume", &state.runVolume );
 
+	// DoF controls
+
 	ImGui::End();
 }

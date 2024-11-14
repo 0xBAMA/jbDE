@@ -1,18 +1,18 @@
 // rayState_t setup for Icarus
-
+//=============================================================================================================================
 // intersection types
 #define NOHIT		0
 #define SDFHIT		1
 #define TRIANGLEHIT	2
 #define VOLUMEHIT	3
-
+//=============================================================================================================================
 // material types
 #define NONE		0
 #define EMISSIVE	1
 #define MIRROR		2
 #define DIFFUSE		3
 #define VOLUME		4
-
+//=============================================================================================================================
 // total 128 bytes
 struct rayState_t {
 	vec4 data1; // ray origin in .xyz, distance to hit in .w
@@ -24,7 +24,7 @@ struct rayState_t {
 	vec4 data7; // pixel index in .xy, .zw unused
 	vec4 data8; // unused
 };
-
+//=============================================================================================================================
 void SetRayOrigin 		( inout rayState_t rayState, vec3 origin )		{ rayState.data1.xyz = origin; }
 vec3 GetRayOrigin		( rayState_t rayState )							{ return rayState.data1.xyz; }
 
@@ -64,7 +64,7 @@ float GetHitRoughness	( rayState_t rayState )							{ return rayState.data6.w; }
 
 void SetPixelIndex		( inout rayState_t rayState, ivec2 pixelIndex )	{ rayState.data7.xy = vec2( pixelIndex ); }
 ivec2 GetPixelIndex		( rayState_t rayState )							{ return ivec2( rayState.data7.xy ); }
-
+//=============================================================================================================================
 void StateReset ( inout rayState_t rayState ) {
 	// write zeroes
 	rayState.data1 = rayState.data2 = rayState.data3 = rayState.data4 =

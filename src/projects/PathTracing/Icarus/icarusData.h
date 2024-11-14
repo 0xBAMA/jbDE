@@ -398,6 +398,9 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
 		glUniform2f( glGetUniformLocation( shader, "imageDimensions" ), state.dimensions.x, state.dimensions.y );
 
+		// blue noise texture
+		state.textureManager->BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
+
 		// fixed size, x times 256 = state.numRays
 		glDispatchCompute( state.numRays / 256, 1, 1 );
 		glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
