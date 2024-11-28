@@ -30,6 +30,7 @@ void main () {
 	if ( ( d < brushRadius ) && ( mouseState.z != 0 ) ) {
 		vec4 previousValue = imageLoad( paintBuffer, loc );
 		float falloff = 1.0f - biasGain( d / brushRadius, brushSlope, brushThreshold );
+		// float falloff = biasGain( d / brushRadius, brushSlope, brushThreshold ); // noninverting... interesting
 		float noise = RangeRemapValue( Blue( loc ).x, 0.0f, 255.0f, 0.618f, 1.0f );
 
 		imageStore( paintBuffer, loc, previousValue + vec4( falloff * brushColor * noise, 1.0f ) );
