@@ -4,12 +4,14 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 #include "random.h"
 #include "rayState.h.glsl"
 #include "biasGain.h"
+#include "twigl.glsl"
 //=============================================================================================================================
 // pixel offset + ray state buffers
 layout( binding = 0, std430 ) readonly buffer pixelOffsets { uvec2 offsets[]; };
 layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
 //=============================================================================================================================
 layout( location = 0, rgba8ui ) readonly uniform uimage2D blueNoise;
+uniform ivec2 noiseOffset;
 vec4 Blue( in ivec2 loc ) { return imageLoad( blueNoise, ( loc + noiseOffset ) % imageSize( blueNoise ).xy ); }
 //=============================================================================================================================
 uniform vec3 basisX;
@@ -19,14 +21,11 @@ uniform vec3 viewerPosition;
 uniform vec2 imageDimensions;
 //=============================================================================================================================
 uniform float FoV;
-uniform int cameraType;
-// chromab toggle
-// UV scale factor
-// Voraldo perspective factor
-// DoF toggle
-// DoF bokeh mode
-// DoF focus distance
-// DoF jitter radius
+uniform int cameraMode;
+uniform float uvScaleFactor;
+uniform int DoFBokehMode;
+uniform float DoFRadius;
+uniform float DoFFocusDistance;
 // ...
 //=============================================================================================================================
 struct cameraRay {
@@ -38,34 +37,61 @@ struct cameraRay {
 // camera types
 #define DEFAULT		0
 #define ORTHO		1
-#define SPHERICAL	2
-#define HDRI		3
-#define COMPOUND	4
-#define VORALDO		5
+#define VORALDO		2
+#define SPHERICAL	3
+#define HDRI		4
+#define COMPOUND	5
 //=============================================================================================================================
 cameraRay GetCameraRay ( vec2 uv ) {
 	cameraRay temp;
+	temp.origin = viewerPosition;
+	temp.transmission = vec3( 1.0f );
 
 	const float aspectRatio = imageDimensions.x / imageDimensions.y;
+	uv *= uvScaleFactor;
 	uv.x = uv.x * aspectRatio;
 
-	// compute FoV offset
-		// this also informs initial transmission values
+	// // compute FoV offset - this also informs initial transmission values
+	// #if 0 // interesting motion blur ish thing from jittering FoV
+	// 	const float interpolationValue = NormalizedRandomFloat();
+	// 	const float i = interpolationValue * ( 3.1415f / 2.0f );
+	// 	const float i = gainValue( interpolationValue, 0.7f ) * ( 3.1415f / 2.0f );  // parameterize bias/gain? tbd
+	// 	const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
+	// 	// convolving transmission with the offset... gives like chromatic aberration
+	// 	SetTransmission( state[ index ], pow( colorWeight, vec3( 1.0f / 2.2f ) ) );
+	// 	SetRayDirection( state[ index ], normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.006f * gainValue( interpolationValue, 0.75f ) ) ) * basisZ ) );
+	// #else
+	// 	SetRayDirection( state[ index ], normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
+	// #endif
 
 	// use offset FoV to calculate camera ray direction...
-	switch ( cameraType ) {
+	switch ( cameraMode ) {
 		case DEFAULT: {
-
+			temp.direction = normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
 			break;
 		}
 
 		case ORTHO: {
+			temp.origin = viewerPosition + basisX * FoV * uv.x + basisY * FoV * uv.y;
+			temp.direction = basisZ;
+			break;
+		}
 
+		case VORALDO: {
+			// can combine with ortho... FoV = 0.0 gives you an ortho camera
+				// use the FoV as the perspective factor
+			temp.origin = viewerPosition + basisX * uv.x + basisY * uv.y;
+			temp.direction = normalize( 2.0f * basisZ + temp.origin * FoV );
 			break;
 		}
 
 		case SPHERICAL: {
-
+			uv.x -= 0.05f;
+			uv = vec2( atan( uv.y, uv.x ) + 0.5f, ( length( uv ) + 0.5f ) * acos( -1.0f ) );
+			vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
+			baseVec = rotate3D( pi / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec; // this is to match the other camera
+			temp.origin = viewerPosition;
+			temp.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
 			break;
 		}
 
@@ -79,20 +105,15 @@ cameraRay GetCameraRay ( vec2 uv ) {
 			break;
 		}
 
-		case VORALDO: {
-
-			break;
-		}
-
 		default: // shouldn't hit this
 		break;
 	}
 
-	// jittering the ray origin helps with some aliasing issues
-	r.origin += ( Blue( ivec2( gl_GlobalInvocationID.xy ) ).z / 255.0f ) * 0.1f * r.direction;
+	// jittering the ray origin helps with some aliasing issues...
+	temp.origin += ( Blue( ivec2( gl_GlobalInvocationID.x, gl_GlobalInvocationID.x % 512 ) ).z / 255.0f ) * 0.1f * temp.direction;
 
 	// if the DoF is on, we do some additional calculation...
-	if ( DoFEnable ) {
+	if ( DoFRadius != 0.0f ) {
 		// thin lens adjustment
 		vec3 focuspoint = temp.origin + ( ( temp.direction * DoFFocusDistance ) / dot( temp.direction, basisZ ) );
 		vec2 diskOffset = DoFRadius * GetBokehOffset( DoFBokehMode );
@@ -108,24 +129,15 @@ void main () {
 	ivec2 offset = ivec2( offsets[ index ] );
 	seed = offset.x * 100625 + offset.y * 2324 + gl_GlobalInvocationID.x * 42069;
 
-	// generate initial ray origins + directions... very basic camera logic
-	vec2 uv = ( ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
-
 	// zero out the buffer entry
 	StateReset( state[ index ] );
 
-	#if 0 // interesting motion blur ish thing from jittering FoV
-		const float interpolationValue = NormalizedRandomFloat();
-		const float i = gainValue( interpolationValue, 0.7f ) * ( 3.1415f / 2.0f );
-		const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
-		// convolving transmission with the offset... gives like chromatic aberration
-		SetTransmission( state[ index ], pow( colorWeight, vec3( 1.0f / 2.2f ) ) );
-		SetRayDirection( state[ index ], normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.006f * gainValue( interpolationValue, 0.75f ) ) ) * basisZ ) );
-	#else
-		SetRayDirection( state[ index ], normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
-	#endif
+	// fill out the rayState based on the prepared cameraRay for this uv location... add weyl subpixel jitter
+	vec2 uv = ( ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
 
-	// filling out the rayState_t struct
-	SetRayOrigin( state[ index ], viewerPosition );
+	cameraRay myRay = GetCameraRay( uv );
+	SetTransmission( state[ index ], myRay.transmission );
+	SetRayDirection( state[ index ], myRay.direction );
+	SetRayOrigin( state[ index ], myRay.origin );
 	SetPixelIndex( state[ index ], offset );
 }
