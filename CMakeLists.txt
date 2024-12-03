@@ -543,3 +543,15 @@ target_link_libraries( Adam
 	PUBLIC
 	engineBase
 )
+
+# =================================================================================================
+# Trying to copy DynaDraw: http://www.graficaobscura.com/dyna/
+# =================================================================================================
+add_executable( jbPaint
+	src/projects/SignalProcessing/jbPaint/main.cc
+)
+
+target_link_libraries( jbPaint
+	PUBLIC
+	engineBase
+)
