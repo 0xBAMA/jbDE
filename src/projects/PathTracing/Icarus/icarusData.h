@@ -47,12 +47,11 @@ struct icarusState_t {
 	vec3 basisY = vec3( 0.0f, 1.0f, 0.0f );
 	vec3 basisZ = vec3( 0.0f, 0.0f, 1.0f );
 	float FoV = 0.618f;
-	int cameraType = 0;
-
-	// DoF stuff
-	bool DoF = true;
-	float DoFDistance = 2.5f;
-	float DoFRadius = 0.1f;
+	int cameraMode = 0;
+	float uvScaleFactor = 1.0f;
+	int DoFBokehMode = 0;
+	float DoFRadius = 0.001f;
+	float DoFFocusDistance = 5.0f;
 };
 
 // =============================================================================================================
@@ -398,7 +397,15 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
 		glUniform2f( glGetUniformLocation( shader, "imageDimensions" ), state.dimensions.x, state.dimensions.y );
 
+		glUniform1i( glGetUniformLocation( shader, "cameraMode" ), state.cameraMode );
+		glUniform1f( glGetUniformLocation( shader, "uvScaleFactor" ), state.uvScaleFactor );
+		glUniform1i( glGetUniformLocation( shader, "DoFBokehMode" ), state.DoFBokehMode );
+		glUniform1f( glGetUniformLocation( shader, "DoFRadius" ), state.DoFRadius );
+		glUniform1f( glGetUniformLocation( shader, "DoFFocusDistance" ), state.DoFFocusDistance );
+
 		// blue noise texture
+		static rngi noiseOffsetGen( 0, 512 );
+		glUniform2i( glGetUniformLocation( shader, "noiseOffset" ), noiseOffsetGen(), noiseOffsetGen() );
 		state.textureManager->BindImageForShader( "Blue Noise", "blueNoise", shader, 0 );
 
 		// fixed size, x times 256 = state.numRays

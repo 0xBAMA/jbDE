@@ -209,6 +209,7 @@ vec2 Star7 () {
 
 
 // ======================================================================================================================
+#define BOKEHSHAPE_NONE				0
 #define BOKEHSHAPE_EDGEBIAS_DISK	1
 #define BOKEHSHAPE_UNIFORM_DISK		2
 #define BOKEHSHAPE_REJECTION_HEX	3
@@ -231,6 +232,7 @@ vec2 Star7 () {
 vec2 GetBokehOffset ( int mode ) {
 	switch ( mode ) {
 
+		case BOKEHSHAPE_NONE:				return vec2( 0.5f ); break;
 		case BOKEHSHAPE_EDGEBIAS_DISK:		return RandomInUnitDisk(); break;			// edge-biased disk
 		case BOKEHSHAPE_UNIFORM_DISK:		return CircleOffset(); break;				// not-edge-biased disk
 		case BOKEHSHAPE_REJECTION_HEX:		return RejectionSampleHexOffset(); break;	// rejection sample hex

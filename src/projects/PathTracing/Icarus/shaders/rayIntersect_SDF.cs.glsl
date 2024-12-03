@@ -122,12 +122,12 @@ float deGround ( vec3 p ) {
 
 float deLacy( vec3 p ){
 	float s=3.;
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < 8; i++) {
 		p=mod(p-1.,2.)-1.;
-		float r=1.2/dot(p,p);
+		float r=2.0/dot(p,p);
 		p*=r; s*=r;
 	}
-	p = abs(p)-0.8;
+	p = abs(p)-0.4f;
 	if (p.x < p.z) p.xz = p.zx;
 	if (p.y < p.z) p.yz = p.zy;
 	if (p.x < p.y) p.xy = p.yx;
@@ -178,7 +178,7 @@ float deGyroid ( vec3 p ) {
 	return d;
 }
 
-const float raymarchMaxDistance = 50.0f;
+const float raymarchMaxDistance = 100.0f;
 const float raymarchUnderstep = 0.9f;
 const int raymarchMaxSteps = 300;
 const float epsilon = 0.001f;
@@ -207,7 +207,7 @@ float de ( vec3 p ) {
 	// {
 	// 	// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
 	// 	// const float d = fCylinder( p - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
-	// 	const float d = fCylinder( p.zyx - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
+	// 	const float d = fCylinder( p.zyx - vec3( 0.0f, 0.0f, 0.0f ), 0.7f, 100.0f );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
 	// 		hitSurfaceType = EMISSIVE;
@@ -216,15 +216,26 @@ float de ( vec3 p ) {
 	// }
 
 	{
-		const float scale = 0.2f;
-		// const float d = max( fBox( p, vec3( 3.0f ) ), deGround( p.xzy * scale ) / scale );
-		const float d = deGround( p.xzy * scale ) / scale;
+		const float scale = 0.4f;
+		// const float d = max( fBox( p, vec3( 4.0f ) ), deLacy( p.xzy * scale ) / scale );
+		const float d = deTemple2( p.xzy * scale ) / scale;
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
+
+			// const float scale2 = 1.0f;
+			// bool blackOrWhite = ( step( 0.0f,
+			// 	cos( scale2 * pi * p.x + pi / 2.0f ) *
+			// 	cos( scale2 * pi * p.y + pi / 2.0f ) *
+			// 	cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
+
+			// hitSurfaceType = ( NormalizedRandomFloat() > 0.1f ) ? MIRROR : DIFFUSE;
 			hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
 			// hitSurfaceType = MIRROR;
-			hitColor = silicon * 0.3f;
-			// hitColor = tire;
+			hitColor = platinum;
+			// hitColor = blackOrWhite ? vec3( 0.95f ) : blood;
+			// hitColor = officePaper;
+			// hitColor = vec3( 0.99f );
+
 		}
 	}
 
@@ -266,15 +277,16 @@ float de ( vec3 p ) {
 	// 	}
 	// }
 
-	{
-		const float d = deTemple( rotate3D( 1.3f, vec3( 1.0f, 2.0f, 3.0f ) ) * p + vec3( 0.0f, 0.0f, 9.0f ) );
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = MIRROR;
-			// hitColor = honey.grb;
-			hitColor = honey;
-		}
-	}
+	// {
+	// 	const float d = deTemple( rotate3D( 1.3f, vec3( 1.0f, 2.0f, 3.0f ) ) * p + vec3( 0.0f, 0.0f, 9.0f ) );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = MIRROR;
+	// 		hitColor = honey.grb;
+	// 		// hitColor = honey;
+	// 		// hitColor = vec3( 0.99f );
+	// 	}
+	// }
 
 	// {
 	// 	const float scale = 0.8f;
