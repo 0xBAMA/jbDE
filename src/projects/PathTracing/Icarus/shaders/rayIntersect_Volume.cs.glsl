@@ -45,7 +45,7 @@ float GetVolumeDensity( ivec3 pos ) {
 	// float d = max( deWhorl( p / 1.0f ), fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 0.0f ) );
 	// const float boxDist = fBox( p, vec3( 10.0f, 3.0f, 12.0f ) );
 	// const float boxDist = fBox( p, vec3( 15.0f ) );
-	const float boxDist = fBox( p, vec3( 10.0f ) );
+	const float boxDist = fBox( p, vec3( 4.0f ) );
 	// float d = max( deGyroid( p * scalar ) / scalar, boxDist ) - ( blackOrWhite ? -0.02f : 0.05f );
 	float value;
 
@@ -55,12 +55,13 @@ float GetVolumeDensity( ivec3 pos ) {
 	// 	scatterColor = bone.brg;
 	// } else if ( boxDist < 0.0f ) {
 	if ( boxDist < 0.0f ) {
-		// value = 1.618f;
+		// value = 1.0f;
 		value = 2.618f;
+		// value = 5.0f;
 		// value = 0.0f;
 		// value = 10.0f;
 		// scatterColor = mix( tungsten, sapphire, 0.618f );
-		scatterColor = sapphire;
+		scatterColor = vec3( 0.618f );
 	} else {
 		value = 0.0f;
 	}
