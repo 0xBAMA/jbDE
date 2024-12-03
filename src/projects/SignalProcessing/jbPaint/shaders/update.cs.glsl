@@ -19,20 +19,63 @@ uniform float brushThreshold;
 // xy position + click state in z
 uniform ivec3 mouseState;
 
+#define POINT		0
+#define QUADLINES	1
+// uniform int drawMode;
+const int drawMode = 1;
+
+uniform vec2 quadPoints[ 4 ];
+
+float lineSegmentSDF ( in vec2 p, in vec2 a, in vec2 b ) {
+	vec2 pa = p - a, ba = b - a;
+	float h = clamp( dot( pa, ba ) / dot( ba, ba ), 0.0f, 1.0f );
+	return length( pa - ba * h );
+}
+
 void main () {
 	// pixel location
 	ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
 
-	// pixel distance to the mouse
-	const float d = distance( vec2( loc ), vec2( mouseState.xy ) );
+	switch ( drawMode ) {
+		case POINT: {
+			// pixel distance to the mouse
+			const float d = distance( vec2( loc ), vec2( mouseState.xy ) );
 
-	// draw if close to the mouse and the mouse is clicking
-	if ( ( d < brushRadius ) && ( mouseState.z != 0 ) ) {
-		vec4 previousValue = imageLoad( paintBuffer, loc );
-		float falloff = 1.0f - biasGain( d / brushRadius, brushSlope, brushThreshold );
-		// float falloff = biasGain( d / brushRadius, brushSlope, brushThreshold ); // noninverting... interesting
-		float noise = RangeRemapValue( Blue( loc ).x, 0.0f, 255.0f, 0.618f, 1.0f );
+			// draw if close to the mouse and the mouse is clicking
+			if ( ( d < brushRadius ) && ( mouseState.z != 0 ) ) {
+				vec4 previousValue = imageLoad( paintBuffer, loc );
+				float falloff = 1.0f - biasGain( d / brushRadius, brushSlope, brushThreshold );
+				// float falloff = biasGain( d / brushRadius, brushSlope, brushThreshold ); // noninverting... interesting
+				float noise = RangeRemapValue( Blue( loc ).x, 0.0f, 255.0f, 0.618f, 1.0f );
 
-		imageStore( paintBuffer, loc, previousValue + vec4( falloff * brushColor * noise, 1.0f ) );
+				imageStore( paintBuffer, loc, previousValue + vec4( falloff * brushColor * noise, 1.0f ) );
+			}
+			break;
+		}
+
+		case QUADLINES: {
+			// consider the 4 lines making up the edge of the quad...
+			const float d = min(
+				min(
+					// lineSegmentSDF( vec2( loc ), quadPoints[ 0 ], quadPoints[ 1 ] ),
+					lineSegmentSDF( vec2( loc ), quadPoints[ 1 ], quadPoints[ 2 ] ),
+					lineSegmentSDF( vec2( loc ), quadPoints[ 1 ], quadPoints[ 3 ] ) ),
+				min( 
+					lineSegmentSDF( vec2( loc ), quadPoints[ 2 ], quadPoints[ 3 ] ),
+					lineSegmentSDF( vec2( loc ), quadPoints[ 3 ], quadPoints[ 0 ] ) ) );
+
+			if ( ( d < brushRadius ) && ( mouseState.z != 0 ) ) {
+				vec4 previousValue = imageLoad( paintBuffer, loc );
+				float falloff = 1.0f - biasGain( d / brushRadius, brushSlope, brushThreshold );
+				// float falloff = biasGain( d / brushRadius, brushSlope, brushThreshold ); // noninverting... interesting
+				float noise = RangeRemapValue( Blue( loc ).x, 0.0f, 255.0f, 0.618f, 1.0f );
+
+				imageStore( paintBuffer, loc, previousValue + vec4( falloff * brushColor * noise, 1.0f ) );
+			}
+			break;
+		}
+
+		default: break;
 	}
+
 }

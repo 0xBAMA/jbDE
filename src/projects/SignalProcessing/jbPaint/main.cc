@@ -21,7 +21,7 @@ struct strokeFilter_t {
 	float angx, angy;
 	float mass, drag;
 	float lastx, lasty;
-	int fixedangle = 1;
+	bool fixedangle = true;
 
 	// previously global state
 	float currMass = 0.5f, currDrag = 0.15f;
@@ -192,7 +192,9 @@ public:
 			ImGui::SliderFloat( "Radius", &state.brushRadius, 0.001f, 100.0f );
 			ImGui::SliderFloat( "Threshold", &state.brushThreshold, 0.0f, 1.0f );
 			ImGui::SliderFloat( "Slope", &state.brushSlope, 0.0f, 100.0f );
+			ImGui::SliderFloat( "Stroke Width", &state.stroke.initWidth, 0.0f, 5.0f );
 			ImGui::ColorEdit3( "Color", ( float * ) &state.brushColor, ImGuiColorEditFlags_PickerHueWheel );
+			ImGui::Checkbox( "Fixed Angle", &state.stroke.fixedangle );
 			ImGui::Separator();
 			ImGui::SliderFloat( "Mass", &state.stroke.currMass, 0.0f, 3.0f );
 			ImGui::SliderFloat( "Drag", &state.stroke.currDrag, 0.0f, 1.0f );
@@ -289,11 +291,19 @@ public:
 						break;
 				}
 
-				// glUniform3i( glGetUniformLocation( shader, "mouseState" ), scale * state.stroke.curx, scale * state.stroke.cury, mouseState ? 1 : 0 );						[[fallthrough]]
+				vec2 values[ 4 ] = {
+					scale * state.stroke.currentQuad.p1,
+					scale * state.stroke.currentQuad.p2,
+					scale * state.stroke.currentQuad.p3,
+					scale * state.stroke.currentQuad.p4
+				};
 
+				glUniform2fv( glGetUniformLocation( shader, "quadPoints" ), 4, ( float* ) &values );
+
+				// glUniform3i( glGetUniformLocation( shader, "mouseState" ), scale * state.stroke.curx, scale * state.stroke.cury, mouseState ? 1 : 0 );
 				glUniform3i( glGetUniformLocation( shader, "mouseState" ), scale * state.stroke.lastx, scale * state.stroke.lasty, mouseState ? 1 : 0 );
 
-				glUniform1f( glGetUniformLocation( shader, "brushRadius" ), state.brushRadius * std::min( std::max( ( 1.0f - 69.0f * state.stroke.vel ), 0.1f ), 1.0f ) );
+				glUniform1f( glGetUniformLocation( shader, "brushRadius" ), state.brushRadius * std::min( std::max( ( 1.0f - 29.0f * state.stroke.vel ), 0.1f ), 1.0f ) );
 				// glUniform1f( glGetUniformLocation( shader, "brushRadius" ), state.brushRadius );
 				glUniform1f( glGetUniformLocation( shader, "brushSlope" ), state.brushSlope );
 				glUniform1f( glGetUniformLocation( shader, "brushThreshold" ), state.brushThreshold );
