@@ -95,6 +95,12 @@ void AllocateTextures ( icarusState_t &state ) {
 	static bool firstTime = true;
 	if ( !firstTime ) {
 		// todo: delete the existing textures, first
+		state.textureManager->Remove( "Output Buffer" );
+		state.textureManager->Remove( "R Tally Image" );
+		state.textureManager->Remove( "G Tally Image" );
+		state.textureManager->Remove( "B Tally Image" );
+		state.textureManager->Remove( "Sample Count" );
+		state.textureManager->Remove( "Adam" );
 	}
 	firstTime = false;
 
