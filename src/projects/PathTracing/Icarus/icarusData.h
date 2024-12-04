@@ -35,6 +35,7 @@ struct icarusState_t {
 
 	int offsetFeedMode = SHUFFLED;
 	GLuint offsetsSSBO;
+	bool forceUpdate = false;
 
 	uint numRays = 2 << 16;
 
@@ -127,7 +128,7 @@ void AllocateTextures ( icarusState_t &state ) {
 
 	// Adam's buffers
 	uint32_t adamBufferSize = nextPowerOfTwo( std::max( state.dimensions.x, state.dimensions.y ) );
-	cout << "adam says... " << adamBufferSize << endl;
+	// cout << "adam says... " << adamBufferSize << endl;
 	int w = adamBufferSize;
 	int h = adamBufferSize;
 
@@ -178,8 +179,11 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 		case SHUFFLED: {
 			// list that ensures you will touch every pixel before repeating
 			static vector< uvec2 > offsets;
-			if ( offsets.size() == 0 ) {
-				// generate new list of offsets
+			// generate new list of offsets
+			if ( offsets.size() == 0 || state.forceUpdate ) {
+				offsets.clear();
+				state.forceUpdate = false;
+
 				for ( uint32_t x = 0; x < state.dimensions.x; x++ ) {
 					for ( uint32_t y = 0; y < state.dimensions.y; y++ ) {
 						offsets.push_back( uvec2( x, y ) );
