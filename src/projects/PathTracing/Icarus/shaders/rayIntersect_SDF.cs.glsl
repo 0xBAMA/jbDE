@@ -1,10 +1,11 @@
 #version 430
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
-
+//=============================================================================================================================
 // ray state buffer
-#include "rayState.h.glsl"
-layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
-
+#include "rayState2.h.glsl"
+layout( binding = 1, std430 ) readonly buffer rayState { rayState_t state[]; };
+layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
+//=============================================================================================================================
 #include "random.h"
 #include "hg_sdf.glsl"
 #include "colorRamps.glsl.h"
@@ -305,6 +306,7 @@ float de ( vec3 p ) {
 	return sceneDist;
 }
 
+//=============================================================================================================================
 float raymarch ( vec3 rayOrigin, vec3 rayDirection ) {
 	float dQuery = 0.0f;
 	float dTotal = 0.0f;
@@ -319,35 +321,46 @@ float raymarch ( vec3 rayOrigin, vec3 rayDirection ) {
 	}
 	return dTotal;
 }
-
+//=============================================================================================================================
 vec3 SDFNormal( in vec3 position ) {
 	vec2 e = vec2( epsilon, 0.0f );
 	return normalize( vec3( de( position ) ) - vec3( de( position - e.xyy ), de( position - e.yxy ), de( position - e.yyx ) ) );
 }
-
+//=============================================================================================================================
 void main () {
-	rayState_t myState = state[ gl_GlobalInvocationID.x ];
+	// interesting, this becomes read-only
+	const rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
+	// seeding RNG
 	const uvec2 loc = uvec2( GetPixelIndex( myState ) );
-	seed = loc.x * 10625 + loc.y * 23624 + gl_GlobalInvocationID.x * 2335;
+	seed = loc.x * 42069 + loc.y * 69420 + gl_GlobalInvocationID.x * 6969420;
 
-	const vec3 origin = GetRayOrigin( myState );
-	const vec3 direction = GetRayDirection( myState );
+	// living check - don't run the intersection for dead rays
+	if ( IsLiving( myState ) ) {
 
-	// ray is live, do the raymarch...
-	if ( length( direction ) > 0.5f ) {
-		// update the intersection info
-		const float distanceToHit = raymarch( origin, direction );
+		// do the raymarch
+		const vec3 origin = GetRayOrigin( myState );
+		const vec3 direction = GetRayDirection( myState );
+		const float t = raymarch( origin, direction );
 
-		// if ( distanceToHit <= GetHitDistance( myState ) &&  ) {
-			SetHitAlbedo( myState, hitColor );
-			SetHitRoughness( myState, hitRoughness );
-			SetHitDistance( myState, distanceToHit );
-			SetHitMaterial( myState, hitSurfaceType );
-			SetHitNormal( myState, SDFNormal( origin + direction * distanceToHit ) );
-			SetHitIntersector( myState, ( distanceToHit < raymarchMaxDistance ) ? SDFHIT : NOHIT );
-		// }
+		// fill out the intersection struct
+		intersection_t SDFIntersection;
+		IntersectionReset( SDFIntersection );
 
-		state[ gl_GlobalInvocationID.x ] = myState;
+		SetHitDistance( SDFIntersection, t );
+		SetHitNormal( SDFIntersection, SDFNormal( origin + t * direction ) );
+
+		SetHitAlbedo( SDFIntersection, hitColor );
+		SetHitRoughness( SDFIntersection, hitRoughness );
+		SetHitFrontface( SDFIntersection, true );
+
+		SetHitMaterial( SDFIntersection, hitSurfaceType );
+		SetHitIntersector( SDFIntersection, SDFHIT ); // this is questionable... what is it for? we know implicitly by index
+
+		// store it at the correct strided location
+		if ( de( origin + t * direction ) < epsilon ) {
+			const int index = int( gl_GlobalInvocationID.x ) * NUM_INTERSECTORS + INTERSECT_SDF;
+			intersectionScratch[ index ] = SDFIntersection;
+		}
 	}
 }

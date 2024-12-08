@@ -5,9 +5,10 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 #include "noise.h"
 #include "hg_sdf.glsl"
 #include "pbrConstants.glsl"
-#include "rayState.h.glsl"
+#include "rayState2.h.glsl"
 //=============================================================================================================================
-layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
+layout( binding = 1, std430 ) readonly buffer rayState { rayState_t state[]; };
+layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
 //=============================================================================================================================
 mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
 float deGyroid ( vec3 p ) {
@@ -70,7 +71,7 @@ float GetVolumeDensity( ivec3 pos ) {
 }
 //=============================================================================================================================
 void main () {
-	rayState_t myState = state[ gl_GlobalInvocationID.x ];
+	const rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
 	const uvec2 loc = uvec2( GetPixelIndex( myState ) );
 	seed = loc.x * 10625 + loc.y * 23624 + gl_GlobalInvocationID.x * 2335;
@@ -78,11 +79,11 @@ void main () {
 	const vec3 origin = GetRayOrigin( myState );
 	const vec3 direction = GetRayDirection( myState );
 
-	// ray is live, do the raymarch...
-	if ( length( direction ) > 0.5f ) {
+	if ( IsLiving( myState ) ) {
+
 		// DDA traversal to a potential scattering event
 		bool hit = false;
-		float hitDistance = 300.0f;
+		float hitDistance = MAX_DIST;
 		vec3 transmission = vec3( 0.0f );
 		const vec3 startPos = origin * scaleFactor;
 
@@ -94,7 +95,7 @@ void main () {
 		ivec3 mapPos0 = ivec3( floor( startPos ) );
 		vec3 sideDist0 = ( sign( direction ) * ( vec3( mapPos0 ) - startPos ) + ( sign( direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-		#define MAX_RAY_STEPS 2000
+		#define MAX_RAY_STEPS 3000
 		for ( int i = 0; i < MAX_RAY_STEPS && !hit; i++ ) {
 
 			bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
@@ -130,16 +131,21 @@ void main () {
 			}
 		}
 
-		if ( hit && hitDistance < GetHitDistance( myState ) ) {
-			SetHitAlbedo( myState, transmission );
-			SetHitRoughness( myState, 0.0f );
-			SetHitDistance( myState, hitDistance );
+		// fill out intersection struct
+		intersection_t VolumeIntersection;
+		IntersectionReset( VolumeIntersection );
 
-			// SetHitMaterial( myState, VOLUME ); // this doesn't really mean anything
-			// SetHitNormal( myState, ... ); // normal doesn't really mean anything here
-			SetHitIntersector( myState, VOLUMEHIT ); // this is the key delineation
+		SetHitAlbedo( VolumeIntersection, transmission );
+		SetHitRoughness( VolumeIntersection, 0.0f );
+		SetHitDistance( VolumeIntersection, hitDistance );
 
-			state[ gl_GlobalInvocationID.x ] = myState;
+		// SetHitMaterial( VolumeIntersection, VOLUME ); // this doesn't really mean anything (should it?)
+		// SetHitNormal( VolumeIntersection, ... ); // normal doesn't really mean anything here
+		SetHitIntersector( VolumeIntersection, VOLUMEHIT ); // this is the key delineation... material seems better, tbd
+
+		if ( hit ) { // this ray hits in the specified range, write back to the buffer
+			const int index = int( gl_GlobalInvocationID.x ) * NUM_INTERSECTORS + INTERSECT_VOLUME;
+			intersectionScratch[ index ] = VolumeIntersection;
 		}
 	}
 }
