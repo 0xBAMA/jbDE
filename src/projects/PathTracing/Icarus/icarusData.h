@@ -10,6 +10,7 @@ struct icarusState_t {
 	GLuint ClearShader;
 
 	// first pass on the pipeline
+	GLuint RayClearShader;
 	GLuint RayGenerateShader;
 	GLuint RayIntersectShader_SDF;
 	GLuint RayIntersectShader_Triangle;
@@ -68,6 +69,7 @@ void CompileShaders ( icarusState_t &state ) {
 	state.ClearShader			= computeShader( basePath + "clear.cs.glsl" ).shaderHandle;
 
 	// ray generation, intersection, and shading
+	state.RayClearShader				= computeShader( basePath + "rayClear.cs.glsl" ).shaderHandle;
 	state.RayGenerateShader				= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
 	state.RayIntersectShader_SDF		= computeShader( basePath + "rayIntersect_SDF.cs.glsl" ).shaderHandle;
 	state.RayIntersectShader_Triangle	= computeShader( basePath + "rayIntersect_Triangle.cs.glsl" ).shaderHandle;
@@ -431,6 +433,13 @@ void RayUpdate ( icarusState_t &state ) {
 
 	// looping for bounces
 	for ( uint i = 0; i < state.maxBounces; i++ ) {
+
+		{ // set initial state for all elements
+			const GLuint shader = state.RayClearShader;
+			glUseProgram( shader );
+			glDispatchCompute( state.numRays / 256, 1, 1 );
+			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+		}
 
 		if ( state.runSDF ) { // intersect those rays with SDF geo
 			const GLuint shader = state.RayIntersectShader_SDF;
