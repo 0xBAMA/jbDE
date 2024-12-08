@@ -24,6 +24,7 @@ struct icarusState_t {
 	int numLevels;
 
 	// perf settings
+	const int numIntersectors = 3; // I'd rather get this straight from the header...
 	uint maxBounces		= 16;
 	bool runSDF			= true;
 	bool runTriangle	= false;
@@ -444,25 +445,22 @@ void RayUpdate ( icarusState_t &state ) {
 		if ( state.runSDF ) { // intersect those rays with SDF geo
 			const GLuint shader = state.RayIntersectShader_SDF;
 			glUseProgram( shader );
-
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+			// glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
 		if ( state.runTriangle ) { // intersect those rays with a triangle
 			const GLuint shader = state.RayIntersectShader_Triangle;
 			glUseProgram( shader );
-
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+			// glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
 		if ( state.runVolume ) { // intersect those rays with the volume
 			const GLuint shader = state.RayIntersectShader_Volume;
 			glUseProgram( shader );
-
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
+			// glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
 		{ // do the shading on the intersection results (third shader)
