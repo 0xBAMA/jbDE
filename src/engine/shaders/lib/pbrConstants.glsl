@@ -1,5 +1,6 @@
 // values from: https://physicallybased.info/
 const vec3 aluminum		= vec3( 0.912f, 0.914f, 0.920f );
+const vec3 aqua			= vec3( 0.020f, 0.760f, 0.870f );
 const vec3 banana		= vec3( 0.634f, 0.532f, 0.111f );
 const vec3 blackboard	= vec3( 0.039f, 0.039f, 0.039f );
 const vec3 blood		= vec3( 0.644f, 0.003f, 0.005f );
