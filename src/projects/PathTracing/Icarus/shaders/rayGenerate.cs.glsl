@@ -2,13 +2,14 @@
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 //=============================================================================================================================
 #include "random.h"
-#include "rayState.h.glsl"
+#include "rayState2.h.glsl"
 #include "biasGain.h"
 #include "twigl.glsl"
 //=============================================================================================================================
-// pixel offset + ray state buffers
+// pixel offset + ray state buffers (intersection scratch not used)
 layout( binding = 0, std430 ) readonly buffer pixelOffsets { uvec2 offsets[]; };
 layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
+layout( binding = 2, std430 ) buffer intersectionBuffer { intersection_t intersectionScratch[]; };
 //=============================================================================================================================
 layout( location = 0, rgba8ui ) readonly uniform uimage2D blueNoise;
 uniform ivec2 noiseOffset;
@@ -51,28 +52,29 @@ cameraRay GetCameraRay ( vec2 uv ) {
 	uv *= uvScaleFactor;
 	uv.x = uv.x * aspectRatio;
 
-	// // compute FoV offset - this also informs initial transmission values
-	// #if 0 // interesting motion blur ish thing from jittering FoV
-	// 	const float interpolationValue = NormalizedRandomFloat();
-	// 	const float i = interpolationValue * ( 3.1415f / 2.0f );
-	// 	const float i = gainValue( interpolationValue, 0.7f ) * ( 3.1415f / 2.0f );  // parameterize bias/gain? tbd
-	// 	const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
-	// 	// convolving transmission with the offset... gives like chromatic aberration
-	// 	SetTransmission( state[ index ], pow( colorWeight, vec3( 1.0f / 2.2f ) ) );
-	// 	SetRayDirection( state[ index ], normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / ( FoV + 0.006f * gainValue( interpolationValue, 0.75f ) ) ) * basisZ ) );
-	// #else
-	// 	SetRayDirection( state[ index ], normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ ) );
-	// #endif
+	float FoVLocal = FoV;
+
+	// compute FoV offset - this also informs initial transmission values
+	#if 1 // interesting motion blur ish thing from jittering FoV
+		const float interpolationValue = NormalizedRandomFloat();
+		const float i = interpolationValue * ( 3.1415f / 2.0f );
+		// const float i = gainValue( interpolationValue, 0.7f ) * ( 3.1415f / 2.0f );  // parameterize bias/gain? tbd
+		const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
+		// convolving transmission with the offset... gives like chromatic aberration
+		temp.transmission = pow( colorWeight, vec3( 1.0f / 2.2f ) );
+		// FoVLocal = FoV + 0.006f * gainValue( interpolationValue, 0.75f );
+		FoVLocal = FoV + 0.006f * gainValue( interpolationValue, 0.75f );
+	#endif
 
 	// use offset FoV to calculate camera ray direction...
 	switch ( cameraMode ) {
 		case DEFAULT: {
-			temp.direction = normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / FoV ) * basisZ );
+			temp.direction = normalize( uv.x * basisX + uv.y * basisY + ( 1.0f / FoVLocal ) * basisZ );
 			break;
 		}
 
 		case ORTHO: {
-			temp.origin = viewerPosition + basisX * FoV * uv.x + basisY * FoV * uv.y;
+			temp.origin = viewerPosition + basisX * FoVLocal * uv.x + basisY * FoVLocal * uv.y;
 			temp.direction = basisZ;
 			break;
 		}
@@ -81,7 +83,7 @@ cameraRay GetCameraRay ( vec2 uv ) {
 			// can combine with ortho... FoV = 0.0 gives you an ortho camera
 				// use the FoV as the perspective factor
 			temp.origin = viewerPosition + basisX * uv.x + basisY * uv.y;
-			temp.direction = normalize( 2.0f * basisZ + temp.origin * FoV );
+			temp.direction = normalize( 2.0f * basisZ + temp.origin * FoVLocal );
 			break;
 		}
 
@@ -91,7 +93,7 @@ cameraRay GetCameraRay ( vec2 uv ) {
 			vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
 			baseVec = rotate3D( pi / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec; // this is to match the other camera
 			temp.origin = viewerPosition;
-			temp.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoV ) * baseVec.z * basisZ );
+			temp.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoVLocal ) * baseVec.z * basisZ );
 			break;
 		}
 
