@@ -35,6 +35,7 @@ struct icarusState_t {
 
 	int offsetFeedMode = SHUFFLED;
 	GLuint offsetsSSBO;
+	GLuint intersectionScratchSSBO;
 	bool forceUpdate = false;
 
 	uint numRays = 2 << 16;
@@ -86,10 +87,15 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, state.offsetsSSBO );
 
 	// allocate space for the ray state structs, state.numRays of them - this is going to change a lot, as I figure out what needs to happen
-		// currently 108 bytes, see rayState.h.glsl
+		// currently 64 bytes, see rayState.h.glsl
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 128 * state.numRays, NULL, GL_DYNAMIC_COPY );
-	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO);
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 64 * state.numRays, NULL, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
+
+	// scratch memory for the ray state structs
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.intersectionScratchSSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 64 * state.numIntersectors * state.numRays, NULL, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, state.intersectionScratchSSBO );
 }
 
 void AllocateTextures ( icarusState_t &state ) {
