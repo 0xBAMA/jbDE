@@ -37,35 +37,41 @@ void main () {
 
 	seed = uint( loc.x ) * 10625 + uint( loc.y ) * 23624 + gl_GlobalInvocationID.x * 42069;
 
-	if ( GetHitIntersector( myState ) == NOHIT ) {
+	intersection_t closestIntersection;
+	IntersectionReset( closestIntersection );
+
+	// We need to do a gather over the N intersection cantidates to find the closest, similar to the Daedalus impl
+	for ( int i = 0; i < NUM_INTERSECTORS; i++ ) {
+		const int baseIndex = NUM_INTERSECTORS * int( gl_GlobalInvocationID.x );
+		intersection_t temp = intersectionScratch[ baseIndex + i ];
+		if ( GetHitDistance( temp ) < GetHitDistance( closestIntersection ) ) {
+			closestIntersection = temp; // update with nearest intersection
+		}
+	}
+
+	if ( GetHitIntersector( closestIntersection ) == NOHIT ) {
 
 		// if you didn't any object in the scene, we're saying you hit the skybox
 			// this is probably going to be setup very similar to the rectilinear map from Daedalus
 		terminate = true;
-		const float mixFactor = dot( vec3( 0.0f, 0.0f, 1.0f ), GetRayDirection( myState ) );
-		// const vec3 color = ( ( abs( mixFactor ) > 0.95f ) ? mix( vec3( 1.0f ), vec3( 0.0f, 0.15f, 1.0f ), mixFactor * 0.5f + 0.5f ) : ( ( abs( mixFactor ) < 0.1f ) ? vec3( 1.0f, 0.0f, 0.0f ) : vec3( 0.0f ) ) );
-		// const vec3 color = mix( vec3( 0.0f ), vec3( 0.670f, 0.764f, 0.855f ), mixFactor * 0.5f + 0.5f );
-		// const vec3 color = ( mixFactor < -0.5f ) ? ( ( mixFactor < -0.75f ) ? vec3( 1.0f ) : vec3( 1.0f, 0.7f, 0.3f ) ) : vec3( 0.0f );
-		// const vec3 color = ( mixFactor < -0.6f ) ? vec3( 3.0f ) : vec3( 0.0f );
-		// const vec3 color = ( mixFactor < -0.5f ) ? vec3( 0.3f ) : vec3( 0.0f );
-		const vec3 color = vec3( smoothstep( 0.618f, 0.9f, mixFactor ) * 3.0f );
-		// const vec3 color = vec3( 0.3f );
-		// const vec3 color = vec3( 1.0f );
+		const float mixFactor = dot( normalize( vec3( 0.0f, 2.0f, 1.0f ) ), GetRayDirection( myState ) );
+		const vec3 color = vec3( smoothstep( 0.18f, 0.9f, mixFactor ) * 5.0f );
 		// const vec3 color = vec3( 0.0f );
+
 		AddEnergy( myState, GetTransmission( myState ) * color );
 
-	} else if ( GetHitIntersector( myState ) == VOLUMEHIT ) {
+	} else if ( GetHitIntersector( closestIntersection ) == VOLUMEHIT ) {
 
 		// // from Nikolay
 		// vec3 other = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() ) * 2.0f - 1.0f;
 		// SetRayDirection( myState, normalize( other + anglePhong( 1800.0f, GetRayDirection( myState ) ) * 0.15f ) );
 
-		SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( myState ) * GetRayDirection( myState ) );
+		SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( closestIntersection ) * GetRayDirection( myState ) );
 		// SetRayDirection( myState, normalize( 0.25f * GetRayDirection( myState ) + RandomUnitVector() ) );
 		SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
 		// SetRayDirection( myState, normalize( GetRayDirection( myState ) * RandomUnitVector() ) );
 		// SetRayDirection( myState, normalize( anglePhong( 100.0f, GetRayDirection( myState ) ) ) );
-		SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( myState ) );
+		SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( closestIntersection ) );
 
 	} else {
 	// material handling...
@@ -73,12 +79,12 @@ void main () {
 		// we need to generate a new ray, and continue
 		const vec3 origin = GetRayOrigin( myState );
 		const vec3 direction = GetRayDirection( myState );
-		const float dist = GetHitDistance( myState );
-		const vec3 normal = GetHitNormal( myState );
-		const vec3 albedo = GetHitAlbedo( myState );
+		const float dist = GetHitDistance( closestIntersection );
+		const vec3 normal = GetHitNormal( closestIntersection );
+		const vec3 albedo = GetHitAlbedo( closestIntersection );
 
 		// material identifier
-		const int materialID = GetHitMaterial( myState );
+		const int materialID = GetHitMaterial( closestIntersection );
 
 		// update origin point + epsilon bump (need to exclude epsilon bump for volumetrics, refractive hits)
 		SetRayOrigin( myState, origin + dist * direction + 2.0f * epsilon * normal );
