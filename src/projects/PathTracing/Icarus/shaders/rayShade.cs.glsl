@@ -1,18 +1,19 @@
 #version 430
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
-
+//=============================================================================================================================
 #include "random.h"
-
+//=============================================================================================================================
 // ray state buffers
-#include "rayState.h.glsl"
+#include "rayState2.h.glsl"
 layout( binding = 1, std430 ) buffer rayState { rayState_t state[]; };
-
+layout( binding = 2, std430 ) readonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
+//=============================================================================================================================
 // accumulation buffers
 layout( binding = 0, r32ui ) uniform uimage2D rTally;
 layout( binding = 1, r32ui ) uniform uimage2D gTally;
 layout( binding = 2, r32ui ) uniform uimage2D bTally;
 layout( binding = 3, r32ui ) uniform uimage2D count;
-
+//=============================================================================================================================
 vec3 anglePhong( float a, vec3 n ){
 	float r1 = NormalizedRandomFloat();
 	float r2 = NormalizedRandomFloat();
@@ -26,7 +27,7 @@ vec3 anglePhong( float a, vec3 n ){
 	vec3 B = cross( T, N );
 	return normalize( x * T + y * B + z * N );
 }
-
+//=============================================================================================================================
 void main () {
 	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 

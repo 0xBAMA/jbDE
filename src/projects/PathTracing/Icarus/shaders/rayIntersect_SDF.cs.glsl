@@ -11,15 +11,13 @@ layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection
 #include "colorRamps.glsl.h"
 #include "twigl.glsl"
 #include "pbrConstants.glsl"
-
+//=============================================================================================================================
 // basic raymarch stuff
-vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
-	float sPFXY = sin(radians(AngPFXY)); float cPFXY = cos(radians(AngPFXY));
-	float sPFYZ = sin(radians(AngPFYZ)); float cPFYZ = cos(radians(AngPFYZ));
-	float sPFXZ = sin(radians(AngPFXZ)); float cPFXZ = cos(radians(AngPFXZ));
-
+vec3 Rotate ( vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ ) {
+	float sPFXY = sin( radians( AngPFXY ) ); float cPFXY = cos( radians( AngPFXY ) );
+	float sPFYZ = sin( radians( AngPFYZ ) ); float cPFYZ = cos( radians( AngPFYZ ) );
+	float sPFXZ = sin( radians( AngPFXZ ) ); float cPFXZ = cos( radians( AngPFXZ ) );
 	float zx = z.x; float zy = z.y; float zz = z.z; float t;
-
 	// rotate BACK
 	t = zx; // XY
 	zx = cPFXY * t - sPFXY * zy; zy = sPFXY * t + cPFXY * zy;
@@ -27,9 +25,9 @@ vec3 Rotate(vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ) {
 	zx = cPFXZ * t + sPFXZ * zz; zz = -sPFXZ * t + cPFXZ * zz;
 	t = zy; // YZ
 	zy = cPFYZ * t - sPFYZ * zz; zz = sPFYZ * t + cPFYZ * zz;
-	return vec3(zx,zy,zz);
+	return vec3( zx, zy, zz );
 }
-
+//=============================================================================================================================
 float escape = 0.0f;
 float deTrees ( vec3 p ) {
 	float Scale = 1.34f;
@@ -179,15 +177,92 @@ float deGyroid ( vec3 p ) {
 	return d;
 }
 
-const float raymarchMaxDistance = 100.0f;
+float deKali(vec3 pos){
+	vec3 tpos=pos;
+	tpos.xz=abs(.5-mod(tpos.xz,1.));
+	vec4 p=vec4(tpos,1.);
+	float y=max(0.,.35-abs(pos.y-3.35))/.35;
+	for (int i=0; i<7; i++) {
+		p.xyz = abs(p.xyz)-vec3(-0.02,1.98,-0.02);
+		p=p*(2.0+0.*y)/clamp(dot(p.xyz,p.xyz),.4,1.)-vec4(0.5,1.,0.4,0.);
+		p.xz*=mat2(-0.416,-0.91,0.91,-0.416);
+	}
+	return (length(max(abs(p.xyz)-vec3(0.1,5.0,0.1),vec3(0.0)))-0.05)/p.w;
+}
+
+  float deFSDF(vec3 p){
+    vec3 Q,S;
+    Q=S=p;
+    float a=1.,d=0.0f;
+    for(int j=0;j++<9;a=a/d+1.)
+      Q=2.*clamp(Q,-.6,.6)-Q,
+      d=clamp(dot(Q,Q),.1,1.)*.5,
+      Q=Q/d+S;
+    return d=(length(Q)-9.)/a;
+  }
+
+  float deLeaf ( vec3 p ){
+	float time = 0.0f;
+  float S = 1.0f;
+  float R, e;
+  p.y += p.z;
+  p = vec3( log( R = length( p ) ) - time, asin( -p.z / R ), atan( p.x, p.y ) + time );
+  for( e = p.y - 1.5f; S < 6e2; S += S )
+    e += sqrt( abs( dot( sin( p.zxy * S ), cos( p * S ) ) ) ) / S;
+  return e * R * 0.1f;
+}
+
+float deBube ( vec3 p ) {
+  float d = 0.0f;
+  float t = 0.3f;
+  float s = 1.0f;
+  vec4 r = vec4( 0.0f );
+  vec4 q = vec4( p, 0.0f );
+  for ( int j = 0; j < 4 ; j++ )
+    r = max( r *= r *= r = mod( q * s + 1.0f, 2.0f ) - 1.0f, r.yzxw ),
+    d = max( d, ( 0.27f - length( r ) * 0.3f ) / s ),
+    s *= 3.1f;
+  return d;
+}
+
+// Hash based domain repeat snowflakes - Rikka 2 demo
+float hash(float v){return fract(sin(v*22.9)*67.);}
+mat2 rotgg(float a){float s=sin(a),c=cos(a);return mat2(c,s,-s,c);}
+vec2 hexFold(vec2 p){return abs(abs(abs(p)*mat2(.866,.5,-.5,.866))*mat2(.5,-.866,.866,.5));}
+float sdHex(vec3 p){p=abs(p);return max(p.z-.02,max((p.x*.5+p.y*.866),p.x)-.015);}
+float deFlakes(vec3 p){
+	float time = 1.0f;
+  float h=hash(floor(p.x)+floor(p.y)*133.3+floor(p.z)*166.6),o=13.0,s=1.+h;
+  p=fract(p)-.5;
+  p.y+=h*.4-.2;
+  p.xz*=rotgg(time*(h+.8));
+  p.yz*=rotgg(time+h*5.);
+  h=hash(h);p.x+=h*.15;
+  float l=dot(p,p);
+  if(l>.1)return l*2.;
+  for(int i=0;i<5;i++){
+    p.xy=hexFold(p.xy);
+    p.xy*=mat2(.866,-.5,.5,.866);
+    p.x*=(s-h);
+    h=hash(h);p.y-=h*.065-.015;p.y*=.8;
+    p.z*=1.2;
+    h=hash(h);p*=1.+h*.3;
+    o=min(o,sdHex(p));
+    h=hash(h);s=1.+h*2.;
+  }
+  return o;
+}
+
+//=============================================================================================================================
+const float raymarchMaxDistance = 1000.0f;
 const float raymarchUnderstep = 0.9f;
 const int raymarchMaxSteps = 300;
 const float epsilon = 0.001f;
-
+//=============================================================================================================================
 vec3 hitColor;
 float hitRoughness;
 int hitSurfaceType;
-
+//=============================================================================================================================
 float de ( vec3 p ) {
 	const vec3 pOriginal = p;
 	float sceneDist = 1000.0f;
@@ -195,6 +270,7 @@ float de ( vec3 p ) {
 	hitColor = vec3( 0.0f );
 	hitSurfaceType = NONE;
 	hitRoughness = 0.0f;
+
 
 	// form for the following:
 	// {
@@ -205,37 +281,101 @@ float de ( vec3 p ) {
 		// }
 	// }
 
-	// {
-	// 	// const float d = fBox( p, vec3( 0.1f, 100.0f, 0.1f ) );
-	// 	// const float d = fCylinder( p - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
-	// 	const float d = fCylinder( p.zyx - vec3( 0.0f, 0.0f, 0.0f ), 0.7f, 100.0f );
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = EMISSIVE;
-	// 		hitColor = vec3( 3.0f );
-	// 	}
-	// }
+	// return sceneDist;
+
+	const vec3 bboxSize = vec3( 4.0f, 2.0f, 12.0f );
 
 	{
-		const float scale = 0.4f;
-		// const float d = max( fBox( p, vec3( 4.0f ) ), deLacy( p.xzy * scale ) / scale );
-		const float d = deTemple2( p.xzy * scale ) / scale;
+		const float scale = 0.5f;
+		const float d = max( fBox( p, bboxSize ), deFlakes( p * scale ) / scale );
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			hitSurfaceType = MIRROR;
+			hitColor = brass;
+		}
+	}
+
+
+	return sceneDist;
+
+	const bool enableLight = true;
+
+	if ( enableLight ) {
+		// pModInterval1( p.y, 0.1f, -5.0f, 5.0f );
+		// int id = int( floor( pModInterval1( p.z, 1.5f, -5.0f, 5.0f ) ) );
+
+		// const float d = fBox( p.yxz - vec3( 1.84f, 2.0f, 0.0f ), vec3( 0.1f, 100.0f, 0.1f ) );
+		// const float d = fCylinder( p - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
+		// const float d = fCylinder( p.zyx - vec3( 0.0f, 0.0f, 0.0f ), 0.7f, 100.0f );
+
+		const float dL1 = fBox( p - vec3( -6.0f, 0.0f, 0.0f ), vec3( 0.25f, 5.5f, 10.0f ) );
+		const float dL2 = fBox( p - vec3( 6.0f, 0.0f, 0.0f ), vec3( 0.25f, 5.5f, 10.0f ) );
+
+		const float d = min( dL1, dL2 );
+
+		sceneDist = min( sceneDist, d );
+		if ( sceneDist == d && d < epsilon ) {
+			// hitSurfaceType = ( id % 2 == 0 ) ? EMISSIVE : MIRROR;
+			// hitColor = ( id % 2 == 0 ) ? vec3( 3.0f ) : vec3( 0.618f );
+		
+			hitSurfaceType = EMISSIVE;
+			hitColor = ( d == dL1 ) ? 2.0f * aqua : 1.2f * copper;
+		}
+		p = pOriginal;
+	}
+
+	// return sceneDist;
+
+
+	{
+
+		// const vec3 offset = vec3( -0.6f, 8.4f, 1.5f );
+		const vec3 offset = vec3( 0.0f, 0.5f, 0.3f );
+		const float scale = 3.0f;
+		// const float d = max( fBox( p, bboxSize ), deBube( offset + rotate3D( 1.8f, vec3( 1.0f, 2.0f, 3.0f ) ) * ( p.xzy * scale ) ) / scale );
+		const float d = max( fBox( p, bboxSize ), deBube( offset + ( p.xzy * scale ) ) / scale );
+		// const float d = deMendel( p.xzy * scale ) / scale;
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 
-			// const float scale2 = 1.0f;
-			// bool blackOrWhite = ( step( 0.0f,
-			// 	cos( scale2 * pi * p.x + pi / 2.0f ) *
-			// 	cos( scale2 * pi * p.y + pi / 2.0f ) *
-			// 	cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
+			const float scale2 = 2.5f;
+			bool blackOrWhite = ( step( 0.0f,
+				cos( scale2 * pi * p.x + pi / 2.0f ) *
+				cos( scale2 * pi * p.y + pi / 2.0f ) *
+				cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
 
 			// hitSurfaceType = ( NormalizedRandomFloat() > 0.1f ) ? MIRROR : DIFFUSE;
-			hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
+			hitSurfaceType = ( NormalizedRandomFloat() < 0.1618f ) ? MIRROR : DIFFUSE;
 			// hitSurfaceType = MIRROR;
-			hitColor = platinum;
+			// hitSurfaceType = DIFFUSE;
+			// hitColor = iron;
 			// hitColor = blackOrWhite ? vec3( 0.95f ) : blood;
-			// hitColor = officePaper;
+			// hitColor = blackOrWhite ? honey : carrot.brg;
+			// hitColor = carrot.brg * 0.2f;
+
+			// hitColor = vec3( 0.618f ) * vec3( 1.0f - 3.0f * escape );
+			hitColor = vec3( 0.618f );
 			// hitColor = vec3( 0.99f );
+			// hitColor = vec3( 0.1f );
+			// hitColor = honey;
+
+			// if ( escape > 0.45f ) {
+			// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
+			// 	hitColor = mix( carrot, vec3( 0.4f, 0.0f, 0.0f ), ( escape - 0.45f ) * 2.0f ) * 5.0f;
+			// 	hitSurfaceType = EMISSIVE;
+			// // } else if ( escape < 0.01f ) {
+			// // 	hitColor = carrot.brg * 0.3f;
+			// // 	hitSurfaceType = DIFFUSE;
+			// // } else if ( escape < 0.03f ) {
+			// // 	hitColor = carrot.brg;
+			// // 	hitSurfaceType = MIRROR;
+			// }
+
+			// // blacked out faces
+			// if ( abs( p.x ) > ( bboxSize.x - 0.01f ) || abs( p.y ) > ( bboxSize.y - 0.01f ) || abs( p.z ) > ( bboxSize.z - 0.01f ) ) {
+			// 	hitColor = vec3( 0.005f );
+			// 	hitSurfaceType = DIFFUSE;
+			// }
 
 		}
 	}
