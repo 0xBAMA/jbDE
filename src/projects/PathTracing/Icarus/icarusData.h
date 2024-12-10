@@ -472,7 +472,7 @@ void RayUpdate ( icarusState_t &state ) {
 	// looping for bounces
 	for ( uint i = 0; i < state.maxBounces; i++ ) {
 
-		{ // set initial state for all elements
+		{ // set initial state for all intersection structs
 			const GLuint shader = state.RayClearShader;
 			glUseProgram( shader );
 			glDispatchCompute( state.numRays / 256, 1, 1 );
@@ -483,21 +483,18 @@ void RayUpdate ( icarusState_t &state ) {
 			const GLuint shader = state.RayIntersectShader_SDF;
 			glUseProgram( shader );
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			// glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
 		if ( state.runTriangle ) { // intersect those rays with a triangle
 			const GLuint shader = state.RayIntersectShader_Triangle;
 			glUseProgram( shader );
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			// glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
 		if ( state.runVolume ) { // intersect those rays with the volume
 			const GLuint shader = state.RayIntersectShader_Volume;
 			glUseProgram( shader );
 			glDispatchCompute( state.numRays / 256, 1, 1 );
-			// glMemoryBarrier( GL_SHADER_STORAGE_BARRIER_BIT );
 		}
 
 		{ // do the shading on the intersection results (third shader)
@@ -518,6 +515,3 @@ void RayUpdate ( icarusState_t &state ) {
 	}
 }
 
-// =============================================================================================================
-// Passing Uniforms
-// ...

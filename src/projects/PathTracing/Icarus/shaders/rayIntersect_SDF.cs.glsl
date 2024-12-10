@@ -485,6 +485,7 @@ void main () {
 
 		// fill out the intersection struct
 		intersection_t SDFIntersection;
+		SDFIntersection.data1.x = 0.0f; // suppressing warning
 		IntersectionReset( SDFIntersection );
 
 		SetHitDistance( SDFIntersection, t );
