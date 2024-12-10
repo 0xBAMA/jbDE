@@ -10,8 +10,9 @@
 // something to abstract the buffer stride stuff... tbd
 #define INTERSECT_SDF		0
 #define INTERSECT_TRIANGLE	1
-#define INTERSECT_VOLUME	2
-#define NUM_INTERSECTORS	3
+#define INTERSECT_TINYBVH	2
+#define INTERSECT_VOLUME	3
+#define NUM_INTERSECTORS	4
 //=============================================================================================================================
 // material types
 #define NONE				0
