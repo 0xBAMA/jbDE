@@ -271,7 +271,6 @@ float de ( vec3 p ) {
 	hitSurfaceType = NONE;
 	hitRoughness = 0.0f;
 
-
 	// form for the following:
 	// {
 		// const float d = blah whatever SDF
@@ -286,23 +285,21 @@ float de ( vec3 p ) {
 	const vec3 bboxSize = vec3( 4.0f, 2.0f, 12.0f );
 
 	{
-		const float scale = 0.5f;
+		const float scale = 2.0f;
 		const float d = max( fBox( p, bboxSize ), deFlakes( p * scale ) / scale );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = MIRROR;
-			hitColor = brass;
+			hitSurfaceType = EMISSIVE;
+			hitColor = honey * 2.5f;
 		}
 	}
 
-
-	return sceneDist;
+	// return sceneDist;
 
 	const bool enableLight = true;
 
 	if ( enableLight ) {
 		// pModInterval1( p.y, 0.1f, -5.0f, 5.0f );
-		// int id = int( floor( pModInterval1( p.z, 1.5f, -5.0f, 5.0f ) ) );
 
 		// const float d = fBox( p.yxz - vec3( 1.84f, 2.0f, 0.0f ), vec3( 0.1f, 100.0f, 0.1f ) );
 		// const float d = fCylinder( p - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
@@ -311,7 +308,10 @@ float de ( vec3 p ) {
 		const float dL1 = fBox( p - vec3( -6.0f, 0.0f, 0.0f ), vec3( 0.25f, 5.5f, 10.0f ) );
 		const float dL2 = fBox( p - vec3( 6.0f, 0.0f, 0.0f ), vec3( 0.25f, 5.5f, 10.0f ) );
 
-		const float d = min( dL1, dL2 );
+		int id = int( floor( pModInterval1( p.z, 1.5f, -5.0f, 5.0f ) ) );
+		const float dL3 = fCylinder( p.yzx - vec3( 0.0f, 0.0f, 0.0f ), 0.7f, 100.0f );
+
+		const float d = min( min( dL1, dL2 ), dL3 );
 
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
@@ -319,13 +319,14 @@ float de ( vec3 p ) {
 			// hitColor = ( id % 2 == 0 ) ? vec3( 3.0f ) : vec3( 0.618f );
 		
 			hitSurfaceType = EMISSIVE;
-			hitColor = ( d == dL1 ) ? 2.0f * aqua : 1.2f * copper;
+			// hitColor = ( d == dL1 ) ? 1.5f * aqua : ( d == dL3 ) ? 2.0f * blood : vec3( 2.0f );
+			// hitColor = ( d == dL1 ) ? 2.2f * blood : ( d == dL3 ) ? 1.2f * aqua.gbb : 1.2f * blood;
+			hitColor = ( d == dL1 ) ? 1.2f * nvidia : ( d == dL3 ) ? 1.5f * blood : 1.2f * aqua;
 		}
 		p = pOriginal;
 	}
 
 	// return sceneDist;
-
 
 	{
 
@@ -333,7 +334,7 @@ float de ( vec3 p ) {
 		const vec3 offset = vec3( 0.0f, 0.5f, 0.3f );
 		const float scale = 3.0f;
 		// const float d = max( fBox( p, bboxSize ), deBube( offset + rotate3D( 1.8f, vec3( 1.0f, 2.0f, 3.0f ) ) * ( p.xzy * scale ) ) / scale );
-		const float d = max( fBox( p, bboxSize ), deBube( offset + ( p.xzy * scale ) ) / scale );
+		const float d = max( fBox( p, bboxSize * vec3( 1.0f, 0.5f, 1.0f ) ), deBube( offset + ( p.xzy * scale ) ) / scale );
 		// const float d = deMendel( p.xzy * scale ) / scale;
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
@@ -345,8 +346,8 @@ float de ( vec3 p ) {
 				cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
 
 			// hitSurfaceType = ( NormalizedRandomFloat() > 0.1f ) ? MIRROR : DIFFUSE;
-			hitSurfaceType = ( NormalizedRandomFloat() < 0.1618f ) ? MIRROR : DIFFUSE;
-			// hitSurfaceType = MIRROR;
+			// hitSurfaceType = ( NormalizedRandomFloat() < 0.15f ) ? MIRROR : DIFFUSE;
+			hitSurfaceType = MIRROR;
 			// hitSurfaceType = DIFFUSE;
 			// hitColor = iron;
 			// hitColor = blackOrWhite ? vec3( 0.95f ) : blood;
@@ -354,10 +355,10 @@ float de ( vec3 p ) {
 			// hitColor = carrot.brg * 0.2f;
 
 			// hitColor = vec3( 0.618f ) * vec3( 1.0f - 3.0f * escape );
-			hitColor = vec3( 0.618f );
+			// hitColor = vec3( 0.618f );
 			// hitColor = vec3( 0.99f );
 			// hitColor = vec3( 0.1f );
-			// hitColor = honey;
+			hitColor = brass;
 
 			// if ( escape > 0.45f ) {
 			// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
