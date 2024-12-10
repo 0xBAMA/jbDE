@@ -61,44 +61,72 @@ struct icarusState_t {
 // =============================================================================================================
 // Initialization
 void CompileShaders ( icarusState_t &state ) {
+
 	const string basePath = string( "./src/projects/PathTracing/Icarus/shaders/" );
 
 	state.CopyShader 			= computeShader( basePath + "copy.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.CopyShader, -1, string( "Copy" ).c_str() );
+
 	state.AdamShader			= computeShader( basePath + "adam.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.AdamShader, -1, string( "Adam" ).c_str() );
+
 	state.PrepShader			= computeShader( basePath + "prep.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.PrepShader, -1, string( "Prep" ).c_str() );
+
 	state.DrawShader			= computeShader( basePath + "draw.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.DrawShader, -1, string( "Draw" ).c_str() );
+
 	state.ClearShader			= computeShader( basePath + "clear.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.ClearShader, -1, string( "Clear" ).c_str() );
+
 
 	// ray generation, intersection, and shading
 	state.RayClearShader				= computeShader( basePath + "rayClear.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayClearShader, -1, string( "Ray Clear" ).c_str() );
+
 	state.RayGenerateShader				= computeShader( basePath + "rayGenerate.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayGenerateShader, -1, string( "Ray Generate" ).c_str() );
+
 	state.RayIntersectShader_SDF		= computeShader( basePath + "rayIntersect_SDF.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayIntersectShader_SDF, -1, string( "Ray Intersect (SDF)" ).c_str() );
+
 	state.RayIntersectShader_Triangle	= computeShader( basePath + "rayIntersect_Triangle.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayIntersectShader_Triangle, -1, string( "Ray Intersect (Triangle)" ).c_str() );
+
 	state.RayIntersectShader_Volume		= computeShader( basePath + "rayIntersect_Volume.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayIntersectShader_Volume, -1, string( "Ray Intersect (Volume)" ).c_str() );
+
 	state.RayShadeShader				= computeShader( basePath + "rayShade.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayShadeShader, -1, string( "Ray Shade/Bounce" ).c_str() );
 
 }
 
 void AllocateBuffers ( icarusState_t &state ) {
 	// allocate the ray buffer
 	glGenBuffers( 1, &state.offsetsSSBO );		// pixel offsets
-	glGenBuffers( 1, &state.raySSBO );		// ray state front and back buffers
+	glGenBuffers( 1, &state.raySSBO );		// ray state front and back buffer(s)
+	glGenBuffers( 1, &state.intersectionScratchSSBO ); // intersection structs
 
 	// allocate space for ray offsets - 2x ints * state.numRays offsets per frame
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
 	glBufferData( GL_SHADER_STORAGE_BUFFER, 2 * sizeof( GLuint ) * state.numRays, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, state.offsetsSSBO );
+	glObjectLabel( GL_BUFFER, state.offsetsSSBO, -1, string( "Pixel Offsets" ).c_str() );
 
 	// allocate space for the ray state structs, state.numRays of them - this is going to change a lot, as I figure out what needs to happen
 		// currently 64 bytes, see rayState.h.glsl
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.raySSBO );
 	glBufferData( GL_SHADER_STORAGE_BUFFER, 64 * state.numRays, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, state.raySSBO );
+	glObjectLabel( GL_BUFFER, state.raySSBO, -1, string( "Ray State Buffer" ).c_str() );
 
 	// scratch memory for the ray state structs
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.intersectionScratchSSBO );
 	glBufferData( GL_SHADER_STORAGE_BUFFER, 64 * state.numIntersectors * state.numRays, NULL, GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 2, state.intersectionScratchSSBO );
+	glObjectLabel( GL_BUFFER, state.intersectionScratchSSBO, -1, string( "Intersection Buffer" ).c_str() );
+
+	// buffers for the BVH
 }
 
 void AllocateTextures ( icarusState_t &state ) {
