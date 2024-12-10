@@ -56,7 +56,15 @@ struct icarusState_t {
 	int DoFBokehMode = 0;
 	float DoFRadius = 0.001f;
 	float DoFFocusDistance = 5.0f;
+	float chromabScaleFactor = 0.006f;
 };
+
+void LoadModel () {
+// this works, loads 200k triangles - stanford tyranosaurus - good test model for the BVH stuff
+	// SoftRast s;
+	// s.LoadModel( "../tyra.obj", "../" );
+	// cout << endl << "Model has " << s.triangles.size() << " tris" << endl;
+}
 
 // =============================================================================================================
 // Initialization
