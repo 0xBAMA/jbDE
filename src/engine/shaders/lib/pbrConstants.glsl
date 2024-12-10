@@ -30,6 +30,7 @@ const vec3 marble		= vec3( 0.830f, 0.791f, 0.753f );
 const vec3 mercury		= vec3( 0.781f, 0.779f, 0.779f );
 const vec3 milk			= vec3( 0.815f, 0.813f, 0.682f );
 const vec3 nickel		= vec3( 0.649f, 0.610f, 0.541f );
+const vec3 nvidia		= vec3( 0.463f, 0.726f, 0.000f );
 const vec3 officePaper	= vec3( 0.794f, 0.834f, 0.884f );
 const vec3 pearl		= vec3( 0.800f, 0.750f, 0.700f );
 const vec3 petroleum	= vec3( 0.030f, 0.027f, 0.024f );
