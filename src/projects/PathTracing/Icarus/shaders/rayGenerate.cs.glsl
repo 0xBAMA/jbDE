@@ -27,6 +27,7 @@ uniform float uvScaleFactor;
 uniform int DoFBokehMode;
 uniform float DoFRadius;
 uniform float DoFFocusDistance;
+uniform float chromabScaleFactor;
 // ...
 //=============================================================================================================================
 struct cameraRay {
@@ -62,8 +63,7 @@ cameraRay GetCameraRay ( vec2 uv ) {
 		const vec3 colorWeight = vec3( sin( i ), sin( i * 2.0f ), cos( i ) ) * 1.618f;
 		// convolving transmission with the offset... gives like chromatic aberration
 		temp.transmission = pow( colorWeight, vec3( 1.0f / 2.2f ) );
-		// FoVLocal = FoV + 0.006f * gainValue( interpolationValue, 0.75f );
-		FoVLocal = FoV + 0.006f * gainValue( interpolationValue, 0.75f );
+		FoVLocal = FoV + chromabScaleFactor * gainValue( interpolationValue, 0.75f );
 	#endif
 
 	// use offset FoV to calculate camera ray direction...

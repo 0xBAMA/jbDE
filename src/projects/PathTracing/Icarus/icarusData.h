@@ -457,6 +457,7 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform1i( glGetUniformLocation( shader, "DoFBokehMode" ), state.DoFBokehMode );
 		glUniform1f( glGetUniformLocation( shader, "DoFRadius" ), state.DoFRadius );
 		glUniform1f( glGetUniformLocation( shader, "DoFFocusDistance" ), state.DoFFocusDistance );
+		glUniform1f( glGetUniformLocation( shader, "chromabScaleFactor" ), state.chromabScaleFactor );
 
 		// blue noise texture
 		static rngi noiseOffsetGen( 0, 512 );

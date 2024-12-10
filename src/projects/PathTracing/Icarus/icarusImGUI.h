@@ -24,6 +24,8 @@ void IcarusImguiWindow ( icarusState_t &state ) {
 	ImGui::SliderFloat( "DoF Radius", &state.DoFRadius, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic );
 	ImGui::SliderFloat( "DoF Distance", &state.DoFFocusDistance, 0.0f, 30.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
 
+	ImGui::SliderFloat( "Chromab Scale", &state.chromabScaleFactor, 0.0f, 0.1f, "%.6f", ImGuiSliderFlags_Logarithmic );
+
 	ImGui::SeparatorText( "Resolution" );
 	static int x = state.dimensions.x, y = state.dimensions.y;
 	ImGui::SliderInt( "X", &x, 0, 8000 );
