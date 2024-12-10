@@ -14,6 +14,7 @@ struct icarusState_t {
 	GLuint RayGenerateShader;
 	GLuint RayIntersectShader_SDF;
 	GLuint RayIntersectShader_Triangle;
+	GLuint RayIntersectShader_TinyBVH;
 	GLuint RayIntersectShader_Volume;
 	GLuint RayShadeShader;
 	GLuint WipeShader;
@@ -24,7 +25,7 @@ struct icarusState_t {
 	int numLevels;
 
 	// perf settings
-	const int numIntersectors = 3; // I'd rather get this straight from the header...
+	const int numIntersectors = 4; // I'd rather get this straight from the header...
 	uint maxBounces		= 16;
 	bool runSDF			= true;
 	bool runTriangle	= false;
@@ -100,6 +101,9 @@ void CompileShaders ( icarusState_t &state ) {
 
 	state.RayIntersectShader_Triangle	= computeShader( basePath + "rayIntersect_Triangle.cs.glsl" ).shaderHandle;
 	glObjectLabel( GL_PROGRAM, state.RayIntersectShader_Triangle, -1, string( "Ray Intersect (Triangle)" ).c_str() );
+
+	state.RayIntersectShader_TinyBVH	= computeShader( basePath + "rayIntersect_TinyBVH.cs.glsl" ).shaderHandle;
+	glObjectLabel( GL_PROGRAM, state.RayIntersectShader_TinyBVH, -1, string( "Ray Intersect (TinyBVH)" ).c_str() );
 
 	state.RayIntersectShader_Volume		= computeShader( basePath + "rayIntersect_Volume.cs.glsl" ).shaderHandle;
 	glObjectLabel( GL_PROGRAM, state.RayIntersectShader_Volume, -1, string( "Ray Intersect (Volume)" ).c_str() );
