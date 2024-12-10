@@ -5,7 +5,7 @@ project( NQADE VERSION 1.2 LANGUAGES C CXX )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED True )
 # set( CMAKE_CXX_FLAGS "-std=c++17 -lstdc++fs -O4 -ffast-math" )
-set( CMAKE_CXX_FLAGS "-std=c++17 -lstdc++fs -O4" )
+set( CMAKE_CXX_FLAGS "-std=c++17 -lstdc++fs -O4 -mavx" )
 set( CMAKE_REQUIRED_FLAGS -lstdc++fs )
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
@@ -64,6 +64,10 @@ add_library( autocomplete
 	src/utils/autocomplete/DictionaryTrie.cpp
 )
 
+add_library( tinyBVH
+	src/utils/tinyBVH_impl.cc
+)
+
 target_link_libraries( imgui PUBLIC sdl2 opengl )
 
 target_compile_options( imgui PUBLIC -I/usr/include/SDL2 )
@@ -113,6 +117,7 @@ target_link_libraries(
 	opengl
 	sdl2
 	autocomplete
+	tinyBVH
 	STB_ImageUtilsWrapper
 	stdc++fs
 	FastNoise
