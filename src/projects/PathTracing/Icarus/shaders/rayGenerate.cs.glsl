@@ -93,6 +93,7 @@ cameraRay GetCameraRay ( vec2 uv ) {
 			vec3 baseVec = normalize( vec3( cos( uv.y ) * cos( uv.x ), sin( uv.y ), cos( uv.y ) * sin( uv.x ) ) );
 			baseVec = rotate3D( pi / 2.0f, vec3( 2.5f, 0.4f, 1.0f ) ) * baseVec; // this is to match the other camera
 			temp.origin = viewerPosition;
+			// I'd like to avoid having the repeating rings... if the direction is set to vec3( 0.0f ), that's a dead ray, so ideally we can do that to kill
 			temp.direction = normalize( -baseVec.x * basisX + baseVec.y * basisY + ( 1.0f / FoVLocal ) * baseVec.z * basisZ );
 			break;
 		}
@@ -115,7 +116,7 @@ cameraRay GetCameraRay ( vec2 uv ) {
 	temp.origin += ( Blue( ivec2( gl_GlobalInvocationID.x, gl_GlobalInvocationID.x % 512 ) ).z / 255.0f ) * 0.1f * temp.direction;
 
 	// if the DoF is on, we do some additional calculation...
-	if ( DoFRadius != 0.0f ) {
+	if ( DoFRadius != 0.0f && temp.direction != vec3( 0.0f ) ) {
 		// thin lens adjustment
 		vec3 focuspoint = temp.origin + ( ( temp.direction * DoFFocusDistance ) / dot( temp.direction, basisZ ) );
 		vec2 diskOffset = DoFRadius * GetBokehOffset( DoFBokehMode );
