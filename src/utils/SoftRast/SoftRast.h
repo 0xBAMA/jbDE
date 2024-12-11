@@ -501,7 +501,7 @@ public:
 		mins.z = min( mins.z, p.z );
 		maxs.z = max( maxs.z, p.z );
 	}
-	void UnitCubeRefit() {
+	void UnitCubeRefit( bool verbose = false ) {
 		vec3 mins = vec3(  1e9f );
 		vec3 maxs = vec3( -1e9f );
 
@@ -524,19 +524,21 @@ public:
 			triangles[ i ].p2 = ( triangles[ i ].p2 - center ) / largestDimension;
 		}
 
-		mins = vec3(  1e9f );
-		maxs = vec3( -1e9f );
+		if ( verbose ) {
+			mins = vec3(  1e9f );
+			maxs = vec3( -1e9f );
 
-		// determine the size of the bounding box
-		for ( size_t i = 0; i < triangles.size(); i++ ) {
-			expandBBox( mins, maxs, triangles[ i ].p0 );
-			expandBBox( mins, maxs, triangles[ i ].p1 );
-			expandBBox( mins, maxs, triangles[ i ].p2 );
+			// determine the size of the bounding box
+			for ( size_t i = 0; i < triangles.size(); i++ ) {
+				expandBBox( mins, maxs, triangles[ i ].p0 );
+				expandBBox( mins, maxs, triangles[ i ].p1 );
+				expandBBox( mins, maxs, triangles[ i ].p2 );
+			}
+
+			cout << "bbox after is:" << endl;
+			cout << "mins: " << mins.x << " " << mins.y << " " << mins.z << endl;
+			cout << "maxs: " << maxs.x << " " << maxs.y << " " << maxs.z << endl;
 		}
-
-		cout << "bbox after is:" << endl;
-		cout << "mins: " << mins.x << " " << mins.y << " " << mins.z << endl;
-		cout << "maxs: " << maxs.x << " " << maxs.y << " " << maxs.z << endl;
 	}
 
 	std::vector<triangle> triangles;

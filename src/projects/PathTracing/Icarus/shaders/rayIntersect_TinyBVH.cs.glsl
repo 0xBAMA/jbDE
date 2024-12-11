@@ -27,6 +27,7 @@ void main () {
 
 		// fill out the intersection struct
 		intersection_t TinyBVHIntersection;
+		TinyBVHIntersection.data1.x = 0.0f; // suppressing warning
 		IntersectionReset( TinyBVHIntersection );
 
 		// // set color based on barycentrics
