@@ -490,6 +490,55 @@ public:
 		// }
 	}
 
+	// resize the mesh to fit in a unit cube, centered at the origin
+	void expandBBox ( vec3 &mins, vec3 &maxs, vec3 p ) {
+		mins.x = min( mins.x, p.x );
+		maxs.x = max( maxs.x, p.x );
+
+		mins.y = min( mins.y, p.y );
+		maxs.y = max( maxs.y, p.y );
+
+		mins.z = min( mins.z, p.z );
+		maxs.z = max( maxs.z, p.z );
+	}
+	void UnitCubeRefit() {
+		vec3 mins = vec3(  1e9f );
+		vec3 maxs = vec3( -1e9f );
+
+		// determine the size of the bounding box
+		for ( size_t i = 0; i < triangles.size(); i++ ) {
+			expandBBox( mins, maxs, triangles[ i ].p0 );
+			expandBBox( mins, maxs, triangles[ i ].p1 );
+			expandBBox( mins, maxs, triangles[ i ].p2 );
+		}
+
+		// figure out scaling
+		vec3 spans = maxs - mins;
+		vec3 center = ( mins + maxs ) / 2.0f;
+		float largestDimension = max( max( spans.x, spans.y ), spans.z ) * 0.51f;
+
+		// run through again, butting the bbox min up against the origin + scaling appropriately to just fit inside -1..1
+		for ( size_t i = 0; i < triangles.size(); i++ ) {
+			triangles[ i ].p0 = ( triangles[ i ].p0 - center ) / largestDimension;
+			triangles[ i ].p1 = ( triangles[ i ].p1 - center ) / largestDimension;
+			triangles[ i ].p2 = ( triangles[ i ].p2 - center ) / largestDimension;
+		}
+
+		mins = vec3(  1e9f );
+		maxs = vec3( -1e9f );
+
+		// determine the size of the bounding box
+		for ( size_t i = 0; i < triangles.size(); i++ ) {
+			expandBBox( mins, maxs, triangles[ i ].p0 );
+			expandBBox( mins, maxs, triangles[ i ].p1 );
+			expandBBox( mins, maxs, triangles[ i ].p2 );
+		}
+
+		cout << "bbox after is:" << endl;
+		cout << "mins: " << mins.x << " " << mins.y << " " << mins.z << endl;
+		cout << "maxs: " << maxs.x << " " << maxs.y << " " << maxs.z << endl;
+	}
+
 	std::vector<triangle> triangles;
 
 	// dimensions
