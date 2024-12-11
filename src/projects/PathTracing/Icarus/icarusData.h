@@ -19,6 +19,11 @@ struct icarusState_t {
 	GLuint RayShadeShader;
 	GLuint WipeShader;
 
+	// BVH management
+	SoftRast modelLoader;
+	tinybvh::BVH bvh;
+	tinybvh::bvhvec4 *vertices;
+
 	// dimensions and related info
 	// uvec2 dimensions = uvec2( 1280, 720 );
 	uvec2 dimensions = uvec2( 1920, 1080 );
@@ -60,11 +65,70 @@ struct icarusState_t {
 	float chromabScaleFactor = 0.006f;
 };
 
-void LoadModel () {
+void LoadBVH ( icarusState_t &state ) {
 // this works, loads 200k triangles - stanford tyranosaurus - good test model for the BVH stuff
-	// SoftRast s;
-	// s.LoadModel( "../tyra.obj", "../" );
-	// cout << endl << "Model has " << s.triangles.size() << " tris" << endl;
+	state.modelLoader.LoadModel( "../tyra.obj", "../" );
+	cout << endl << "Model has " << state.modelLoader.triangles.size() << " tris" << endl;
+
+	// put it in some known span
+	state.modelLoader.UnitCubeRefit();
+
+	// allocate space for that many verts
+	state.vertices = ( tinybvh::bvhvec4 * ) malloc( 3 * state.modelLoader.triangles.size() * sizeof( tinybvh::bvhvec4 ) );
+
+	// copy from the loader to the bvh's list
+	for ( size_t i = 0; i < state.modelLoader.triangles.size(); i++ ) {
+		const int baseIdx = 3 * i;
+
+		// add the triangles to the BVH
+		state.vertices[ baseIdx + 0 ].x = state.modelLoader.triangles[ i ].p0.x;
+		state.vertices[ baseIdx + 0 ].y = state.modelLoader.triangles[ i ].p0.y;
+		state.vertices[ baseIdx + 0 ].z = state.modelLoader.triangles[ i ].p0.z;
+
+		state.vertices[ baseIdx + 1 ].x = state.modelLoader.triangles[ i ].p1.x;
+		state.vertices[ baseIdx + 1 ].y = state.modelLoader.triangles[ i ].p1.y;
+		state.vertices[ baseIdx + 1 ].z = state.modelLoader.triangles[ i ].p1.z;
+
+		state.vertices[ baseIdx + 2 ].x = state.modelLoader.triangles[ i ].p2.x;
+		state.vertices[ baseIdx + 2 ].y = state.modelLoader.triangles[ i ].p2.y;
+		state.vertices[ baseIdx + 2 ].z = state.modelLoader.triangles[ i ].p2.z;
+	}
+
+	// build the bvh from the list of triangles
+	state.bvh.Build( state.vertices, state.modelLoader.triangles.size() );
+	state.bvh.Convert( tinybvh::BVH::WALD_32BYTE, tinybvh::BVH::VERBOSE );
+	state.bvh.Refit( tinybvh::BVH::VERBOSE );
+
+	// testing rays against it
+	Image_4U test( 5000, 5000 );
+	for ( uint32_t y = 0; y < test.Height(); y++ ) {
+		for ( uint32_t x = 0; x < test.Width(); x++ ) {
+			color_4U col;
+
+			// tinybvh::bvhvec3 O( RangeRemap( x + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( y + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ), 1.0f );
+			tinybvh::bvhvec3 O( 1.0f, RangeRemap( y + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( x + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ) );
+			tinybvh::bvhvec3 D( -1.0f, 0.0f, 0.0f );
+			tinybvh::Ray ray( O, D );
+			uint steps = uint( state.bvh.Intersect( ray ) );
+			// printf( "%d %d: nearest intersection: %f (found in %i traversal steps).\n", x, y, ray.hit.t, steps );
+
+			// if ( ray.hit.t < 1e5f ) {
+			// 	// cout << "hit" << endl;
+			// 	col = color_4U( { ( uint8_t ) ( 255 * ( ray.hit.t / 2.0f ) ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+			// } else {
+			// 	col = color_4U( { ( uint8_t ) 16, ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+			// }
+			col = color_4U( { ( uint8_t ) ( ( ray.hit.t < 1e5f ) ? ( 255 * ( ray.hit.t / 2.0f ) ) : steps * 3u ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, 255 } );
+			test.SetAtXY( x, y, col );
+		}
+	}
+
+	test.Save( "test.png" );
+
+	// create the three buffers:
+		// GPU nodes
+		// index data
+		// triangle data
 }
 
 // =============================================================================================================
@@ -139,6 +203,7 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glObjectLabel( GL_BUFFER, state.intersectionScratchSSBO, -1, string( "Intersection Buffer" ).c_str() );
 
 	// buffers for the BVH
+	LoadBVH( state );
 }
 
 void AllocateTextures ( icarusState_t &state ) {

@@ -8,7 +8,7 @@
 class Icarus final : public engineBase {
 public:
 	Icarus () { Init(); OnInit(); PostInit(); }
-	~Icarus () { Quit(); }
+	~Icarus () { free( icarusState.vertices ); Quit(); }
 
 	icarusState_t icarusState;
 	viewerState_t viewerState;

@@ -156,6 +156,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // software rasterizer reimplementation
 #include "../utils/SoftRast/SoftRast.h"
 
+// tinyBVH software BVH build/traversal
+#include "../utils/tinybvh/tiny_bvh.h"
+
 // shader compilation wrapper
 #include "shaders/lib/shaderWrapper.h"
 
