@@ -99,31 +99,31 @@ void LoadBVH ( icarusState_t &state ) {
 	state.bvh.Convert( tinybvh::BVH::WALD_32BYTE, tinybvh::BVH::VERBOSE );
 	state.bvh.Refit( tinybvh::BVH::VERBOSE );
 
-	// testing rays against it
-	Image_4U test( 5000, 5000 );
-	for ( uint32_t y = 0; y < test.Height(); y++ ) {
-		for ( uint32_t x = 0; x < test.Width(); x++ ) {
-			color_4U col;
+	// // testing rays against it
+	// Image_4U test( 5000, 5000 );
+	// for ( uint32_t y = 0; y < test.Height(); y++ ) {
+	// 	for ( uint32_t x = 0; x < test.Width(); x++ ) {
+	// 		color_4U col;
 
-			// tinybvh::bvhvec3 O( RangeRemap( x + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( y + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ), 1.0f );
-			tinybvh::bvhvec3 O( 1.0f, RangeRemap( y + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( x + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ) );
-			tinybvh::bvhvec3 D( -1.0f, 0.0f, 0.0f );
-			tinybvh::Ray ray( O, D );
-			uint steps = uint( state.bvh.Intersect( ray ) );
-			// printf( "%d %d: nearest intersection: %f (found in %i traversal steps).\n", x, y, ray.hit.t, steps );
+	// 		// tinybvh::bvhvec3 O( RangeRemap( x + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( y + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ), 1.0f );
+	// 		tinybvh::bvhvec3 O( 1.0f, RangeRemap( y + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( x + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ) );
+	// 		tinybvh::bvhvec3 D( -1.0f, 0.0f, 0.0f );
+	// 		tinybvh::Ray ray( O, D );
+	// 		uint steps = uint( state.bvh.Intersect( ray ) );
+	// 		// printf( "%d %d: nearest intersection: %f (found in %i traversal steps).\n", x, y, ray.hit.t, steps );
 
-			// if ( ray.hit.t < 1e5f ) {
-			// 	// cout << "hit" << endl;
-			// 	col = color_4U( { ( uint8_t ) ( 255 * ( ray.hit.t / 2.0f ) ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
-			// } else {
-			// 	col = color_4U( { ( uint8_t ) 16, ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
-			// }
-			col = color_4U( { ( uint8_t ) ( ( ray.hit.t < 1e5f ) ? ( 255 * ( ray.hit.t / 2.0f ) ) : steps * 3u ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, 255 } );
-			test.SetAtXY( x, y, col );
-		}
-	}
+	// 		// if ( ray.hit.t < 1e5f ) {
+	// 		// 	// cout << "hit" << endl;
+	// 		// 	col = color_4U( { ( uint8_t ) ( 255 * ( ray.hit.t / 2.0f ) ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+	// 		// } else {
+	// 		// 	col = color_4U( { ( uint8_t ) 16, ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+	// 		// }
+	// 		col = color_4U( { ( uint8_t ) ( ( ray.hit.t < 1e5f ) ? ( 255 * ( ray.hit.t / 2.0f ) ) : steps * 3u ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, 255 } );
+	// 		test.SetAtXY( x, y, col );
+	// 	}
+	// }
 
-	test.Save( "test.png" );
+	// test.Save( "test.png" );
 
 	// create the three buffers:
 		// GPU nodes
