@@ -23,6 +23,9 @@ struct icarusState_t {
 	SoftRast modelLoader;
 	tinybvh::BVH bvh;
 	tinybvh::bvhvec4 *vertices;
+	GLuint bvhNodeBuffer;
+	GLuint indexBuffer;
+	GLuint vertexBuffer;
 
 	// dimensions and related info
 	// uvec2 dimensions = uvec2( 1280, 720 );
@@ -125,10 +128,29 @@ void LoadBVH ( icarusState_t &state ) {
 
 	// test.Save( "test.png" );
 
-	// create the three buffers:
-		// GPU nodes
-		// index data
-		// triangle data
+	state.bvh.Convert( tinybvh::BVH::WALD_32BYTE, tinybvh::BVH::AILA_LAINE );
+	// // create OpenCL buffers for the BVH data calculated by tiny_state.bvh.h
+	// tinyocl::Buffer gpuNodes( state.bvh.usedAltNodes * sizeof( BVH::BVHNodeAlt ), state.bvh.altNode );
+	// tinyocl::Buffer idxData( state.bvh.idxCount * sizeof( unsigned ), state.bvh.triIdx );
+	// tinyocl::Buffer triData( state.bvh.triCount * 3 * sizeof( tinybvh::bvhvec4 ), triangles );
+
+	// BVH Nodes buffer
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.bvhNodeBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, state.bvh.usedAltNodes * sizeof( tinybvh::BVH::BVHNodeAlt ), ( GLvoid * ) state.bvh.altNode, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, state.bvhNodeBuffer );
+	glObjectLabel( GL_BUFFER, state.bvhNodeBuffer, -1, string( "BVH Nodes" ).c_str() );
+
+	// BVH vertex indices buffer
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.indexBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, state.bvh.idxCount * sizeof( unsigned ), ( GLvoid * ) state.bvh.triIdx, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, state.indexBuffer );
+	glObjectLabel( GL_BUFFER, state.indexBuffer, -1, string( "BVH Vertex Indices" ).c_str() );
+
+	// triangle data
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.vertexBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, state.bvh.triCount * 3 * sizeof( tinybvh::bvhvec4 ), ( GLvoid * ) state.vertices, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 5, state.vertexBuffer );
+	glObjectLabel( GL_BUFFER, state.vertexBuffer, -1, string( "BVH Vertex Data" ).c_str() );
 }
 
 // =============================================================================================================
@@ -182,6 +204,9 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glGenBuffers( 1, &state.offsetsSSBO );		// pixel offsets
 	glGenBuffers( 1, &state.raySSBO );		// ray state front and back buffer(s)
 	glGenBuffers( 1, &state.intersectionScratchSSBO ); // intersection structs
+	glGenBuffers( 1, &state.bvhNodeBuffer );
+	glGenBuffers( 1, &state.indexBuffer );
+	glGenBuffers( 1, &state.vertexBuffer );
 
 	// allocate space for ray offsets - 2x ints * state.numRays offsets per frame
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.offsetsSSBO );
