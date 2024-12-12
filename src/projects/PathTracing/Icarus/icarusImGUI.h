@@ -6,6 +6,7 @@ void IcarusImguiWindow ( icarusState_t &state ) {
 	ImGui::Text( "Intersectors:" );
 	ImGui::Checkbox( "SDF", &state.runSDF );
 	ImGui::Checkbox( "Triangle", &state.runTriangle );
+	ImGui::Checkbox( "BVH", &state.runBVH );
 	ImGui::Checkbox( "Volume", &state.runVolume );
 
 	const char * resolveModes[] = { "UNIFORM", "GAUSSIAN", "SHUFFLED" };

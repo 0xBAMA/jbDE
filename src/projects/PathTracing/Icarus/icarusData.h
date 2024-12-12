@@ -37,6 +37,7 @@ struct icarusState_t {
 	uint maxBounces		= 16;
 	bool runSDF			= true;
 	bool runTriangle	= false;
+	bool runBVH			= false;
 	bool runVolume		= false;
 
 	// how are we generating primary ray locations
@@ -581,6 +582,12 @@ void RayUpdate ( icarusState_t &state ) {
 
 		if ( state.runTriangle ) { // intersect those rays with a triangle
 			const GLuint shader = state.RayIntersectShader_Triangle;
+			glUseProgram( shader );
+			glDispatchCompute( state.numRays / 256, 1, 1 );
+		}
+
+		if ( state.runBVH ) { // intersect those rays with a triangle
+			const GLuint shader = state.RayIntersectShader_TinyBVH;
 			glUseProgram( shader );
 			glDispatchCompute( state.numRays / 256, 1, 1 );
 		}
