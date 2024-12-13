@@ -154,6 +154,24 @@ void LoadBVH ( icarusState_t &state ) {
 	glObjectLabel( GL_BUFFER, state.vertexBuffer, -1, string( "BVH Vertex Data" ).c_str() );
 }
 
+void LoadVoraldoModel ( icarusState_t &state ) {
+	Image_4U loadedImage;
+	loadedImage.Load( "tree.png" );
+
+	textureOptions_t opts;
+	opts.width			= 256;
+	opts.height			= 256;
+	opts.depth			= 256;
+	opts.dataType		= GL_RGBA8UI;
+	opts.minFilter		= GL_NEAREST;
+	opts.magFilter		= GL_NEAREST;
+	opts.textureType	= GL_TEXTURE_3D;
+	opts.wrap			= GL_CLAMP_TO_BORDER;
+	opts.initialData	= ( void * ) loadedImage.GetImageDataBasePtr();
+
+	state.textureManager->Add( "Voraldo Model", opts );
+}
+
 // =============================================================================================================
 // Initialization
 void CompileShaders ( icarusState_t &state ) {
@@ -595,6 +613,7 @@ void RayUpdate ( icarusState_t &state ) {
 		if ( state.runVolume ) { // intersect those rays with the volume
 			const GLuint shader = state.RayIntersectShader_Volume;
 			glUseProgram( shader );
+			// state.textureManager->BindImageForShader( "Voraldo Model", "VoraldoModel", shader, 5 );
 			glDispatchCompute( state.numRays / 256, 1, 1 );
 		}
 

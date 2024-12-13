@@ -54,39 +54,56 @@ float deGyroid ( vec3 p ) {
 
 //=============================================================================================================================
 const float scaleFactor = 100.0f;
+// layout( rgba8ui ) readonly uniform uimage3D VoraldoModel;
+// layout( r32f ) readonly uniform image2D HeightmapTex;
 //=============================================================================================================================
 vec3 scatterColor;
 float GetVolumeDensity( ivec3 pos ) {
 
+	float density;
+	// pos = pos + ivec3( 100 );
+
+	// const ivec3 iS = imageSize( VoraldoModel );
+	// if ( any( greaterThanEqual( pos, iS ) ) || any( lessThan( pos, ivec3( 0 ) ) ) ) {
+		// out of bounds
+		// scatterColor = sapphire;
+		// density = 10.0f;
+	// } else {
+	// 	uvec4 VoraldoSample = imageLoad( VoraldoModel, pos );
+	// 	// scatterColor = vec3( VoraldoSample.xyz ) / 255.0f;
+	// 	// scatterColor = vec3( VoraldoSample.xyz );
+	// 	scatterColor = vec3( 0.618f );
+	// 	// density = pow( VoraldoSample.w / 255.0f, 2.0f ) * 2.0f;
+	// 	density = 20.0f + VoraldoSample.a;
+	// }
+
 	vec3 p = pos / scaleFactor;
 	vec3 pOriginal = p;
 
-	const float scale = 0.1618f;
-	bool blackOrWhite = ( step( 0.0f,
-		cos( scale * pi * p.x + pi / 2.0f ) *
-		cos( scale * pi * p.y + pi / 2.0f ) *
-		cos( scale * pi * p.z + pi / 2.0f ) ) == 0 );
+	// const float scale = 0.1618f;
+	// bool blackOrWhite = ( step( 0.0f,
+	// 	cos( scale * pi * p.x + pi / 2.0f ) *
+	// 	cos( scale * pi * p.y + pi / 2.0f ) *
+	// 	cos( scale * pi * p.z + pi / 2.0f ) ) == 0 );
 
-	const vec3 bboxSize = vec3( 4.0f, 2.0f, 12.0f );
+	const vec3 bboxSize = vec3( 5.0f, 5.0f, 22.0f );
 
+	// // pModInterval1( p.z, 3.0f, -6.0f, 6.0f );
+	// // pModInterval1( p.x, 3.0f, -6.0f, 6.0f );
+	// // pModInterval1( p.y, 3.0f, -6.0f, 6.0f );
+	// // const float dCutout = distance( p, vec3( 0.0f, 0.0f, 0.0f ) ) - 1.618f;
+	// // p = pOriginal;
 
-	// pModInterval1( p.z, 3.0f, -6.0f, 6.0f );
-	// pModInterval1( p.x, 3.0f, -6.0f, 6.0f );
-	// pModInterval1( p.y, 3.0f, -6.0f, 6.0f );
-	// const float dCutout = distance( p, vec3( 0.0f, 0.0f, 0.0f ) ) - 1.618f;
-	// p = pOriginal;
+	// const float dCutout = deTemple( p * 3.0f );
 
-	const float dCutout = deTemple( p * 3.0f );
-
-
-	const float scalar = 0.8f;
-	// float d = max( deWhorl( p / 1.0f ), fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 0.0f ) );
-	// const float boxDist = fBox( p, vec3( 10.0f, 3.0f, 12.0f ) );
-	// const float boxDist = fBox( p, vec3( 15.0f ) );
+	// const float scalar = 0.8f;
+	// // float d = max( deWhorl( p / 1.0f ), fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 0.0f ) );
+	// // const float boxDist = fBox( p, vec3( 10.0f, 3.0f, 12.0f ) );
+	// // const float boxDist = fBox( p, vec3( 15.0f ) );
 
 	const float bboxDist = fBox( p, bboxSize );
-	const float boxDist = max( bboxDist, -dCutout );
-	float value = 0.0f;
+	// const float boxDist = max( bboxDist, -dCutout );
+	// float value = 0.0f;
 
 	// float d = max( deGyroid( p * scalar ) / scalar, boxDist ) - ( blackOrWhite ? -0.02f : 0.05f );
 	// if ( d < 0.0f ) {
@@ -94,45 +111,52 @@ float GetVolumeDensity( ivec3 pos ) {
 	// 	// scatterColor = vec3( 0.99f );
 	// 	scatterColor = bone.brg;
 	// } else if ( boxDist < 0.0f ) {
+	// if ( bboxDist < 0.0f ) {
+	// 	// value = 1.0f;
+	// 	// value = 2.618f;
+	// 	// value = 150.0f;
+	// 	value = 5.0f;
+	// 	scatterColor = sapphire;
+
+	// 	// const vec3 woodColor = matWood( p * 0.3f );
+	// 	// if ( boxDist < 0.0f ) {
+	// 	// 	value = 5000.0f * GetLuma( woodColor ).r;
+	// 	// 	// value = 2000.0f * ( 1.0f - GetLuma( woodColor ).r );
+	// 	// 	// scatterColor = vec3( woodColor.bgr );
+	// 	// 	scatterColor = mix( vec3( 1.0f ), sapphire, 1.0f - woodColor.r );
+	// 	// } else {
+	// 	// 	value = blackOrWhite ? 400.0f : 30.0f;
+	// 	// 	scatterColor = blackOrWhite ? cobalt : mix( carrot.brg, honey.brg, 1.0f - sqrt( woodColor.r ) );
+	// 	// }
+
+	// 	// pMod2( p.xy, vec2( 0.5f ) );
+	// 	// if ( p.x < 0.1 && p.y < 0.15f ) {
+	// 		// scatterColor = mix( blood, sapphire, 0.618f );
+	// 		// value = 800.0f;
+	// 	// }
+
+	// 	// scatterColor = vec3( 0.618f );
+	// 	// scatterColor = sapphire;
+	// 	// scatterColor = copper;
+	
+	
+	// // } else if ( fBox( p, bboxSize * 1.25f ) < 0.0f ) {
+	// // 	// a bit bigger box
+	// // 	value = 6.18f;
+	// // 	scatterColor = vec3( 0.9f );
+	// } else {
+	// 	value = 0.0f;
+	// }
+
 	if ( bboxDist < 0.0f ) {
-		// value = 1.0f;
-		// value = 2.618f;
-		// value = 150.0f;
-		value = 5.0f;
 		scatterColor = sapphire;
-
-		// const vec3 woodColor = matWood( p * 0.3f );
-		// if ( boxDist < 0.0f ) {
-		// 	value = 5000.0f * GetLuma( woodColor ).r;
-		// 	// value = 2000.0f * ( 1.0f - GetLuma( woodColor ).r );
-		// 	// scatterColor = vec3( woodColor.bgr );
-		// 	scatterColor = mix( vec3( 1.0f ), sapphire, 1.0f - woodColor.r );
-		// } else {
-		// 	value = blackOrWhite ? 400.0f : 30.0f;
-		// 	scatterColor = blackOrWhite ? cobalt : mix( carrot.brg, honey.brg, 1.0f - sqrt( woodColor.r ) );
-		// }
-
-
-		// pMod2( p.xy, vec2( 0.5f ) );
-		// if ( p.x < 0.1 && p.y < 0.15f ) {
-			// scatterColor = mix( blood, sapphire, 0.618f );
-			// value = 800.0f;
-		// }
-
-		// scatterColor = vec3( 0.618f );
-		// scatterColor = sapphire;
-		// scatterColor = copper;
-	
-	
-	// } else if ( fBox( p, bboxSize * 1.25f ) < 0.0f ) {
-	// 	// a bit bigger box
-	// 	value = 6.18f;
-	// 	scatterColor = vec3( 0.9f );
+		density = 2.0f;
 	} else {
-		value = 0.0f;
+		density = 0.0f;
 	}
 
-	return value;
+
+	return density;
 }
 //=============================================================================================================================
 void main () {
