@@ -28,6 +28,7 @@
 
 //=============================================================================================================================
 // Ray State Struct (64 bytes)
+//   unit length ray direction indicates a living ray, otherwise it is not
 //=============================================================================================================================
 // represents the more persistent ray state, things which exist across bounce loop iterations
 struct rayState_t {
@@ -53,7 +54,7 @@ void SetEnergyTotal 	( inout rayState_t rayState, vec3 energy )		{ rayState.data
 vec3 GetEnergyTotal		( rayState_t rayState )							{ return rayState.data4.xyz; }
 void AddEnergy			( inout rayState_t rayState, vec3 energy )		{ SetEnergyTotal( rayState, GetEnergyTotal( rayState ) + energy ); }
 //=============================================================================================================================
-bool IsLiving			( in rayState_t rayState )						{ return ( length( GetRayDirection( rayState ) ) > 0.5f ); } // unit length is living, zero is not
+bool IsLiving			( in rayState_t rayState )						{ return ( length( GetRayDirection( rayState ) ) > 0.5f ); }
 //=============================================================================================================================
 void StateReset ( inout rayState_t rayState ) {
 	rayState.data1 = rayState.data2 = rayState.data3 = rayState.data4 = vec4( 0.0f );
