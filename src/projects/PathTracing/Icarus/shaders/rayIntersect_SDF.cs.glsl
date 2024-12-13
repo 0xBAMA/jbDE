@@ -282,167 +282,26 @@ float de ( vec3 p ) {
 
 	// return sceneDist;
 
-	const vec3 bboxSize = vec3( 4.0f, 2.0f, 12.0f );
+	const vec3 bboxSize = vec3( 10.0f );
+
+	// {
+	// 	const float scale = 2.0f;
+	// 	const float d = max( fBox( p, bboxSize ), deLeaf( p * scale ) / scale );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = DIFFUSE;
+	// 		hitColor = vec3( 0.9f );
+	// 	}
+	// }
 
 	{
-		const float scale = 2.0f;
-		const float d = max( fBox( p, bboxSize ), deFlakes( p * scale ) / scale );
+		const float d = fBox( p, vec3( 0.5f, 0.5f, 25.0f ) );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = EMISSIVE;
-			hitColor = honey * 2.5f;
+			hitColor = vec3( 1.5f );
 		}
 	}
-
-	// return sceneDist;
-
-	const bool enableLight = true;
-
-	if ( enableLight ) {
-		// pModInterval1( p.y, 0.1f, -5.0f, 5.0f );
-
-		// const float d = fBox( p.yxz - vec3( 1.84f, 2.0f, 0.0f ), vec3( 0.1f, 100.0f, 0.1f ) );
-		// const float d = fCylinder( p - vec3( 0.0f, 0.0f, 0.0f ), 0.1f, 100.0f );
-		// const float d = fCylinder( p.zyx - vec3( 0.0f, 0.0f, 0.0f ), 0.7f, 100.0f );
-
-		const float dL1 = fBox( p - vec3( -6.0f, 0.0f, 0.0f ), vec3( 0.25f, 5.5f, 10.0f ) );
-		const float dL2 = fBox( p - vec3( 6.0f, 0.0f, 0.0f ), vec3( 0.25f, 5.5f, 10.0f ) );
-
-		int id = int( floor( pModInterval1( p.z, 1.5f, -5.0f, 5.0f ) ) );
-		const float dL3 = fCylinder( p.yzx - vec3( 0.0f, 0.0f, 0.0f ), 0.7f, 100.0f );
-
-		const float d = min( min( dL1, dL2 ), dL3 );
-
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-			// hitSurfaceType = ( id % 2 == 0 ) ? EMISSIVE : MIRROR;
-			// hitColor = ( id % 2 == 0 ) ? vec3( 3.0f ) : vec3( 0.618f );
-		
-			hitSurfaceType = EMISSIVE;
-			// hitColor = ( d == dL1 ) ? 1.5f * aqua : ( d == dL3 ) ? 2.0f * blood : vec3( 2.0f );
-			// hitColor = ( d == dL1 ) ? 2.2f * blood : ( d == dL3 ) ? 1.2f * aqua.gbb : 1.2f * blood;
-			hitColor = ( d == dL1 ) ? 1.2f * nvidia : ( d == dL3 ) ? 1.5f * blood : 1.2f * aqua;
-		}
-		p = pOriginal;
-	}
-
-	// return sceneDist;
-
-	{
-
-		// const vec3 offset = vec3( -0.6f, 8.4f, 1.5f );
-		const vec3 offset = vec3( 0.0f, 0.5f, 0.3f );
-		const float scale = 3.0f;
-		// const float d = max( fBox( p, bboxSize ), deBube( offset + rotate3D( 1.8f, vec3( 1.0f, 2.0f, 3.0f ) ) * ( p.xzy * scale ) ) / scale );
-		const float d = max( fBox( p, bboxSize * vec3( 1.0f, 0.5f, 1.0f ) ), deBube( offset + ( p.xzy * scale ) ) / scale );
-		// const float d = deMendel( p.xzy * scale ) / scale;
-		sceneDist = min( sceneDist, d );
-		if ( sceneDist == d && d < epsilon ) {
-
-			const float scale2 = 2.5f;
-			bool blackOrWhite = ( step( 0.0f,
-				cos( scale2 * pi * p.x + pi / 2.0f ) *
-				cos( scale2 * pi * p.y + pi / 2.0f ) *
-				cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
-
-			// hitSurfaceType = ( NormalizedRandomFloat() > 0.1f ) ? MIRROR : DIFFUSE;
-			// hitSurfaceType = ( NormalizedRandomFloat() < 0.15f ) ? MIRROR : DIFFUSE;
-			hitSurfaceType = MIRROR;
-			// hitSurfaceType = DIFFUSE;
-			// hitColor = iron;
-			// hitColor = blackOrWhite ? vec3( 0.95f ) : blood;
-			// hitColor = blackOrWhite ? honey : carrot.brg;
-			// hitColor = carrot.brg * 0.2f;
-
-			// hitColor = vec3( 0.618f ) * vec3( 1.0f - 3.0f * escape );
-			// hitColor = vec3( 0.618f );
-			// hitColor = vec3( 0.99f );
-			// hitColor = vec3( 0.1f );
-			hitColor = brass;
-
-			// if ( escape > 0.45f ) {
-			// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
-			// 	hitColor = mix( carrot, vec3( 0.4f, 0.0f, 0.0f ), ( escape - 0.45f ) * 2.0f ) * 5.0f;
-			// 	hitSurfaceType = EMISSIVE;
-			// // } else if ( escape < 0.01f ) {
-			// // 	hitColor = carrot.brg * 0.3f;
-			// // 	hitSurfaceType = DIFFUSE;
-			// // } else if ( escape < 0.03f ) {
-			// // 	hitColor = carrot.brg;
-			// // 	hitSurfaceType = MIRROR;
-			// }
-
-			// // blacked out faces
-			// if ( abs( p.x ) > ( bboxSize.x - 0.01f ) || abs( p.y ) > ( bboxSize.y - 0.01f ) || abs( p.z ) > ( bboxSize.z - 0.01f ) ) {
-			// 	hitColor = vec3( 0.005f );
-			// 	hitSurfaceType = DIFFUSE;
-			// }
-
-		}
-	}
-
-	// {
-	// 	pModInterval1( p.z, 0.8f, -10.0f, 0.0f );
-	// 	pModInterval1( p.x, 0.8f, -10.0f, 0.0f );
-
-	// 	const float scale = 1.0f;
-	// 	// const float d = max( deTrees( p * scale - vec3( 0.0f, 10.0f, 0.0f ) * scale ) / scale, fBox( p, vec3( 4.0f ) ) );
-	// 	// const float d = deTrees( p * scale - vec3( 0.0f, 5.0f, 10.0f ) * scale ) / scale;
-	// 	// const float d = deTrees( p * scale ) / scale;
-	// 	// const float d = max( deSDFSDFe( p * scale + vec3( 0.4, 0.1, 2.0f ) ) / scale, fBox( p, vec3( 5.0f, 0.5f, 10.8f ) ) );
-	// 	const float d = deTree( p * scale ) / scale;
-	// 	const float d2 = deTreeFoliage( p * scale ) / scale;
-
-	// 	const float dCombined = min( d, d2 );
-
-	// 	sceneDist = min( sceneDist, dCombined );
-	// 	if ( sceneDist == dCombined && dCombined < epsilon ) {
-	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-
-	// 		// // if ( escape > 0.58f ) {
-	// 		// if ( escape > 0.45f ) {
-	// 		// 	// hitColor = mix( carrot, bone, ( escape - 0.45f ) * 2.0f );
-	// 		// 	hitColor = mix( carrot, vec3( 0.4f, 0.0f, 0.0f ), ( escape - 0.45f ) * 2.0f );
-	// 		// 	hitSurfaceType = EMISSIVE;
-	// 		// } else {
-	// 			// hitSurfaceType = DIFFUSE;
-	// 			// hitColor = ( escape < 0.01f ) ? vec3( 1.0f ) : mix( carrot, bone, 0.618f ).rgb * saturate( escape ) * 2.6f;
-	// 		// }
-
-	// 		if ( dCombined == d ) {
-	// 			hitSurfaceType = MIRROR;
-	// 			hitColor = vec3( 0.918f );
-	// 		} else {
-	// 			hitSurfaceType = MIRROR;
-	// 			hitColor = carrot.grb * 0.1f;
-	// 		}
-	// 	}
-	// }
-
-	// {
-	// 	const float d = deTemple( rotate3D( 1.3f, vec3( 1.0f, 2.0f, 3.0f ) ) * p + vec3( 0.0f, 0.0f, 9.0f ) );
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = MIRROR;
-	// 		hitColor = honey.grb;
-	// 		// hitColor = honey;
-	// 		// hitColor = vec3( 0.99f );
-	// 	}
-	// }
-
-	// {
-	// 	const float scale = 0.8f;
-	// 	const float d = max( deGyroid( p * scale ) / scale, fBox( p, vec3( 10.0f, 3.0f, 12.0f ) ) );
-	// 	// const float d = deTemp( p * scale ) / scale;
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		// hitSurfaceType = ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE;
-	// 		hitSurfaceType = MIRROR;
-	// 		// hitColor = vec3( 0.95f );
-	// 		hitColor = mix( carrot, bone, 0.618f ) * 0.1f;
-	// 		// hitColor = tungsten;
-	// 	}
-	// }
 
 	return sceneDist;
 }
