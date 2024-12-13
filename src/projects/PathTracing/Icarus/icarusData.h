@@ -35,9 +35,9 @@ struct icarusState_t {
 	// perf settings
 	const int numIntersectors = 4; // I'd rather get this straight from the header...
 	uint maxBounces		= 16;
-	bool runSDF			= true;
+	bool runSDF			= false;
 	bool runTriangle	= false;
-	bool runBVH			= false;
+	bool runBVH			= true;
 	bool runVolume		= false;
 
 	// how are we generating primary ray locations
@@ -71,14 +71,21 @@ struct icarusState_t {
 
 void LoadBVH ( icarusState_t &state ) {
 // this works, loads 200k triangles - stanford tyranosaurus - good test model for the BVH stuff
-	state.modelLoader.LoadModel( "../tyra.obj", "../" );
+	// state.modelLoader.LoadModel( "../tyra.obj", "../" );
+	// state.modelLoader.LoadModel( "../f-16/f-16.obj", "../f-16" );
+	// state.modelLoader.LoadModel( "../holy-imperial-battleship-with-pkmc/source/BB_CA18_White_19_25_1.obj", "../holy-imperial-battleship-with-pkmc/textures/" );
+	// state.modelLoader.LoadModel( "../hall.obj", "../" );
+
 	cout << endl << "Model has " << state.modelLoader.triangles.size() << " tris" << endl;
 
 	// put it in some known span
 	state.modelLoader.UnitCubeRefit();
 
+	const int numRandomTriangles = 500000;
+	const int numTriangles = state.modelLoader.triangles.size() + numRandomTriangles + 100;
+
 	// allocate space for that many verts
-	state.vertices = ( tinybvh::bvhvec4 * ) malloc( 3 * state.modelLoader.triangles.size() * sizeof( tinybvh::bvhvec4 ) );
+	state.vertices = ( tinybvh::bvhvec4 * ) malloc( 3 * numTriangles * sizeof( tinybvh::bvhvec4 ) );
 
 	// copy from the loader to the bvh's list
 	for ( size_t i = 0; i < state.modelLoader.triangles.size(); i++ ) {
@@ -96,10 +103,55 @@ void LoadBVH ( icarusState_t &state ) {
 		state.vertices[ baseIdx + 2 ].x = state.modelLoader.triangles[ i ].p2.x;
 		state.vertices[ baseIdx + 2 ].y = state.modelLoader.triangles[ i ].p2.y;
 		state.vertices[ baseIdx + 2 ].z = state.modelLoader.triangles[ i ].p2.z;
+
+		// pass color in .a
+		state.vertices[ baseIdx + 0 ].w = state.modelLoader.triangles[ i ].c0.r;
+		state.vertices[ baseIdx + 1 ].w = state.modelLoader.triangles[ i ].c0.g;
+		state.vertices[ baseIdx + 2 ].w = state.modelLoader.triangles[ i ].c0.b;
+	}
+
+	const int baseOffset = state.modelLoader.triangles.size();
+	rngN radiusDistribution = rngN( 4.0f, 0.3f );
+	rng spanDistribution = rng( 0.0f, 2.0f * pi );
+	rng colorDistribution = rng( 0.0f, 1.0f );
+	rngN fineDistribution = rngN( 0.3f, 0.1f );
+
+	int baseIdx = baseOffset;
+
+	for ( int ring = 0; ring < 10; ring++ ){
+		palette::PickRandomPalette( true );
+		for ( int i = 0; i < numRandomTriangles / 10.0f; i++ ) {
+
+			const float radius = radiusDistribution();
+			const float span = spanDistribution();
+			vec3 basePoint = vec3( radius * cos( span ), radius * sin( span ), colorDistribution() + 2.0f * ring );
+
+			// add the triangles to the BVH
+			state.vertices[ baseIdx + 0 ].x = basePoint.x + fineDistribution();
+			state.vertices[ baseIdx + 0 ].y = basePoint.y + fineDistribution();
+			state.vertices[ baseIdx + 0 ].z = basePoint.z + fineDistribution();
+
+			state.vertices[ baseIdx + 1 ].x = basePoint.x + fineDistribution();
+			state.vertices[ baseIdx + 1 ].y = basePoint.y + fineDistribution();
+			state.vertices[ baseIdx + 1 ].z = basePoint.z + fineDistribution();
+
+			state.vertices[ baseIdx + 2 ].x = basePoint.x + fineDistribution();
+			state.vertices[ baseIdx + 2 ].y = basePoint.y + fineDistribution();
+			state.vertices[ baseIdx + 2 ].z = basePoint.z + fineDistribution();
+
+			// pass color in .a
+			// const vec3 color = vec3( colorDistribution(), colorDistribution(), colorDistribution() );
+			const vec3 color =  palette::paletteRef( colorDistribution() );
+			state.vertices[ baseIdx + 0 ].w = color.r;
+			state.vertices[ baseIdx + 1 ].w = color.g;
+			state.vertices[ baseIdx + 2 ].w = color.b;
+
+			baseIdx += 3;
+		}
 	}
 
 	// build the bvh from the list of triangles
-	state.bvh.Build( state.vertices, state.modelLoader.triangles.size() );
+	state.bvh.Build( state.vertices, numTriangles );
 	state.bvh.Convert( tinybvh::BVH::WALD_32BYTE, tinybvh::BVH::VERBOSE );
 	state.bvh.Refit( tinybvh::BVH::VERBOSE );
 
@@ -248,6 +300,9 @@ void AllocateBuffers ( icarusState_t &state ) {
 
 	// buffers for the BVH
 	LoadBVH( state );
+
+	// setup for the Voraldo model in the volume renderer
+	// LoadVoraldoModel( state );
 }
 
 void AllocateTextures ( icarusState_t &state ) {
