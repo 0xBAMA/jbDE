@@ -134,12 +134,24 @@ void main () {
 		TinyBVHIntersection.data1.x = 0.0f; // suppressing warning
 		IntersectionReset( TinyBVHIntersection );
 
-		// set color based on barycentrics
-		// SetHitAlbedo( TinyBVHIntersection, hit.yzw );
-		SetHitAlbedo( TinyBVHIntersection, gold );
+		const uint baseIdx = floatBitsToUint( hit.a ) * 3;
+		vec3 color = vec3(
+			verts[ baseIdx + 0 ].a,
+			verts[ baseIdx + 1 ].a,
+			verts[ baseIdx + 2 ].a
+		);
+
+		// const vec3 p = hit.x * GetRayDirection( myState ) + GetRayOrigin( myState );
+		// const float scale2 = 30.0f;
+		// bool blackOrWhite = ( step( 0.0f,
+		// 	cos( scale2 * pi * p.x + pi / 2.0f ) *
+		// 	cos( scale2 * pi * p.y + pi / 2.0f ) *
+		// 	cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
+
+		SetHitAlbedo( TinyBVHIntersection, color );
 		SetHitRoughness( TinyBVHIntersection, 0.0f );
 		SetHitDistance( TinyBVHIntersection, hit.x );
-		SetHitMaterial( TinyBVHIntersection, ( NormalizedRandomFloat() < 0.1f ) ? MIRROR : DIFFUSE );
+		SetHitMaterial( TinyBVHIntersection, ( ( baseIdx / 3 ) % 20 != 0 ) ? ( NormalizedRandomFloat() < 0.25f ) ? MIRROR : DIFFUSE : ( EMISSIVE ) );
 
 		const vec3 normal = solvedNormal;
 		SetHitFrontface( TinyBVHIntersection, ( dot( GetRayDirection( myState ), normal ) > 0 ) );
