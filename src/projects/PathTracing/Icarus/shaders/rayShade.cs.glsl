@@ -28,6 +28,13 @@ vec3 anglePhong( float a, vec3 n ){
 	return normalize( x * T + y * B + z * N );
 }
 //=============================================================================================================================
+float Reflectance ( const float cosTheta, const float IoR ) {
+	// Use Schlick's approximation for reflectance
+	float r0 = ( 1.0f - IoR ) / ( 1.0f + IoR );
+	r0 = r0 * r0;
+	return r0 + ( 1.0f - r0 ) * pow( ( 1.0f - cosTheta ), 5.0f );
+}
+//=============================================================================================================================
 void main () {
 	rayState_t myState = state[ gl_GlobalInvocationID.x ];
 
@@ -83,36 +90,59 @@ void main () {
 		const float dist = GetHitDistance( closestIntersection );
 		const vec3 normal = GetHitNormal( closestIntersection );
 		const vec3 albedo = GetHitAlbedo( closestIntersection );
+		const float roughness = GetHitRoughness( closestIntersection );
 
 		// material identifier
 		const int materialID = GetHitMaterial( closestIntersection );
-
-		// update origin point + epsilon bump (need to exclude epsilon bump for volumetrics, refractive hits)
-		SetRayOrigin( myState, origin + dist * direction + 2.0f * epsilon * normal );
 
 		// precomputing the new vectors
 		const vec3 diffuseVector = cosWeightedRandomHemisphereDirection( normal );
 		const vec3 reflectedVector = reflect( direction, normal );
 
+		// update origin point + epsilon bump (need to exclude epsilon bump for volumetrics, refractive hits)
+		SetRayOrigin( myState, origin + dist * direction + ( ( materialID != REFRACTIVE ) ? ( 2.0f * epsilon * normal ) : vec3( 0.0f ) ) );
+
 		switch ( materialID ) {
 		case NONE: {}// tbd, this might go away
 		break;
-		
+		//=====================================================================
 		case DIFFUSE: { // lambertian diffuse reflection
 			SetRayDirection( myState, diffuseVector );
 			SetTransmission( myState, GetTransmission( myState ) * albedo );
 		}
 		break;
-
+		//=====================================================================
 		case EMISSIVE: { // light emitting surface
 			SetRayDirection( myState, diffuseVector );
 			AddEnergy( myState, GetTransmission( myState ) * albedo );
 		}
 		break;
-
+		//=====================================================================
 		case MIRROR: { // mirror reflection
 			SetRayDirection( myState, reflectedVector );
 			SetTransmission( myState, GetTransmission( myState ) * albedo );
+		}
+		break;
+		//=====================================================================
+		case REFRACTIVE: { // glass-like interface
+			SetTransmission( myState, GetTransmission( myState ) * albedo ); // representing colored glass
+			float adjustedIOR = GetHitIoR( closestIntersection ); // initial value of IoR
+			vec3 adjustedNormal = normal;
+			if ( GetHitFrontface( closestIntersection ) ) {
+				SetRayOrigin( myState, GetRayOrigin( myState ) - 2.0f * epsilon * adjustedNormal );
+			} else { // backface has to handle things a little differently
+				SetRayOrigin( myState, GetRayOrigin( myState ) + 2.0f * epsilon * adjustedNormal );
+				adjustedNormal = -adjustedNormal;
+				adjustedIOR = 1.0f / adjustedIOR;
+			}
+			float cosTheta = min( dot( -normalize( direction ), adjustedNormal ), 1.0f );
+			float sinTheta = sqrt( 1.0f - cosTheta * cosTheta );
+			bool cannotRefract = ( adjustedIOR * sinTheta ) > 1.0f; // accounting for TIR effects
+			if ( cannotRefract || Reflectance( cosTheta, adjustedIOR ) > NormalizedRandomFloat() ) {
+				SetRayDirection( myState, normalize( mix( reflect( normalize( direction ), adjustedNormal ), RandomUnitVector(), roughness ) ) );
+			} else {
+				SetRayDirection( myState, normalize( mix( refract( normalize( direction ), adjustedNormal, adjustedIOR ), RandomUnitVector(), roughness ) ) );
+			}
 		}
 		break;
 

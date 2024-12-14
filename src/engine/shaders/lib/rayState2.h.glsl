@@ -19,7 +19,8 @@
 #define EMISSIVE			1
 #define MIRROR				2
 #define DIFFUSE				3
-#define VOLUME				4
+#define REFRACTIVE			4
+#define VOLUME				5
 
 //=============================================================================================================================
 // Constants
