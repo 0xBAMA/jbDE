@@ -75,8 +75,8 @@ void main () {
 		// SetRayDirection( myState, normalize( other + anglePhong( 1800.0f, GetRayDirection( myState ) ) * 0.15f ) );
 
 		SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( closestIntersection ) * GetRayDirection( myState ) );
-		// SetRayDirection( myState, normalize( 0.25f * GetRayDirection( myState ) + RandomUnitVector() ) );
-		SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
+		SetRayDirection( myState, normalize( 0.1f * GetRayDirection( myState ) + RandomUnitVector() ) );
+		// SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
 		// SetRayDirection( myState, normalize( GetRayDirection( myState ) * RandomUnitVector() ) );
 		// SetRayDirection( myState, normalize( anglePhong( 100.0f, GetRayDirection( myState ) ) ) );
 		SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( closestIntersection ) );

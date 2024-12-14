@@ -11,48 +11,6 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 layout( binding = 1, std430 ) readonly buffer rayState { rayState_t state[]; };
 layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
 //=============================================================================================================================
-mat2 rot2(in float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
-float deGyroid ( vec3 p ) {
-	float d = 1e5;
-	const int n = 3;
-	const float fn = float(n);
-	for(int i = 0; i < n; i++){
-		vec3 q = p;
-		float a = float(i)*fn*2.422; //*6.283/fn
-		a *= a;
-		q.z += float(i)*float(i)*1.67; //*3./fn
-		q.xy *= rot2(a);
-		float b = (length(length(sin(q.xy) + cos(q.yz))) - .15);
-		float f = max(0., 1. - abs(b - d));
-		d = min(d, b) - .25*f*f;
-	}
-	return d;
-}
-  #define fold45(p)(p.y>p.x)?p.yx:p
-  float deTemple(vec3 p) {
-    float scale = 2.1, off0 = .8, off1 = .3, off2 = .83;
-    vec3 off =vec3(2.,.2,.1);
-    float s=1.0;
-    for(int i = 0;++i<20;) {
-      p.xy = abs(p.xy);
-      p.xy = fold45(p.xy);
-      p.y -= off0;
-      p.y = -abs(p.y);
-      p.y += off0;
-      p.x += off1;
-      p.xz = fold45(p.xz);
-      p.x -= off2;
-      p.xz = fold45(p.xz);
-      p.x += off1;
-      p -= off;
-      p *= scale;
-      p += off;
-      s *= scale;
-    }
-    return length(p)/s;
-  }
-
-//=============================================================================================================================
 const float scaleFactor = 100.0f;
 // layout( rgba8ui ) readonly uniform uimage3D VoraldoModel;
 // layout( r32f ) readonly uniform image2D HeightmapTex;
@@ -78,7 +36,7 @@ float GetVolumeDensity( ivec3 pos ) {
 	// }
 
 	vec3 p = pos / scaleFactor;
-	vec3 pOriginal = p;
+	vec3 pOriginal = p; // for SDF usage
 
 	// const float scale = 0.1618f;
 	// bool blackOrWhite = ( step( 0.0f,
@@ -87,74 +45,14 @@ float GetVolumeDensity( ivec3 pos ) {
 	// 	cos( scale * pi * p.z + pi / 2.0f ) ) == 0 );
 
 	const vec3 bboxSize = vec3( 5.0f, 5.0f, 22.0f );
-
-	// // pModInterval1( p.z, 3.0f, -6.0f, 6.0f );
-	// // pModInterval1( p.x, 3.0f, -6.0f, 6.0f );
-	// // pModInterval1( p.y, 3.0f, -6.0f, 6.0f );
-	// // const float dCutout = distance( p, vec3( 0.0f, 0.0f, 0.0f ) ) - 1.618f;
-	// // p = pOriginal;
-
-	// const float dCutout = deTemple( p * 3.0f );
-
-	// const float scalar = 0.8f;
-	// // float d = max( deWhorl( p / 1.0f ), fPlane( p, vec3( 1.0f, 0.0f, 0.0f ), 0.0f ) );
-	// // const float boxDist = fBox( p, vec3( 10.0f, 3.0f, 12.0f ) );
-	// // const float boxDist = fBox( p, vec3( 15.0f ) );
-
 	const float bboxDist = fBox( p, bboxSize );
-	// const float boxDist = max( bboxDist, -dCutout );
-	// float value = 0.0f;
-
-	// float d = max( deGyroid( p * scalar ) / scalar, boxDist ) - ( blackOrWhite ? -0.02f : 0.05f );
-	// if ( d < 0.0f ) {
-	// 	value = 200000.0f * -d;
-	// 	// scatterColor = vec3( 0.99f );
-	// 	scatterColor = bone.brg;
-	// } else if ( boxDist < 0.0f ) {
-	// if ( bboxDist < 0.0f ) {
-	// 	// value = 1.0f;
-	// 	// value = 2.618f;
-	// 	// value = 150.0f;
-	// 	value = 5.0f;
-	// 	scatterColor = sapphire;
-
-	// 	// const vec3 woodColor = matWood( p * 0.3f );
-	// 	// if ( boxDist < 0.0f ) {
-	// 	// 	value = 5000.0f * GetLuma( woodColor ).r;
-	// 	// 	// value = 2000.0f * ( 1.0f - GetLuma( woodColor ).r );
-	// 	// 	// scatterColor = vec3( woodColor.bgr );
-	// 	// 	scatterColor = mix( vec3( 1.0f ), sapphire, 1.0f - woodColor.r );
-	// 	// } else {
-	// 	// 	value = blackOrWhite ? 400.0f : 30.0f;
-	// 	// 	scatterColor = blackOrWhite ? cobalt : mix( carrot.brg, honey.brg, 1.0f - sqrt( woodColor.r ) );
-	// 	// }
-
-	// 	// pMod2( p.xy, vec2( 0.5f ) );
-	// 	// if ( p.x < 0.1 && p.y < 0.15f ) {
-	// 		// scatterColor = mix( blood, sapphire, 0.618f );
-	// 		// value = 800.0f;
-	// 	// }
-
-	// 	// scatterColor = vec3( 0.618f );
-	// 	// scatterColor = sapphire;
-	// 	// scatterColor = copper;
-	
-	
-	// // } else if ( fBox( p, bboxSize * 1.25f ) < 0.0f ) {
-	// // 	// a bit bigger box
-	// // 	value = 6.18f;
-	// // 	scatterColor = vec3( 0.9f );
-	// } else {
-	// 	value = 0.0f;
-	// }
 
 	if ( bboxDist < 0.0f ) {
 		scatterColor = sapphire;
-		density = 2.0f;
+		density = 0.618f;
 	} else {
 		density = 0.0f;
 	}
-
 
 	return density;
 }

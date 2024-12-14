@@ -148,10 +148,14 @@ void main () {
 		// 	cos( scale2 * pi * p.y + pi / 2.0f ) *
 		// 	cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
 
-		SetHitAlbedo( TinyBVHIntersection, color );
+		// SetHitAlbedo( TinyBVHIntersection, color );
+		SetHitAlbedo( TinyBVHIntersection, vec3( 1.0f ) );
 		SetHitRoughness( TinyBVHIntersection, 0.0f );
-		SetHitDistance( TinyBVHIntersection, hit.x );
-		SetHitMaterial( TinyBVHIntersection, ( ( baseIdx / 3 ) % 20 != 0 ) ? ( NormalizedRandomFloat() < 0.25f ) ? MIRROR : DIFFUSE : ( EMISSIVE ) );
+		SetHitDistance( TinyBVHIntersection, hit.x > MAX_DIST ? MAX_DIST : hit.x );
+		// SetHitMaterial( TinyBVHIntersection, ( ( baseIdx / 3 ) % 20 != 0 ) ? ( NormalizedRandomFloat() < 0.25f ) ? MIRROR : DIFFUSE : ( EMISSIVE ) );
+		SetHitMaterial( TinyBVHIntersection, REFRACTIVE );
+		SetHitRoughness( TinyBVHIntersection, 0.0f );
+		SetHitIoR( TinyBVHIntersection, 1.5f );
 
 		const vec3 normal = solvedNormal;
 		SetHitFrontface( TinyBVHIntersection, ( dot( GetRayDirection( myState ), normal ) > 0 ) );
@@ -159,7 +163,7 @@ void main () {
 		SetHitIntersector( TinyBVHIntersection, TRIANGLEHIT );
 
 		// write it back to the buffer
-		if ( hit.x < 1e30f && hit.x > 0.0f ) {
+		if ( hit.x > 0.0f ) {
 			const int index = int( gl_GlobalInvocationID.x ) * NUM_INTERSECTORS + INTERSECT_TINYBVH;
 			intersectionScratch[ index ] = TinyBVHIntersection;
 		}

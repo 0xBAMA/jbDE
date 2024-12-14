@@ -295,7 +295,7 @@ float de ( vec3 p ) {
 	// }
 
 	{
-		const float d = fBox( p, vec3( 0.5f, 0.5f, 25.0f ) );
+		const float d = fBox( p, vec3( 0.1f, 0.1f, 25.0f ) );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = EMISSIVE;

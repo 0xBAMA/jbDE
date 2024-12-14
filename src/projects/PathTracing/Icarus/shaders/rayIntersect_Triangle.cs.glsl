@@ -22,8 +22,8 @@ vec4 triangle( vec3 o, vec3 d, vec3 v0, vec3 v1, vec3 v2 ) {
 }
 //=============================================================================================================================
 // triangle parameters
-const float scale = 1.2f;
-const vec3 offset = vec3( 0.0f, 0.0f, 0.0f );
+const float scale = 1.25f;
+const vec3 offset = vec3( 0.0f, 0.0f, 1.0f );
 const vec3 p0 = scale * vec3(  0.0f, 0.0f,  0.5f ).xzy + offset;
 const vec3 p1 = scale * vec3(  0.5f, 0.0f, -0.5f ).xzy + offset;
 const vec3 p2 = scale * vec3( -0.5f, 0.0f, -0.5f ).xzy + offset;
@@ -55,7 +55,7 @@ void main () {
 		// set color based on barycentrics
 		SetHitAlbedo( TriangleIntersection, result.yzw * 3.0f );
 		SetHitRoughness( TriangleIntersection, 0.0f );
-		SetHitDistance( TriangleIntersection, result.x );
+		SetHitDistance( TriangleIntersection, result.x > MAX_DIST ? MAX_DIST : result.x );
 		SetHitMaterial( TriangleIntersection, EMISSIVE );
 
 		const vec3 normal = normalize( cross( p0 - p1, p0 - p2 ) );
