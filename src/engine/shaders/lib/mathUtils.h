@@ -88,3 +88,10 @@ uvec3 pcg3d( uvec3 v ) {
 
 	return v;
 }
+
+bool checkerBoard ( in float scale, in vec3 p ) {
+	return ( step( 0.0f,
+		cos( scale * pi * p.x + pi / 2.0f ) *
+		cos( scale * pi * p.y + pi / 2.0f ) *
+		cos( scale * pi * p.z + pi / 2.0f ) ) == 0 );
+}
