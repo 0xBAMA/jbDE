@@ -119,45 +119,45 @@ void LoadBVH ( icarusState_t &state ) {
 		state.vertices[ baseIdx + 2 ].w = state.modelLoader.triangles[ i ].c0.b;
 	}
 
-	const int baseOffset = state.modelLoader.triangles.size();
-	rngN radiusDistribution = rngN( 4.0f, 0.3f );
-	rng spanDistribution = rng( 0.0f, 2.0f * pi );
-	rng colorDistribution = rng( 0.0f, 1.0f );
-	rngN fineDistribution = rngN( 0.3f, 0.1f );
+	// const int baseOffset = state.modelLoader.triangles.size();
+	// rngN radiusDistribution = rngN( 4.0f, 0.3f );
+	// rng spanDistribution = rng( 0.0f, 2.0f * pi );
+	// rng colorDistribution = rng( 0.0f, 1.0f );
+	// rngN fineDistribution = rngN( 0.3f, 0.1f );
 
-	int baseIdx = baseOffset;
+	// int baseIdx = baseOffset;
 
-	for ( int ring = 0; ring < 10; ring++ ){
-		palette::PickRandomPalette( true );
-		for ( int i = 0; i < numRandomTriangles / 10.0f; i++ ) {
+	// for ( int ring = 0; ring < 10; ring++ ){
+	// 	palette::PickRandomPalette( true );
+	// 	for ( int i = 0; i < numRandomTriangles / 10.0f; i++ ) {
 
-			const float radius = radiusDistribution();
-			const float span = spanDistribution();
-			vec3 basePoint = vec3( radius * cos( span ), radius * sin( span ), colorDistribution() + 2.0f * ring );
+	// 		const float radius = radiusDistribution();
+	// 		const float span = spanDistribution();
+	// 		vec3 basePoint = vec3( radius * cos( span ), radius * sin( span ), colorDistribution() + 2.0f * ring );
 
-			// add the triangles to the BVH
-			state.vertices[ baseIdx + 0 ].x = basePoint.x + fineDistribution();
-			state.vertices[ baseIdx + 0 ].y = basePoint.y + fineDistribution();
-			state.vertices[ baseIdx + 0 ].z = basePoint.z + fineDistribution();
+	// 		// add the triangles to the BVH
+	// 		state.vertices[ baseIdx + 0 ].x = basePoint.x + fineDistribution();
+	// 		state.vertices[ baseIdx + 0 ].y = basePoint.y + fineDistribution();
+	// 		state.vertices[ baseIdx + 0 ].z = basePoint.z + fineDistribution();
 
-			state.vertices[ baseIdx + 1 ].x = basePoint.x + fineDistribution();
-			state.vertices[ baseIdx + 1 ].y = basePoint.y + fineDistribution();
-			state.vertices[ baseIdx + 1 ].z = basePoint.z + fineDistribution();
+	// 		state.vertices[ baseIdx + 1 ].x = basePoint.x + fineDistribution();
+	// 		state.vertices[ baseIdx + 1 ].y = basePoint.y + fineDistribution();
+	// 		state.vertices[ baseIdx + 1 ].z = basePoint.z + fineDistribution();
 
-			state.vertices[ baseIdx + 2 ].x = basePoint.x + fineDistribution();
-			state.vertices[ baseIdx + 2 ].y = basePoint.y + fineDistribution();
-			state.vertices[ baseIdx + 2 ].z = basePoint.z + fineDistribution();
+	// 		state.vertices[ baseIdx + 2 ].x = basePoint.x + fineDistribution();
+	// 		state.vertices[ baseIdx + 2 ].y = basePoint.y + fineDistribution();
+	// 		state.vertices[ baseIdx + 2 ].z = basePoint.z + fineDistribution();
 
-			// pass color in .a
-			// const vec3 color = vec3( colorDistribution(), colorDistribution(), colorDistribution() );
-			const vec3 color =  palette::paletteRef( colorDistribution() );
-			state.vertices[ baseIdx + 0 ].w = color.r;
-			state.vertices[ baseIdx + 1 ].w = color.g;
-			state.vertices[ baseIdx + 2 ].w = color.b;
+	// 		// pass color in .a
+	// 		// const vec3 color = vec3( colorDistribution(), colorDistribution(), colorDistribution() );
+	// 		const vec3 color =  palette::paletteRef( colorDistribution() );
+	// 		state.vertices[ baseIdx + 0 ].w = color.r;
+	// 		state.vertices[ baseIdx + 1 ].w = color.g;
+	// 		state.vertices[ baseIdx + 2 ].w = color.b;
 
-			baseIdx += 3;
-		}
-	}
+	// 		baseIdx += 3;
+	// 	}
+	// }
 
 	// build the bvh from the list of triangles
 	state.bvh.Build( state.vertices, numTriangles );
