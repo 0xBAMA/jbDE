@@ -160,7 +160,6 @@ void main () {
 		const vec3 normal = solvedNormal;
 		SetHitFrontface( TinyBVHIntersection, ( dot( GetRayDirection( myState ), normal ) > 0 ) );
 		SetHitNormal( TinyBVHIntersection, GetHitFrontface( TinyBVHIntersection ) ? -normal : normal );
-		SetHitIntersector( TinyBVHIntersection, TRIANGLEHIT );
 
 		// write it back to the buffer
 		if ( hit.x > 0.0f ) {

@@ -120,15 +120,15 @@ void main () {
 
 		// fill out intersection struct
 		intersection_t VolumeIntersection;
+		VolumeIntersection.data1.x = 0.0f; // supressing warning
 		IntersectionReset( VolumeIntersection );
 
 		SetHitAlbedo( VolumeIntersection, transmission );
 		SetHitRoughness( VolumeIntersection, 0.0f );
 		SetHitDistance( VolumeIntersection, hitDistance );
 
-		// SetHitMaterial( VolumeIntersection, VOLUME ); // this doesn't really mean anything (should it?)
+		SetHitMaterial( VolumeIntersection, VOLUME );
 		// SetHitNormal( VolumeIntersection, ... ); // normal doesn't really mean anything here
-		SetHitIntersector( VolumeIntersection, VOLUMEHIT ); // this is the key delineation... material seems better, tbd
 
 		if ( hit ) { // this ray hits in the specified range, write back to the buffer
 			const int index = int( gl_GlobalInvocationID.x ) * NUM_INTERSECTORS + INTERSECT_VOLUME;

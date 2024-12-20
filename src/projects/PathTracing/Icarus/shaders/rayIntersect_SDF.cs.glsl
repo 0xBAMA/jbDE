@@ -356,7 +356,6 @@ void main () {
 		SetHitFrontface( SDFIntersection, true );
 
 		SetHitMaterial( SDFIntersection, hitSurfaceType );
-		SetHitIntersector( SDFIntersection, SDFHIT ); // this is questionable... what is it for? we know implicitly by index
 
 		// store it at the correct strided location
 		if ( de( origin + t * direction ) < epsilon ) {

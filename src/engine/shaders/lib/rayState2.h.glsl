@@ -1,12 +1,6 @@
 // rayState_t/intersection_t setup for Icarus (Rev. 2)
 //	Second revision splits the structs into two separate pieces, for better parallel scalability (barrier removal + gather)
 //=============================================================================================================================
-// intersection types...
-#define NOHIT				0
-#define SDFHIT				1
-#define TRIANGLEHIT			2
-#define VOLUMEHIT			3
-//=============================================================================================================================
 // something to abstract the buffer stride stuff... tbd
 #define INTERSECT_SDF		0
 #define INTERSECT_TRIANGLE	1
@@ -73,14 +67,14 @@ void StateReset ( inout rayState_t rayState ) {
 struct intersection_t {
 	vec4 data1; // normal vector in .xyz, distance to hit in .w
 	vec4 data2; // albedo of hit in .xyz, roughness in .w
-	vec4 data3; // .x type of material, type of intersector (needed? implicit in offset) .y, IoR .z, frontface .w
+	vec4 data3; // .x type of material, IoR .y, frontface .z, .w unused
 	vec4 data4; // unused
 };
 //=============================================================================================================================
 void SetHitNormal		( inout intersection_t intersection, vec3 normal )		{ intersection.data1.xyz = normal; }
 vec3 GetHitNormal		( intersection_t intersection )							{ return intersection.data1.xyz; }
 
-void SetHitDistance		( inout intersection_t intersection, float dist )		{ intersection.data1.w = dist; }
+void SetHitDistance		( inout intersection_t intersection, float dist )		{ intersection.data1.w = clamp( dist, 0.0f, MAX_DIST ); }
 float GetHitDistance	( intersection_t intersection )							{ return intersection.data1.w; }
 
 void SetHitAlbedo		( inout intersection_t intersection, vec3 albedo )		{ intersection.data2.xyz = albedo; }
@@ -92,19 +86,16 @@ float GetHitRoughness	( intersection_t intersection )							{ return intersectio
 void SetHitMaterial		( inout intersection_t intersection, int material )		{ intersection.data3.x = float( material ); }
 int GetHitMaterial		( intersection_t intersection )							{ return int( intersection.data3.x ); }
 
-void SetHitIntersector	( inout intersection_t intersection, int intersector )	{ intersection.data3.y = float( intersector ); }
-int GetHitIntersector	( intersection_t intersection )							{ return int( intersection.data3.y ); }
+void SetHitIoR			( inout intersection_t intersection, float IoR )		{ intersection.data3.y = IoR; }
+float GetHitIoR			( intersection_t intersection )							{ return intersection.data3.y; }
 
-void SetHitIoR			( inout intersection_t intersection, float IoR )		{ intersection.data3.z = IoR; }
-float GetHitIoR			( intersection_t intersection )							{ return intersection.data3.z; }
-
-void SetHitFrontface	( inout intersection_t intersection, bool frontface )	{ intersection.data3.w = frontface ? 1.0f : 0.0f; }
-bool GetHitFrontface	( intersection_t intersection )							{ return ( intersection.data3.w == 1.0f ); }
+void SetHitFrontface	( inout intersection_t intersection, bool frontface )	{ intersection.data3.z = frontface ? 1.0f : 0.0f; }
+bool GetHitFrontface	( intersection_t intersection )							{ return ( intersection.data3.z == 1.0f ); }
 //=============================================================================================================================
 void IntersectionReset ( inout intersection_t intersection ) {
 	intersection.data1 = intersection.data2 = intersection.data3 = intersection.data4 = vec4( 0.0f );
 
 	// what are sane defaults?
-	SetHitDistance( intersection, MAX_DIST );
-	SetHitIntersector( intersection, NOHIT );
+	SetHitDistance( intersection, MAX_DIST + 1.0f );
+	SetHitMaterial( intersection, NONE );
 }

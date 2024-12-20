@@ -50,18 +50,21 @@ void main () {
 
 		// fill out the intersection struct
 		intersection_t TriangleIntersection;
+		TriangleIntersection.data1.x = 0.0f; // suppressing warning
 		IntersectionReset( TriangleIntersection );
 
 		// set color based on barycentrics
-		SetHitAlbedo( TriangleIntersection, result.yzw * 3.0f );
-		SetHitRoughness( TriangleIntersection, 0.0f );
-		SetHitDistance( TriangleIntersection, result.x > MAX_DIST ? MAX_DIST : result.x );
+		// SetHitAlbedo( TriangleIntersection, ( ( result.z < 0.1f ) ? vec3( 2.0f ) : result.yzw * vec3( 1.0f, 0.0f, 0.0f ) ) );
+		// SetHitAlbedo( TriangleIntersection, vec3( 5.0f ) );
+		SetHitAlbedo( TriangleIntersection, result.yzw * 2.0f );
+		// SetHitAlbedo( TriangleIntersection, mix( mix( blood, honey, result.y ), aqua, result.z ) * 2.0f );
+		SetHitRoughness( TriangleIntersection, 0.1f );
+		SetHitDistance( TriangleIntersection, result.x );
 		SetHitMaterial( TriangleIntersection, EMISSIVE );
 
 		const vec3 normal = normalize( cross( p0 - p1, p0 - p2 ) );
 		SetHitFrontface( TriangleIntersection, ( dot( GetRayDirection( myState ), normal ) > 0 ) );
 		SetHitNormal( TriangleIntersection, GetHitFrontface( TriangleIntersection ) ? normal : -normal );
-		SetHitIntersector( TriangleIntersection, TRIANGLEHIT );
 
 		// write it back to the buffer
 		if ( hit ) {
