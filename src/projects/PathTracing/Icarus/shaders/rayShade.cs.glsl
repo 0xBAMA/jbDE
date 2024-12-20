@@ -2,6 +2,8 @@
 layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 //=============================================================================================================================
 #include "random.h"
+#include "noise.h"
+#include "oklabConversions.h.glsl"
 //=============================================================================================================================
 // ray state buffers
 #include "rayState2.h.glsl"
@@ -46,6 +48,7 @@ void main () {
 	seed = uint( loc.x ) * 10625 + uint( loc.y ) * 23624 + gl_GlobalInvocationID.x * 42069;
 
 	intersection_t closestIntersection;
+	closestIntersection.data1.x = 0.0f; // supressing warning
 	IntersectionReset( closestIntersection );
 
 	// We need to do a gather over the N intersection cantidates to find the closest, similar to the Daedalus impl
@@ -57,53 +60,38 @@ void main () {
 		}
 	}
 
-	if ( GetHitIntersector( closestIntersection ) == NOHIT ) {
+	// we need to generate a new ray, and continue
+	const vec3 origin = GetRayOrigin( myState );
+	const vec3 direction = GetRayDirection( myState );
+	const float dist = GetHitDistance( closestIntersection );
+	const vec3 normal = GetHitNormal( closestIntersection );
+	const vec3 albedo = GetHitAlbedo( closestIntersection );
+	const float roughness = GetHitRoughness( closestIntersection );
 
-		// if you didn't any object in the scene, we're saying you hit the skybox
-			// this is probably going to be setup very similar to the rectilinear map from Daedalus
-		terminate = true;
-		const float mixFactor = dot( normalize( vec3( 0.0f, 2.0f, 1.0f ) ), GetRayDirection( myState ) );
-		const vec3 color = vec3( smoothstep( 0.18f, 0.9f, mixFactor ) * 5.0f );
-		// const vec3 color = vec3( 0.0f );
+	// material identifier
+	const int materialID = GetHitMaterial( closestIntersection );
 
-		AddEnergy( myState, GetTransmission( myState ) * color );
+	// precomputing the new vectors
+	const vec3 diffuseVector = cosWeightedRandomHemisphereDirection( normal );
+	const vec3 reflectedVector = reflect( direction, normal );
 
-	} else if ( GetHitIntersector( closestIntersection ) == VOLUMEHIT ) {
+	// update origin point + epsilon bump (need to exclude epsilon bump for volumetrics, refractive hits)
+	SetRayOrigin( myState, origin + dist * direction + ( ( materialID != REFRACTIVE ) ? ( 2.0f * epsilon * normal ) : vec3( 0.0f ) ) );
 
-		// // from Nikolay
-		// vec3 other = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() ) * 2.0f - 1.0f;
-		// SetRayDirection( myState, normalize( other + anglePhong( 1800.0f, GetRayDirection( myState ) ) * 0.15f ) );
+	switch ( materialID ) {
+		case NONE: {
+			// if you didn't any object in the scene, we're saying you hit the skybox
+				// this is probably going to be setup very similar to the rectilinear map from Daedalus
+			if ( GetHitDistance( closestIntersection ) == MAX_DIST ) {
+				terminate = true;
+				const float mixFactor = dot( normalize( vec3( 0.0f, 0.0f, 1.0f ) ), GetRayDirection( myState ) );
+				// const vec3 color = vec3( * 1.0f );
+				// const vec3 color = oklch_to_srgb( vec3( smoothstep( 0.8f, 0.9f, mixFactor ), 0.5f, atan( direction.x, direction.y ) ) );
+				const vec3 color = vec3( 0.0f );
 
-		SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( closestIntersection ) * GetRayDirection( myState ) );
-		SetRayDirection( myState, normalize( 0.1f * GetRayDirection( myState ) + RandomUnitVector() ) );
-		// SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
-		// SetRayDirection( myState, normalize( GetRayDirection( myState ) * RandomUnitVector() ) );
-		// SetRayDirection( myState, normalize( anglePhong( 100.0f, GetRayDirection( myState ) ) ) );
-		SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( closestIntersection ) );
-
-	} else {
-	// material handling...
-
-		// we need to generate a new ray, and continue
-		const vec3 origin = GetRayOrigin( myState );
-		const vec3 direction = GetRayDirection( myState );
-		const float dist = GetHitDistance( closestIntersection );
-		const vec3 normal = GetHitNormal( closestIntersection );
-		const vec3 albedo = GetHitAlbedo( closestIntersection );
-		const float roughness = GetHitRoughness( closestIntersection );
-
-		// material identifier
-		const int materialID = GetHitMaterial( closestIntersection );
-
-		// precomputing the new vectors
-		const vec3 diffuseVector = cosWeightedRandomHemisphereDirection( normal );
-		const vec3 reflectedVector = reflect( direction, normal );
-
-		// update origin point + epsilon bump (need to exclude epsilon bump for volumetrics, refractive hits)
-		SetRayOrigin( myState, origin + dist * direction + ( ( materialID != REFRACTIVE ) ? ( 2.0f * epsilon * normal ) : vec3( 0.0f ) ) );
-
-		switch ( materialID ) {
-		case NONE: {}// tbd, this might go away
+				AddEnergy( myState, GetTransmission( myState ) * color );
+			}
+		}
 		break;
 		//=====================================================================
 		case DIFFUSE: { // lambertian diffuse reflection
@@ -145,10 +133,23 @@ void main () {
 			}
 		}
 		break;
+		//=====================================================================
+		case VOLUME: {
+			// // from Nikolay
+			// vec3 other = vec3( NormalizedRandomFloat(), NormalizedRandomFloat(), NormalizedRandomFloat() ) * 2.0f - 1.0f;
+			// SetRayDirection( myState, normalize( other + anglePhong( 1800.0f, GetRayDirection( myState ) ) * 0.15f ) );
 
+			SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( closestIntersection ) * GetRayDirection( myState ) );
+			// SetRayDirection( myState, normalize( 0.1f * GetRayDirection( myState ) + RandomUnitVector() ) );
+			SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
+			// SetRayDirection( myState, normalize( GetRayDirection( myState ) * RandomUnitVector() ) );
+			// SetRayDirection( myState, normalize( anglePhong( 100.0f, GetRayDirection( myState ) ) ) );
+			SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( closestIntersection ) );
+		}
+		break;
+		//=====================================================================
 		default: {}
 		break;
-		}
 	}
 
 	// russian roulette termination

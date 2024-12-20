@@ -4,6 +4,7 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 #include "random.h"
 #include "pbrConstants.glsl"
 #include "rayState2.h.glsl"
+#include "noise.h"
 //=============================================================================================================================
 layout( binding = 1, std430 ) readonly buffer rayState { rayState_t state[]; };
 layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
