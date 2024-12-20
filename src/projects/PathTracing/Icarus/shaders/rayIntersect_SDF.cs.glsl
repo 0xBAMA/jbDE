@@ -253,6 +253,15 @@ float deFlakes(vec3 p){
   return o;
 }
 
+
+ float deGAZ(vec3 p){
+    float s=1., e, offset=0.26; // vary between 0 and 1
+    for(int i=0;i++<5;){
+      s*=e=2./min(dot(p,p),1.);
+      p=abs(p)*e-vec3(1,10.*offset,1);
+    }
+    return length(max(abs(p)-1.,0.))/s;
+  }
 //=============================================================================================================================
 const float raymarchMaxDistance = 1000.0f;
 const float raymarchUnderstep = 0.9f;
@@ -286,20 +295,21 @@ float de ( vec3 p ) {
 
 	// {
 	// 	const float scale = 2.0f;
-	// 	const float d = max( fBox( p, bboxSize ), deLeaf( p * scale ) / scale );
+	// 	const float d = max( fBox( p, bboxSize ), deGAZ( p * scale ) / scale );
 	// 	sceneDist = min( sceneDist, d );
 	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = DIFFUSE;
+	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? MIRROR : DIFFUSE;
 	// 		hitColor = vec3( 0.9f );
 	// 	}
 	// }
 
 	{
-		const float d = fBox( p, vec3( 0.1f, 0.1f, 25.0f ) );
+		pModInterval1( p.y, 0.08f, -2.0f, 2.0f );
+		const float d = fBox( p, vec3( 0.01f, 0.01f, 25.0f ) );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
 			hitSurfaceType = EMISSIVE;
-			hitColor = vec3( 1.5f );
+			hitColor = vec3( 1.5f ) * blood;
 		}
 	}
 

@@ -134,28 +134,32 @@ void main () {
 		TinyBVHIntersection.data1.x = 0.0f; // suppressing warning
 		IntersectionReset( TinyBVHIntersection );
 
-		const uint baseIdx = floatBitsToUint( hit.a ) * 3;
+		const uint primitiveIdx = floatBitsToUint( hit.a );
+		const uint baseIdx = primitiveIdx * 3;
 		vec3 color = vec3(
 			verts[ baseIdx + 0 ].a,
 			verts[ baseIdx + 1 ].a,
 			verts[ baseIdx + 2 ].a
 		);
 
-		// const vec3 p = hit.x * GetRayDirection( myState ) + GetRayOrigin( myState );
-		// const float scale2 = 30.0f;
-		// bool blackOrWhite = ( step( 0.0f,
-		// 	cos( scale2 * pi * p.x + pi / 2.0f ) *
-		// 	cos( scale2 * pi * p.y + pi / 2.0f ) *
-		// 	cos( scale2 * pi * p.z + pi / 2.0f ) ) == 0 );
+		vec3 p = hit.x * GetRayDirection( myState ) + GetRayOrigin( myState );
 
 		// SetHitAlbedo( TinyBVHIntersection, color );
-		SetHitAlbedo( TinyBVHIntersection, vec3( 1.0f ) );
-		SetHitRoughness( TinyBVHIntersection, 0.0f );
-		SetHitDistance( TinyBVHIntersection, hit.x > MAX_DIST ? MAX_DIST : hit.x );
-		// SetHitMaterial( TinyBVHIntersection, ( ( baseIdx / 3 ) % 20 != 0 ) ? ( NormalizedRandomFloat() < 0.25f ) ? MIRROR : DIFFUSE : ( EMISSIVE ) );
+		// SetHitAlbedo( TinyBVHIntersection, iron );
+		SetHitAlbedo( TinyBVHIntersection, vec3( 0.95f ) );
+		SetHitDistance( TinyBVHIntersection, hit.x  );
+		// SetHitMaterial( TinyBVHIntersection, ( NormalizedRandomFloat() > 0.33f ) ? DIFFUSE : MIRROR );
 		SetHitMaterial( TinyBVHIntersection, REFRACTIVE );
+		// SetHitMaterial( TinyBVHIntersection, MIRROR );
+		// SetHitMaterial( TinyBVHIntersection, DIFFUSE );
 		SetHitRoughness( TinyBVHIntersection, 0.0f );
-		SetHitIoR( TinyBVHIntersection, 1.5f );
+		SetHitIoR( TinyBVHIntersection, 1.0f / 1.8 );
+		// SetHitIoR( TinyBVHIntersection, 1.8f );
+
+		// if ( primitiveIdx % 181 == 0 ) {
+		// 	SetHitMaterial( TinyBVHIntersection, EMISSIVE );
+		// 	SetHitAlbedo( TinyBVHIntersection, ( primitiveIdx % 2 != 0 ) ? vec3( 5.0f ) : ( 5.0f * vec3( hit.y, hit.z, 1.0f - hit.y - hit.z ) ) );
+		// }
 
 		const vec3 normal = solvedNormal;
 		SetHitFrontface( TinyBVHIntersection, ( dot( GetRayDirection( myState ), normal ) > 0 ) );

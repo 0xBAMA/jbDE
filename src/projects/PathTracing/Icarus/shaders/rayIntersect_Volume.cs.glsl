@@ -38,18 +38,12 @@ float GetVolumeDensity( ivec3 pos ) {
 	vec3 p = pos / scaleFactor;
 	vec3 pOriginal = p; // for SDF usage
 
-	// const float scale = 0.1618f;
-	// bool blackOrWhite = ( step( 0.0f,
-	// 	cos( scale * pi * p.x + pi / 2.0f ) *
-	// 	cos( scale * pi * p.y + pi / 2.0f ) *
-	// 	cos( scale * pi * p.z + pi / 2.0f ) ) == 0 );
-
-	const vec3 bboxSize = vec3( 5.0f, 5.0f, 22.0f );
+	const vec3 bboxSize = vec3( 10.0f );
 	const float bboxDist = fBox( p, bboxSize );
 
 	if ( bboxDist < 0.0f ) {
-		scatterColor = sapphire;
-		density = 0.618f;
+		scatterColor = vec3( 0.8f );
+		density = 10.0f;
 	} else {
 		density = 0.0f;
 	}
