@@ -4,7 +4,6 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 #include "random.h"
 #include "pbrConstants.glsl"
 #include "rayState2.h.glsl"
-#include "noise.h"
 //=============================================================================================================================
 layout( binding = 1, std430 ) readonly buffer rayState { rayState_t state[]; };
 layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
@@ -33,12 +32,9 @@ layout( binding = 4, std430 ) readonly buffer indices { uint idx[]; };
 layout( binding = 5, std430 ) readonly buffer vertices { vec4 verts[]; }; // eventually extend to contain other material info
 
 // ============================================================================
-
-//        T R A V E R S E _ A I L A L A I N E
-
+//	T R A V E R S E _ A I L A L A I N E
+//		x is d, yz is u and v, w is the index of the primitive in the list, uint bits in a float variable
 // ============================================================================
-
-// xyz normal... w is distance
 vec3 solvedNormal;
 vec4 traverse_ailalaine ( rayState_t rayState ) {
 	const vec3 O = GetRayOrigin( rayState );
@@ -60,6 +56,8 @@ vec4 traverse_ailalaine ( rayState_t rayState ) {
 			const uint firstTri = floatBitsToUint( rmax.w );
 			for ( uint i = 0; i < triCount; i++ ) {
 				const uint triIdx = idx[ firstTri + i ];
+
+				// ======================================================================
 				// triangle intersection - M�ller-Trumbore
 				const vec4 edge1 = verts[ 3 * triIdx + 1 ] - verts[ 3 * triIdx + 0 ];
 				const vec4 edge2 = verts[ 3 * triIdx + 2 ] - verts[ 3 * triIdx + 0 ];
@@ -147,15 +145,15 @@ void main () {
 
 		// SetHitAlbedo( TinyBVHIntersection, color );
 		// SetHitAlbedo( TinyBVHIntersection, iron );
-		SetHitAlbedo( TinyBVHIntersection, vec3( 0.95f ) );
+		SetHitAlbedo( TinyBVHIntersection, vec3( 0.8f ) );
 		SetHitDistance( TinyBVHIntersection, hit.x  );
 		// SetHitMaterial( TinyBVHIntersection, ( NormalizedRandomFloat() > 0.33f ) ? DIFFUSE : MIRROR );
 		SetHitMaterial( TinyBVHIntersection, REFRACTIVE );
 		// SetHitMaterial( TinyBVHIntersection, MIRROR );
 		// SetHitMaterial( TinyBVHIntersection, DIFFUSE );
-		SetHitRoughness( TinyBVHIntersection, 0.0f );
-		SetHitIoR( TinyBVHIntersection, 1.0f / 1.8 );
-		// SetHitIoR( TinyBVHIntersection, 1.8f );
+		SetHitRoughness( TinyBVHIntersection, 0.001f );
+
+		float IoR = 1.3f;
 
 		// if ( primitiveIdx % 181 == 0 ) {
 		// 	SetHitMaterial( TinyBVHIntersection, EMISSIVE );
@@ -164,7 +162,10 @@ void main () {
 
 		const vec3 normal = solvedNormal;
 		SetHitFrontface( TinyBVHIntersection, ( dot( GetRayDirection( myState ), normal ) > 0 ) );
-		SetHitNormal( TinyBVHIntersection, GetHitFrontface( TinyBVHIntersection ) ? -normal : normal );
+
+		bool frontface = GetHitFrontface( TinyBVHIntersection );
+		SetHitNormal( TinyBVHIntersection, frontface ? normal : -normal );
+		SetHitIoR( TinyBVHIntersection, frontface ? IoR : ( 1.0f / IoR ) );
 
 		// write it back to the buffer
 		if ( hit.x > 0.0f ) {

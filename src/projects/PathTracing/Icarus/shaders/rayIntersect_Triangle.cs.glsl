@@ -56,8 +56,8 @@ void main () {
 		// set color based on barycentrics
 		// SetHitAlbedo( TriangleIntersection, ( ( result.z < 0.1f ) ? vec3( 2.0f ) : result.yzw * vec3( 1.0f, 0.0f, 0.0f ) ) );
 		// SetHitAlbedo( TriangleIntersection, vec3( 5.0f ) );
-		SetHitAlbedo( TriangleIntersection, result.yzw * 2.0f );
-		// SetHitAlbedo( TriangleIntersection, mix( mix( blood, honey, result.y ), aqua, result.z ) * 2.0f );
+		// SetHitAlbedo( TriangleIntersection, result.yzw * 2.0f );
+		SetHitAlbedo( TriangleIntersection, mix( mix( blood, honey, result.y ), aqua, result.z ) * 2.0f );
 		SetHitRoughness( TriangleIntersection, 0.1f );
 		SetHitDistance( TriangleIntersection, result.x );
 		SetHitMaterial( TriangleIntersection, EMISSIVE );

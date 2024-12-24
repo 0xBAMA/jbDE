@@ -42,8 +42,8 @@ float GetVolumeDensity( ivec3 pos ) {
 	const float bboxDist = fBox( p, bboxSize );
 
 	if ( bboxDist < 0.0f ) {
-		scatterColor = vec3( 0.8f );
-		density = 10.0f;
+		scatterColor = sapphire;
+		density = 1.0f;
 	} else {
 		density = 0.0f;
 	}
@@ -91,18 +91,8 @@ void main () {
 
 			if ( NormalizedRandomFloat() > density ) {
 
-			// materials stuff:
-				// // ============================================================================
-				// // transmission attenuates by the density
-				// 	transmission *= saturate( density );
-				transmission = saturate( density ) * scatterColor;
-				// transmission = 0.99f;
-				// // ============================================================================
-				// // direction - positive rdWeight means forward scatter, 0 is random scatter, negative is backscatter
-				// 	rayDirection = normalize( viewerScatterWeight * rayDirection + RandomUnitVector() );
-				// // ============================================================================
-
 				hit = true;
+				transmission = saturate( density ) * scatterColor;
 				hitDistance = length( ivec3( floor( startPos ) ) - mapPos0 ) / scaleFactor;
 
 			} else {

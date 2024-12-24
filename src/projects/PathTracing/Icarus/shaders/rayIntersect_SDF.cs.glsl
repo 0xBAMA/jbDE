@@ -11,6 +11,8 @@ layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection
 #include "colorRamps.glsl.h"
 #include "twigl.glsl"
 #include "pbrConstants.glsl"
+#include "mathUtils.h"
+#include "noise.h"
 //=============================================================================================================================
 // basic raymarch stuff
 vec3 Rotate ( vec3 z,float AngPFXY,float AngPFYZ,float AngPFXZ ) {
@@ -262,6 +264,49 @@ float deFlakes(vec3 p){
     }
     return length(max(abs(p)-1.,0.))/s;
   }
+
+mat2 rotGG(float r){
+  vec2 s = vec2(cos(r),sin(r));
+  return mat2(s.x,s.y,-s.y,s.x);
+}
+float cube(vec3 p,vec3 s){
+  vec3 q = abs(p);
+  vec3 m = max(s-q,0.);
+  return length(max(q-s,0.))-min(min(m.x,m.y),m.z);
+}
+float tet(vec3 p,vec3 offset,float scale){
+  vec4 z = vec4(p,1.);
+  for(int i = 0;i<12;i++){
+    if(z.x+z.y<0.0)z.xy = -z.yx;
+    if(z.x+z.z<0.0)z.xz = -z.zx;
+    if(z.z+z.y<0.0)z.zy = -z.yz;
+    z *= scale;
+    z.xyz += offset*(1.0-scale);
+  }
+  return (cube(z.xyz,vec3(1.5)))/z.w;
+}
+float deGAZ2(vec3 p){
+  p.xy *= rotGG(pi);
+
+  float np = 2.*pi/24.;
+  float r = atan(p.x,p.z)-0.5*np;
+  r = mod(r,np)-0.5*np;
+  p.xz = length(p.xz)*vec2(cos(r),sin(r));
+
+  p.x -= 5.1;
+  p.xy *= rotGG(0.3);
+  p.xz *= rotGG(0.25*pi);
+
+  p.yz *= rotGG(pi*0.5);
+  float s =1.;
+  p.z = abs(p.z)-3.;
+  p = abs(p)-s*8.;
+  p = abs(p)-s*4.;
+  p = abs(p)-s*2.;
+  p = abs(p)-s*1.;
+  vec3 col = vec3(0.082,0.647,0.894);
+  return tet(p,vec3(1),1.8);
+}
 //=============================================================================================================================
 const float raymarchMaxDistance = 1000.0f;
 const float raymarchUnderstep = 0.9f;
@@ -291,27 +336,33 @@ float de ( vec3 p ) {
 
 	// return sceneDist;
 
-	const vec3 bboxSize = vec3( 10.0f );
-
-	// {
-	// 	const float scale = 2.0f;
-	// 	const float d = max( fBox( p, bboxSize ), deGAZ( p * scale ) / scale );
-	// 	sceneDist = min( sceneDist, d );
-	// 	if ( sceneDist == d && d < epsilon ) {
-	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.2f ) ? MIRROR : DIFFUSE;
-	// 		hitColor = vec3( 0.9f );
-	// 	}
-	// }
+	const vec3 bboxSize = vec3( 3.0f );
 
 	{
-		pModInterval1( p.y, 0.08f, -2.0f, 2.0f );
-		const float d = fBox( p, vec3( 0.01f, 0.01f, 25.0f ) );
+		const float scale = 2.0f;
+		const float d = max( fBox( p, bboxSize ), deKali( p * scale ) / scale );
+		// const float d = deGAZ( p * scale ) / scale;
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = EMISSIVE;
-			hitColor = vec3( 1.5f ) * blood;
+			hitSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? DIFFUSE : MIRROR;
+			hitColor = checkerBoard( 10.0f, p ) ? vec3( nvidia ) : mix( vec3( 0.618f ), blood * 0.5f, vec3( 0.5f ) + ( curlNoise( p ).r + 1.0f ) * 0.1f );
+
+			if ( mod( p.y, 0.75f ) < 0.1f ) {
+				hitSurfaceType = EMISSIVE;
+				hitColor = vec3( 1.0f );
+			}
 		}
 	}
+
+	// {
+	// 	// pModInterval1( p.y, 0.08f, -2.0f, 2.0f );
+	// 	const float d = fBox( p.yzx, vec3( 0.01f, 0.01f, 25.0f ) );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = checkerBoard() ? EMISSIVE : DIFFUSE;
+	// 		hitColor = checkerBoard( 0.1f, p ) ? vec3( 1.5f ) : blood;
+	// 	}
+	// }
 
 	return sceneDist;
 }

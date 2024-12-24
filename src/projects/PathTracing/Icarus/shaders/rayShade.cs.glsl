@@ -85,8 +85,8 @@ void main () {
 			if ( GetHitDistance( closestIntersection ) == MAX_DIST ) {
 				terminate = true;
 				const float mixFactor = dot( normalize( vec3( 0.0f, 0.0f, 1.0f ) ), GetRayDirection( myState ) );
-				// const vec3 color = vec3( * 1.0f );
 				// const vec3 color = oklch_to_srgb( vec3( smoothstep( 0.8f, 0.9f, mixFactor ), 0.5f, atan( direction.x, direction.y ) ) );
+				// const vec3 color = vec3( smoothstep( 0.8f, 0.9f, mixFactor ) );
 				const vec3 color = vec3( 0.0f );
 
 				AddEnergy( myState, GetTransmission( myState ) * color );
@@ -116,11 +116,13 @@ void main () {
 			SetTransmission( myState, GetTransmission( myState ) * albedo ); // representing colored glass
 			float adjustedIOR = GetHitIoR( closestIntersection ); // initial value of IoR
 			vec3 adjustedNormal = normal;
+
+			SetRayOrigin( myState, GetRayOrigin( myState ) - 2.0f * epsilon * adjustedNormal );
 			if ( GetHitFrontface( closestIntersection ) ) {
-				SetRayOrigin( myState, GetRayOrigin( myState ) - 2.0f * epsilon * adjustedNormal );
+
 			} else { // backface has to handle things a little differently
-				SetRayOrigin( myState, GetRayOrigin( myState ) + 2.0f * epsilon * adjustedNormal );
-				adjustedNormal = -adjustedNormal;
+				// SetRayOrigin( myState, GetRayOrigin( myState ) + 2.0f * epsilon * adjustedNormal );
+				// adjustedNormal = -adjustedNormal;
 				adjustedIOR = 1.0f / adjustedIOR;
 			}
 			float cosTheta = min( dot( -normalize( direction ), adjustedNormal ), 1.0f );
@@ -141,7 +143,7 @@ void main () {
 
 			SetRayOrigin( myState, GetRayOrigin( myState ) + GetHitDistance( closestIntersection ) * GetRayDirection( myState ) );
 			// SetRayDirection( myState, normalize( 0.1f * GetRayDirection( myState ) + RandomUnitVector() ) );
-			SetRayDirection( myState, normalize( 2.0f * GetRayDirection( myState ) + RandomUnitVector() ) );
+			SetRayDirection( myState, normalize( 0.25f * GetRayDirection( myState ) + RandomUnitVector() ) );
 			// SetRayDirection( myState, normalize( GetRayDirection( myState ) * RandomUnitVector() ) );
 			// SetRayDirection( myState, normalize( anglePhong( 100.0f, GetRayDirection( myState ) ) ) );
 			SetTransmission( myState, GetTransmission( myState ) * GetHitAlbedo( closestIntersection ) );
