@@ -84,6 +84,20 @@ void LoadBVH ( icarusState_t &state ) {
 	// state.modelLoader.LoadModel( "../destroyed-warehouse-in-kaarina-finland/source/Destroyed_warehouse_in_Kaarina_Finland_SF/Destroyed_warehouse_in_Kaarina_Finland_SF.obj", "../" );
 
 
+	// happly::PLYData plyDataIn( "../ply/hodou.ply" );
+
+	// vector< double > xValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "x" );
+	// vector< double > yValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "y" );
+	// vector< double > zValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "z" );
+
+	// vector< uint8_t > rValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "red" );
+	// vector< uint8_t > gValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "green" );
+	// vector< uint8_t > bValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "blue" );
+
+	// cout << "there are: " << xValues.size() << " " << yValues.size() << " " << zValues.size() << " " << rValues.size() << " " << gValues.size() << " " << bValues.size() << endl;
+
+
+
 	cout << endl << "Model has " << state.modelLoader.triangles.size() << " tris" << endl;
 
 	// put it in some known span

@@ -113,6 +113,9 @@ using XMLDocument = tinyxml2::XMLDocument;
 // autocomplete stuff
 #include "../utils/autocomplete/DictionaryTrie.hpp"
 
+// .PLY file format I/O
+#include "../utils/happly/happly.h"
+
 //==== My Stuff ===============================================================
 // string insert thousands separator
 #include "../utils/thousands.h"
