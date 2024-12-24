@@ -42,43 +42,61 @@ void IcarusImguiWindow ( icarusState_t &state ) {
 	ImGui::Indent();
 	ImGui::Text( "Standard" );
 	if ( ImGui::SmallButton( " Preview " ) ){
-		state.dimensions.x = 160, state.dimensions.y = 90; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 160, state.dimensions.y = 90;
+		AllocateTextures( state );
 	}
 	ImGui::SameLine();
-	if ( ImGui::SmallButton( " 360p " ) )	{
-		state.dimensions.x = 640, state.dimensions.y = 360; AllocateTextures( state );
+	if ( ImGui::SmallButton( " 360p " ) ) {
+		state.forceUpdate = true;
+		state.dimensions.x = 640, state.dimensions.y = 360;
+		AllocateTextures( state );
 	}
 	ImGui::SameLine();
-	if ( ImGui::SmallButton( " 720p " ) )	{
-		state.dimensions.x = 1280, state.dimensions.y = 720; AllocateTextures( state );
+	if ( ImGui::SmallButton( " 720p " ) ) {
+		state.forceUpdate = true;
+		state.dimensions.x = 1280, state.dimensions.y = 720;
+		AllocateTextures( state );
 	}
 	ImGui::SameLine();
 	if ( ImGui::SmallButton( " 1080p " ) ){
-		state.dimensions.x = 1920, state.dimensions.y = 1080; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 1920, state.dimensions.y = 1080;
+		AllocateTextures( state );
 	}
 	ImGui::SameLine();
 	if ( ImGui::SmallButton( " 4K " ) )	{
-		state.dimensions.x = 3840, state.dimensions.y = 2160; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 3840, state.dimensions.y = 2160;
+		AllocateTextures( state );
 	}
 	ImGui::Unindent();
 	ImGui::Indent();
 	ImGui::Text( "Ultrawide" );
 	if ( ImGui::SmallButton( " Preview ##ultrawide" ) ){
-		state.dimensions.x = 768, state.dimensions.y = 144; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 768, state.dimensions.y = 144;
+		AllocateTextures( state );
 	}
 	ImGui::SameLine();
 	if ( ImGui::SmallButton( " Wallpaper ##ultrawide" ) ){
-		state.dimensions.x = 7680, state.dimensions.y = 1440; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 7680, state.dimensions.y = 1440;
+		AllocateTextures( state );
 	}
 	ImGui::Unindent();
 	ImGui::Indent();
 	ImGui::Text( "HDRI" ); // ouroboros
 	if ( ImGui::SmallButton( " Preview ##hdri" ) ){
-		state.dimensions.x = 256, state.dimensions.y = 128; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 256, state.dimensions.y = 128;
+		AllocateTextures( state );
 	}
 	ImGui::SameLine();
 	if ( ImGui::SmallButton( " 4k ##hdri" ) ){
-		state.dimensions.x = 4096, state.dimensions.y = 2048; AllocateTextures( state );
+		state.forceUpdate = true;
+		state.dimensions.x = 4096, state.dimensions.y = 2048;
+		AllocateTextures( state );
 	}
 	ImGui::Unindent();
 	ImGui::End();
