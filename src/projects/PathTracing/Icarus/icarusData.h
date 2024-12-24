@@ -43,9 +43,10 @@ struct icarusState_t {
 	// how are we generating primary ray locations
 	#define UNIFORM		0
 	#define GAUSSIAN	1
-	#define SHUFFLED	2
+	#define FOCUSED		2
+	#define SHUFFLED	3
 
-	int offsetFeedMode = SHUFFLED;
+	int offsetFeedMode = FOCUSED;
 	GLuint offsetsSSBO;
 	GLuint intersectionScratchSSBO;
 	bool forceUpdate = false;
@@ -409,6 +410,29 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 			do {
 				offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
 			} while ( offset.x >= state.dimensions.x || offset.x < 0 || offset.y >= state.dimensions.y || offset.y < 0 );
+			break;
+		}
+
+		case FOCUSED: {
+			const int updateRate = 4;
+			static int count = state.numRays;
+			static ivec2 loc = ivec2( state.dimensions ) / 2;
+			// static ivec2 loc = ivec2( 0 );
+			if ( !( count-- ) ) {
+				// set a new sample location
+				count = state.numRays / updateRate;
+	
+				// uniformly distributed update
+				// static rng offsetGen = rng( 0.0f, 1.0f );
+				// loc = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+	
+				// gaussian distribution
+				static rngN offsetGen = rngN( 0.5f, 0.2f );
+				do {
+					loc = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+				} while ( loc.x >= state.dimensions.x || loc.x < 0 || loc.y >= state.dimensions.y || loc.y < 0 );
+			}
+			offset = loc;
 			break;
 		}
 
