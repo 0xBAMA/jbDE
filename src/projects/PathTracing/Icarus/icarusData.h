@@ -77,11 +77,12 @@ void LoadBVH ( icarusState_t &state ) {
 	// state.modelLoader.LoadModel( "../holy-imperial-battleship-with-pkmc/source/BB_CA18_White_19_25_1.obj", "../holy-imperial-battleship-with-pkmc/textures/" );
 	// state.modelLoader.LoadModel( "../hall.obj", "../" );
 	// state.modelLoader.LoadModel( "../Pipework/Pipes.obj", "../" );
-	// state.modelLoader.LoadModel( "../stack.obj", "../" );
+	state.modelLoader.LoadModel( "../city.obj", "../" );
+	// state.modelLoader.LoadModel( "../lens2high.obj", "../" );
 	// state.modelLoader.LoadModel( "../corner.obj", "../" );
 	// state.modelLoader.LoadModel( "../hangarCity.obj", "../" );
 	// state.modelLoader.LoadModel( "../building-scan-no-1-interior/source/batiment1/batiment1_lowpoly.obj", "../" );
-	state.modelLoader.LoadModel( "../wwii-battery-mont-canisy-normandie/source/3DModel/3DModel.obj", "../" );
+	// state.modelLoader.LoadModel( "../wwii-battery-mont-canisy-normandie/source/3DModel/3DModel.obj", "../" );
 	// state.modelLoader.LoadModel( "../destroyed-warehouse-in-kaarina-finland/source/Destroyed_warehouse_in_Kaarina_Finland_SF/Destroyed_warehouse_in_Kaarina_Finland_SF.obj", "../" );
 
 
