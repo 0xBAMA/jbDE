@@ -79,6 +79,13 @@ vec4 traverse_ailalaine ( rayState_t rayState ) {
 					hit = vec4(d, u, v, uintBitsToFloat( triIdx ) );
 					solvedNormal = normalize( cross( edge1.xyz, edge2.xyz ) ); // frontface determination should happen here, too
 				}
+				// ======================================================================
+				// sphere intersection... hacky
+					// determine bounding box...
+						// center of bounding box is position
+						// half of any dimension (which should be uniform on x/y/z) will be the radius
+						// you then test your ray against that sphere
+				// ======================================================================
 			}
 			if ( stackPtr == 0 ) break;
 			node = stack[ --stackPtr ];
