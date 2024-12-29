@@ -31,11 +31,14 @@ layout( binding = 3, std430 ) readonly buffer bvhNodes { BVHNodeAlt altNode[]; }
 layout( binding = 4, std430 ) readonly buffer indices { uint idx[]; };
 layout( binding = 5, std430 ) readonly buffer vertices { vec4 verts[]; }; // eventually extend to contain other material info
 
+#include "consistentPrimitives.glsl.h"
+
 // ============================================================================
 //	T R A V E R S E _ A I L A L A I N E
 //		x is d, yz is u and v, w is the index of the primitive in the list, uint bits in a float variable
 // ============================================================================
 vec3 solvedNormal;
+vec4 solvedColor;
 vec4 traverse_ailalaine ( rayState_t rayState ) {
 	const vec3 O = GetRayOrigin( rayState );
 	const vec3 D = GetRayDirection( rayState );
@@ -57,35 +60,42 @@ vec4 traverse_ailalaine ( rayState_t rayState ) {
 			for ( uint i = 0; i < triCount; i++ ) {
 				const uint triIdx = idx[ firstTri + i ];
 
-				// ======================================================================
-				// triangle intersection - M�ller-Trumbore
-				const vec4 edge1 = verts[ 3 * triIdx + 1 ] - verts[ 3 * triIdx + 0 ];
-				const vec4 edge2 = verts[ 3 * triIdx + 2 ] - verts[ 3 * triIdx + 0 ];
-				const vec3 h = cross( D, edge2.xyz );
-				const float a = dot( edge1.xyz, h );
-				if ( abs( a ) < 0.0000001f )
-					continue;
-				const float f = 1 / a;
-				const vec3 s = O - verts[ 3 * triIdx + 0 ].xyz;
-				const float u = f * dot( s, h );
-				if ( u < 0.0f || u > 1.0f )
-					continue;
-				const vec3 q = cross( s, edge1.xyz );
-				const float v = f * dot( D, q );
-				if ( v < 0.0f || u + v > 1.0f )
-					continue;
-				const float d = f * dot( edge2.xyz, q );
-				if ( d > 0.0f && d < hit.x ) {
-					hit = vec4(d, u, v, uintBitsToFloat( triIdx ) );
-					solvedNormal = normalize( cross( edge1.xyz, edge2.xyz ) ); // frontface determination should happen here, too
-				}
+				// // ======================================================================
+				// // triangle intersection - M�ller-Trumbore
+				// const vec4 edge1 = verts[ 3 * triIdx + 1 ] - verts[ 3 * triIdx + 0 ];
+				// const vec4 edge2 = verts[ 3 * triIdx + 2 ] - verts[ 3 * triIdx + 0 ];
+				// const vec3 h = cross( D, edge2.xyz );
+				// const float a = dot( edge1.xyz, h );
+				// if ( abs( a ) < 0.0000001f )
+				// 	continue;
+				// const float f = 1 / a;
+				// const vec3 s = O - verts[ 3 * triIdx + 0 ].xyz;
+				// const float u = f * dot( s, h );
+				// if ( u < 0.0f || u > 1.0f )
+				// 	continue;
+				// const vec3 q = cross( s, edge1.xyz );
+				// const float v = f * dot( D, q );
+				// if ( v < 0.0f || u + v > 1.0f )
+				// 	continue;
+				// const float d = f * dot( edge2.xyz, q );
+				// if ( d > 0.0f && d < hit.x ) {
+				// 	hit = vec4(d, u, v, uintBitsToFloat( triIdx ) );
+				// 	solvedNormal = normalize( cross( edge1.xyz, edge2.xyz ) ); // frontface determination should happen here, too
+				// }
+
 				// ======================================================================
 				// sphere intersection... hacky
 					// determine bounding box...
-						// center of bounding box is position
-						// half of any dimension (which should be uniform on x/y/z) will be the radius
+						// center + radius - material stuff from idx later
 						// you then test your ray against that sphere
+				const vec3 center = vec3( verts[ 2 * triIdx ].xyz );
+				const float radius = verts[ 2 * triIdx ].w;
+				const float d = iSphereOffset( O, D, solvedNormal, radius, center );
+				if ( d > 0.0f && d < hit.x ) {
+					hit = vec4( d, 0.0f, 0.0f, uintBitsToFloat( triIdx ) );
+				}
 				// ======================================================================
+
 			}
 			if ( stackPtr == 0 ) break;
 			node = stack[ --stackPtr ];
@@ -141,24 +151,27 @@ void main () {
 		IntersectionReset( TinyBVHIntersection );
 
 		const uint primitiveIdx = floatBitsToUint( hit.a );
-		const uint baseIdx = primitiveIdx * 3;
-		vec3 color = vec3(
-			verts[ baseIdx + 0 ].a,
-			verts[ baseIdx + 1 ].a,
-			verts[ baseIdx + 2 ].a
-		);
+		// const uint baseIdx = primitiveIdx * 3;
+		// vec3 color = vec3(
+		// 	verts[ baseIdx + 0 ].a,
+		// 	verts[ baseIdx + 1 ].a,
+		// 	verts[ baseIdx + 2 ].a
+		// );
 
 		vec3 p = hit.x * GetRayDirection( myState ) + GetRayOrigin( myState );
 
-		// SetHitAlbedo( TinyBVHIntersection, color );
-		// SetHitAlbedo( TinyBVHIntersection, iron );
-		SetHitAlbedo( TinyBVHIntersection, vec3( 0.8f ) );
-		SetHitDistance( TinyBVHIntersection, hit.x  );
+		// pulling material data from the buffer
+		const vec3 color = vec3( verts[ 2 * primitiveIdx + 1 ].xyz );
+		const float materialValue =  verts[ 2 * primitiveIdx + 1 ].w;
+
+		SetHitAlbedo( TinyBVHIntersection, color );
+		// SetHitAlbedo( TinyBVHIntersection, blood );
+		// SetHitAlbedo( TinyBVHIntersection, vec3( 0.8f ) );
+		SetHitDistance( TinyBVHIntersection, hit.x );
 		// SetHitMaterial( TinyBVHIntersection, ( NormalizedRandomFloat() > 0.33f ) ? DIFFUSE : MIRROR );
 		SetHitMaterial( TinyBVHIntersection, REFRACTIVE );
-		// SetHitMaterial( TinyBVHIntersection, MIRROR );
 		// SetHitMaterial( TinyBVHIntersection, DIFFUSE );
-		SetHitRoughness( TinyBVHIntersection, 0.001f );
+		SetHitRoughness( TinyBVHIntersection, 0.0f );
 
 		float IoR = 1.3f;
 

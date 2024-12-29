@@ -71,7 +71,167 @@ struct icarusState_t {
 	float chromabScaleFactor = 0.006f;
 };
 
+// resize the mesh to fit in a unit cube, centered at the origin
+void expandBBox ( vec3 &mins, vec3 &maxs, vec3 p ) {
+	mins.x = min( mins.x, p.x );
+	maxs.x = max( maxs.x, p.x );
+
+	mins.y = min( mins.y, p.y );
+	maxs.y = max( maxs.y, p.y );
+
+	mins.z = min( mins.z, p.z );
+	maxs.z = max( maxs.z, p.z );
+}
+
+void UnitCubeRefit( vector< vec3 > &pointPositions ) {
+	vec3 mins = vec3(  1e9f );
+	vec3 maxs = vec3( -1e9f );
+
+	// determine the size of the bounding box
+	for ( size_t i = 0; i < pointPositions.size(); i++ ) {
+		expandBBox( mins, maxs, pointPositions[ i ] );
+	}
+
+	// figure out scaling
+	vec3 spans = maxs - mins;
+	vec3 center = ( mins + maxs ) / 2.0f;
+	float largestDimension = max( max( spans.x, spans.y ), spans.z ) * 0.51f;
+
+	// run through again, butting the bbox min up against the origin + scaling appropriately to just fit inside -1..1
+	for ( size_t i = 0; i < pointPositions.size(); i++ ) {
+		pointPositions[ i ] = 5.0f * ( pointPositions[ i ] - center ) / largestDimension;
+	}
+}
+
+void LoadBVH_ply ( icarusState_t &state ) {
+
+	// happly::PLYData plyDataIn( "../ply/hodou.ply" );
+	// happly::PLYData plyDataIn( "../ply/nippon_wandering_tokyo_nights_001_10m_pts.ply" );
+	// happly::PLYData plyDataIn( "../ply/tree_orange_big21.ply" );
+	happly::PLYData plyDataIn( "../ply/grass1.ply" );
+	// happly::PLYData plyDataIn( "../ply/every5.ply" );
+
+	vector< double > xValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "x" );
+	vector< double > yValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "y" );
+	vector< double > zValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "z" );
+
+	const size_t numPoints = xValues.size();
+
+	vector< uint8_t > rValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "red" );
+	vector< uint8_t > gValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "green" );
+	vector< uint8_t > bValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "blue" );
+
+	// vector< uint8_t > rValues; rValues.resize( numPoints, 254 );
+	// vector< uint8_t > gValues; gValues.resize( numPoints, 254 );
+	// vector< uint8_t > bValues; bValues.resize( numPoints, 254 );
+
+	// processing positions to put them into a bounded range
+	vector< vec3 > plySpherePreProcess;
+	vector< vec3 > plySpherePreProcessColors;
+	plySpherePreProcess.reserve( numPoints );
+	plySpherePreProcessColors.reserve( numPoints );
+
+	rng reject = rng( 0.0f, 1.0f );
+	for( size_t i = 0; i < numPoints; i++ ) {
+		// if ( reject() < 0.01f ) { // decimating
+			plySpherePreProcess.push_back( vec3( float( xValues[ i ] ), float( yValues[ i ] ), float( zValues[ i ] ) ).zxy() );
+			plySpherePreProcessColors.push_back( vec3( float( rValues[ i ] ) / 255.0f, float( gValues[ i ] ) / 255.0f, float( bValues[ i ] ) / 255.0f ) );
+		// }
+	}
+	UnitCubeRefit( plySpherePreProcess );
+
+	const int numTriangles = numPoints;
+
+	// allocate space for that many verts
+	state.vertices = ( tinybvh::bvhvec4 * ) malloc( 3 * numTriangles * sizeof( tinybvh::bvhvec4 ) );
+
+	// copy from the loader to the bvh's list
+	// const float radius = 0.0008f;
+	const float radius = 0.0008f;
+	for ( size_t i = 0; i < numPoints; i++ ) {
+		const int baseIdx = 3 * i;
+
+		// add a triangle to the BVH that will generate the same bounding box as the sphere
+		state.vertices[ baseIdx + 0 ].x = plySpherePreProcess[ i ].x + radius;
+		state.vertices[ baseIdx + 0 ].y = plySpherePreProcess[ i ].y;
+		state.vertices[ baseIdx + 0 ].z = plySpherePreProcess[ i ].z + radius;
+
+		state.vertices[ baseIdx + 1 ].x = plySpherePreProcess[ i ].x - radius;
+		state.vertices[ baseIdx + 1 ].y = plySpherePreProcess[ i ].y + radius;
+		state.vertices[ baseIdx + 1 ].z = plySpherePreProcess[ i ].z;
+
+		state.vertices[ baseIdx + 2 ].x = plySpherePreProcess[ i ].x;
+		state.vertices[ baseIdx + 2 ].y = plySpherePreProcess[ i ].y - radius;
+		state.vertices[ baseIdx + 2 ].z = plySpherePreProcess[ i ].z - radius;
+	}
+
+	// build the bvh from the list of triangles
+	state.bvh.Build( state.vertices, numTriangles );
+	state.bvh.Convert( tinybvh::BVH::WALD_32BYTE, tinybvh::BVH::VERBOSE );
+	state.bvh.Refit( tinybvh::BVH::VERBOSE );
+
+	state.bvh.Convert( tinybvh::BVH::WALD_32BYTE, tinybvh::BVH::AILA_LAINE );
+
+	// then have to build the buffer that's going to give us sphere positions + info ( radius, color, etc )
+	vector< vec4 > plySphereData; // xyz, w is radius... then rgb, w is material id
+	plySphereData.reserve( 2 * numPoints );
+	for ( size_t i = 0; i < numPoints; i++ ) {
+		plySphereData.push_back( vec4( plySpherePreProcess[ i ], radius ) );
+		plySphereData.push_back( vec4( plySpherePreProcessColors[ i ], 0.0f ) );
+	}
+
+	// // testing rays against it
+	// Image_4U test( 5000, 5000 );
+	// for ( uint32_t y = 0; y < test.Height(); y++ ) {
+	// 	for ( uint32_t x = 0; x < test.Width(); x++ ) {
+	// 		color_4U col;
+
+	// 		// tinybvh::bvhvec3 O( RangeRemap( x + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( y + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ), 1.0f );
+	// 		tinybvh::bvhvec3 O( 1.0f, RangeRemap( y + 0.5f, 0.0f, test.Width(), -1.0f, 1.0f ), RangeRemap( x + 0.5f, 0.0f, test.Height(), -1.0f, 1.0f ) );
+	// 		tinybvh::bvhvec3 D( -1.0f, 0.0f, 0.0f );
+	// 		tinybvh::Ray ray( O, D );
+	// 		uint steps = uint( state.bvh.Intersect( ray ) );
+	// 		printf( "%d %d: nearest intersection: %f (found in %i traversal steps).\n", x, y, ray.hit.t, steps );
+
+	// 		// if ( ray.hit.t < 1e5f ) {
+	// 		// 	// cout << "hit" << endl;
+	// 		// 	col = color_4U( { ( uint8_t ) ( 255 * ( ray.hit.t / 2.0f ) ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+	// 		// } else {
+	// 		// 	col = color_4U( { ( uint8_t ) 16, ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+	// 		// }
+
+	// 		// col = color_4U( { ( uint8_t ) ( ( ray.hit.t < 1e5f ) ? ( 255 * ( ray.hit.t / 2.0f ) ) : steps * 3u ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, 255 } );
+
+	// 		float stepTerm = ( steps * 3.f ) / 255.0f;
+	// 		vec3 color = mix( plySphereData[ 2 * ray.hit.prim + 1 ].rgb(), vec3( stepTerm ), vec3( 0.5f ) ) * 255.0f;
+	// 		col = color_4U( { ( uint8_t ) color.r, ( uint8_t ) color.g, ( uint8_t ) color.b, 255 } );
+	// 		test.SetAtXY( x, y, col );
+	// 	}
+	// }
+
+	// test.Save( "test.png" ); 
+
+	// BVH Nodes buffer
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.bvhNodeBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, state.bvh.usedAltNodes * sizeof( tinybvh::BVH::BVHNodeAlt ), ( GLvoid * ) state.bvh.altNode, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 3, state.bvhNodeBuffer );
+	glObjectLabel( GL_BUFFER, state.bvhNodeBuffer, -1, string( "BVH Nodes" ).c_str() );
+
+	// BVH vertex indices buffer
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.indexBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, state.bvh.idxCount * sizeof( unsigned ), ( GLvoid * ) state.bvh.triIdx, GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 4, state.indexBuffer );
+	glObjectLabel( GL_BUFFER, state.indexBuffer, -1, string( "BVH Vertex Indices" ).c_str() );
+
+	// specific geometry data buffer
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, state.vertexBuffer );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, state.bvh.triCount * 2 * sizeof( tinybvh::bvhvec4 ), ( GLvoid * ) plySphereData.data(), GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 5, state.vertexBuffer );
+	glObjectLabel( GL_BUFFER, state.vertexBuffer, -1, string( "BVH Geometry Data" ).c_str() );
+}
+
 void LoadBVH ( icarusState_t &state ) {
+
 // this works, loads 200k triangles - stanford tyranosaurus - good test model for the BVH stuff
 	// state.modelLoader.LoadModel( "../tyra.obj", "../" );
 	// state.modelLoader.LoadModel( "../f-16/f-16.obj", "../f-16" );
@@ -85,21 +245,6 @@ void LoadBVH ( icarusState_t &state ) {
 	// state.modelLoader.LoadModel( "../building-scan-no-1-interior/source/batiment1/batiment1_lowpoly.obj", "../" );
 	// state.modelLoader.LoadModel( "../wwii-battery-mont-canisy-normandie/source/3DModel/3DModel.obj", "../" );
 	// state.modelLoader.LoadModel( "../destroyed-warehouse-in-kaarina-finland/source/Destroyed_warehouse_in_Kaarina_Finland_SF/Destroyed_warehouse_in_Kaarina_Finland_SF.obj", "../" );
-
-
-	// happly::PLYData plyDataIn( "../ply/hodou.ply" );
-
-	// vector< double > xValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "x" );
-	// vector< double > yValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "y" );
-	// vector< double > zValues = plyDataIn.getElement( "vertex" ).getProperty< double >( "z" );
-
-	// vector< uint8_t > rValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "red" );
-	// vector< uint8_t > gValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "green" );
-	// vector< uint8_t > bValues = plyDataIn.getElement( "vertex" ).getProperty< uint8_t >( "blue" );
-
-	// cout << "there are: " << xValues.size() << " " << yValues.size() << " " << zValues.size() << " " << rValues.size() << " " << gValues.size() << " " << bValues.size() << endl;
-
-
 
 	cout << endl << "Model has " << state.modelLoader.triangles.size() << " tris" << endl;
 
@@ -325,7 +470,8 @@ void AllocateBuffers ( icarusState_t &state ) {
 	glObjectLabel( GL_BUFFER, state.intersectionScratchSSBO, -1, string( "Intersection Buffer" ).c_str() );
 
 	// buffers for the BVH
-	LoadBVH( state );
+	// LoadBVH( state );
+	LoadBVH_ply( state );
 
 	// setup for the Voraldo model in the volume renderer
 	// LoadVoraldoModel( state );
