@@ -11,7 +11,7 @@ layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
 layout( binding = 1, std430 ) readonly buffer rayState { rayState_t state[]; };
 layout( binding = 2, std430 ) writeonly buffer intersectionBuffer { intersection_t intersectionScratch[]; };
 //=============================================================================================================================
-const float scaleFactor = 100.0f;
+const float scaleFactor = 10.0f;
 // layout( rgba8ui ) readonly uniform uimage3D VoraldoModel;
 // layout( r32f ) readonly uniform image2D HeightmapTex;
 //=============================================================================================================================
@@ -43,7 +43,7 @@ float GetVolumeDensity( ivec3 pos ) {
 
 	if ( bboxDist < 0.0f ) {
 		scatterColor = sapphire;
-		density = 1.0f;
+		density = 10.0f;
 	} else {
 		density = 0.0f;
 	}
@@ -76,7 +76,7 @@ void main () {
 		ivec3 mapPos0 = ivec3( floor( startPos ) );
 		vec3 sideDist0 = ( sign( direction ) * ( vec3( mapPos0 ) - startPos ) + ( sign( direction ) * 0.5f ) + 0.5f ) * deltaDist;
 
-		#define MAX_RAY_STEPS 3000
+		#define MAX_RAY_STEPS 250
 		for ( int i = 0; i < MAX_RAY_STEPS && !hit; i++ ) {
 
 			bvec3 mask1 = lessThanEqual( sideDist0.xyz, min( sideDist0.yzx, sideDist0.zxy ) );
