@@ -50,7 +50,7 @@ void main () {
 	ivec3 boxSize = imageSize( continuum );
 	float boxDist = iBoxOffset( rayOrigin, rayDirection, normal, vec3( boxSize / 2.0f ), vec3( boxSize ) / 2.0f );
 
-	if ( boxDist < MAX_DIST ) { // the ray hits the box
+	if ( boxDist < MAX_DIST_CP ) { // the ray hits the box
 		// calculating hit position
 		vec3 hitPos = rayOrigin + rayDirection * ( boxDist + 0.01f );
 

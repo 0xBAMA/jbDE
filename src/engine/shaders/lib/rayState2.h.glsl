@@ -96,6 +96,6 @@ void IntersectionReset ( inout intersection_t intersection ) {
 	intersection.data1 = intersection.data2 = intersection.data3 = intersection.data4 = vec4( 0.0f );
 
 	// what are sane defaults?
-	SetHitDistance( intersection, MAX_DIST + 1.0f );
+	SetHitDistance( intersection, MAX_DIST );
 	SetHitMaterial( intersection, NONE );
 }

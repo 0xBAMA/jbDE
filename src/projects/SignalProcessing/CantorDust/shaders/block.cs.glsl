@@ -86,7 +86,7 @@ void main () {
 	float boxDist = iBoxOffset( ro, rd, normal, vec3( 1.0f ), vec3( 0.0f ) );
 	vec3 color = vec3( 0.0f );
 
-	if ( boxDist < MAX_DIST ) {
+	if ( boxDist < MAX_DIST_CP ) {
 	// DDA traversal for the sum
 		vec3 hitPos = ro + rd * ( boxDist + 0.001f );
 		hitPos.x = RangeRemapValue( hitPos.x, -1.0f, 1.0f, 0.0f, imageSize( dataTexture3D ).x );

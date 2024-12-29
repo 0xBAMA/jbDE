@@ -1,7 +1,7 @@
 // https://www.shadertoy.com/view/tl23Rm // raytracing intersectors
 // https://www.shadertoy.com/view/flccWs // raytracing csg
 
-#define MAX_DIST 1e10
+const float MAX_DIST_CP = 1e10;
 const vec2 distBound = vec2( 0.0001f, 100000.0f );
 float dot2( in vec3 v ) { return dot(v,v); }
 
@@ -10,7 +10,7 @@ float iPlane( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 planeNormal, in
 	float a = dot(rd, planeNormal);
 	float d = -(dot(ro, planeNormal)+planeDist)/a;
 	if (a > 0. || d < distBound.x || d > distBound.y) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		normal = planeNormal;
 		return d;
@@ -23,7 +23,7 @@ float iSphere( in vec3 ro, in vec3 rd, inout vec3 normal, float sphereRadius ) {
 	float c = dot(ro, ro) - sphereRadius*sphereRadius;
 	float h = b*b - c;
 	if (h < 0.) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		h = sqrt(h);
 		float d1 = -b-h;
@@ -35,7 +35,7 @@ float iSphere( in vec3 ro, in vec3 rd, inout vec3 normal, float sphereRadius ) {
 			normal = normalize(ro + rd*d2);
 			return d2;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	}
 }
@@ -47,7 +47,7 @@ float iSphereOffset( in vec3 ro, in vec3 rd, inout vec3 normal, float sphereRadi
 	float c = dot( ro, ro ) - sphereRadius * sphereRadius;
 	float h = b * b - c;
 	if ( h < 0.0f ) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		h = sqrt( h );
 		float d1 = -b - h;
@@ -59,7 +59,7 @@ float iSphereOffset( in vec3 ro, in vec3 rd, inout vec3 normal, float sphereRadi
 			normal = normalize( ro + rd * d2 );
 			return d2;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	}
 }
@@ -77,7 +77,7 @@ float iBox( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 boxSize ) {
 	float tF = min( min( t2.x, t2.y ), t2.z );
 
 	if (tN > tF || tF <= 0.) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		if (tN >= distBound.x && tN <= distBound.y) {
 			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
@@ -86,7 +86,7 @@ float iBox( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 boxSize ) {
 			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 			return tF;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	}
 }
@@ -105,7 +105,7 @@ float iBoxOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 boxSize, in
 	float tF = min( min( t2.x, t2.y ), t2.z );
 
 	if (tN > tF || tF <= 0.) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		if (tN >= distBound.x && tN <= distBound.y) {
 			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
@@ -114,7 +114,7 @@ float iBoxOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 boxSize, in
 			normal = -sign(rd)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 			return tF;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	}
 }
@@ -133,7 +133,7 @@ float iCylinder( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 
 	float c = caca*dot( oc, oc) - caoc*caoc - ra*ra*caca;
 	float h = b*b - a*c;
 
-	if (h < 0.) return MAX_DIST;
+	if (h < 0.) return MAX_DIST_CP;
 
 	h = sqrt(h);
 	float d = (-b-h)/a;
@@ -150,7 +150,7 @@ float iCylinder( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 
 		normal = normalize(ca*sign(y)/caca);
 		return d;
 	} else {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 }
 
@@ -159,7 +159,7 @@ float iTorus( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus ) {
 	// bounding sphere
 	vec3 tmpnormal = vec3( 0.0f );
 	if ( iSphere( ro, rd, tmpnormal, torus.y + torus.x + 0.01f ) > distBound.y ) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 
 	float po = 1.0;
@@ -209,7 +209,7 @@ float iTorus( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus ) {
 	float R = c2*c2*c2 - 3.0*c2*c0 + c1*c1;
 
 	float h = R*R - Q*Q*Q;
-	float t = MAX_DIST;
+	float t = MAX_DIST_CP;
 
 	if (h>=0.0) {
 		// 2 intersections
@@ -234,7 +234,7 @@ float iTorus( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus ) {
 		float sQ = sqrt(Q);
 		float w = sQ*cos( acos(-R/(sQ*Q)) / 3.0 );
 
-		float d2 = -(w+c2); if( d2<0.0 ) return MAX_DIST;
+		float d2 = -(w+c2); if( d2<0.0 ) return MAX_DIST_CP;
 		float d1 = sqrt(d2);
 
 		float h1 = sqrt(w - 2.0*c2 + c1/d1);
@@ -255,7 +255,7 @@ float iTorus( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus ) {
 		normal = normalize( pos*(dot(pos,pos) - torus.y*torus.y - torus.x*torus.x*vec3(1,1,-1)));
 		return t;
 	} else {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 }
 
@@ -263,7 +263,7 @@ float iTorusOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus, in
 	// bounding sphere
 	vec3 tmpnormal = vec3( 0.0f );
 	if ( iSphereOffset( ro, rd, tmpnormal, torus.y + torus.x + 0.01f, offset ) > distBound.y ) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 
 	ro -= offset;
@@ -315,7 +315,7 @@ float iTorusOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus, in
 	float R = c2*c2*c2 - 3.0*c2*c0 + c1*c1;
 
 	float h = R*R - Q*Q*Q;
-	float t = MAX_DIST;
+	float t = MAX_DIST_CP;
 
 	if (h>=0.0) {
 		// 2 intersections
@@ -340,7 +340,7 @@ float iTorusOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus, in
 		float sQ = sqrt(Q);
 		float w = sQ*cos( acos(-R/(sQ*Q)) / 3.0 );
 
-		float d2 = -(w+c2); if( d2<0.0 ) return MAX_DIST;
+		float d2 = -(w+c2); if( d2<0.0 ) return MAX_DIST_CP;
 		float d1 = sqrt(d2);
 
 		float h1 = sqrt(w - 2.0*c2 + c1/d1);
@@ -361,7 +361,7 @@ float iTorusOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec2 torus, in
 		normal = normalize( pos*(dot(pos,pos) - torus.y*torus.y - torus.x*torus.x*vec3(1,1,-1)));
 		return t;
 	} else {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 }
 
@@ -383,7 +383,7 @@ float iCapsule( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 p
 	float h = b*b - a*c;
 	if (h >= 0.) {
 		float t = (-b-sqrt(h))/a;
-		float d = MAX_DIST;
+		float d = MAX_DIST_CP;
 
 		float y = baoa + t*bard;
 
@@ -407,7 +407,7 @@ float iCapsule( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 p
 			return d;
 		}
 	}
-	return MAX_DIST;
+	return MAX_DIST_CP;
 }
 
 // Capped Cone:     https://www.shadertoy.com/view/llcfRf
@@ -451,7 +451,7 @@ float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 pb, 
 	float k0 = m0*m0*m5 - m1*m1*hy + m0*ra*(rr*m1*2.0 - m0*ra);
 	
 	float h = k1*k1 - k2*k0;
-	if( h < 0. ) return MAX_DIST;
+	if( h < 0. ) return MAX_DIST_CP;
 
 	float t = (-k1-sqrt(h))/k2;
 
@@ -460,7 +460,7 @@ float iCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in vec3 pb, 
 		normal = normalize(m0*(m0*(oa+t*rd)+rr*ba*ra)-ba*hy*y);
 		return t;
 	} else {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 }
 
@@ -475,13 +475,13 @@ float iEllipsoid( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 rad ) {
 	float h = b*b - a*(c-1.);
 
 	if (h < 0.) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 
 	float d = (-b - sqrt(h))/a;
 
 	if (d < distBound.x || d > distBound.y) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		normal = normalize((ro + d*rd)/rad);
 		return d;
@@ -499,13 +499,13 @@ float iEllipsoidOffset( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 rad, 
 	float h = b*b - a*(c-1.);
 
 	if (h < 0.) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 
 	float d = (-b - sqrt(h))/a;
 
 	if (d < distBound.x || d > distBound.y) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		normal = normalize((ro + d*rd)/rad);
 		return d;
@@ -534,7 +534,7 @@ float iRoundedCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in ve
 	
 	float h = k1*k1 - k0*k2;
 	if (h < 0.0) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 
 	float t = (-sqrt(h)-k1)/k2;
@@ -545,18 +545,18 @@ float iRoundedCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in ve
 			normal = normalize( d2*(oa + t*rd)-ba*y );
 			return t;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	} else {
 		float h1 = m3*m3 - m5 + ra*ra;
 		float h2 = m6*m6 - m7 + rb*rb;
 
 		if (max(h1,h2)<0.0) {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 
 		vec3 n = vec3(0);
-		float r = MAX_DIST;
+		float r = MAX_DIST_CP;
 
 		if (h1 > 0.) {        
 			r = -m3 - sqrt( h1 );
@@ -573,7 +573,7 @@ float iRoundedCone( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 pa, in ve
 			normal = n;
 			return r;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	}
 }
@@ -592,7 +592,7 @@ float iTriangle( in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 v0, in vec3 
 	float t = d*dot( -n, rov0 );
 
 	if( u<0. || v<0. || (u+v)>1. || t<distBound.x || t>distBound.y) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	} else {
 		normal = normalize(-n);
 		return t;
@@ -635,7 +635,7 @@ float iSphere4( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra ) {
 	// convex
 	// -----------------------------
 	if (h<0.0) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 
 	// one real solution, two complex (conjugated)
@@ -659,7 +659,7 @@ float iSphere4( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra ) {
 		normal = normalize( pos*pos*pos );
 		return d;
 	} else {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 }
 
@@ -714,7 +714,7 @@ float iGoursat( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra, float rb
 			normal = normalize( 4.0*pos*pos*pos - 2.0*pos*rb*rb );
 			return d;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	} else {	
 		// 4 intersections
@@ -725,10 +725,10 @@ float iGoursat( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra, float rb
 		float d2 = z*z - 3.0*c0;
 
 		if (abs(d1)<1.0e-4) {
-			if( d2<0.0) return MAX_DIST;
+			if( d2<0.0) return MAX_DIST_CP;
 			d2 = sqrt(d2);
 		} else {
-			if (d1<0.0) return MAX_DIST;
+			if (d1<0.0) return MAX_DIST_CP;
 			d1 = sqrt( d1/2.0 );
 			d2 = c1/d1;
 		}
@@ -742,7 +742,7 @@ float iGoursat( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra, float rb
 		float t3 =  d1 - h2 - k3;
 		float t4 =  d1 + h2 - k3;
 
-		if (t2<0.0 && t4<0.0) return MAX_DIST;
+		if (t2<0.0 && t4<0.0) return MAX_DIST_CP;
 
 		float result = 1e20;
 			if (t1>0.0) result=t1;
@@ -755,7 +755,7 @@ float iGoursat( in vec3 ro, in vec3 rd, inout vec3 normal, in float ra, float rb
 			normal = normalize( 4.0*pos*pos*pos - 2.0*pos*rb*rb );
 			return result;
 		} else {
-			return MAX_DIST;
+			return MAX_DIST_CP;
 		}
 	}
 }
@@ -771,10 +771,10 @@ float iRoundedBox(in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 size, in fl
 	float tN = max( max( t1.x, t1.y ), t1.z );
 	float tF = min( min( t2.x, t2.y ), t2.z );
 	if (tN > tF || tF < 0.0) {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	}
 	float t = (tN>=distBound.x&&tN<=distBound.y)?tN:
-			(tF>=distBound.x&&tF<=distBound.y)?tF:MAX_DIST;
+			(tF>=distBound.x&&tF<=distBound.y)?tF:MAX_DIST_CP;
 
 	// convert to first octant
 	vec3 pos = ro+t*rd;
@@ -801,7 +801,7 @@ float iRoundedBox(in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 size, in fl
 	vec3 od = oc*rds;
 	float ra2 = rad*rad;
 
-	t = MAX_DIST;
+	t = MAX_DIST_CP;
 
 	// corner
 	{
@@ -850,6 +850,6 @@ float iRoundedBox(in vec3 ro, in vec3 rd, inout vec3 normal, in vec3 size, in fl
 		normal = sign(p)*normalize(max(abs(p)-size,1e-16));
 		return t;
 	} else {
-		return MAX_DIST;
+		return MAX_DIST_CP;
 	};
 }
