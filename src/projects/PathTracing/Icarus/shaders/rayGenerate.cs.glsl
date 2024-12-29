@@ -13,6 +13,7 @@ layout( binding = 2, std430 ) buffer intersectionBuffer { intersection_t interse
 //=============================================================================================================================
 layout( location = 0, rgba8ui ) readonly uniform uimage2D blueNoise;
 uniform ivec2 noiseOffset;
+uniform int frameNumber;
 vec4 Blue( in ivec2 loc ) { return imageLoad( blueNoise, ( loc + noiseOffset ) % imageSize( blueNoise ).xy ); }
 //=============================================================================================================================
 uniform vec3 basisX;
@@ -136,7 +137,8 @@ void main () {
 	StateReset( state[ index ] );
 
 	// fill out the rayState based on the prepared cameraRay for this uv location... add weyl subpixel jitter
-	vec2 uv = ( ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
+	// vec2 uv = ( ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
+	vec2 uv = ( ( vec2( offset ) + fract( vec2( frameNumber * 12664745, frameNumber * 9560333 ) / exp2( 24.0f ) ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
 
 	cameraRay myRay = GetCameraRay( uv );
 	SetTransmission( state[ index ], myRay.transmission );

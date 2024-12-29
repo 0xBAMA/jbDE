@@ -712,6 +712,9 @@ void RayUpdate ( icarusState_t &state ) {
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( state.viewerPosition ) );
 		glUniform2f( glGetUniformLocation( shader, "imageDimensions" ), state.dimensions.x, state.dimensions.y );
 
+		static uint32_t frameNumber = 0;
+		frameNumber++;
+		glUniform1i( glGetUniformLocation( shader, "frameNumber" ), frameNumber );
 		glUniform1i( glGetUniformLocation( shader, "cameraMode" ), state.cameraMode );
 		glUniform1f( glGetUniformLocation( shader, "uvScaleFactor" ), state.uvScaleFactor );
 		glUniform1i( glGetUniformLocation( shader, "DoFBokehMode" ), state.DoFBokehMode );
