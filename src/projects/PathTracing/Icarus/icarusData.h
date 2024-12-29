@@ -45,8 +45,9 @@ struct icarusState_t {
 	#define GAUSSIAN	1
 	#define FOCUSED		2
 	#define SHUFFLED	3
+	#define SHUFFOCUS	4
 
-	int offsetFeedMode = FOCUSED;
+	int offsetFeedMode = SHUFFOCUS;
 	GLuint offsetsSSBO;
 	GLuint intersectionScratchSSBO;
 	bool forceUpdate = false;
@@ -415,9 +416,9 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 		}
 
 		case FOCUSED: {
-			const int updateRate = 4;
+			const int updateRate = 32;
 			static int count = state.numRays;
-			static ivec2 loc = ivec2( state.dimensions ) / 2;
+			static uvec2 loc = state.dimensions / 2u;
 			// static ivec2 loc = ivec2( 0 );
 			if ( !( count-- ) ) {
 				// set a new sample location
@@ -466,6 +467,49 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 			idx = ( idx + 1 ) % offsets.size();
 			offset = offsets[ idx ];
 
+			break;
+		}
+
+		case SHUFFOCUS: {
+			// list that ensures you will touch every pixel before repeating
+			static vector< uvec2 > offsets;
+
+			// generate new list of offsets
+			if ( offsets.size() == 0 || state.forceUpdate ) {
+				offsets.clear();
+				state.forceUpdate = false;
+
+				const uvec2 blockSize = uvec2( 64, 64 );
+				for ( uint32_t y = 0; y < state.dimensions.y; y += blockSize.y ) {
+				for ( uint32_t x = 0; x < state.dimensions.x; x += blockSize.x ) {
+					vector< uvec2 > blockOffsets; // shuffle within 64x64 blocks
+					for ( uint32_t yI = 0; yI < blockSize.y; yI++ ) {
+					for ( uint32_t xI = 0; xI < blockSize.x; xI++ ) {
+						blockOffsets.push_back( uvec2( xI, yI ) );
+					}}
+					static auto rng = std::default_random_engine {};
+					std::shuffle( std::begin( blockOffsets ), std::end( blockOffsets ), rng );
+					for ( auto& o : blockOffsets ) {
+						offsets.push_back( uvec2( x, y ) + o );
+					}
+					blockOffsets.clear();
+				}}
+			}
+
+			const int updateRate = 2 << 2;
+			static int count = state.numRays;
+			static uvec2 loc = state.dimensions / 2u;
+			if ( !( count ) ) {
+				// set a new sample location
+				count = state.numRays / updateRate;
+
+				// just go through the list over and over
+				static size_t idx = 0;
+				idx = ( idx + 1 ) % offsets.size();
+				loc = offsets[ idx ];
+			}
+			offset = loc;
+			count--;
 			break;
 		}
 

@@ -9,7 +9,7 @@ void IcarusImguiWindow ( icarusState_t &state ) {
 	ImGui::Checkbox( "BVH", &state.runBVH );
 	ImGui::Checkbox( "Volume", &state.runVolume );
 
-	const char * resolveModes[] = { "UNIFORM", "GAUSSIAN", "FOCUSED", "SHUFFLED" };
+	const char * resolveModes[] = { "UNIFORM", "GAUSSIAN", "FOCUSED", "SHUFFLED", "SHUFFOCUS" };
 	ImGui::Combo( "Offset Feed Mode", &state.offsetFeedMode, resolveModes, IM_ARRAYSIZE( resolveModes ) );
 
 	ImGui::SeparatorText( "Camera" );
