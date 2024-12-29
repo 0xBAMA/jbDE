@@ -341,11 +341,11 @@ void LoadBVH ( icarusState_t &state ) {
 
 	// 		// if ( ray.hit.t < 1e5f ) {
 	// 		// 	// cout << "hit" << endl;
-	// 		// 	col = color_4U( { ( uint8_t ) ( 255 * ( ray.hit.t / 2.0f ) ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
+	// 		// 	col = color_4U( { ( uint8_t ) ( 255 * ( ray.hit.t / 2.0f ) ), ( uint8_t ) steps * .f;, ( uint8_t ) 0, ( uint8_t ) 255 } );
 	// 		// } else {
 	// 		// 	col = color_4U( { ( uint8_t ) 16, ( uint8_t ) steps * 3u, ( uint8_t ) 0, ( uint8_t ) 255 } );
 	// 		// }
-	// 		col = color_4U( { ( uint8_t ) ( ( ray.hit.t < 1e5f ) ? ( 255 * ( ray.hit.t / 2.0f ) ) : steps * 3u ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, 255 } );
+	// 		col = color_4U( { ( uint8_t ) ( ( ray.hit.t < 1e5f ) ? ( 255 * ( ray.hit.t / 2.f ) ) : steps * 3u ), ( uint8_t ) steps * 3u, ( uint8_t ) 0, 255 } );
 	// 		test.SetAtXY( x, y, col );
 	// 	}
 	// }

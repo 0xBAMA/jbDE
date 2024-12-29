@@ -22,11 +22,11 @@ vec4 triangle( vec3 o, vec3 d, vec3 v0, vec3 v1, vec3 v2 ) {
 }
 //=============================================================================================================================
 // triangle parameters
-const float scale = 1.25f;
-const vec3 offset = vec3( 0.0f, 0.0f, 1.0f );
-const vec3 p0 = scale * vec3(  0.0f, 0.0f,  0.5f ).xzy + offset;
-const vec3 p1 = scale * vec3(  0.5f, 0.0f, -0.5f ).xzy + offset;
-const vec3 p2 = scale * vec3( -0.5f, 0.0f, -0.5f ).xzy + offset;
+const float scale = 1.0f;
+const vec3 offset = vec3( 0.3f, 0.0f, 0.0f );
+const vec3 p0 = scale * vec3(  0.0f, 0.0f,  0.5f ).yzx + offset;
+const vec3 p1 = scale * vec3(  0.5f, 0.0f, -0.5f ).yzx + offset;
+const vec3 p2 = scale * vec3( -0.5f, 0.0f, -0.5f ).yzx + offset;
 
 vec4 result;
 bool intersect ( rayState_t rayState ) {
@@ -56,8 +56,8 @@ void main () {
 		// set color based on barycentrics
 		// SetHitAlbedo( TriangleIntersection, ( ( result.z < 0.1f ) ? vec3( 2.0f ) : result.yzw * vec3( 1.0f, 0.0f, 0.0f ) ) );
 		// SetHitAlbedo( TriangleIntersection, vec3( 5.0f ) );
-		// SetHitAlbedo( TriangleIntersection, result.yzw * 2.0f );
-		SetHitAlbedo( TriangleIntersection, mix( mix( blood, honey, result.y ), aqua, result.z ) * 2.0f );
+		// SetHitAlbedo( TriangleIntersection, result.yzw * 3.0f );
+		SetHitAlbedo( TriangleIntersection, mix( mix( blood, honey, result.y ), aqua, result.z ) * 10.0f );
 		SetHitRoughness( TriangleIntersection, 0.1f );
 		SetHitDistance( TriangleIntersection, result.x );
 		SetHitMaterial( TriangleIntersection, EMISSIVE );

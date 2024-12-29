@@ -43,7 +43,7 @@ void main () {
 	// location of the associated pixel
 	const ivec2 loc = GetPixelIndex( myState );
 	bool terminate = false;
-	const float epsilon = 0.001f;
+	const float epsilon = 0.0001f;
 
 	seed = uint( loc.x ) * 10625 + uint( loc.y ) * 23624 + gl_GlobalInvocationID.x * 42069;
 
@@ -84,10 +84,10 @@ void main () {
 				// this is probably going to be setup very similar to the rectilinear map from Daedalus
 			if ( GetHitDistance( closestIntersection ) == MAX_DIST ) {
 				terminate = true;
-				const float mixFactor = dot( normalize( vec3( 0.0f, 0.0f, 1.0f ) ), GetRayDirection( myState ) );
+				const float mixFactor = dot( normalize( vec3( -1.0f, -1.0f, -1.0f ) ), GetRayDirection( myState ) );
 				// const vec3 color = oklch_to_srgb( vec3( smoothstep( 0.8f, 0.9f, mixFactor ), 0.5f, atan( direction.x, direction.y ) ) );
-				// const vec3 color = vec3( smoothstep( 0.8f, 0.9f, mixFactor ) );
-				const vec3 color = vec3( 0.0f );
+				const vec3 color = vec3( smoothstep( 0.8f, 0.9f, mixFactor ) * 9.0f );
+				// const vec3 color = vec3( 0.0f );
 
 				AddEnergy( myState, GetTransmission( myState ) * color );
 			}

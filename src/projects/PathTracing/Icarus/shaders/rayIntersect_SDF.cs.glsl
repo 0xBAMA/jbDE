@@ -336,23 +336,42 @@ float de ( vec3 p ) {
 
 	// return sceneDist;
 
-	const vec3 bboxSize = vec3( 3.0f );
+	const vec3 bboxSize = vec3( 2.0f );
+
+	// {
+	// 	const float scale = 2.0f;
+	// 	const float d = max( fBox( p, bboxSize ), deKali( p * scale ) / scale );
+	// 	// const float d = deGAZ( p * scale ) / scale;
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? DIFFUSE : MIRROR;
+	// 		hitColor = checkerBoard( 10.0f, p ) ? vec3( nvidia ) : mix( vec3( 0.618f ), blood * 0.5f, vec3( 0.5f ) + ( curlNoise( p ).r + 1.0f ) * 0.1f );
+
+	// 		if ( mod( p.y, 0.75f ) < 0.1f ) {
+	// 			hitSurfaceType = EMISSIVE;
+	// 			hitColor = vec3( 1.0f );
+	// 		}
+	// 	}
+	// }
 
 	{
-		const float scale = 2.0f;
-		const float d = max( fBox( p, bboxSize ), deKali( p * scale ) / scale );
-		// const float d = deGAZ( p * scale ) / scale;
+		// const float d = fBox( p - vec3( 0.0f, 1.5f, 0.0f ), bboxSize / 5.0f );
+		const float d = fBox( p, vec3( 0.1f, 10.0f, 0.1f ) );
 		sceneDist = min( sceneDist, d );
 		if ( sceneDist == d && d < epsilon ) {
-			hitSurfaceType = ( NormalizedRandomFloat() < 0.3f ) ? DIFFUSE : MIRROR;
-			hitColor = checkerBoard( 10.0f, p ) ? vec3( nvidia ) : mix( vec3( 0.618f ), blood * 0.5f, vec3( 0.5f ) + ( curlNoise( p ).r + 1.0f ) * 0.1f );
-
-			if ( mod( p.y, 0.75f ) < 0.1f ) {
-				hitSurfaceType = EMISSIVE;
-				hitColor = vec3( 1.0f );
-			}
+			hitSurfaceType = EMISSIVE;
+			hitColor = vec3( 3.0f );
 		}
 	}
+
+	// {
+	// 	const float d = -fBox( p, bboxSize );
+	// 	sceneDist = min( sceneDist, d );
+	// 	if ( sceneDist == d && d < epsilon ) {
+	// 		hitSurfaceType = MIRROR;
+	// 		hitColor = vec3( 0.618f );
+	// 	}
+	// }
 
 	// {
 	// 	// pModInterval1( p.y, 0.08f, -2.0f, 2.0f );
