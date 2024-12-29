@@ -497,7 +497,7 @@ void AllocateTextures ( icarusState_t &state ) {
 	opts.height			= state.dimensions.y;
 	opts.dataType		= GL_RGBA32F;
 	opts.minFilter		= GL_LINEAR;
-	opts.magFilter		= GL_LINEAR;
+	opts.magFilter		= GL_NEAREST;
 	opts.textureType	= GL_TEXTURE_2D;
 	opts.wrap			= GL_CLAMP_TO_BORDER;
 	state.textureManager->Add( "Output Buffer", opts );
