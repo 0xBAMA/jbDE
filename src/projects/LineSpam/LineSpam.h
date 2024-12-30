@@ -20,7 +20,6 @@ struct LineSpamConfig_t {
 	void CompileShaders();
 	void PrepLineBuffers();
 
-	void ClearPass();
 	void OpaquePass();
 	void TransparentPass();
 	void CompositePass();
@@ -99,5 +98,14 @@ void LineSpamConfig_t::TransparentPass() {
 
 void LineSpamConfig_t::CompositePass() {
 	// this will also do the buffer clears, since it's the only consumer of the other buffer info
-
+	glUseProgram( compositeShader );
+	textureManager->BindImageForShader( "Red Tally Buffer", "redTally", compositeShader, 0 );
+	textureManager->BindImageForShader( "Green Tally Buffer", "greenTally", compositeShader, 1 );
+	textureManager->BindImageForShader( "Blue Tally Buffer", "blueTally", compositeShader, 2 );
+	textureManager->BindImageForShader( "Sample Tally Buffer", "sampleTally", compositeShader, 3 );
+	textureManager->BindImageForShader( "Depth Buffer", "depthBuffer", compositeShader, 4 );
+	textureManager->BindImageForShader( "ID Buffer", "idBuffer", compositeShader, 5 );
+	textureManager->BindImageForShader( "Composite Target", "compositedResult", compositeShader, 6 );
+	glDispatchCompute( ( dimensions.x + 15 ) / 16, ( dimensions.y + 15 ) / 16, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }

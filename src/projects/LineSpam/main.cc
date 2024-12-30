@@ -24,7 +24,7 @@ public:
 			LineSpamConfig.textureManager = &textureManager;
 			LineSpamConfig.CreateTextures();
 
-			// add some lines
+			// add some random lines
 
 			// prepare the line buffers
 			LineSpamConfig.PrepLineBuffers();
@@ -58,7 +58,6 @@ public:
 		ZoneScoped;
 
 		{ // update the frame
-			LineSpamConfig.ClearPass();
 			LineSpamConfig.OpaquePass();
 			LineSpamConfig.TransparentPass();
 			LineSpamConfig.CompositePass();
@@ -68,7 +67,9 @@ public:
 			scopedTimer Start( "Drawing" );
 			bindSets[ "Drawing" ].apply();
 			glUseProgram( shaders[ "Draw" ] );
-			glUniform1f( glGetUniformLocation( shaders[ "Draw" ], "time" ), SDL_GetTicks() / 1600.0f );
+
+			textureManager.BindTexForShader( "Composite Target", "compositedResult", shaders[ "Draw" ], 2 );
+
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
@@ -96,11 +97,6 @@ public:
 		}
 	}
 
-	void OnUpdate () {
-		ZoneScoped; scopedTimer Start( "Update" );
-		// application-specific update code
-	}
-
 	void OnRender () {
 		ZoneScoped;
 		ClearColorAndDepth();		// if I just disable depth testing, this can disappear
@@ -125,12 +121,10 @@ public:
 		terminal.update( inputHandler );
 
 		// event handling
-		HandleTridentEvents();
 		HandleCustomEvents();
 		HandleQuitEvents();
 
 		// derived-class-specific functionality
-		OnUpdate();
 		OnRender();
 
 		FrameMark; // tells tracy that this is the end of a frame
