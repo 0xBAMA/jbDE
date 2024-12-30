@@ -72,6 +72,7 @@ public:
 		ZoneScoped;
 
 		{ // update the frame
+			scopedTimer Start( "LineSpam Update" );
 			LineSpamConfig.OpaquePass();
 			LineSpamConfig.TransparentPass();
 			LineSpamConfig.CompositePass();
