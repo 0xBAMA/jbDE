@@ -25,6 +25,20 @@ public:
 			LineSpamConfig.CreateTextures();
 
 			// add some random lines
+			rng brightness = rng( 0.75f, 0.9f );
+			rngN posGen = rngN( 0.0f, 0.3f );
+			for ( int i = 0; i < 10000; i++ ) {
+				// rngi pick = rngi( 0, 1 );
+				// switch( pick() ) {
+				// case 0:
+					line l;
+					l.p0 = vec4( posGen(), posGen(), posGen(), 0.0f );
+					l.p1 = vec4( posGen(), posGen(), posGen(), 0.0f );
+					l.color = vec4( brightness(), 0.1f, 0.05f, 0.1f );
+					LineSpamConfig.AddLine( l );
+					// break;
+				// }
+			}
 
 			// prepare the line buffers
 			LineSpamConfig.PrepLineBuffers();
