@@ -26,6 +26,8 @@ struct LineSpamConfig_t {
 
 	bool dirty = true;
 	vector< line > lines;
+	vector< line > opaqueLines;
+	vector< line > transparentLines;
 	void AddLine( line l ) { dirty = true; lines.push_back( l ); }
 };
 
@@ -70,9 +72,10 @@ void LineSpamConfig_t::PrepLineBuffers() {
 	dirty = false;
 
 	// sorting the list of lines into opaque and transparent
-	vector< line > opaqueLines;
-	vector< line > transparentLines;
-
+	opaqueLines.clear();
+	opaqueLines.reserve( lines.size() );
+	transparentLines.clear();
+	transparentLines.reserve( lines.size() );
 	for ( auto& l : lines ) {
 		if ( l.color.a == 1.0f ) {
 			opaqueLines.push_back( l );
