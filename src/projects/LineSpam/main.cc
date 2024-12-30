@@ -58,8 +58,7 @@ public:
 		}
 	}
 
-	void HandleCustomEvents () {
-		// application specific controls
+	void HandleCustomEvents () { // application specific controls
 		ZoneScoped; scopedTimer Start( "HandleCustomEvents" );
 	}
 
@@ -86,6 +85,7 @@ public:
 
 		{ // update the frame
 			scopedTimer Start( "LineSpam Update" );
+			LineSpamConfig.UpdateTransform();
 			LineSpamConfig.OpaquePass();
 			LineSpamConfig.TransparentPass();
 			LineSpamConfig.CompositePass();

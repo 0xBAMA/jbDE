@@ -38,6 +38,7 @@ void main() {
 	// opaque color comes from index loaded from id buffer, indexing into the SSBO for opaqueData[ id ].color
 	const uint idx = uint( imageLoad( idBuffer, loc ).r ) - 1;
 	vec4 opaqueColor = ( idx == 0 ) ? vec4( 0.0f ) : opaqueData[ idx ].color;
+	// opaqueColor.rgb *= 1000.0f;
 
 	// transparent color resolve
 	vec4 tallySamples = vec4( // similar scheme to Icarus
@@ -48,10 +49,10 @@ void main() {
 	);
 	// averaging out colors and get a Beer's-law-ish term for density
 	// vec4 transparentColor = vec4( tallySamples.rgb / tallySamples.a, exp( -0.003f * tallySamples.a ) );
-	vec4 transparentColor = vec4( tallySamples.rgb, exp( -0.003f * tallySamples.a ) );
+	vec4 transparentColor = vec4( tallySamples.rgb, clamp( exp( -0.03f * tallySamples.a ), 0.0f, 1.0f ) );
 
 	// blend the transparent over the opaque
-	vec3 finalColor = blendColor( opaqueColor, transparentColor ).rgb;
+	vec3 finalColor = ( transparentColor.a == 0.0f ) ? opaqueColor.rgb : blendColor( opaqueColor, transparentColor ).rgb;
 
 	// store back in the composited result
 	imageStore( compositedResult, loc, vec4( finalColor, 1.0f ) );
