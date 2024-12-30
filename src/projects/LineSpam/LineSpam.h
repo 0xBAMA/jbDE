@@ -85,7 +85,18 @@ void LineSpamConfig_t::PrepLineBuffers() {
 	}
 
 	// create the buffers
+	glGenBuffers( 1, &opaqueLineSSBO );
+	glGenBuffers( 1, &transparentLineSSBO );
 
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, opaqueLineSSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 3 * sizeof( vec4 ) * opaqueLines.size(), ( void * ) opaqueLines.data(), GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, opaqueLineSSBO );
+	glObjectLabel( GL_BUFFER, opaqueLineSSBO, -1, string( "Opaque Line Data" ).c_str() );
+
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, transparentLineSSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 3 * sizeof( vec4 ) * transparentLines.size(), ( void * ) transparentLines.data(), GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, transparentLineSSBO );
+	glObjectLabel( GL_BUFFER, transparentLineSSBO, -1, string( "Transparent Line Data" ).c_str() );
 }
 
 void LineSpamConfig_t::OpaquePass() {
