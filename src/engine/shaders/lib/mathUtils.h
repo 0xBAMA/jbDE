@@ -18,6 +18,8 @@ float RangeRemapValue ( float value, float inLow, float inHigh, float outLow, fl
 #define saturate(x) clamp(x, 0, 1)
 #endif
 
+#define UINT_MAX 4294967295U
+
 #ifndef PI_DEFINED
 #define PI_DEFINED
 const float pi = 3.141592f;
