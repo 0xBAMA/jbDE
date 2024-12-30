@@ -16,16 +16,15 @@ layout( binding = 5, r32ui ) uniform uimage2D idBuffer;
 // color attachment
 layout( binding = 6, rgba16f ) uniform image2D compositedResult;
 
-// opaque line buffer
+// line buffers
 struct line_t {
 	vec4 p0;
 	vec4 p1;
-	vec4 color;
+	vec4 color0;
+	vec4 color1;
 };
-
-layout( binding = 0, std430 ) buffer opaqueLineData {
-	line_t opaqueData[];
-};
+layout( binding = 0, std430 ) buffer opaqueLineData { line_t opaqueData[]; };
+layout( binding = 1, std430 ) buffer transparentLineData { line_t transparentData[]; };
 
 vec4 blendColor( in vec4 under, in vec4 over ) {
 	float a0 = ( over.a + under.a * ( 1.0f - over.a ) );

@@ -16,16 +16,15 @@ uniform float depthRange;
 uniform mat4 transform;
 uniform uint numTransparent;
 
-// transparent line buffer
+// line buffers
 struct line_t {
 	vec4 p0;
 	vec4 p1;
-	vec4 color;
+	vec4 color0;
+	vec4 color1;
 };
-
-layout( binding = 1, std430 ) buffer transparentLineData {
-	line_t transparentData[];
-};
+layout( binding = 0, std430 ) buffer opaqueLineData { line_t opaqueData[]; };
+layout( binding = 1, std430 ) buffer transparentLineData { line_t transparentData[]; };
 
 // parameters for the lines
 ivec2 p0 = ivec2( 0 ), p1 = ivec2( 0 );
@@ -83,11 +82,11 @@ void main() {
 		line.p1.xyz = ( transform * vec4( line.p1.xyz, 1.0f ) ).xyz;
 
 		p0 = ivec2( int( RangeRemapValue( line.p0.x, -ratio, ratio, 0.0f, iS.x ) ), int( RangeRemapValue( line.p0.y, -1.0f, 1.0f, 0.0f, iS.y ) ) );
-		d0 = uint( RangeRemapValue( line.p0.z, -depthRange, depthRange, float( UINT_MAX ), 0.0f ) ); // depths
+		d0 = uint( RangeRemapValue( line.p0.z, -depthRange, depthRange, float( UINT_MAX ), 1.0f ) ); // depths
 		p1 = ivec2( int( RangeRemapValue( line.p1.x, -ratio, ratio, 0.0f, iS.x ) ), int( RangeRemapValue( line.p1.y, -1.0f, 1.0f, 0.0f, iS.y ) ) );
-		d1 = uint( RangeRemapValue( line.p1.z, -depthRange, depthRange, float( UINT_MAX ), 0.0f ) );
+		d1 = uint( RangeRemapValue( line.p1.z, -depthRange, depthRange, float( UINT_MAX ), 1.0f ) );
 
 		// draw the line
-		plotLineWidth( p0.x, p0.y, p1.x, p1.y, line.color, 1.5f );
+		plotLineWidth( p0.x, p0.y, p1.x, p1.y, line.color0, 1.5f );
 	}
 }

@@ -1,6 +1,6 @@
 struct line {
 	vec4 p0, p1;	// width in .a?
-	vec4 color;
+	vec4 color0, color1;
 };
 
 struct LineSpamConfig_t {
@@ -32,7 +32,7 @@ struct LineSpamConfig_t {
 	vector< line > transparentLines;
 	void AddLine( line l ) { dirty = true; lines.push_back( l ); }
 
-	float depthRange = 1000.0f;
+	float depthRange = 10.0f;
 };
 
 void LineSpamConfig_t::CreateTextures() {
@@ -77,11 +77,11 @@ void LineSpamConfig_t::PrepLineBuffers() {
 
 	// sorting the list of lines into opaque and transparent
 	opaqueLines.clear();
-	opaqueLines.reserve( lines.size() );
+	// opaqueLines.reserve( lines.size() );
 	transparentLines.clear();
-	transparentLines.reserve( lines.size() );
+	// transparentLines.reserve( lines.size() );
 	for ( auto& l : lines ) {
-		if ( l.color.a == 1.0f ) {
+		if ( l.color1.a == 1.0f ) {
 			opaqueLines.push_back( l );
 		} else {
 			transparentLines.push_back( l );
@@ -93,12 +93,12 @@ void LineSpamConfig_t::PrepLineBuffers() {
 	glGenBuffers( 1, &transparentLineSSBO );
 
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, opaqueLineSSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 3 * sizeof( vec4 ) * opaqueLines.size(), ( void * ) opaqueLines.data(), GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 4 * sizeof( vec4 ) * opaqueLines.size(), ( void * ) opaqueLines.data(), GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, opaqueLineSSBO );
 	glObjectLabel( GL_BUFFER, opaqueLineSSBO, -1, string( "Opaque Line Data" ).c_str() );
 
 	glBindBuffer( GL_SHADER_STORAGE_BUFFER, transparentLineSSBO );
-	glBufferData( GL_SHADER_STORAGE_BUFFER, 3 * sizeof( vec4 ) * transparentLines.size(), ( void * ) transparentLines.data(), GL_DYNAMIC_COPY );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, 4 * sizeof( vec4 ) * transparentLines.size(), ( void * ) transparentLines.data(), GL_DYNAMIC_COPY );
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, transparentLineSSBO );
 	glObjectLabel( GL_BUFFER, transparentLineSSBO, -1, string( "Transparent Line Data" ).c_str() );
 }
