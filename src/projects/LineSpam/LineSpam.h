@@ -1,14 +1,17 @@
 struct line {
-	vec4 p0, p1;	// width in .a
+	vec4 p0, p1;	// width in .a?
 	vec4 color;
 };
 
 struct LineSpamConfig_t {
+	ivec2 dimensions = ivec2( 1920, 1080 );
+
 	textureManager_t * textureManager;
 
 	GLuint opaqueLineSSBO;
 	GLuint transparentLineSSBO;
 
+	GLuint opaquePreZShader;
 	GLuint opaqueDrawShader;
 	GLuint transparentDrawShader;
 	GLuint compositeShader;
