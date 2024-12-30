@@ -40,7 +40,7 @@ void main() {
 	// float result = iRoundedCone( rayOrigin - centerPoint, rayDirection, normal, vec3( -0.9f ), vec3( 0.7f ), 0.1f, 0.3f );
 	// float result = iRoundedBox( rayOrigin - centerPoint, rayDirection, normal, vec3( 0.9f ), 0.1f );
 
-	float result = MAX_DIST;
+	float result = MAX_DIST_CP;
 	vec3 normal = vec3( 0.0f );
 	parameters_t parameters = parametersList[ vofiIndex ];
 	const int primitiveType = int( parameters.data[ 0 ] );
@@ -84,7 +84,7 @@ void main() {
 			break;
 	}
 
-	if ( result == MAX_DIST ) { // miss condition
+	if ( result == MAX_DIST_CP ) { // miss condition
 		#ifdef SHOWDISCARDS
 			if ( ( int( gl_FragCoord.x ) % 2 == 0 ) ) {
 				outColor = vec4( 1.0f ); // placeholder, helps visualize bounding box
