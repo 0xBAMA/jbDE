@@ -28,11 +28,8 @@ layout( binding = 0, std430 ) buffer opaqueLineData {
 };
 
 vec4 blendColor( in vec4 under, in vec4 over ) {
-	vec4 color = under;
-	color.a = max( over.a + color.a * ( 1.0f - over.a ), 0.001f );
-	color.rgb = over.rgb * over.a + color.rgb * color.a * ( 1.0f - color.a );
-	color.rgb /= color.a;
-	return color;
+	float a0 = ( over.a + under.a * ( 1.0f - over.a ) );
+	return vec4( ( over.rgb * over.a + under.rgb * under.a * ( 1.0f - over.a ) ) / a0, a0 );
 }
 
 void main() {
