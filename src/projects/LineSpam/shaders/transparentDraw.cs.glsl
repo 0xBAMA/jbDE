@@ -1,5 +1,5 @@
 #version 430
-layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
+layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
 // tally buffers
 layout( binding = 0, r32ui ) uniform uimage2D redTally;
@@ -22,5 +22,6 @@ layout( binding = 1, std430 ) buffer transparentLineData {
 };
 
 void main() {
+	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
 
 }

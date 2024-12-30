@@ -1,5 +1,5 @@
 #version 430
-layout( local_size_x = 256, local_size_y = 1, local_size_z = 1 ) in;
+layout( local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
 
 // depth buffer
 
@@ -42,5 +42,8 @@ layout( binding = 0, std430 ) buffer opaqueLineData {
 // }
 
 void main() {
-	
+	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
+
+	// writing id values for pixels which compute the same depth value stored in the depth buffer after pre-z
+		// setting id to invocation id + 1, so we have 0 as a reserve value
 }

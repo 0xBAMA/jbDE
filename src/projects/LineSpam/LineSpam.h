@@ -90,13 +90,31 @@ void LineSpamConfig_t::PrepLineBuffers() {
 
 void LineSpamConfig_t::OpaquePass() {
 	// opaque pre z draw, establish closest depths per pixel
-	// opaque draw, depth equals, setting ID values for composite
+	glUseProgram( opaquePreZShader );
+	textureManager->BindImageForShader( "Depth Buffer", "depthBuffer", opaquePreZShader, 0 );
+	const int workgroupsRoundedUp = ( opaqueLines.size() + 63 ) / 64;
+	glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1 ), 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
+	// opaque draw, depth equals, setting ID values for composite
+	glUseProgram( opaqueDrawShader );
+	textureManager->BindImageForShader( "Depth Buffer", "depthBuffer", opaqueDrawShader, 0 );
+	textureManager->BindImageForShader( "ID Buffer", "idBuffer", opaqueDrawShader, 1 );
+	glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1 ), 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 void LineSpamConfig_t::TransparentPass() {
 	// transparent draw process
-
+	glUseProgram( transparentDrawShader );
+	textureManager->BindImageForShader( "Red Tally Buffer", "redTally", transparentDrawShader, 0 );
+	textureManager->BindImageForShader( "Green Tally Buffer", "greenTally", transparentDrawShader, 1 );
+	textureManager->BindImageForShader( "Blue Tally Buffer", "blueTally", transparentDrawShader, 2 );
+	textureManager->BindImageForShader( "Sample Tally Buffer", "sampleTally", transparentDrawShader, 3 );
+	textureManager->BindImageForShader( "Depth Buffer", "depthBuffer", transparentDrawShader, 4 );
+	const int workgroupsRoundedUp = ( transparentLines.size() + 63 ) / 64;
+	glDispatchCompute( 64, std::max( workgroupsRoundedUp / 64, 1 ), 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 void LineSpamConfig_t::CompositePass() {
