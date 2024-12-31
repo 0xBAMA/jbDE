@@ -35,17 +35,17 @@ public:
 						line l;
 						l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
 						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
-						l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.1f );
+						l.color0 = l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.1f );
 						LineSpamConfig.AddLine( l );
 				// 		break;
 				// 	}
 
 				// 	case 1: {
 				// 		line l;
-				// 		l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
-				// 		l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
-				// 		l.color1 = vec4( 0.6f, 0.4f, brightness(), 1.0f );
-				// 		LineSpamConfig.AddLine( l );
+						l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
+						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
+						l.color0 = l.color1 = vec4( 0.6f, 0.4f, brightness(), 1.0f );
+						LineSpamConfig.AddLine( l );
 				// 		break;
 				// 	}
 
