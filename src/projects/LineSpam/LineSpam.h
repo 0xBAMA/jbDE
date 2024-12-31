@@ -15,12 +15,14 @@ struct LineSpamConfig_t {
 	GLuint opaqueDrawShader;
 	GLuint transparentDrawShader;
 	GLuint compositeShader;
+	GLuint clearShader;
 
 	void CreateTextures();
 	void CompileShaders();
 	void PrepLineBuffers();
 
 	void UpdateTransform();
+	void ClearPass();
 	void OpaquePass();
 	void TransparentPass();
 	void CompositePass();
@@ -69,6 +71,7 @@ void LineSpamConfig_t::CompileShaders() {
 	opaqueDrawShader		= computeShader( basePath + "opaqueDraw.cs.glsl" ).shaderHandle;
 	transparentDrawShader	= computeShader( basePath + "transparentDraw.cs.glsl" ).shaderHandle;
 	compositeShader			= computeShader( basePath + "composite.cs.glsl" ).shaderHandle;
+	clearShader				= computeShader( basePath + "clear.cs.glsl" ).shaderHandle;
 }
 
 void LineSpamConfig_t::PrepLineBuffers() {
@@ -105,6 +108,18 @@ void LineSpamConfig_t::PrepLineBuffers() {
 
 void LineSpamConfig_t::UpdateTransform() {
 	transform = glm::mat4_cast( glm::angleAxis( SDL_GetTicks() / 1600.0f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
+}
+
+void LineSpamConfig_t::ClearPass() {
+	glUseProgram( clearShader );
+	textureManager->BindImageForShader( "Red Tally Buffer", "redTally", clearShader, 0 );
+	textureManager->BindImageForShader( "Green Tally Buffer", "greenTally", clearShader, 1 );
+	textureManager->BindImageForShader( "Blue Tally Buffer", "blueTally", clearShader, 2 );
+	textureManager->BindImageForShader( "Sample Tally Buffer", "sampleTally", clearShader, 3 );
+	textureManager->BindImageForShader( "Depth Buffer", "depthBuffer", clearShader, 4 );
+	textureManager->BindImageForShader( "ID Buffer", "idBuffer", clearShader, 5 );
+	glDispatchCompute( ( dimensions.x + 15 ) / 16, ( dimensions.y + 15 ) / 16, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
 
 void LineSpamConfig_t::OpaquePass() {
