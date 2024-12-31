@@ -27,18 +27,18 @@ layout( binding = 0, std430 ) buffer opaqueLineData { line_t opaqueData[]; };
 layout( binding = 1, std430 ) buffer transparentLineData { line_t transparentData[]; };
 
 // parameters for the lines
-ivec2 p0 = ivec2( 0 ), p1 = ivec2( 0 );
-uint d0 = 0, d1 = 0;
+ivec2 p0, p1;
+uint d0, d1;
 
 // void setPixelColor( int x, int y, uint d, vec4 color, float AAFactor ) {
 void setPixelColor( int x, int y, vec4 color, float AAFactor ) {
-	uint lerpedDepth = uint( mix( float( d0 ), float( d1 ), ( ( RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f ) ) + ( RangeRemapValue( y, p0.x, p1.x, 0.0f, 1.0f ) ) ) / 2.0f ) );
-	if ( imageLoad( depthBuffer, ivec2( x, y ) ).r < lerpedDepth ) { // depth check
+	// uint lerpedDepth = uint( mix( float( d0 ), float( d1 ), ( ( RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f ) ) + ( RangeRemapValue( y, p0.x, p1.x, 0.0f, 1.0f ) ) ) / 2.0f ) );
+	// if ( imageLoad( depthBuffer, ivec2( x, y ) ).r < lerpedDepth ) { // depth check
 		imageAtomicAdd( redTally, ivec2( x, y ), uint( color.a * color.r * 1024 * AAFactor ) );
 		imageAtomicAdd( greenTally, ivec2( x, y ), uint( color.a * color.g * 1024 * AAFactor ) );
 		imageAtomicAdd( blueTally, ivec2( x, y ), uint( color.a * color.b * 1024 * AAFactor ) );
 		imageAtomicAdd( sampleTally, ivec2( x, y ), uint( color.a * AAFactor ) );
-	}
+	// }
 }
 
 // line drawing - from https://zingl.github.io/bresenham.html
@@ -70,7 +70,7 @@ void plotLineWidth( int x0, int y0, int x1, int y1, vec4 color, float wd ) {
 void main() {
 	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
 
-	if ( index < numTransparent ) {
+	// if ( index < numTransparent ) {
 		line_t line = transparentData[ index ];
 
 		// translate NDC to screen coords
@@ -88,5 +88,5 @@ void main() {
 
 		// draw the line
 		plotLineWidth( p0.x, p0.y, p1.x, p1.y, line.color0, 1.5f );
-	}
+	// }
 }

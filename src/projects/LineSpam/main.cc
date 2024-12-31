@@ -25,33 +25,33 @@ public:
 			LineSpamConfig.CreateTextures();
 
 			// add some random lines
-			rng brightness = rng( 0.1f, 0.9f );
-			// rngN posGen = rngN( 0.0f, 0.3f );
-			rng posGen = rng( -0.5f, 0.5f );
-			for ( int i = 0; i < 1 * 4096; i++ ) {
-				rngi pick = rngi( 0, 1 );
-				switch( pick() ) {
-					case 0: {
+			rng brightness = rng( 0.7f, 0.9f );
+			rngN posGen = rngN( 0.0f, 0.3f );
+			// rng posGen = rng( -0.5f, 0.5f );
+			for ( int i = 0; i < 10000; i++ ) {
+				// rngi pick = rngi( 0, 1 );
+				// switch( pick() ) {
+				// 	case 0: {
 						line l;
 						l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
 						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
-						l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.3f );
+						l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.1f );
 						LineSpamConfig.AddLine( l );
-						break;
-					}
+				// 		break;
+				// 	}
 
-					case 1: {
-						line l;
-						l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
-						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
-						l.color1 = vec4( 0.6f, 0.4f, brightness(), 1.0f );
-						LineSpamConfig.AddLine( l );
-						break;
-					}
+				// 	case 1: {
+				// 		line l;
+				// 		l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
+				// 		l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
+				// 		l.color1 = vec4( 0.6f, 0.4f, brightness(), 1.0f );
+				// 		LineSpamConfig.AddLine( l );
+				// 		break;
+				// 	}
 
-					default:
-					break;
-				}
+				// 	default:
+				// 	break;
+				// }
 			}
 
 			// prepare the line buffers
@@ -65,6 +65,13 @@ public:
 
 	void ImguiPass () {
 		ZoneScoped;
+
+		ImGui::Begin( "LineSpam", NULL );
+		ImGui::Text( "Loaded %d opaque lines", LineSpamConfig.opaqueLines.size() );
+		ImGui::Text( "Loaded %d transparent lines", LineSpamConfig.transparentLines.size() );
+
+		ImGui::End();
+
 		if ( tonemap.showTonemapWindow ) {
 			TonemapControlsWindow();
 		}
@@ -88,7 +95,7 @@ public:
 			scopedTimer Start( "LineSpam Update" );
 			LineSpamConfig.UpdateTransform();
 			LineSpamConfig.ClearPass();
-			LineSpamConfig.OpaquePass();
+			// LineSpamConfig.OpaquePass();
 			LineSpamConfig.TransparentPass();
 			LineSpamConfig.CompositePass();
 		}
