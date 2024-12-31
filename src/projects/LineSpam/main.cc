@@ -87,6 +87,7 @@ public:
 		{ // update the frame
 			scopedTimer Start( "LineSpam Update" );
 			LineSpamConfig.UpdateTransform();
+			LineSpamConfig.ClearPass();
 			LineSpamConfig.OpaquePass();
 			LineSpamConfig.TransparentPass();
 			LineSpamConfig.CompositePass();

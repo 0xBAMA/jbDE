@@ -56,11 +56,11 @@ void main() {
 	// store back in the composited result
 	imageStore( compositedResult, loc, vec4( finalColor, 1.0f ) );
 
-	// also do the clears here
-	imageStore( redTally, loc, uvec4( 0 ) );
-	imageStore( greenTally, loc, uvec4( 0 ) );
-	imageStore( blueTally, loc, uvec4( 0 ) );
-	imageStore( sampleTally, loc, uvec4( 0 ) );
-	imageStore( depthBuffer, loc, uvec4( 0 ) );
-	imageStore( idBuffer, loc, uvec4( 0 ) );
+	// // do the clears here
+	// imageStore( redTally, loc, uvec4( 0 ) );
+	// imageStore( greenTally, loc, uvec4( 0 ) );
+	// imageStore( blueTally, loc, uvec4( 0 ) );
+	// imageStore( sampleTally, loc, uvec4( 0 ) );
+	// imageStore( depthBuffer, loc, uvec4( 0 ) );
+	// imageStore( idBuffer, loc, uvec4( 0 ) );
 }
