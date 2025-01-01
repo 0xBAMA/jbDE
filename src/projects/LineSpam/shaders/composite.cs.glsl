@@ -31,8 +31,16 @@ vec4 blendColor( in vec4 under, in vec4 over ) {
 	return vec4( ( over.rgb * over.a + under.rgb * under.a * ( 1.0f - over.a ) ) / a0, a0 );
 }
 
+#include "mathUtils.h"
+uniform float depthRange;
+
+#include "random.h"
+uniform int seedoffset;
+
 void main() {
 	const ivec2 loc = ivec2( gl_GlobalInvocationID.xy );
+
+	seed = uint( 6969 * loc.x + 42069 * loc.y + seedoffset );
 
 	// opaque color comes from index loaded from id buffer, indexing into the SSBO for opaqueData[ id ].color
 	const uint idx = uint( imageLoad( idBuffer, loc ).r ) - 1;
@@ -48,14 +56,19 @@ void main() {
 	);
 	// averaging out colors and get a Beer's-law-ish term for density
 	// vec4 transparentColor = vec4( tallySamples.rgb / tallySamples.a, exp( -0.003f * tallySamples.a ) );
-	vec4 transparentColor = vec4( tallySamples.rgb, clamp( exp( -0.003f * tallySamples.a ), 0.0f, 1.0f ) );
+	vec4 transparentColor = vec4( tallySamples.rgb, sqrt( 1.0f - clamp( exp( -0.3f * tallySamples.a ), 0.0f, 1.0f ) ) );
+
+	float zPos = RangeRemapValue( imageLoad( depthBuffer, loc ).r, 1.0f, float( UINT_MAX ), -depthRange, depthRange );
+	opaqueColor.rgb *= RangeRemapValue( zPos, -depthRange, depthRange, 0.0f, 1.0f );
 
 	// blend the transparent over the opaque
-	// vec3 finalColor = ( transparentColor.a == 0.0f ) ? opaqueColor.rgb : blendColor( opaqueColor, transparentColor ).rgb;
-	vec3 finalColor = transparentColor.rgb;
+	vec3 finalColor = ( transparentColor.a == 0.0f ) ? opaqueColor.rgb : blendColor( opaqueColor, transparentColor ).rgb;
+	// vec3 finalColor = opaqueColor.rgb;
 
 	// store back in the composited result
-	imageStore( compositedResult, loc, vec4( finalColor, 1.0f ) );
+	// imageStore( compositedResult, loc, vec4( mix( finalColor, imageLoad( compositedResult, ivec2( loc + 2.0f * UniformSampleHexagon( vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) ) ).rgb, 0.9f ), 1.0f ) );
+	// imageStore( compositedResult, loc, vec4( finalColor, 1.0f ) );
+	imageStore( compositedResult, loc, vec4( mix( finalColor, imageLoad( compositedResult, ivec2( loc ) ).rgb, 0.3f ), 1.0f ) );
 
 	// // do the clears here
 	// imageStore( redTally, loc, uvec4( 0 ) );
