@@ -21,14 +21,14 @@ struct LineSpamConfig_t {
 	void CompileShaders();
 	void PrepLineBuffers();
 
-	void UpdateTransform();
+	void UpdateTransform( inputHandler_t &input );
 	void ClearPass();
 	void OpaquePass();
 	void TransparentPass();
 	void CompositePass();
 
 	bool dirty = true;
-	mat4 transform;
+	mat4 transform = mat4( 1.0f );
 	vector< line > lines;
 	vector< line > opaqueLines;
 	vector< line > transparentLines;
@@ -106,8 +106,35 @@ void LineSpamConfig_t::PrepLineBuffers() {
 	glObjectLabel( GL_BUFFER, transparentLineSSBO, -1, string( "Transparent Line Data" ).c_str() );
 }
 
-void LineSpamConfig_t::UpdateTransform() {
-	transform = glm::mat4_cast( glm::angleAxis( SDL_GetTicks() / 1600.0f, normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
+void LineSpamConfig_t::UpdateTransform( inputHandler_t &input ) {
+	// transform = glm::mat4_cast( glm::angleAxis( 0.01f * sin( SDL_GetTicks() / 160.0f ), normalize( vec3( 8.0f, 1.0f, 7.0f ) ) ) * glm::angleAxis( 0.4f * sin( SDL_GetTicks() / 16000.0f ), normalize( vec3( 1.0f, 2.0f, 3.0f ) ) ) );
+
+	// transform = glm::rotate( SDL_GetTicks() / 16000.0f, normalize( vec3( 0.0f, 1.0f, 0.0f ) ) )
+	// 			* glm::rotate( sin( SDL_GetTicks() / 12000.0f ), normalize( vec3( 0.0f, 0.0f, 1.0f ) ) )
+	// 			* glm::rotate( cos( SDL_GetTicks() / 1000.0f ), normalize( vec3( 1.0f, 0.0f, 0.0f ) ) );
+
+	const bool shift = input.getState( KEY_LEFT_SHIFT ) || input.getState( KEY_RIGHT_SHIFT );
+	const bool control = input.getState( KEY_LEFT_CTRL ) || input.getState( KEY_RIGHT_CTRL );
+
+	const float scalar = shift ? 0.1f : ( control ? 0.0005f : 0.02f );
+
+	if ( input.getState( KEY_W ) )			transform = glm::rotate( scalar, vec3( 1.0f, 0.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_S ) )			transform = glm::rotate( -scalar, vec3( 1.0f, 0.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_A ) )			transform = glm::rotate( -scalar, vec3( 0.0f, 1.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_D ) )			transform = glm::rotate( scalar, vec3( 0.0f, 1.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_Q ) )			transform = glm::rotate( scalar, vec3( 0.0f, 0.0f, 1.0f ) ) * transform;
+	if ( input.getState( KEY_E ) )			transform = glm::rotate( -scalar, vec3( 0.0f, 0.0f, 1.0f ) ) * transform;
+	if ( input.getState( KEY_UP ) )		transform = glm::translate( scalar * vec3( 0.0f, 0.0f, 1.0f ) ) * transform;
+	if ( input.getState( KEY_DOWN ) )		transform = glm::translate( scalar * vec3( 0.0f, 0.0f, -1.0f ) ) * transform;
+	if ( input.getState( KEY_RIGHT ) )		transform = glm::translate( scalar * vec3( 1.0f, 0.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_LEFT ) )		transform = glm::translate( scalar * vec3( -1.0f, 0.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_PAGEDOWN ) )	transform = glm::translate( scalar * vec3( 0.0f, 1.0f, 0.0f ) ) * transform;
+	if ( input.getState( KEY_PAGEUP ) )	transform = glm::translate( scalar * vec3( 0.0f, -1.0f, 0.0f ) ) * transform;
+
+	if ( input.getState4( KEY_F ) == KEYSTATE_RISING ) transform = mat4( 1.0f );
+
+	if ( input.getState( KEY_EQUALS ) )	transform = glm::scale( vec3( 0.99f ) ) * transform; // zoom in
+	if ( input.getState( KEY_MINUS ) )		transform = glm::scale( vec3( 1.0f / 0.99f ) ) * transform; // zoom out
 }
 
 void LineSpamConfig_t::ClearPass() {
