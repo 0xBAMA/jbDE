@@ -43,7 +43,7 @@ float GetVolumeDensity( ivec3 pos ) {
 
 	if ( bboxDist < 0.0f ) {
 		scatterColor = sapphire;
-		density = 10.0f;
+		density = 1.0f;
 	} else {
 		density = 0.0f;
 	}
