@@ -29,8 +29,27 @@ uint d0 = 0, d1 = 0;
 
 void setPixelColor ( int x, int y, float AAFactor ) {
 	uint id = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
+
 	// we need to get the depth
-	uint lerpedDepth = uint( mix( float( d0 ), float( d1 ), ( ( RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f ) ) + ( RangeRemapValue( y, p0.x, p1.x, 0.0f, 1.0f ) ) ) / 2.0f ) );
+	bool isVertical = ( p0.x == p1.x );
+	bool isHorizontal = ( p0.y == p1.y );
+
+	float depthMix;
+	if ( isVertical && isHorizontal ) {
+		// single pixel line
+		depthMix = 0.5f;
+	} else if ( isVertical ) {
+		// line is vertical, use y to lerp
+		depthMix = RangeRemapValue( y, p0.y, p1.y, 0.0f, 1.0f );
+	} else if ( isHorizontal ) {
+		// line is horizontal, use x to lerp
+		depthMix = RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f );
+	} else {
+		// line has activity on both axes, average the two to lerp
+		depthMix = ( ( RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f ) ) + ( RangeRemapValue( y, p0.y, p1.y, 0.0f, 1.0f ) ) ) / 2.0f;
+	}
+
+	uint lerpedDepth = uint( mix( float( d0 ), float( d1 ), depthMix ) );
 
 	// imageAtomicMax( depthBuffer, ivec2( x, y ), lerpedDepth );
 	if ( imageLoad( depthBuffer, ivec2( x, y ) ).r == lerpedDepth ) { // depth-equals check
@@ -84,6 +103,6 @@ void main() {
 		p1 = ivec2( int( RangeRemapValue( line.p1.x, -ratio, ratio, 0.0f, iS.x ) ), int( RangeRemapValue( line.p1.y, -1.0f, 1.0f, 0.0f, iS.y ) ) );
 		d1 = uint( RangeRemapValue( line.p1.z, -depthRange, depthRange, float( UINT_MAX ), 1.0f ) );
 
-		plotLineWidth( p0.x, p0.y, p1.x, p1.y, 1.5f );
+		plotLineWidth( p0.x, p0.y, p1.x, p1.y, line.p0.w );
 	}
 }

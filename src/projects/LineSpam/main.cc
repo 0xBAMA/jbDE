@@ -24,28 +24,31 @@ public:
 			LineSpamConfig.textureManager = &textureManager;
 			LineSpamConfig.CreateTextures();
 
-			// add some random lines
-			rng brightness = rng( 0.7f, 0.9f );
+			// // add some random lines
+			rng brightness = rng( 0.2f, 0.9f );
 			rngN posGen = rngN( 0.0f, 0.3f );
+			rng widthGen = rng( 1.2f, 3.0f );
 			// rng posGen = rng( -0.5f, 0.5f );
-			for ( int i = 0; i < 10000; i++ ) {
+			for ( int i = 0; i < 200000; i++ ) {
 				// rngi pick = rngi( 0, 1 );
 				// switch( pick() ) {
 				// 	case 0: {
 						line l;
-						l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
-						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
-						l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.1f );
+						l.p0 = vec4( posGen(), posGen(), posGen() * 2.0f, widthGen() );
+						l.p1 = vec4( posGen(), posGen(), posGen() * 2.0f, 1.0f );
+						// l.color0 = l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.1f );
+						// l.color0 = l.color1 = vec4( 0.4f * brightness(), 0.8f * brightness(), 0.9f * brightness(), 0.01f );
+						l.color0 = l.color1 = vec4( 0.9f * brightness(), 0.2f * brightness(), 0.1f * brightness(), 0.1f );
 						LineSpamConfig.AddLine( l );
 				// 		break;
 				// 	}
 
 				// 	case 1: {
 				// 		line l;
-				// 		l.p0 = vec4( posGen(), posGen(), posGen(), 1.0f );
-				// 		l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
-				// 		l.color1 = vec4( 0.6f, 0.4f, brightness(), 1.0f );
-				// 		LineSpamConfig.AddLine( l );
+						l.p0 = vec4( posGen(), posGen(), posGen() * 2.0f, widthGen() );
+						l.p1 = vec4( posGen(), posGen(), posGen() * 2.0f, 1.0f );
+						l.color0 = l.color1 = vec4( vec3( 0.1f * brightness() ), 1.0f );
+						LineSpamConfig.AddLine( l );
 				// 		break;
 				// 	}
 
@@ -53,6 +56,20 @@ public:
 				// 	break;
 				// }
 			}
+
+			// const float freq = 5.0f * pi;
+			// const float radius = 0.4f;
+			// for ( float t = -1.0f; t < 1.0f; t += 0.002f ) {
+			// 	line l;
+			// 	l.p0 = vec4( radius * cos( t * freq ), radius * sin( t * freq ), t, 1.0f );
+			// 	l.p1 = vec4( -radius * cos( t * freq ), -radius * sin( t * freq ), t, 1.0f );
+			// 	l.color0 = l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.5f );
+			// 	LineSpamConfig.AddLine( l );
+			// 	l.p0 = vec4( radius * cos( t * freq ) + 0.03f, radius * sin( t * freq ) + 0.05f, t - 0.01f, 1.0f );
+			// 	l.p1 = vec4( -radius * cos( t * freq ) + 0.03f, -radius * sin( t * freq ) + 0.05f, t - 0.01f, 1.0f );
+			// 	l.color0 = l.color1 = vec4( vec3( 0.1f * brightness() ), 1.0f );
+			// 	LineSpamConfig.AddLine( l );
+			// }
 
 			// prepare the line buffers
 			LineSpamConfig.PrepLineBuffers();
@@ -69,7 +86,7 @@ public:
 		ImGui::Begin( "LineSpam", NULL );
 		ImGui::Text( "Loaded %d opaque lines", LineSpamConfig.opaqueLines.size() );
 		ImGui::Text( "Loaded %d transparent lines", LineSpamConfig.transparentLines.size() );
-
+		ImGui::SliderFloat( "Depth Range", &LineSpamConfig.depthRange, 0.001f, 10.0f );
 		ImGui::End();
 
 		if ( tonemap.showTonemapWindow ) {
@@ -93,9 +110,9 @@ public:
 
 		{ // update the frame
 			scopedTimer Start( "LineSpam Update" );
-			LineSpamConfig.UpdateTransform();
+			LineSpamConfig.UpdateTransform( inputHandler );
 			LineSpamConfig.ClearPass();
-			// LineSpamConfig.OpaquePass();
+			LineSpamConfig.OpaquePass();
 			LineSpamConfig.TransparentPass();
 			LineSpamConfig.CompositePass();
 		}

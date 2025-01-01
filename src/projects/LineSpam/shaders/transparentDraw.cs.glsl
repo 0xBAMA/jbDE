@@ -32,13 +32,33 @@ uint d0, d1;
 
 // void setPixelColor( int x, int y, uint d, vec4 color, float AAFactor ) {
 void setPixelColor( int x, int y, vec4 color, float AAFactor ) {
-	// uint lerpedDepth = uint( mix( float( d0 ), float( d1 ), ( ( RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f ) ) + ( RangeRemapValue( y, p0.x, p1.x, 0.0f, 1.0f ) ) ) / 2.0f ) );
-	// if ( imageLoad( depthBuffer, ivec2( x, y ) ).r < lerpedDepth ) { // depth check
+	// we need to get the depth
+	bool isVertical = ( p0.x == p1.x );
+	bool isHorizontal = ( p0.y == p1.y );
+
+	float depthMix;
+	if ( isVertical && isHorizontal ) {
+		// single pixel line
+		depthMix = 0.5f;
+	} else if ( isVertical ) {
+		// line is vertical, use y to lerp
+		depthMix = RangeRemapValue( y, p0.y, p1.y, 0.0f, 1.0f );
+	} else if ( isHorizontal ) {
+		// line is horizontal, use x to lerp
+		depthMix = RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f );
+	} else {
+		// line has activity on both axes, average the two to lerp
+		depthMix = ( ( RangeRemapValue( x, p0.x, p1.x, 0.0f, 1.0f ) ) + ( RangeRemapValue( y, p0.y, p1.y, 0.0f, 1.0f ) ) ) / 2.0f;
+	}
+
+	uint lerpedDepth = uint( mix( float( d0 ), float( d1 ), depthMix ) );
+
+	if ( imageLoad( depthBuffer, ivec2( x, y ) ).r < lerpedDepth ) { // depth check
 		imageAtomicAdd( redTally, ivec2( x, y ), uint( color.a * color.r * 1024 * AAFactor ) );
 		imageAtomicAdd( greenTally, ivec2( x, y ), uint( color.a * color.g * 1024 * AAFactor ) );
 		imageAtomicAdd( blueTally, ivec2( x, y ), uint( color.a * color.b * 1024 * AAFactor ) );
 		imageAtomicAdd( sampleTally, ivec2( x, y ), uint( color.a * AAFactor ) );
-	// }
+	}
 }
 
 // line drawing - from https://zingl.github.io/bresenham.html
@@ -70,7 +90,7 @@ void plotLineWidth( int x0, int y0, int x1, int y1, vec4 color, float wd ) {
 void main() {
 	uint index = gl_GlobalInvocationID.x + 4096 * gl_GlobalInvocationID.y;
 
-	// if ( index < numTransparent ) {
+	if ( index < numTransparent ) {
 		line_t line = transparentData[ index ];
 
 		// translate NDC to screen coords
@@ -87,6 +107,10 @@ void main() {
 		d1 = uint( RangeRemapValue( line.p1.z, -depthRange, depthRange, float( UINT_MAX ), 1.0f ) );
 
 		// draw the line
-		plotLineWidth( p0.x, p0.y, p1.x, p1.y, line.color0, 1.5f );
-	// }
+		plotLineWidth( p0.x, p0.y, p1.x, p1.y, line.color0, line.p0.w );
+
+		// debug endpoints
+		// setPixelColor( p0.x, p0.y, line.color0, 1024.0f );
+		// setPixelColor( p1.x, p1.y, line.color0, 1024.0f );
+	}
 }

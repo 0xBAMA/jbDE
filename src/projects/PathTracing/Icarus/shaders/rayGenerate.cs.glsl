@@ -138,7 +138,7 @@ void main () {
 
 	// fill out the rayState based on the prepared cameraRay for this uv location... add weyl subpixel jitter
 	// vec2 uv = ( ( vec2( offset ) + vec2( NormalizedRandomFloat(), NormalizedRandomFloat() ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
-	vec2 uv = ( ( vec2( offset ) + fract( vec2( frameNumber * 12664745, frameNumber * 9560333 ) / exp2( 24.0f ) ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
+	vec2 uv = ( ( vec2( offset ) + fract( vec2( ( frameNumber % 512 ) * 12664745, ( frameNumber % 512 ) * 9560333 ) / exp2( 24.0f ) ) ) / imageDimensions ) * 2.0f - vec2( 1.0f );
 
 	cameraRay myRay = GetCameraRay( uv );
 	SetTransmission( state[ index ], myRay.transmission );
