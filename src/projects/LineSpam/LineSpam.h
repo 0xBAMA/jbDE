@@ -34,7 +34,7 @@ struct LineSpamConfig_t {
 	vector< line > transparentLines;
 	void AddLine( line l ) { dirty = true; lines.push_back( l ); }
 
-	float depthRange = 10.0f;
+	float depthRange = 2.0f;
 };
 
 void LineSpamConfig_t::CreateTextures() {
@@ -197,6 +197,9 @@ void LineSpamConfig_t::CompositePass() {
 	textureManager->BindImageForShader( "Depth Buffer", "depthBuffer", compositeShader, 4 );
 	textureManager->BindImageForShader( "ID Buffer", "idBuffer", compositeShader, 5 );
 	textureManager->BindImageForShader( "Composite Target", "compositedResult", compositeShader, 6 );
+	glUniform1f( glGetUniformLocation( compositeShader, "depthRange" ), depthRange );
+	static rngi wangSeed = rngi( 0, 1000000 );
+	glUniform1i( glGetUniformLocation( compositeShader, "seedOffset" ), wangSeed() );
 	glDispatchCompute( ( dimensions.x + 15 ) / 16, ( dimensions.y + 15 ) / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 }
