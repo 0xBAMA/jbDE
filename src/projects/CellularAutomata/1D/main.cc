@@ -32,9 +32,10 @@ public:
 			// 	rule += ( pick() < 0.5f ) ? ( 1 << i ) : 0;
 			// }
 
-			// for ( uint8_t rule = 0; rule < 255; rule++ ) {
 			rng flipChance = rng( 0.0f, 1.0f );
-			uint8_t rule = 99;
+			for ( uint8_t rule = 0; rule < 255; rule++ ) {
+			// uint8_t rule = 99;
+			// uint8_t rule = 183;
 				string ruleString;
 				for ( int i = 0; i < 8; i++ ) {
 					ruleString += ( rule & ( 1 << i ) ) ? "1" : "0";
@@ -54,14 +55,14 @@ public:
 							( samples[ 1 ] ? 2 : 0 ) +
 							( samples[ 2 ] ? 1 : 0 ) );
 						uint8_t ruleTestMask = ( 1 << sum );
-						test.SetAtXY( x, y, ( ( rule & ruleTestMask ) != 0 || flipChance() < 0.004f ) ? white : black );
+						test.SetAtXY( x, y, ( ( flipChance() < 0.001f ) ? ( ( rule & ruleTestMask ) != 0 ) : ( ( rule & ruleTestMask ) == 0 ) ) ? white : black );
 
 						// cout << "seeing " << ( samples[ 0 ] ? "1" : "0" ) << ( samples[ 1 ] ? "1" : "0" ) << ( samples[ 2 ] ? "1" : "0" ) << " (" << to_string( sum ) << "), rule " << to_string( rule ) << " is " << ruleString << " resulting in " << ( ( ( rule & ruleTestMask ) != 0 ) ? "living" : "dead" ) << endl;
 					}
 				}
 
 				test.Save( "test" + to_string( rule ) + ".png" );
-			// }
+			}
 
 			config.oneShot = true;
 		}
