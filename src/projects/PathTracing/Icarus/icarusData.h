@@ -46,13 +46,30 @@ struct icarusState_t {
 	#define FOCUSED		2
 	#define SHUFFLED	3
 	#define SHUFFOCUS	4
+	#define FLEXTILE	5
 
-	int offsetFeedMode = SHUFFOCUS;
+	int offsetFeedMode = FLEXTILE;
 	GLuint offsetsSSBO;
 	GLuint intersectionScratchSSBO;
 	bool forceUpdate = false;
 
-	uint numRays = 2 << 16;
+	struct flexTileConfig_t {
+		bool dirty = true; // need to rebuild the list
+
+		int tileSize = 64;
+		int samplesPerPixel = 256;
+		int samplesRemaining = 0;
+
+		int currentTile = 0;
+
+		enum tileOrder_t { tile_inOrder = 0, tile_shuffled = 1 };
+		tileOrder_t tileOrder = tile_shuffled;
+
+		enum fillMode_t { fill_inOrder = 0, fill_shuffled = 1, fill_bayer = 2 };
+		fillMode_t fillMode = fill_bayer;
+	} flexTileConfig;
+
+	uint numRays = 2 << 18;
 
 	// holding the rays
 	GLuint raySSBO;
@@ -492,6 +509,8 @@ void AllocateTextures ( icarusState_t &state ) {
 	}
 	firstTime = false;
 
+	state.flexTileConfig.dirty = true;
+
 	textureOptions_t opts;
 
 	// image to hold tonemapped results
@@ -661,8 +680,103 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 			break;
 		}
 
+		case FLEXTILE: {
+			static vector< ivec2 > offsets;
+
+			if ( state.flexTileConfig.dirty ) { // rebuild the list
+				offsets.clear();
+				state.flexTileConfig.currentTile = 0;
+				state.flexTileConfig.dirty = false;
+
+				vector< ivec2 > baseTileOffsets;
+				for ( int y = 0; y < state.dimensions.y; y += state.flexTileConfig.tileSize ) {
+					for ( int x = 0; x < state.dimensions.x; x += state.flexTileConfig.tileSize ) {
+						baseTileOffsets.push_back( ivec2( x, y ) );
+					}
+				}
+
+				if ( state.flexTileConfig.tileOrder == icarusState_t::flexTileConfig_t::tileOrder_t::tile_shuffled ) {
+					static auto rng = std::default_random_engine {};
+					std::shuffle( std::begin( baseTileOffsets ), std::end( baseTileOffsets ), rng );
+					std::shuffle( std::begin( baseTileOffsets ), std::end( baseTileOffsets ), rng );
+				}
+
+				// now constructing the actual list of offsets, from that base list of tiles
+					// todo: add bounds checking
+				for ( auto& tile : baseTileOffsets ) {
+					switch ( state.flexTileConfig.fillMode ) {
+						case icarusState_t::flexTileConfig_t::fillMode_t::fill_inOrder: {
+							for ( int y = 0; y < state.flexTileConfig.tileSize; y++ ) {
+								for ( int x = 0; x < state.flexTileConfig.tileSize; x++ ) {
+									// add the offsets to the list
+									ivec2 p = tile + ivec2( x, y );
+									if ( p.x >= 0 && p.y >= 0 && p.x < state.dimensions.x && p.y < state.dimensions.y ) {
+										offsets.push_back( p );
+									}
+								}
+							}
+							break;
+						}
+
+						case icarusState_t::flexTileConfig_t::fillMode_t::fill_shuffled: {
+							// add the offsets to the list, then shuffle
+							vector < ivec2 > tileOffsets;
+							for ( int y = 0; y < state.flexTileConfig.tileSize; y++ ) {
+								for ( int x = 0; x < state.flexTileConfig.tileSize; x++ ) {
+									ivec2 p = tile + ivec2( x, y );
+									if ( p.x >= 0 && p.y >= 0 && p.x < state.dimensions.x && p.y < state.dimensions.y ) {
+										offsets.push_back( p );
+									}
+								}
+							}
+							static auto rng = std::default_random_engine {};
+							std::shuffle( std::begin( tileOffsets ), std::end( tileOffsets ), rng );
+							std::shuffle( std::begin( tileOffsets ), std::end( tileOffsets ), rng );
+							for ( auto& tileOffset : tileOffsets ) {
+								offsets.push_back( tileOffset );
+							}
+							break;
+						}
+
+						case icarusState_t::flexTileConfig_t::fillMode_t::fill_bayer: {
+							// add the offsets to the list
+							vector < uint8_t > bayerData = BayerData( 8 ); // might break for tiles < 8, idk
+							for ( uint8_t i = 0; i < 64; i++ ) {
+								for ( int y = 0; y < state.flexTileConfig.tileSize; y++ ) {
+									for ( int x = 0; x < state.flexTileConfig.tileSize; x++ ) {
+										if ( bayerData[ ( x % 8 ) + 8 * ( y % 8 ) ] == i ) { // marking this as the next offset
+											ivec2 p = tile + ivec2( x, y );
+											if ( p.x >= 0 && p.y >= 0 && p.x < state.dimensions.x && p.y < state.dimensions.y ) {
+												offsets.push_back( tile + ivec2( x, y ) );
+											}
+										}
+									}
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			static ivec2 loc = ivec2( 0 );
+			if ( state.flexTileConfig.samplesRemaining == 0 ) {
+				// get a new offset from the list, increment the offset for next time
+				state.flexTileConfig.samplesRemaining = state.flexTileConfig.samplesPerPixel;
+				loc = offsets[ state.flexTileConfig.currentTile ];
+				state.flexTileConfig.currentTile++;
+				state.flexTileConfig.currentTile %= offsets.size();
+				// cout << "new offset set " << loc.x << " " << loc.y << endl;
+			}
+
+			// give the next offset off the list
+			offset = loc;
+			state.flexTileConfig.samplesRemaining--;
+			break;
+		}
+
 		default: {
-			offset = uvec2( 0 );
+			offset = ivec2( 0 );
 			break;
 		}
 	}
