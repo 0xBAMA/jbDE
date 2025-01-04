@@ -83,7 +83,7 @@ void expandBBox ( vec3 &mins, vec3 &maxs, vec3 p ) {
 	maxs.z = max( maxs.z, p.z );
 }
 
-void UnitCubeRefit( vector< vec3 > &pointPositions ) {
+void UnitCubeRefit( vector< vec4 > &pointPositions ) {
 	vec3 mins = vec3(  1e9f );
 	vec3 maxs = vec3( -1e9f );
 
@@ -99,7 +99,7 @@ void UnitCubeRefit( vector< vec3 > &pointPositions ) {
 
 	// run through again, butting the bbox min up against the origin + scaling appropriately to just fit inside -1..1
 	for ( size_t i = 0; i < pointPositions.size(); i++ ) {
-		pointPositions[ i ] = 5.0f * ( pointPositions[ i ] - center ) / largestDimension;
+		pointPositions[ i ].xyz() = 5.0f * ( pointPositions[ i ].xyz() - center ) / largestDimension;
 	}
 }
 
@@ -126,15 +126,16 @@ void LoadBVH_ply ( icarusState_t &state ) {
 	// vector< uint8_t > bValues; bValues.resize( numPoints, 254 );
 
 	// processing positions to put them into a bounded range
-	vector< vec3 > plySpherePreProcess;
+	vector< vec4 > plySpherePreProcess;
 	vector< vec3 > plySpherePreProcessColors;
 	plySpherePreProcess.reserve( numPoints );
 	plySpherePreProcessColors.reserve( numPoints );
 
 	rng reject = rng( 0.0f, 1.0f );
+	rng radiusGen = rng( 0.0003f, 0.001f );
 	for( size_t i = 0; i < numPoints; i++ ) {
 		// if ( reject() < 0.01f ) { // decimating
-			plySpherePreProcess.push_back( vec3( float( xValues[ i ] ), float( yValues[ i ] ), float( zValues[ i ] ) ).zxy() );
+			plySpherePreProcess.push_back( vec4( vec3( float( xValues[ i ] ), float( yValues[ i ] ), float( zValues[ i ] ) ).zxy(), radiusGen() ) );
 			plySpherePreProcessColors.push_back( vec3( float( rValues[ i ] ) / 255.0f, float( gValues[ i ] ) / 255.0f, float( bValues[ i ] ) / 255.0f ) );
 		// }
 	}
@@ -147,11 +148,12 @@ void LoadBVH_ply ( icarusState_t &state ) {
 
 	// copy from the loader to the bvh's list
 	// const float radius = 0.0008f;
-	const float radius = 0.0008f;
+	// const float radius = 0.0008f;
 	for ( size_t i = 0; i < numPoints; i++ ) {
 		const int baseIdx = 3 * i;
 
 		// add a triangle to the BVH that will generate the same bounding box as the sphere
+		const float radius = plySpherePreProcess[ i ].w;
 		state.vertices[ baseIdx + 0 ].x = plySpherePreProcess[ i ].x + radius;
 		state.vertices[ baseIdx + 0 ].y = plySpherePreProcess[ i ].y;
 		state.vertices[ baseIdx + 0 ].z = plySpherePreProcess[ i ].z + radius;
@@ -176,7 +178,7 @@ void LoadBVH_ply ( icarusState_t &state ) {
 	vector< vec4 > plySphereData; // xyz, w is radius... then rgb, w is material id
 	plySphereData.reserve( 2 * numPoints );
 	for ( size_t i = 0; i < numPoints; i++ ) {
-		plySphereData.push_back( vec4( plySpherePreProcess[ i ], radius ) );
+		plySphereData.push_back( plySpherePreProcess[ i ] );
 		plySphereData.push_back( vec4( plySpherePreProcessColors[ i ], 0.0f ) );
 	}
 
