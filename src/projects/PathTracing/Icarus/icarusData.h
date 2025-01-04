@@ -122,6 +122,10 @@ void UnitCubeRefit( vector< vec4 > &pointPositions ) {
 
 void LoadBVH_ply ( icarusState_t &state ) {
 
+	unscopedTimer timer;
+
+	timer.tick();
+
 	// happly::PLYData plyDataIn( "../ply/hodou.ply" );
 	// happly::PLYData plyDataIn( "../ply/nippon_wandering_tokyo_nights_001_10m_pts.ply" );
 	// happly::PLYData plyDataIn( "../ply/tree_orange_big21.ply" );
@@ -157,6 +161,11 @@ void LoadBVH_ply ( icarusState_t &state ) {
 		// }
 	}
 	UnitCubeRefit( plySpherePreProcess );
+
+	timer.tock();
+	cout << "ply loading done in " << timer.timeCPU << "ms" << newline;
+
+	timer.tick();
 
 	const int numTriangles = numPoints;
 
@@ -198,6 +207,10 @@ void LoadBVH_ply ( icarusState_t &state ) {
 		plySphereData.push_back( plySpherePreProcess[ i ] );
 		plySphereData.push_back( vec4( plySpherePreProcessColors[ i ], 0.0f ) );
 	}
+
+	timer.tock();
+	cout << "BVH build done in " << timer.timeCPU << "ms" << newline;
+
 
 	// // testing rays against it
 	// Image_4U test( 5000, 5000 );
