@@ -13,7 +13,7 @@ public:
 			// something to put some basic data in the accumulator texture
 			shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/1D/shaders/draw.cs.glsl" ).shaderHandle;
 
-			Image_4U test( 800, 600 );
+			Image_4U test( 10000, 10000 );
 
 			// colors representing the two states
 			color_4U white( { 255, 255, 255, 255 } );
@@ -32,9 +32,11 @@ public:
 			// 	rule += ( pick() < 0.5f ) ? ( 1 << i ) : 0;
 			// }
 
+			rngi ruleGen = rngi( 0, 255 );
 			rng flipChance = rng( 0.0f, 1.0f );
-			for ( uint8_t rule = 0; rule < 255; rule++ ) {
-			// uint8_t rule = 99;
+			rng thresh = rng( 0.0f, 0.00001f );
+			// for ( uint8_t rule = 0; rule < 255; rule++ ) {
+			uint8_t rule = 99;
 			// uint8_t rule = 183;
 				string ruleString;
 				for ( int i = 0; i < 8; i++ ) {
@@ -45,6 +47,9 @@ public:
 				// evaluate the rule, down the height of the image
 				for ( uint32_t y = 1; y < test.Height(); y++ ) {
 					for ( uint32_t x = 0; x < test.Width(); x++ ) { // per row
+						if ( flipChance() < thresh() )
+							rule = ruleGen(); // new rule
+
 						bool samples[ 3 ] = {
 							( test.GetAtXY( x - 1, y - 1 ) == white ),
 							( test.GetAtXY( x,     y - 1 ) == white ),
@@ -55,6 +60,8 @@ public:
 							( samples[ 1 ] ? 2 : 0 ) +
 							( samples[ 2 ] ? 1 : 0 ) );
 						uint8_t ruleTestMask = ( 1 << sum );
+						// test.SetAtXY( x, y, ( ( rule & ruleTestMask ) != 0 ) ? white : black );
+
 						test.SetAtXY( x, y, ( ( flipChance() < 0.001f ) ? ( ( rule & ruleTestMask ) != 0 ) : ( ( rule & ruleTestMask ) == 0 ) ) ? white : black );
 
 						// cout << "seeing " << ( samples[ 0 ] ? "1" : "0" ) << ( samples[ 1 ] ? "1" : "0" ) << ( samples[ 2 ] ? "1" : "0" ) << " (" << to_string( sum ) << "), rule " << to_string( rule ) << " is " << ruleString << " resulting in " << ( ( ( rule & ruleTestMask ) != 0 ) ? "living" : "dead" ) << endl;
@@ -62,7 +69,7 @@ public:
 				}
 
 				test.Save( "test" + to_string( rule ) + ".png" );
-			}
+			// }
 
 			config.oneShot = true;
 		}
@@ -116,12 +123,6 @@ public:
 			glDispatchCompute( ( config.width + 15 ) / 16, ( config.height + 15 ) / 16, 1 );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-
-		// shader to apply dithering
-			// ...
-
-		// other postprocessing
-			// ...
 
 		{ // text rendering timestamp - required texture binds are handled internally
 			scopedTimer Start( "Text Rendering" );
