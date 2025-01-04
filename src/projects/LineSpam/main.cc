@@ -34,8 +34,8 @@ public:
 				// switch( pick() ) {
 				// 	case 0: {
 						line l;
-						l.p0 = vec4( posGen(), posGen(), posGen() * 2.0f, widthGen() );
-						l.p1 = vec4( posGen(), posGen(), posGen() * 2.0f, 1.0f );
+						l.p0 = vec4( posGen(), posGen(), posGen(), widthGen() );
+						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
 						// l.color0 = l.color1 = vec4( brightness(), 0.1f, 0.05f, 0.1f );
 						// l.color0 = l.color1 = vec4( 0.4f * brightness(), 0.8f * brightness(), 0.9f * brightness(), 0.01f );
 						l.color0 = l.color1 = vec4( 0.9f * brightness(), 0.2f * brightness(), 0.1f * brightness(), 0.1f );
@@ -45,8 +45,8 @@ public:
 
 				// 	case 1: {
 				// 		line l;
-						l.p0 = vec4( posGen(), posGen(), posGen() * 2.0f, widthGen() );
-						l.p1 = vec4( posGen(), posGen(), posGen() * 2.0f, 1.0f );
+						l.p0 = vec4( posGen(), posGen(), posGen(), widthGen() );
+						l.p1 = vec4( posGen(), posGen(), posGen(), 1.0f );
 						l.color0 = l.color1 = vec4( vec3( 0.1f * brightness() ), 1.0f );
 						LineSpamConfig.AddLine( l );
 				// 		break;
