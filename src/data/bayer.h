@@ -2,8 +2,9 @@
 
 // analytic evaluation of bayer matrices... interesting
 // https://www.shadertoy.com/view/4ssfWM
-// https://www.shadertoy.com/view/XtV3RG
+// https://www.shadertoy.com/view/XtV3RG // this one looks really promising
 // https://www.shadertoy.com/view/ltsyWl // usage for dithering
+
 
 static inline const std::vector< uint8_t > BayerData ( const int dimension ) {
 	ZoneScoped;
