@@ -575,13 +575,13 @@ void AllocateTextures ( icarusState_t &state ) {
 	state.numLevels = level;
 }
 
-uvec2 GetNextOffset ( icarusState_t &state ) {
-	uvec2 offset;
+ivec2 GetNextOffset ( icarusState_t &state ) {
+	ivec2 offset;
 	switch ( state.offsetFeedMode ) {
 		case UNIFORM: {
 			// uniform random
 			static rng offsetGen = rng( 0.0f, 1.0f );
-			offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+			offset = ivec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
 			break;
 		}
 
@@ -590,29 +590,29 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 				// probably easiest to rejection sample for off-screen offsets
 			static rngN offsetGen = rngN( 0.5f, 0.15f );
 			do {
-				offset = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+				offset = ivec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
 			} while ( offset.x >= state.dimensions.x || offset.x < 0 || offset.y >= state.dimensions.y || offset.y < 0 );
 			break;
 		}
 
 		case FOCUSED: {
-			const int updateRate = 32;
+			const int updateRate = 8;
 			static int count = state.numRays;
-			static uvec2 loc = state.dimensions / 2u;
+			static ivec2 loc = state.dimensions / 2u;
 			// static ivec2 loc = ivec2( 0 );
 			if ( !( count-- ) ) {
 				// set a new sample location
 				count = state.numRays / updateRate;
 	
 				// uniformly distributed update
-				// static rng offsetGen = rng( 0.0f, 1.0f );
-				// loc = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+				static rng offsetGen = rng( 0.0f, 1.0f );
+				loc = ivec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
 	
-				// gaussian distribution
-				static rngN offsetGen = rngN( 0.5f, 0.2f );
-				do {
-					loc = uvec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
-				} while ( loc.x >= state.dimensions.x || loc.x < 0 || loc.y >= state.dimensions.y || loc.y < 0 );
+				// // gaussian distribution
+				// static rngN offsetGen = rngN( 0.5f, 0.2f );
+				// do {
+				// 	loc = ivec2( offsetGen() * state.dimensions.x, offsetGen() * state.dimensions.y );
+				// } while ( loc.x >= state.dimensions.x || loc.x < 0 || loc.y >= state.dimensions.y || loc.y < 0 );
 			}
 			offset = loc;
 			break;
@@ -620,7 +620,7 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 
 		case SHUFFLED: {
 			// list that ensures you will touch every pixel before repeating
-			static vector< uvec2 > offsets;
+			static vector< ivec2 > offsets;
 			// generate new list of offsets
 			if ( offsets.size() == 0 || state.forceUpdate ) {
 				offsets.clear();
@@ -628,7 +628,7 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 
 				for ( uint32_t x = 0; x < state.dimensions.x; x++ ) {
 					for ( uint32_t y = 0; y < state.dimensions.y; y++ ) {
-						offsets.push_back( uvec2( x, y ) );
+						offsets.push_back( ivec2( x, y ) );
 					}
 				}
 				// shuffle it around a bit
@@ -652,25 +652,25 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 
 		case SHUFFOCUS: {
 			// list that ensures you will touch every pixel before repeating
-			static vector< uvec2 > offsets;
+			static vector< ivec2 > offsets;
 
 			// generate new list of offsets
 			if ( offsets.size() == 0 || state.forceUpdate ) {
 				offsets.clear();
 				state.forceUpdate = false;
 
-				const uvec2 blockSize = uvec2( 64, 64 );
+				const ivec2 blockSize = ivec2( 64, 64 );
 				for ( uint32_t y = 0; y < state.dimensions.y; y += blockSize.y ) {
 				for ( uint32_t x = 0; x < state.dimensions.x; x += blockSize.x ) {
-					vector< uvec2 > blockOffsets; // shuffle within 64x64 blocks
+					vector< ivec2 > blockOffsets; // shuffle within 64x64 blocks
 					for ( uint32_t yI = 0; yI < blockSize.y; yI++ ) {
 					for ( uint32_t xI = 0; xI < blockSize.x; xI++ ) {
-						blockOffsets.push_back( uvec2( xI, yI ) );
+						blockOffsets.push_back( ivec2( xI, yI ) );
 					}}
 					static auto rng = std::default_random_engine {};
 					std::shuffle( std::begin( blockOffsets ), std::end( blockOffsets ), rng );
 					for ( auto& o : blockOffsets ) {
-						offsets.push_back( uvec2( x, y ) + o );
+						offsets.push_back( ivec2( x, y ) + o );
 					}
 					blockOffsets.clear();
 				}}
@@ -678,7 +678,7 @@ uvec2 GetNextOffset ( icarusState_t &state ) {
 
 			const int updateRate = 2 << 2;
 			static int count = state.numRays;
-			static uvec2 loc = state.dimensions / 2u;
+			static ivec2 loc = state.dimensions / 2u;
 			if ( !( count ) ) {
 				// set a new sample location
 				count = state.numRays / updateRate;
