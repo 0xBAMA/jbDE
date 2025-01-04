@@ -9,8 +9,23 @@ void IcarusImguiWindow ( icarusState_t &state ) {
 	ImGui::Checkbox( "BVH", &state.runBVH );
 	ImGui::Checkbox( "Volume", &state.runVolume );
 
-	const char * resolveModes[] = { "UNIFORM", "GAUSSIAN", "FOCUSED", "SHUFFLED", "SHUFFOCUS" };
+	const char * resolveModes[] = { "UNIFORM", "GAUSSIAN", "FOCUSED", "SHUFFLED", "SHUFFOCUS", "FLEXTILE" };
 	ImGui::Combo( "Offset Feed Mode", &state.offsetFeedMode, resolveModes, IM_ARRAYSIZE( resolveModes ) );
+
+	if ( state.offsetFeedMode == FLEXTILE ) {
+		ImGui::SliderInt( "Tile Size", &state.flexTileConfig.tileSize, 1, 512 );
+		state.flexTileConfig.dirty |= ImGui::IsItemEdited();
+		ImGui::SliderInt( "Samples", &state.flexTileConfig.samplesPerPixel, 1, 1024 );
+		state.flexTileConfig.dirty |= ImGui::IsItemEdited();
+
+		const char * tileOrderModes[] = { "In Order", "Shuffled" };
+		ImGui::Combo( "Tile Feed Mode", ( int * ) &state.flexTileConfig.tileOrder, tileOrderModes, IM_ARRAYSIZE( tileOrderModes ) );
+		state.flexTileConfig.dirty |= ImGui::IsItemEdited();
+
+		const char * fillModes[] = { "In Order", "Shuffled", "Bayer" };
+		ImGui::Combo( "Tile Fill Mode", ( int * ) &state.flexTileConfig.fillMode, fillModes, IM_ARRAYSIZE( fillModes ) );
+		state.flexTileConfig.dirty |= ImGui::IsItemEdited();
+	}
 
 	ImGui::SeparatorText( "Camera" );
 	ImGui::SliderFloat( "FoV", &state.FoV, 0.0f, 3.0f, "%.3f", ImGuiSliderFlags_Logarithmic );
