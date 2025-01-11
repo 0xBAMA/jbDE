@@ -7,3 +7,6 @@
 [submodule "src/ImGUI/LegitProfiler"]
 	path = src/utils/ImGUI/LegitProfiler
 	url = https://github.com/0xBAMA/LegitProfiler.git
+[submodule "src/ImGUI/LegitProfiler"]
+	path = src/utils/tinybvh
+	url = https://github.com/jbikker/tinybvh.git
