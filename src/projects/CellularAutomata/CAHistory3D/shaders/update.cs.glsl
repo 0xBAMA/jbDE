@@ -24,24 +24,54 @@ uint getValue ( ivec3 pos ) {
 	return imageLoad( CAStateBuffer, getOffsetPos( pos ) ).r;
 }
 
+uniform int rule[ 25 ];
+
+int getRule ( int x, int y ) {
+	// int rule[] = {
+	// 	// 2, 0, 2, 2, 1,
+	// 	// 0, 2, 0, 2, 2,
+	// 	// 1, 1, 0, 0, 2,
+	// 	// 0, 1, 1, 2, 1,
+	// 	// 2, 2, 1, 1, 2
+
+	// 	2, 0, 1, 2, 1,
+	// 	0, 1, 0, 2, 2,
+	// 	1, 1, 0, 0, 2,
+	// 	0, 2, 1, 2, 1,
+	// 	2, 2, 1, 1, 2
+	// };
+	return rule[ clamp( x, 0, 4 ) + 5 * clamp( y, 0, 4 ) ];
+}
+
 bool getState ( ivec3 location ) {
+	// compute the bitmask
+	uint bitmask = 1u;
+
 	// read state from back buffer
-	uint previousState = ( getValue( location ) != 0 ) ? 1 : 0;
+	uint previousState = ( getValue( location ) & bitmask ) != 0 ? 1 : 0;
 
 	// read neighborhood values from back buffer
-	uint count = 0;
-	count += ( getValue( location + ivec3( -1, -1,  0 ) ) != 0 ) ? 1 : 0;
-	count += ( getValue( location + ivec3(  0, -1,  0 ) ) != 0 ) ? 1 : 0;
-	count += ( getValue( location + ivec3(  1, -1,  0 ) ) != 0 ) ? 1 : 0;
-	count += ( getValue( location + ivec3( -1,  0,  0 ) ) != 0 ) ? 1 : 0;
-	// skip center pixel, already exists in previousState
-	count += ( getValue( location + ivec3(  1,  0,  0 ) ) != 0 ) ? 1 : 0;
-	count += ( getValue( location + ivec3( -1,  1,  0 ) ) != 0 ) ? 1 : 0;
-	count += ( getValue( location + ivec3(  0,  1,  0 ) ) != 0 ) ? 1 : 0;
-	count += ( getValue( location + ivec3(  1,  1,  0 ) ) != 0 ) ? 1 : 0;
+	ivec2 count = ivec2( 0 );
+	// ortho directions
+	count[ 0 ] += ( getValue( location + ivec3(  1,  0,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+	count[ 0 ] += ( getValue( location + ivec3(  0,  1,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+	count[ 0 ] += ( getValue( location + ivec3(  0, -1,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+	count[ 0 ] += ( getValue( location + ivec3( -1,  0,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+
+	// diagonals
+	count[ 1 ] += ( getValue( location + ivec3(  1, -1,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+	count[ 1 ] += ( getValue( location + ivec3( -1, -1,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+	count[ 1 ] += ( getValue( location + ivec3( -1,  1,  0 ) ) & bitmask ) != 0 ? 1 : 0;
+	count[ 1 ] += ( getValue( location + ivec3(  1,  1,  0 ) ) & bitmask ) != 0 ? 1 : 0;
 
 	// determine new state - Conway's Game of Life rules
-	return ( ( count == 2 || count == 3 ) && previousState == 1 ) || ( count == 3 && previousState == 0 );
+	// return ( ( count == 2 || count == 3 ) && previousState == 1 ) || ( count == 3 && previousState == 0 );
+
+	int rule = getRule( count[ 0 ], count[ 1 ] );
+	if ( rule == 2 )
+		return ( previousState != 0 );
+	else
+		return ( rule == 1 );
 }
 
 const float maxDist = 1e10f;

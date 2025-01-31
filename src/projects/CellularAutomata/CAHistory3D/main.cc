@@ -5,7 +5,8 @@ public:
 	CAHistory () { Init(); OnInit(); PostInit(); }
 	~CAHistory () { Quit(); }
 
-	const uvec3 dims = uvec3( 512 );
+	// const uvec3 dims = uvec3( 512 );
+	const uvec3 dims = uvec3( 256 );
 	vec3 viewerPosition = vec3( 6.0f, 6.0f, 6.0f );
 	int currentSlice = 0;
 
@@ -15,6 +16,28 @@ public:
 	float initThreshold = 0.5f;
 	float brushRadius = 10.0f;
 	int brushMode = 0;
+
+	int rule[ 25 ] = {
+		2, 0, 2, 2, 1,
+		0, 2, 0, 2, 2,
+		1, 1, 0, 0, 2,
+		0, 1, 1, 2, 1,
+		2, 2, 1, 1, 2
+	};
+
+	void newRule () {
+		rngi gen( 0, 2 );
+		for ( int i = 0; i < 25; i++ ) {
+			rule[ i ] = gen();
+		}
+	}
+
+	void newRuleM () {
+		rngi offset( 0, 24 );
+		rngi gen( 0, 2 );
+
+		rule[ offset() ] = gen();
+	}
 
 	void IncrementSlice() {
 		currentSlice = ( currentSlice + 1 ) % dims.z;
@@ -56,8 +79,11 @@ public:
 		}
 
 		// fill the first slice with noise
-		for ( uint i = 0; i < dims.x * dims.y; i++ ) {
-			data[ i ] = ( pick() < initThreshold ) ? 255 : 0;
+		// for ( uint i = 0; i < dims.x * dims.y; i++ ) {
+		for ( uint y = 0; y < dims.y; y++ ) {
+			for ( uint x = 0; x < dims.x; x++ ) {
+				data[ x + dims.y * y ] = ( pick() < initThreshold && ( x > 50 && y > 50 && y < dims.y - 50 && x < dims.x - 50 ) ) ? 255 : 0;
+			}
 		}
 		currentSlice = 0;
 		glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, dims.z - 1, dims.x, dims.y, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ( void * ) &data[ 0 ] );
@@ -76,6 +102,14 @@ public:
 		if ( state[ SDL_SCANCODE_T ] ) {
 			IncrementSlice();
 			SDL_Delay( 100 ); // debounce
+		}
+
+		if ( state[ SDL_SCANCODE_G ] ) {
+			newRule();
+		}
+
+		if ( state[ SDL_SCANCODE_H ] ) {
+			newRuleM();
 		}
 
 		if ( state[ SDL_SCANCODE_RIGHT ] ) {
@@ -195,6 +229,8 @@ public:
 		glUniform1i( glGetUniformLocation( shader, "userClicked" ), 0 );
 		glUniform1i( glGetUniformLocation( shader, "sliceOffset" ), currentSlice );
 		glUniform3fv( glGetUniformLocation( shader, "viewerPosition" ), 1, glm::value_ptr( viewerPosition ) );
+		glUniform1iv( glGetUniformLocation( shader, "rule" ), 25, &rule[ 0 ] );
+
 		textureManager.BindImageForShader( "State Buffer", "CAStateBuffer", shader, 2 );
 		IncrementSlice();
 

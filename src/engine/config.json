@@ -1,9 +1,9 @@
 {
 	"app": {
 		"CellularAutomata": {
-			"dimensionX": 1000,
-			"dimensionY": 1000,
-			"generatorThreshold": 0.2,
+			"dimensionX": 640,
+			"dimensionY": 360,
+			"generatorThreshold": 0.5,
 			"numBitsActive": 32
 		},
 		"Aquaria": {
@@ -201,8 +201,8 @@
 		"severeCallsToKill": 36,
 		"oneShot": false,
 		"reportPlatformInfo": true,
-		"screenHeight": 2160,
-		"screenWidth": 3840,
+		"screenHeight": 720,
+		"screenWidth": 1280,
 		"showImGUIDemoWindow": false,
 		"showProfiler": true,
 		"startOnScreen": 1,

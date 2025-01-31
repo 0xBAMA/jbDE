@@ -45,6 +45,8 @@ cd build
 # time make -j$(nproc) SoftBodiesGPU			# soft body sim on the GPU ( unfinished )
 
 # # cellular automata variants
+time make -j$(nproc) CATable			# parallel cellular automata
+time make -j$(nproc) CAHistory3D
 # time make -j$(nproc) CABitPlanes			# parallel cellular automata
 # time make -j$(nproc) CAHistory				# cellular automata with history
 # time make -j$(nproc) CAColorSplit			# same as above, but different color distribution
@@ -57,6 +59,6 @@ cd build
 
 # this runs all the targets in parallel, scaled with the number of processors on the machine ( e.g. -j4, -j16, etc )
 	# can use the above individual targets to enable / disable piecemeal
-time make -j$(nproc) all
+# time make -j$(nproc) all
 
 cd ..

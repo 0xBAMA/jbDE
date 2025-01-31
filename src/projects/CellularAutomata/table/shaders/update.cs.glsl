@@ -24,6 +24,7 @@ int getRule ( int x, int y ) {
 	// 	0, 2, 1, 2, 1,
 	// 	2, 2, 1, 1, 2
 	// };
+
 	return rule[ clamp( x, 0, 4 ) + 5 * clamp( y, 0, 4 ) ];
 }
 
