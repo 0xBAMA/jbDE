@@ -7,10 +7,11 @@ layout( binding = 1, rgba16f ) uniform image2D accumulatorTexture;
 // CA state buffers
 layout( binding = 2, r32ui ) uniform uimage2D backBuffer;
 layout( binding = 3, r32ui ) uniform uimage2D frontBuffer;
+layout( binding = 4, rg32ui ) uniform uimage2D ruleBuffer;
 
-uniform int rule[ 25 ];
+// uniform int rule[ 25 ];
 
-int getRule ( int x, int y ) {
+int getRuleValue ( int x, int y ) {
 	// int rule[] = {
 	// 	// 2, 0, 2, 2, 1,
 	// 	// 0, 2, 0, 2, 2,
@@ -25,7 +26,22 @@ int getRule ( int x, int y ) {
 	// 	2, 2, 1, 1, 2
 	// };
 
-	return rule[ clamp( x, 0, 4 ) + 5 * clamp( y, 0, 4 ) ];
+	// return rule[ x + 5 * y ];
+
+	// rule is encoded in 2x 32-bit values...
+	uvec2 encodedRule = imageLoad( ruleBuffer, ivec2( gl_GlobalInvocationID.xy ) ).rg;
+	const int index = clamp( x + 5 * y, 0, 24 );
+
+	// masking out 2 bits of the value loaded from the texel
+	if ( index < 16 ) {
+		// we're pulling from the red channel
+		int shift = 30 - 2 * index;
+		return int( clamp( ( encodedRule.r >> shift ) & 3u, 0, 2 ) );
+	} else {
+		// we are getting data from the green channel
+		int shift = 30 - 2 * ( index - 16 );
+		return int(  clamp( ( encodedRule.g >> shift ) & 3u, 0, 2 ) );
+	}
 }
 
 bool getStateForBit ( ivec2 location, uint bit ) {
@@ -52,7 +68,7 @@ bool getStateForBit ( ivec2 location, uint bit ) {
 	// determine new state - Conway's Game of Life rules
 	// return ( ( count == 2 || count == 3 ) && previousState == 1 ) || ( count == 3 && previousState == 0 );
 
-	int rule = getRule( count[ 0 ], count[ 1 ] );
+	int rule = getRuleValue( clamp( count[ 0 ], 0, 4 ), clamp( count[ 1 ], 0, 4 ) );
 	if ( rule == 2 )
 		return ( previousState != 0 );
 	else

@@ -36,17 +36,30 @@ public:
 	CAConfig_t CAConfig;
 
 	void newRule () {
-		rngi gen( 0, 2 );
-		for ( int i = 0; i < 25; i++ ) {
-			CAConfig.rule[ i ] = gen();
+		// rngi gen( 0, 2 );
+		// for ( int i = 0; i < 25; i++ ) {
+		// 	CAConfig.rule[ i ] = gen();
+		// }
+
+		// for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ ) {
+		// 	uint32_t value = 0;
+		// 	for ( size_t b = 0; b < 32; b++ ) {
+		// 		value = value << 1;
+		// 		value = value | ( ( gen() < CAConfig.generatorThreshold ) ? 1u : 0u );
+		// 	}
+		// 	initialData.push_back( value );
+		// }
+
+		{
+			const GLuint shader = shaders[ "Rule Write" ];
+			glUseProgram( shader );
+
+			textureManager.BindImageForShader( "Automata Rule Buffer", "ruleBuffer", shader, 4 );
+
+			// dispatch the compute shader - go from back buffer to front buffer
+			glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
+			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 		}
-	}
-
-	void newRuleM () {
-		rngi offset( 0, 24 );
-		rngi gen( 0, 2 );
-
-		CAConfig.rule[ offset() ] = gen();
 	}
 
 	void OnInit () {
@@ -72,9 +85,16 @@ public:
 			textureManager.Add( "Automata State Buffer 0", opts );
 			textureManager.Add( "Automata State Buffer 1", opts );
 
+			opts.dataType		= GL_RG32UI;
+			textureManager.Add( "Automata Rule Buffer", opts );
+
+			// field state buffer ( move to shader )
 			BufferReset();
 
-			{
+			// put some contents into the rule buffer
+			newRule();
+
+			/* {
 				const int glyphHeight = 17;
 				const int glyphWidth = 12;
 
@@ -226,13 +246,14 @@ public:
 					}
 				}
 				std::ofstream o ( "./tableCA.json" ); o << j.dump( 2 ); o.close();
-			}
+			} */
 		}
 	}
 
 	void ReloadShaders () {
 		shaders[ "Draw" ] = computeShader( "./src/projects/CellularAutomata/table/shaders/draw.cs.glsl" ).shaderHandle;
 		shaders[ "Update" ] = computeShader( "./src/projects/CellularAutomata/table/shaders/update.cs.glsl" ).shaderHandle;
+		shaders[ "Rule Write" ] = computeShader( "./src/projects/CellularAutomata/table/shaders/ruleWrite.cs.glsl" ).shaderHandle;
 	}
 
 	void BufferReset () { // put random bits in the buffer
@@ -241,6 +262,7 @@ public:
 		// random data init
 		std::vector< uint32_t > initialData;
 		rng gen( 0.0f, 1.0f );
+
 		// for ( size_t i = 0; i < CAConfig.dimensionX * CAConfig.dimensionY; i++ ) {
 		// 	uint32_t value = 0;
 		// 	for ( size_t b = 0; b < 32; b++ ) {
@@ -286,11 +308,8 @@ public:
 		}
 
 		if ( state[ SDL_SCANCODE_G ] ) {
+			// will need work
 			newRule();
-		}
-
-		if ( state[ SDL_SCANCODE_H ] ) {
-			newRuleM();
 		}
 	}
 
@@ -319,13 +338,15 @@ public:
 
 		{ // update the state of the CA
 			scopedTimer Start( "Update" );
-			glUseProgram( shaders[ "Update" ] );
+			const GLuint shader = shaders[ "Update" ];
+			glUseProgram( shader );
 
 			// bind front buffer, back buffer
-			textureManager.BindImageForShader( backBufferLabel, "backBuffer", shaders[ "Update" ], 2 );
-			textureManager.BindImageForShader( frontBufferLabel, "frontBuffer", shaders[ "Update" ], 3 );
+			textureManager.BindImageForShader( backBufferLabel, "backBuffer", shader, 2 );
+			textureManager.BindImageForShader( frontBufferLabel, "frontBuffer", shader, 3 );
+			textureManager.BindImageForShader( "Automata Rule Buffer", "ruleBuffer", shader, 4 );
 
-			glUniform1iv( glGetUniformLocation( shaders[ "Update" ], "rule" ), 25, &CAConfig.rule[ 0 ] );
+			// glUniform1iv( glGetUniformLocation( shader, "rule" ), 25, &CAConfig.rule[ 0 ] );
 
 			// dispatch the compute shader - go from back buffer to front buffer
 			glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
@@ -361,13 +382,13 @@ public:
 			scopedTimer Start( "Text Rendering" );
 			textRenderer.Update( ImGui::GetIO().DeltaTime );
 
-			for ( int i = 0; i < 5; i++ ) {
-				string str;
-				for ( int j = 0; j < 5; j++ ) {
-					str += " " + to_string( CAConfig.rule[ i * 5 + j ] );
-				}
-				textRenderer.DrawBlackBackedString( 6 - i, str + " " );
-			}
+			// for ( int i = 0; i < 5; i++ ) {
+			// 	string str;
+			// 	for ( int j = 0; j < 5; j++ ) {
+			// 		str += " " + to_string( CAConfig.rule[ i * 5 + j ] );
+			// 	}
+			// 	textRenderer.DrawBlackBackedString( 6 - i, str + " " );
+			// }
 
 			textRenderer.Draw( textureManager.Get( "Display Texture" ) );
 			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
