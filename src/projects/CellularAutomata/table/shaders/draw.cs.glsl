@@ -38,4 +38,5 @@ void main () {
 
 	// write the data to the image
 	imageStore( accumulatorTexture, writeLoc, vec4( result / 255.0f, 1.0f ) );
+	// imageStore( accumulatorTexture, writeLoc, vec4( vec3( float( state & 1 ) ), 1.0f ) );
 }

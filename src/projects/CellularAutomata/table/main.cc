@@ -11,12 +11,20 @@ struct CAConfig_t {
 	// toggling buffers
 	bool oddFrame = false;
 
+	// int rule[ 25 ] = {
+	// 	2, 0, 2, 2, 1,
+	// 	0, 2, 0, 2, 2,
+	// 	1, 1, 0, 0, 2,
+	// 	0, 1, 1, 2, 1,
+	// 	2, 2, 1, 1, 2
+	// };
+
 	int rule[ 25 ] = {
-		2, 0, 2, 2, 1,
-		0, 2, 0, 2, 2,
-		1, 1, 0, 0, 2,
-		0, 1, 1, 2, 1,
-		2, 2, 1, 1, 2
+		0, 1, 0, 2, 2,
+		0, 2, 2, 1, 0,
+		2, 0, 0, 2, 1,
+		0, 0, 0, 2, 0,
+		2, 0, 0, 2, 2
 	};
 };
 
@@ -65,6 +73,160 @@ public:
 			textureManager.Add( "Automata State Buffer 1", opts );
 
 			BufferReset();
+
+			{
+				const int glyphHeight = 17;
+				const int glyphWidth = 12;
+
+				// init list of rules...
+				std::vector< std::vector< int > > rules;
+
+				// load the mask image
+				Image_4U maskPattern;
+				maskPattern.Load( "./mask.png" );
+
+				// find the mask locations, keep in a list
+				std::vector< ivec2 > maskLocations;
+				for ( int y = 0; y < maskPattern.Height(); y++ ) {
+					for ( int x = 0; x < maskPattern.Width(); x++ ) {
+						if ( maskPattern.GetAtXY( x, y )[ alpha ] == 255 ) {
+							// adding an offset
+							maskLocations.push_back( ivec2( x, y ) );
+						}
+					}
+				}
+
+				// load the reference patterns
+				Image_4U referencePatterns;
+				referencePatterns.Load( "./reference.png" );
+				Image_4U zero( glyphWidth, glyphHeight ), one( glyphWidth, glyphHeight ), two( glyphWidth, glyphHeight );
+				for ( int y = 0; y < glyphHeight; y++ ) {
+					for ( int x = 0; x < glyphWidth; x++ ) {
+						zero.SetAtXY( x, y, referencePatterns.GetAtXY( x, y ) );
+						one.SetAtXY( x, y, referencePatterns.GetAtXY( x, y + glyphHeight ) );
+						two.SetAtXY( x, y, referencePatterns.GetAtXY( x, y + 2 * glyphHeight ) );
+					}
+				}
+
+				// start filesystem crap
+				struct pathLeafString {
+					std::string operator()( const std::filesystem::directory_entry &entry ) const {
+						return entry.path().string();
+					}
+				};
+				std::vector< string > directoryStrings;
+				std::filesystem::path p( "../Source/" );
+				std::filesystem::directory_iterator start( p );
+				std::filesystem::directory_iterator end;
+				std::transform( start, end, std::back_inserter( directoryStrings ), pathLeafString() );
+				std::sort( directoryStrings.begin(), directoryStrings.end() ); // sort alphabetically
+				// end filesystem crap
+
+				std::vector< int > currentRule;
+				for ( const auto& i : directoryStrings ) {
+					currentRule.clear();
+
+					// for each image in ../Source/
+					Image_4U sourceData;
+					sourceData.Load( i );
+
+					// for 25 mask locations...
+					for ( int j = 0; j < maskLocations.size(); j++ ) {
+						Image_4U currentGlyph( glyphWidth, glyphHeight );
+						for ( int y = 0; y < glyphHeight; y++ ) {
+							for ( int x = 0; x < glyphWidth; x++ ) {
+								currentGlyph.SetAtXY( x, y, sourceData.GetAtXY( maskLocations[ j ].x + x, maskLocations[ j ].y + y ) );
+							}
+						}
+
+						float zeroTotal = 0.0f, oneTotal = 0.0f, twoTotal = 0.0f;
+						for ( int y = 0; y < glyphHeight; y++ ) {
+							for ( int x = 0; x < glyphWidth; x++ ) {
+								Image_4U::color test = currentGlyph.GetAtXY( x, y );
+								vec3 testColor = vec3( test[ red ], test[ green ], test[ blue ] );
+
+								Image_4U::color zeroData = zero.GetAtXY( x, y );
+								Image_4U::color oneData = one.GetAtXY( x, y );
+								Image_4U::color twoData = two.GetAtXY( x, y );
+
+								vec3 zeroColor = vec3( zeroData[ red ], zeroData[ green ], zeroData[ blue ] );
+								vec3 oneColor = vec3( oneData[ red ], oneData[ green ], oneData[ blue ] );
+								vec3 twoColor = vec3( twoData[ red ], twoData[ green ], twoData[ blue ] );
+
+								zeroTotal += glm::distance( testColor, zeroColor );
+								oneTotal += glm::distance( testColor, oneColor );
+								twoTotal += glm::distance( testColor, twoColor );
+							}
+						}
+
+						// match to 0, 1, or 2
+						int identifiedDigit = -1;
+						float minimumDistance = std::min( std::min( zeroTotal, oneTotal ), twoTotal );
+
+						if ( minimumDistance == zeroTotal ) {
+							identifiedDigit = 0;
+						} else if ( minimumDistance == oneTotal ) {
+							identifiedDigit = 1;
+						} else if ( minimumDistance == twoTotal ) {
+							identifiedDigit = 2;
+						}
+
+						if ( identifiedDigit != -1 ) {
+							currentRule.push_back( identifiedDigit );
+						}
+					}
+
+					// add the rule to the list
+					if ( currentRule.size() == 25 ) {
+						cout << i << " - Valid Rule: ";
+						for ( int j = 0; j < currentRule.size(); j++ ) {
+							cout << " " << currentRule[ j ];
+						}
+						cout << endl;
+						rules.push_back( currentRule );
+					} else {
+						cout << "WRONG NUMBER OF DIGITS IN RULE" << endl;
+					}
+				}
+
+
+				// identify duplicate rules, exact matches only
+				cout << "Removing duplicates..." << endl;
+				std::vector < std::vector< int > > finalRules;
+				for ( int i = 0; i < rules.size(); i++ ) {
+					std::vector< int > rule = rules[ i ];
+
+					bool found = false;
+					for ( int j = 0; j < finalRules.size(); j++ ) {
+						// if not found in the list of final rules
+						bool match = true;
+						for ( int k = 0; k < 25; k++ ) {
+							if ( rule[ k ] != finalRules[ j ][ k ] ) {
+								match = false;
+								break;
+							}
+						}
+
+						// found match invalidates the rule being added
+						if ( match == true ) {
+							found = true;
+						}
+					}
+
+					if ( !found ) {
+						finalRules.push_back( rule );
+					}
+				}
+				cout << "Pruned from " << rules.size() << " to " << finalRules.size() << endl;
+
+				json j;
+				for ( int i = 0; i < finalRules.size(); i++ ) {
+					for ( int k = 0; k < 25; k++ ) {
+						j[ std::to_string( i ) ][ std::to_string( k ) ] = finalRules[ i ][ k ];
+					}
+				}
+				std::ofstream o ( "./tableCA.json" ); o << j.dump( 2 ); o.close();
+			}
 		}
 	}
 
@@ -99,7 +261,7 @@ public:
 				// 	initialData.push_back( 0 );
 				// }
 
-				initialData.push_back( ( x > 100 && y > 100 && x < dX - 100 && y < dY - 100 ) ? ( gen() < CAConfig.generatorThreshold ? 1 : 0 ) : 0 );
+				initialData.push_back( ( x > 100 && y > 10 && x < dX - 100 && y < dY - 300 ) ? ( gen() < CAConfig.generatorThreshold ? 1 : 0 ) : 0 );
 			}
 		}
 
