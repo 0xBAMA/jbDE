@@ -365,25 +365,35 @@ public:
 	void ComputePasses () {
 		ZoneScoped;
 
-		// swap buffers - precalculate strings for use later
-		string backBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "0" : "1" );
-		string frontBufferLabel = string( "Automata State Buffer " ) + string( CAConfig.oddFrame ? "1" : "0" );
+		string backBufferLabel;
+		string frontBufferLabel;
 
-		{ // update the state of the CA
+		{
 			scopedTimer Start( "Update" );
-			const GLuint shader = shaders[ "Update" ];
-			glUseProgram( shader );
+			bool bufferToggle = CAConfig.oddFrame;
+			for ( int i = 0; i < 64; i++ ) {
+				// swap buffers - precalculate strings for use later
+				backBufferLabel = string( "Automata State Buffer " ) + string( bufferToggle ? "0" : "1" );
+				frontBufferLabel = string( "Automata State Buffer " ) + string( bufferToggle ? "1" : "0" );
 
-			// bind front buffer, back buffer
-			textureManager.BindImageForShader( backBufferLabel, "backBuffer", shader, 2 );
-			textureManager.BindImageForShader( frontBufferLabel, "frontBuffer", shader, 3 );
-			textureManager.BindImageForShader( "Automata Rule Buffer", "ruleBuffer", shader, 4 );
+				bufferToggle = !bufferToggle;
 
-			// glUniform1iv( glGetUniformLocation( shader, "rule" ), 25, &CAConfig.rule[ 0 ] );
+				{ // update the state of the CA
+					const GLuint shader = shaders[ "Update" ];
+					glUseProgram( shader );
 
-			// dispatch the compute shader - go from back buffer to front buffer
-			glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
-			glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+					// bind front buffer, back buffer
+					textureManager.BindImageForShader( backBufferLabel, "backBuffer", shader, 2 );
+					textureManager.BindImageForShader( frontBufferLabel, "frontBuffer", shader, 3 );
+					textureManager.BindImageForShader( "Automata Rule Buffer", "ruleBuffer", shader, 4 );
+
+					// glUniform1iv( glGetUniformLocation( shader, "rule" ), 25, &CAConfig.rule[ 0 ] );
+
+					// dispatch the compute shader - go from back buffer to front buffer
+					glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
+					glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+				}
+			}
 		}
 
 		{ // draw the current state of the front buffer
