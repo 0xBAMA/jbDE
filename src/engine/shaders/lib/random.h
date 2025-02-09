@@ -13,6 +13,15 @@ float NormalizedRandomFloat () {
 	return float( wangHash() ) / 4294967296.0f;
 }
 
+uint rng_state;
+uint PCGHash() {
+    rng_state = rng_state * 747796405u + 2891336453u;
+    uint state = rng_state;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+
 #ifndef PI_DEFINED
 #define PI_DEFINED
 const float pi = 3.14159265358979323846f;
