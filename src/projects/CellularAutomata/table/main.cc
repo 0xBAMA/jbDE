@@ -26,6 +26,8 @@ struct CAConfig_t {
 		0, 0, 0, 2, 0,
 		2, 0, 0, 2, 2
 	};
+
+	std::vector< glm::uvec2 > encodedRules;
 };
 
 class CAHistory final : public engineBase {
@@ -55,6 +57,12 @@ public:
 			glUseProgram( shader );
 
 			textureManager.BindImageForShader( "Automata Rule Buffer", "ruleBuffer", shader, 4 );
+
+			static rngi rulePick( 0, CAConfig.encodedRules.size() );
+			glUniform1i( glGetUniformLocation( shader, "rulePick" ), rulePick() );
+
+			glUniform1i( glGetUniformLocation( shader, "numRules" ), CAConfig.encodedRules.size() );
+			glUniform2uiv( glGetUniformLocation( shader, "rules" ), CAConfig.encodedRules.size(), ( GLuint * ) &CAConfig.encodedRules[ 0 ] );
 
 			// dispatch the compute shader - go from back buffer to front buffer
 			glDispatchCompute( ( CAConfig.dimensionX + 15 ) / 16, ( CAConfig.dimensionY + 15 ) / 16, 1 );
@@ -90,6 +98,29 @@ public:
 
 			// field state buffer ( move to shader )
 			BufferReset();
+
+			// loading the list of rules...
+			json j2; ifstream i2 ( "./tableCArules.json" ); i2 >> j2; i2.close();
+			std::vector< std::vector< int > > rules;
+			for ( auto& rule : j2 ) {
+				std::vector< int > currentRule;
+				for ( auto& entry : rule ) {
+					currentRule.push_back( int( entry ) );
+				}
+				rules.push_back( currentRule );
+			}
+
+			for ( auto& rule : rules ) {
+				uvec2 encodedRule = uvec2( 0 );
+				for ( int i = 0; i < 16; i++ ) { // encode 0..15
+					encodedRule.x += ( rule[ i ] << ( 30 - 2 * i ) );
+				}
+
+				for ( int i = 16; i < 25; i++ ) { // encode 16..24
+					encodedRule.y += ( rule[ i ] << ( 30 - 2 * ( i - 16 ) ) );
+				}
+				CAConfig.encodedRules.push_back( encodedRule );
+			}
 
 			// put some contents into the rule buffer
 			newRule();
@@ -277,13 +308,15 @@ public:
 
 		for ( uint y = 0; y < CAConfig.dimensionY; y++ ) {
 			for ( uint x = 0; x < CAConfig.dimensionX; x++ ) {
-				// if ( gen() < ( distance( vec2( CAConfig.dimensionX / 2.0f, CAConfig.dimensionY / 2.0f ), vec2( x, y ) ) / 1000.0f ) ) {gr
+				// if ( gen() < ( distance( vec2( CAConfig.dimensionX / 2.0f, CAConfig.dimensionY / 2.0f ), vec2( x, y ) ) / 100.0f ) ) {
 				// 	initialData.push_back( 1 );
 				// } else {
 				// 	initialData.push_back( 0 );
 				// }
 
-				initialData.push_back( ( x > 100 && y > 10 && x < dX - 100 && y < dY - 300 ) ? ( gen() < CAConfig.generatorThreshold ? 1 : 0 ) : 0 );
+				// initialData.push_back( ( x > 100 && y > 10 && x < dX - 100 && y < dY - 300 ) ? ( gen() < CAConfig.generatorThreshold ? 1 : 0 ) : 0 );
+
+				initialData.push_back( gen() < CAConfig.generatorThreshold ? 1 : 0 );
 			}
 		}
 
