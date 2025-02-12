@@ -399,8 +399,8 @@ public:
 			// 	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
 			// }
 
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
 			glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &texOptsIn.borderColor[ 0 ] );
@@ -411,8 +411,8 @@ public:
 			break;
 
 		case GL_TEXTURE_2D_ARRAY:
-			glTexParameterf( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
-			glTexParameterf( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
+			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
+			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
 			glTexParameterfv( GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, &texOptsIn.borderColor[ 0 ] );
@@ -423,8 +423,8 @@ public:
 			break;
 
 		case GL_TEXTURE_3D:
-			glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
-			glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
+			glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, texOptsIn.minFilter );
+			glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, texOptsIn.magFilter );
 			glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, texOptsIn.wrap );
 			glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, texOptsIn.wrap );
 			glTexParameterfv( GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, &texOptsIn.borderColor[ 0 ] );
