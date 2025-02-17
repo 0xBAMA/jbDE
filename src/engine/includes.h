@@ -117,9 +117,6 @@ using XMLDocument = tinyxml2::XMLDocument;
 #include "../utils/happly/happly.h"
 
 //==== My Stuff ===============================================================
-// string insert thousands separator
-#include "../utils/thousands.h"
-
 // my fork of Alexander Sannikov's LegitProfiler
 #include "../utils/ImGUI/LegitProfiler/ImGuiProfilerRenderer.h"
 
