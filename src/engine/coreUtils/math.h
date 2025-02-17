@@ -16,6 +16,17 @@ inline float RangeRemap ( float value, float inLow, float inHigh, float outLow, 
 	return outLow + ( value - inLow ) * ( outHigh - outLow ) / ( inHigh - inLow );
 }
 
+inline std::string GetWithThousandsSeparator ( size_t value ) {
+	std::string s = std::to_string( value );
+	int n = s.length() - 3;
+	int end = ( value >= 0 ) ? 0 : 1; // Support for negative numbers
+	while ( n > end ) {
+		s.insert( n, "," );
+		n -= 3;
+	}
+	return s;
+}
+
 // fast integer power using a LUT - from https://gist.github.com/orlp/3551590
 inline int64_t intPow ( int64_t base, uint8_t exp ) {
 	static const uint8_t highest_bit_set[] = {
